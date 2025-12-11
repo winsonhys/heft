@@ -1,0 +1,52 @@
+syntax = "proto3";
+
+package heft.v1;
+
+import "google/protobuf/timestamp.proto";
+
+// Pagination request parameters
+message PaginationRequest {
+  int32 page = 1;
+  int32 page_size = 2;
+}
+
+// Pagination response metadata
+message PaginationResponse {
+  int32 page = 1;
+  int32 page_size = 2;
+  int32 total_count = 3;
+  int32 total_pages = 4;
+}
+
+// Exercise type enum matching database
+enum ExerciseType {
+  EXERCISE_TYPE_UNSPECIFIED = 0;
+  EXERCISE_TYPE_WEIGHT_REPS = 1;
+  EXERCISE_TYPE_BODYWEIGHT_REPS = 2;
+  EXERCISE_TYPE_TIME = 3;
+  EXERCISE_TYPE_DISTANCE = 4;
+  EXERCISE_TYPE_CARDIO = 5;
+}
+
+// Workout session status
+enum WorkoutStatus {
+  WORKOUT_STATUS_UNSPECIFIED = 0;
+  WORKOUT_STATUS_IN_PROGRESS = 1;
+  WORKOUT_STATUS_COMPLETED = 2;
+  WORKOUT_STATUS_ABANDONED = 3;
+}
+
+// Program day type
+enum ProgramDayType {
+  PROGRAM_DAY_TYPE_UNSPECIFIED = 0;
+  PROGRAM_DAY_TYPE_WORKOUT = 1;
+  PROGRAM_DAY_TYPE_REST = 2;
+  PROGRAM_DAY_TYPE_UNASSIGNED = 3;
+}
+
+// Section item type
+enum SectionItemType {
+  SECTION_ITEM_TYPE_UNSPECIFIED = 0;
+  SECTION_ITEM_TYPE_EXERCISE = 1;
+  SECTION_ITEM_TYPE_REST = 2;
+}

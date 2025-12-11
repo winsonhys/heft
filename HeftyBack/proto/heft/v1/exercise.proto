@@ -1,0 +1,99 @@
+syntax = "proto3";
+
+package heft.v1;
+
+import "google/protobuf/timestamp.proto";
+import "heft/v1/common.proto";
+
+// ExerciseService handles the exercise library
+service ExerciseService {
+  // List all exercises with optional filters
+  rpc ListExercises(ListExercisesRequest) returns (ListExercisesResponse);
+
+  // Get a single exercise by ID
+  rpc GetExercise(GetExerciseRequest) returns (GetExerciseResponse);
+
+  // Create a custom exercise
+  rpc CreateExercise(CreateExerciseRequest) returns (CreateExerciseResponse);
+
+  // List all exercise categories
+  rpc ListCategories(ListCategoriesRequest) returns (ListCategoriesResponse);
+
+  // Search exercises by name
+  rpc SearchExercises(SearchExercisesRequest) returns (SearchExercisesResponse);
+}
+
+// Exercise category
+message ExerciseCategory {
+  string id = 1;
+  string name = 2;
+  int32 display_order = 3;
+}
+
+// Exercise
+message Exercise {
+  string id = 1;
+  string name = 2;
+  string category_id = 3;
+  string category_name = 4;
+  ExerciseType exercise_type = 5;
+  string description = 6;
+  bool is_system = 7;
+  string created_by = 8;
+  google.protobuf.Timestamp created_at = 9;
+  google.protobuf.Timestamp updated_at = 10;
+}
+
+// ListExercises
+message ListExercisesRequest {
+  optional string category_id = 1;
+  optional ExerciseType exercise_type = 2;
+  optional bool system_only = 3;
+  optional string user_id = 4; // Include user's custom exercises
+  PaginationRequest pagination = 5;
+}
+
+message ListExercisesResponse {
+  repeated Exercise exercises = 1;
+  PaginationResponse pagination = 2;
+}
+
+// GetExercise
+message GetExerciseRequest {
+  string id = 1;
+}
+
+message GetExerciseResponse {
+  Exercise exercise = 1;
+}
+
+// CreateExercise
+message CreateExerciseRequest {
+  string user_id = 1;
+  string name = 2;
+  string category_id = 3;
+  ExerciseType exercise_type = 4;
+  optional string description = 5;
+}
+
+message CreateExerciseResponse {
+  Exercise exercise = 1;
+}
+
+// ListCategories
+message ListCategoriesRequest {}
+
+message ListCategoriesResponse {
+  repeated ExerciseCategory categories = 1;
+}
+
+// SearchExercises
+message SearchExercisesRequest {
+  string query = 1;
+  optional string user_id = 2; // Include user's custom exercises
+  optional int32 limit = 3;
+}
+
+message SearchExercisesResponse {
+  repeated Exercise exercises = 1;
+}

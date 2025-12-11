@@ -1,0 +1,166 @@
+syntax = "proto3";
+
+package heft.v1;
+
+import "google/protobuf/timestamp.proto";
+import "heft/v1/common.proto";
+
+// ProgressService handles analytics and progress tracking
+service ProgressService {
+  // Get dashboard stats
+  rpc GetDashboardStats(GetDashboardStatsRequest) returns (GetDashboardStatsResponse);
+
+  // Get weekly activity data
+  rpc GetWeeklyActivity(GetWeeklyActivityRequest) returns (GetWeeklyActivityResponse);
+
+  // Get personal records
+  rpc GetPersonalRecords(GetPersonalRecordsRequest) returns (GetPersonalRecordsResponse);
+
+  // Get exercise progress over time
+  rpc GetExerciseProgress(GetExerciseProgressRequest) returns (GetExerciseProgressResponse);
+
+  // Get calendar month data
+  rpc GetCalendarMonth(GetCalendarMonthRequest) returns (GetCalendarMonthResponse);
+
+  // Get current streak
+  rpc GetStreak(GetStreakRequest) returns (GetStreakResponse);
+}
+
+// Dashboard stats
+message DashboardStats {
+  int32 total_workouts = 1;
+  int32 workouts_this_week = 2;
+  int32 current_streak = 3;
+  int32 total_volume_kg = 4;
+  int32 days_active = 5;
+}
+
+// Weekly activity day
+message WeeklyActivityDay {
+  string date = 1; // YYYY-MM-DD
+  string day_of_week = 2;
+  int32 workout_count = 3;
+  bool is_today = 4;
+}
+
+// Personal record
+message PersonalRecord {
+  string id = 1;
+  string user_id = 2;
+  string exercise_id = 3;
+  string exercise_name = 4;
+  double weight_kg = 5;
+  int32 reps = 6;
+  int32 time_seconds = 7;
+  double one_rep_max_kg = 8;
+  double volume = 9;
+  string achieved_at = 10; // YYYY-MM-DD
+}
+
+// Exercise progress data point
+message ExerciseProgressPoint {
+  string date = 1; // YYYY-MM-DD
+  double best_weight_kg = 2;
+  int32 best_reps = 3;
+  int32 best_time_seconds = 4;
+  double total_volume_kg = 5;
+  int32 total_sets = 6;
+}
+
+// Exercise progress summary
+message ExerciseProgressSummary {
+  string exercise_id = 1;
+  string exercise_name = 2;
+  ExerciseType exercise_type = 3;
+  double starting_weight_kg = 4;
+  double current_weight_kg = 5;
+  double max_weight_kg = 6;
+  double improvement_percent = 7;
+  int32 total_sessions = 8;
+  repeated ExerciseProgressPoint data_points = 9;
+}
+
+// Calendar day
+message CalendarDay {
+  string date = 1; // YYYY-MM-DD
+  int32 workout_count = 2;
+  bool has_scheduled = 3;
+  bool is_rest_day = 4;
+  repeated CalendarEvent events = 5;
+}
+
+// Calendar event
+message CalendarEvent {
+  string id = 1;
+  string type = 2; // "workout", "rest", "program"
+  string name = 3;
+  bool is_completed = 4;
+  string completed_at = 5;
+  int32 duration_seconds = 6;
+}
+
+// GetDashboardStats
+message GetDashboardStatsRequest {
+  string user_id = 1;
+}
+
+message GetDashboardStatsResponse {
+  DashboardStats stats = 1;
+}
+
+// GetWeeklyActivity
+message GetWeeklyActivityRequest {
+  string user_id = 1;
+  optional string week_start = 2; // YYYY-MM-DD, defaults to current week
+}
+
+message GetWeeklyActivityResponse {
+  repeated WeeklyActivityDay days = 1;
+  int32 total_workouts = 2;
+}
+
+// GetPersonalRecords
+message GetPersonalRecordsRequest {
+  string user_id = 1;
+  optional int32 limit = 2;
+  optional string exercise_id = 3;
+}
+
+message GetPersonalRecordsResponse {
+  repeated PersonalRecord records = 1;
+}
+
+// GetExerciseProgress
+message GetExerciseProgressRequest {
+  string user_id = 1;
+  string exercise_id = 2;
+  optional int32 limit = 3; // Number of sessions to include
+}
+
+message GetExerciseProgressResponse {
+  ExerciseProgressSummary progress = 1;
+}
+
+// GetCalendarMonth
+message GetCalendarMonthRequest {
+  string user_id = 1;
+  int32 year = 2;
+  int32 month = 3; // 1-12
+}
+
+message GetCalendarMonthResponse {
+  repeated CalendarDay days = 1;
+  int32 total_workouts = 2;
+  int32 total_rest_days = 3;
+}
+
+// GetStreak
+message GetStreakRequest {
+  string user_id = 1;
+}
+
+message GetStreakResponse {
+  int32 current_streak = 1;
+  int32 longest_streak = 2;
+  string last_workout_date = 3; // YYYY-MM-DD
+}

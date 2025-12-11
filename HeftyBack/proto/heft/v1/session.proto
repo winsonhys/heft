@@ -1,0 +1,211 @@
+syntax = "proto3";
+
+package heft.v1;
+
+import "google/protobuf/timestamp.proto";
+import "heft/v1/common.proto";
+
+// SessionService handles live workout tracking
+service SessionService {
+  // Start a new workout session
+  rpc StartSession(StartSessionRequest) returns (StartSessionResponse);
+
+  // Get session details
+  rpc GetSession(GetSessionRequest) returns (GetSessionResponse);
+
+  // Mark a set as completed
+  rpc CompleteSet(CompleteSetRequest) returns (CompleteSetResponse);
+
+  // Update set values
+  rpc UpdateSet(UpdateSetRequest) returns (UpdateSetResponse);
+
+  // Add an exercise to the session
+  rpc AddExercise(AddExerciseRequest) returns (AddExerciseResponse);
+
+  // Finish the workout session
+  rpc FinishSession(FinishSessionRequest) returns (FinishSessionResponse);
+
+  // Abandon the workout session
+  rpc AbandonSession(AbandonSessionRequest) returns (AbandonSessionResponse);
+
+  // List recent sessions
+  rpc ListSessions(ListSessionsRequest) returns (ListSessionsResponse);
+}
+
+// Workout session
+message Session {
+  string id = 1;
+  string user_id = 2;
+  string workout_template_id = 3;
+  string program_id = 4;
+  int32 program_day_number = 5;
+  string name = 6;
+  WorkoutStatus status = 7;
+  google.protobuf.Timestamp started_at = 8;
+  google.protobuf.Timestamp completed_at = 9;
+  int32 duration_seconds = 10;
+  int32 total_sets = 11;
+  int32 completed_sets = 12;
+  string notes = 13;
+  repeated SessionExercise exercises = 14;
+  google.protobuf.Timestamp created_at = 15;
+  google.protobuf.Timestamp updated_at = 16;
+}
+
+// Session exercise
+message SessionExercise {
+  string id = 1;
+  string session_id = 2;
+  string exercise_id = 3;
+  string exercise_name = 4;
+  ExerciseType exercise_type = 5;
+  int32 display_order = 6;
+  string section_name = 7;
+  string notes = 8;
+  repeated SessionSet sets = 9;
+}
+
+// Session set
+message SessionSet {
+  string id = 1;
+  string session_exercise_id = 2;
+  int32 set_number = 3;
+
+  // Actual performance
+  optional double weight_kg = 4;
+  optional int32 reps = 5;
+  optional int32 time_seconds = 6;
+  optional double distance_m = 7;
+
+  bool is_bodyweight = 8;
+  bool is_completed = 9;
+  google.protobuf.Timestamp completed_at = 10;
+
+  // Targets (copied from template)
+  optional double target_weight_kg = 11;
+  optional int32 target_reps = 12;
+  optional int32 target_time_seconds = 13;
+
+  optional double rpe = 14;
+  string notes = 15;
+}
+
+// Session summary for lists
+message SessionSummary {
+  string id = 1;
+  string user_id = 2;
+  string name = 3;
+  WorkoutStatus status = 4;
+  google.protobuf.Timestamp started_at = 5;
+  google.protobuf.Timestamp completed_at = 6;
+  int32 duration_seconds = 7;
+  int32 total_sets = 8;
+  int32 completed_sets = 9;
+  string template_name = 10;
+}
+
+// StartSession
+message StartSessionRequest {
+  string user_id = 1;
+  optional string workout_template_id = 2;
+  optional string program_id = 3;
+  optional int32 program_day_number = 4;
+  optional string name = 5;
+}
+
+message StartSessionResponse {
+  Session session = 1;
+}
+
+// GetSession
+message GetSessionRequest {
+  string id = 1;
+  string user_id = 2;
+}
+
+message GetSessionResponse {
+  Session session = 1;
+}
+
+// CompleteSet
+message CompleteSetRequest {
+  string session_set_id = 1;
+  string user_id = 2;
+  optional double weight_kg = 3;
+  optional int32 reps = 4;
+  optional int32 time_seconds = 5;
+  optional double distance_m = 6;
+  optional double rpe = 7;
+  optional string notes = 8;
+}
+
+message CompleteSetResponse {
+  SessionSet set = 1;
+  bool is_personal_record = 2;
+}
+
+// UpdateSet
+message UpdateSetRequest {
+  string session_set_id = 1;
+  string user_id = 2;
+  optional double weight_kg = 3;
+  optional int32 reps = 4;
+  optional int32 time_seconds = 5;
+  optional double distance_m = 6;
+  optional bool is_completed = 7;
+  optional double rpe = 8;
+  optional string notes = 9;
+}
+
+message UpdateSetResponse {
+  SessionSet set = 1;
+}
+
+// AddExercise
+message AddExerciseRequest {
+  string session_id = 1;
+  string user_id = 2;
+  string exercise_id = 3;
+  int32 display_order = 4;
+  optional string section_name = 5;
+  int32 num_sets = 6;
+}
+
+message AddExerciseResponse {
+  SessionExercise exercise = 1;
+}
+
+// FinishSession
+message FinishSessionRequest {
+  string id = 1;
+  string user_id = 2;
+  optional string notes = 3;
+}
+
+message FinishSessionResponse {
+  Session session = 1;
+}
+
+// AbandonSession
+message AbandonSessionRequest {
+  string id = 1;
+  string user_id = 2;
+}
+
+message AbandonSessionResponse {
+  bool success = 1;
+}
+
+// ListSessions
+message ListSessionsRequest {
+  string user_id = 1;
+  optional WorkoutStatus status = 2;
+  optional string start_date = 3; // YYYY-MM-DD
+  optional string end_date = 4;   // YYYY-MM-DD
+  PaginationRequest pagination = 5;
+}
+
+message ListSessionsResponse {
+  repeated SessionSummary sessions = 1;
+  PaginationResponse pagination = 2;
+}

@@ -1,0 +1,167 @@
+syntax = "proto3";
+
+package heft.v1;
+
+import "google/protobuf/timestamp.proto";
+import "heft/v1/common.proto";
+import "heft/v1/workout.proto";
+
+// ProgramService handles training programs
+service ProgramService {
+  // List all programs for a user
+  rpc ListPrograms(ListProgramsRequest) returns (ListProgramsResponse);
+
+  // Get a single program with full details
+  rpc GetProgram(GetProgramRequest) returns (GetProgramResponse);
+
+  // Create a new program
+  rpc CreateProgram(CreateProgramRequest) returns (CreateProgramResponse);
+
+  // Update a program
+  rpc UpdateProgram(UpdateProgramRequest) returns (UpdateProgramResponse);
+
+  // Delete a program
+  rpc DeleteProgram(DeleteProgramRequest) returns (DeleteProgramResponse);
+
+  // Set a program as active (deactivates others)
+  rpc SetActiveProgram(SetActiveProgramRequest) returns (SetActiveProgramResponse);
+
+  // Get today's workout based on active program
+  rpc GetTodayWorkout(GetTodayWorkoutRequest) returns (GetTodayWorkoutResponse);
+}
+
+// Program summary
+message ProgramSummary {
+  string id = 1;
+  string user_id = 2;
+  string name = 3;
+  string description = 4;
+  int32 duration_weeks = 5;
+  int32 duration_days = 6;
+  int32 total_workout_days = 7;
+  int32 total_rest_days = 8;
+  bool is_active = 9;
+  bool is_archived = 10;
+  google.protobuf.Timestamp created_at = 11;
+  google.protobuf.Timestamp updated_at = 12;
+}
+
+// Program with full details
+message Program {
+  string id = 1;
+  string user_id = 2;
+  string name = 3;
+  string description = 4;
+  int32 duration_weeks = 5;
+  int32 duration_days = 6;
+  int32 total_workout_days = 7;
+  int32 total_rest_days = 8;
+  bool is_active = 9;
+  bool is_archived = 10;
+  repeated ProgramDay days = 11;
+  google.protobuf.Timestamp created_at = 12;
+  google.protobuf.Timestamp updated_at = 13;
+}
+
+// Program day
+message ProgramDay {
+  string id = 1;
+  string program_id = 2;
+  int32 day_number = 3;
+  ProgramDayType day_type = 4;
+  string workout_template_id = 5;
+  string workout_name = 6;
+  string custom_name = 7;
+}
+
+// ListPrograms
+message ListProgramsRequest {
+  string user_id = 1;
+  optional bool include_archived = 2;
+  PaginationRequest pagination = 3;
+}
+
+message ListProgramsResponse {
+  repeated ProgramSummary programs = 1;
+  PaginationResponse pagination = 2;
+}
+
+// GetProgram
+message GetProgramRequest {
+  string id = 1;
+  string user_id = 2;
+}
+
+message GetProgramResponse {
+  Program program = 1;
+}
+
+// CreateProgram
+message CreateProgramRequest {
+  string user_id = 1;
+  string name = 2;
+  optional string description = 3;
+  int32 duration_weeks = 4;
+  int32 duration_days = 5;
+  repeated CreateProgramDay days = 6;
+}
+
+message CreateProgramDay {
+  int32 day_number = 1;
+  ProgramDayType day_type = 2;
+  optional string workout_template_id = 3;
+  optional string custom_name = 4;
+}
+
+message CreateProgramResponse {
+  Program program = 1;
+}
+
+// UpdateProgram
+message UpdateProgramRequest {
+  string id = 1;
+  string user_id = 2;
+  optional string name = 3;
+  optional string description = 4;
+  optional int32 duration_weeks = 5;
+  optional int32 duration_days = 6;
+  optional bool is_archived = 7;
+  repeated CreateProgramDay days = 8;
+}
+
+message UpdateProgramResponse {
+  Program program = 1;
+}
+
+// DeleteProgram
+message DeleteProgramRequest {
+  string id = 1;
+  string user_id = 2;
+}
+
+message DeleteProgramResponse {
+  bool success = 1;
+}
+
+// SetActiveProgram
+message SetActiveProgramRequest {
+  string id = 1;
+  string user_id = 2;
+}
+
+message SetActiveProgramResponse {
+  Program program = 1;
+}
+
+// GetTodayWorkout
+message GetTodayWorkoutRequest {
+  string user_id = 1;
+}
+
+message GetTodayWorkoutResponse {
+  bool has_workout = 1;
+  int32 day_number = 2;
+  ProgramDayType day_type = 3;
+  Workout workout = 4;
+  Program program = 5;
+}

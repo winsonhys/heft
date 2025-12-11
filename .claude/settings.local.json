@@ -1,0 +1,40 @@
+{
+  "permissions": {
+    "allow": [
+      "WebSearch",
+      "WebFetch(domain:connectrpc.com)",
+      "WebFetch(domain:github.com)",
+      "Bash(go mod tidy:*)",
+      "Bash(go version:*)",
+      "Bash(brew install:*)",
+      "Bash(buf generate:*)",
+      "Bash(go build:*)",
+      "Bash(tree:*)",
+      "Bash(go get:*)",
+      "Bash(go test:*)",
+      "Bash(make test-unit:*)",
+      "Bash(make test-integration:*)",
+      "Bash(docker compose:*)",
+      "Bash(go doc:*)",
+      "Bash(grep:*)",
+      "Bash(cat:*)",
+      "Bash(wc:*)",
+      "Bash(find:*)",
+      "Bash(chmod:*)",
+      "Bash(flutter pub get:*)",
+      "Bash(flutter analyze:*)",
+      "Bash(make:*)",
+      "Bash(lsof:*)",
+      "Bash(docker stop:*)",
+      "Bash(docker rm:*)",
+      "Bash(kill:*)",
+      "Bash(flutter test:*)",
+      "Bash(docker logs:*)",
+      "Bash(docker exec:*)",
+      "Bash(curl:*)",
+      "Bash(./scripts/run_integration_tests.sh:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

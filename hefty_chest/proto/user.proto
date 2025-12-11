@@ -1,0 +1,121 @@
+syntax = "proto3";
+
+package heft.v1;
+
+import "google/protobuf/timestamp.proto";
+import "common.proto";
+
+// UserService handles user profiles, settings, and weight tracking
+service UserService {
+  // Get user profile
+  rpc GetProfile(GetProfileRequest) returns (GetProfileResponse);
+
+  // Update user profile
+  rpc UpdateProfile(UpdateProfileRequest) returns (UpdateProfileResponse);
+
+  // Update user settings
+  rpc UpdateSettings(UpdateSettingsRequest) returns (UpdateSettingsResponse);
+
+  // Log body weight
+  rpc LogWeight(LogWeightRequest) returns (LogWeightResponse);
+
+  // Get weight history
+  rpc GetWeightHistory(GetWeightHistoryRequest) returns (GetWeightHistoryResponse);
+
+  // Delete a weight log entry
+  rpc DeleteWeightLog(DeleteWeightLogRequest) returns (DeleteWeightLogResponse);
+}
+
+// User profile
+message User {
+  string id = 1;
+  string email = 2;
+  string display_name = 3;
+  string avatar_url = 4;
+  bool use_pounds = 5;
+  int32 rest_timer_seconds = 6;
+  google.protobuf.Timestamp member_since = 7;
+  google.protobuf.Timestamp created_at = 8;
+  google.protobuf.Timestamp updated_at = 9;
+}
+
+// Weight log entry
+message WeightLog {
+  string id = 1;
+  string user_id = 2;
+  double weight_kg = 3;
+  string logged_date = 4; // YYYY-MM-DD format
+  string notes = 5;
+  google.protobuf.Timestamp created_at = 6;
+}
+
+// User settings
+message UserSettings {
+  bool use_pounds = 1;
+  int32 rest_timer_seconds = 2;
+}
+
+// GetProfile
+message GetProfileRequest {
+  string user_id = 1;
+}
+
+message GetProfileResponse {
+  User user = 1;
+}
+
+// UpdateProfile
+message UpdateProfileRequest {
+  string user_id = 1;
+  optional string display_name = 2;
+  optional string avatar_url = 3;
+}
+
+message UpdateProfileResponse {
+  User user = 1;
+}
+
+// UpdateSettings
+message UpdateSettingsRequest {
+  string user_id = 1;
+  optional bool use_pounds = 2;
+  optional int32 rest_timer_seconds = 3;
+}
+
+message UpdateSettingsResponse {
+  User user = 1;
+}
+
+// LogWeight
+message LogWeightRequest {
+  string user_id = 1;
+  double weight_kg = 2;
+  string logged_date = 3; // YYYY-MM-DD format
+  optional string notes = 4;
+}
+
+message LogWeightResponse {
+  WeightLog weight_log = 1;
+}
+
+// GetWeightHistory
+message GetWeightHistoryRequest {
+  string user_id = 1;
+  optional string start_date = 2; // YYYY-MM-DD
+  optional string end_date = 3;   // YYYY-MM-DD
+  optional int32 limit = 4;
+}
+
+message GetWeightHistoryResponse {
+  repeated WeightLog weight_logs = 1;
+}
+
+// DeleteWeightLog
+message DeleteWeightLogRequest {
+  string id = 1;
+  string user_id = 2;
+}
+
+message DeleteWeightLogResponse {
+  bool success = 1;
+}

@@ -1,0 +1,191 @@
+syntax = "proto3";
+
+package heft.v1;
+
+import "google/protobuf/timestamp.proto";
+import "common.proto";
+
+// WorkoutService handles workout templates
+service WorkoutService {
+  // List all workout templates for a user
+  rpc ListWorkouts(ListWorkoutsRequest) returns (ListWorkoutsResponse);
+
+  // Get a single workout template with full details
+  rpc GetWorkout(GetWorkoutRequest) returns (GetWorkoutResponse);
+
+  // Create a new workout template
+  rpc CreateWorkout(CreateWorkoutRequest) returns (CreateWorkoutResponse);
+
+  // Update a workout template
+  rpc UpdateWorkout(UpdateWorkoutRequest) returns (UpdateWorkoutResponse);
+
+  // Delete a workout template
+  rpc DeleteWorkout(DeleteWorkoutRequest) returns (DeleteWorkoutResponse);
+
+  // Duplicate a workout template
+  rpc DuplicateWorkout(DuplicateWorkoutRequest) returns (DuplicateWorkoutResponse);
+}
+
+// Workout template (summary)
+message WorkoutSummary {
+  string id = 1;
+  string user_id = 2;
+  string name = 3;
+  string description = 4;
+  int32 total_exercises = 5;
+  int32 total_sets = 6;
+  int32 estimated_duration_minutes = 7;
+  bool is_archived = 8;
+  google.protobuf.Timestamp created_at = 9;
+  google.protobuf.Timestamp updated_at = 10;
+}
+
+// Workout template (full details)
+message Workout {
+  string id = 1;
+  string user_id = 2;
+  string name = 3;
+  string description = 4;
+  int32 total_exercises = 5;
+  int32 total_sets = 6;
+  int32 estimated_duration_minutes = 7;
+  bool is_archived = 8;
+  repeated WorkoutSection sections = 9;
+  google.protobuf.Timestamp created_at = 10;
+  google.protobuf.Timestamp updated_at = 11;
+}
+
+// Workout section
+message WorkoutSection {
+  string id = 1;
+  string workout_template_id = 2;
+  string name = 3;
+  int32 display_order = 4;
+  bool is_superset = 5;
+  repeated SectionItem items = 6;
+}
+
+// Section item (exercise or rest)
+message SectionItem {
+  string id = 1;
+  string section_id = 2;
+  SectionItemType item_type = 3;
+  int32 display_order = 4;
+
+  // For exercise items
+  string exercise_id = 5;
+  string exercise_name = 6;
+  ExerciseType exercise_type = 7;
+  repeated TargetSet target_sets = 8;
+
+  // For rest items
+  int32 rest_duration_seconds = 9;
+}
+
+// Target set for exercise
+message TargetSet {
+  string id = 1;
+  string section_item_id = 2;
+  int32 set_number = 3;
+  optional double target_weight_kg = 4;
+  optional int32 target_reps = 5;
+  optional int32 target_time_seconds = 6;
+  optional double target_distance_m = 7;
+  bool is_bodyweight = 8;
+  string notes = 9;
+}
+
+// ListWorkouts
+message ListWorkoutsRequest {
+  string user_id = 1;
+  optional bool include_archived = 2;
+  PaginationRequest pagination = 3;
+}
+
+message ListWorkoutsResponse {
+  repeated WorkoutSummary workouts = 1;
+  PaginationResponse pagination = 2;
+}
+
+// GetWorkout
+message GetWorkoutRequest {
+  string id = 1;
+  string user_id = 2;
+}
+
+message GetWorkoutResponse {
+  Workout workout = 1;
+}
+
+// CreateWorkout
+message CreateWorkoutRequest {
+  string user_id = 1;
+  string name = 2;
+  optional string description = 3;
+  repeated CreateWorkoutSection sections = 4;
+}
+
+message CreateWorkoutSection {
+  string name = 1;
+  int32 display_order = 2;
+  bool is_superset = 3;
+  repeated CreateSectionItem items = 4;
+}
+
+message CreateSectionItem {
+  SectionItemType item_type = 1;
+  int32 display_order = 2;
+  optional string exercise_id = 3;
+  optional int32 rest_duration_seconds = 4;
+  repeated CreateTargetSet target_sets = 5;
+}
+
+message CreateTargetSet {
+  int32 set_number = 1;
+  optional double target_weight_kg = 2;
+  optional int32 target_reps = 3;
+  optional int32 target_time_seconds = 4;
+  optional double target_distance_m = 5;
+  bool is_bodyweight = 6;
+  optional string notes = 7;
+}
+
+message CreateWorkoutResponse {
+  Workout workout = 1;
+}
+
+// UpdateWorkout
+message UpdateWorkoutRequest {
+  string id = 1;
+  string user_id = 2;
+  optional string name = 3;
+  optional string description = 4;
+  optional bool is_archived = 5;
+  // For full update, include sections
+  repeated CreateWorkoutSection sections = 6;
+}
+
+message UpdateWorkoutResponse {
+  Workout workout = 1;
+}
+
+// DeleteWorkout
+message DeleteWorkoutRequest {
+  string id = 1;
+  string user_id = 2;
+}
+
+message DeleteWorkoutResponse {
+  bool success = 1;
+}
+
+// DuplicateWorkout
+message DuplicateWorkoutRequest {
+  string id = 1;
+  string user_id = 2;
+  optional string new_name = 3;
+}
+
+message DuplicateWorkoutResponse {
+  Workout workout = 1;
+}
