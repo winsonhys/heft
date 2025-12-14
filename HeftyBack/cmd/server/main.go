@@ -158,7 +158,7 @@ func main() {
 	// Create server with h2c (HTTP/2 cleartext) support
 	addr := fmt.Sprintf(":%s", cfg.Port)
 	rootHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.URL.Path == "/health" {
+		if r.URL.Path == "/" || r.URL.Path == "/health" {
 			healthHandler.ServeHTTP(w, r)
 			return
 		}
