@@ -161,7 +161,7 @@ func main() {
 	rootHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
 		// Check for health path (handle both /health and /health/)
-		if r.URL.Path == "/" || r.URL.Path == "/health" || r.URL.Path == "/health/" {
+		if r.URL.Path == "/" || r.URL.Path == "/health" || r.URL.Path == "/health/" || r.URL.Path == "/ping" {
 			healthHandler.ServeHTTP(w, r)
 			return
 		}
