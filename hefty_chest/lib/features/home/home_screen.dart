@@ -29,6 +29,54 @@ class HomeScreen extends ConsumerWidget {
     }
   }
 
+  Future<void> _confirmDelete(
+    BuildContext context,
+    WidgetRef ref,
+    dynamic workout,
+  ) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: AppColors.bgCard,
+        title: const Text(
+          'Delete Workout',
+          style: TextStyle(color: AppColors.textPrimary),
+        ),
+        content: Text(
+          'Are you sure you want to delete "${workout.name}"? This action cannot be undone.',
+          style: const TextStyle(color: AppColors.textSecondary),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: TextButton.styleFrom(foregroundColor: AppColors.accentRed),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true && context.mounted) {
+      try {
+        await deleteWorkout(workout.id);
+        ref.invalidate(workoutListProvider);
+      } catch (e) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Failed to delete workout: $e'),
+              backgroundColor: AppColors.accentRed,
+            ),
+          );
+        }
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final workoutsAsync = ref.watch(workoutListProvider);
@@ -96,6 +144,7 @@ class HomeScreen extends ConsumerWidget {
                         workout: workout,
                         onStart: () => context.goNewSession(workoutId: workout.id),
                         onEdit: () => context.goEditWorkout(workoutId: workout.id),
+                        onDelete: () => _confirmDelete(context, ref, workout),
                       );
                     },
                   );

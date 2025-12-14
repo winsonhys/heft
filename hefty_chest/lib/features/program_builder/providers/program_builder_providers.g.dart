@@ -44,7 +44,7 @@ final class ProgramBuilderProvider
   }
 }
 
-String _$programBuilderHash() => r'70f72ca6acaf299212414bd70bde237fa30e551c';
+String _$programBuilderHash() => r'6b55b74d67491f8ab036de6a08a0c65b0647aae6';
 
 /// Program builder state notifier
 

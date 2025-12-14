@@ -8,12 +8,14 @@ class WorkoutCard extends StatelessWidget {
   final WorkoutSummary workout;
   final VoidCallback onStart;
   final VoidCallback onEdit;
+  final VoidCallback onDelete;
 
   const WorkoutCard({
     super.key,
     required this.workout,
     required this.onStart,
     required this.onEdit,
+    required this.onDelete,
   });
 
   @override
@@ -165,7 +167,7 @@ class WorkoutCard extends StatelessWidget {
               isDestructive: true,
               onTap: () {
                 Navigator.pop(context);
-                // TODO: Delete workout
+                onDelete();
               },
             ),
             const SizedBox(height: 16),

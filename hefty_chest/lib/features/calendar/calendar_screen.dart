@@ -136,14 +136,42 @@ class CalendarScreen extends ConsumerWidget {
           bottom: BorderSide(color: AppColors.borderColor, width: 1),
         ),
       ),
-      child: const Row(
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(
+          const Text(
             'Calendar',
             style: TextStyle(
               fontSize: 22,
               fontWeight: FontWeight.w700,
               color: AppColors.textPrimary,
+            ),
+          ),
+          Builder(
+            builder: (context) => GestureDetector(
+              onTap: () => context.goProgramBuilder(),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: AppColors.accentBlue,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.add, size: 16, color: Colors.white),
+                    SizedBox(width: 4),
+                    Text(
+                      'Program',
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ),
           ),
         ],

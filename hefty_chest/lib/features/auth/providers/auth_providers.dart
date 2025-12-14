@@ -2,6 +2,10 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../core/client.dart';
+import '../../home/providers/home_providers.dart';
+import '../../profile/providers/profile_providers.dart';
+import '../../progress/providers/progress_providers.dart';
+import '../../tracker/providers/session_providers.dart';
 
 part 'auth_providers.g.dart';
 
@@ -98,6 +102,15 @@ class Auth extends _$Auth {
     await prefs.remove(_tokenKey);
     await prefs.remove(_userIdKey);
     state = const AuthState();
+
+    // Clear all user-specific cached data
+    ref.invalidate(workoutListProvider);
+    ref.invalidate(dashboardStatsProvider);
+    ref.invalidate(userProfileProvider);
+    ref.invalidate(progressStatsProvider);
+    ref.invalidate(weeklyActivityProvider);
+    ref.invalidate(personalRecordsProvider);
+    ref.invalidate(hasActiveSessionProvider);
   }
 }
 

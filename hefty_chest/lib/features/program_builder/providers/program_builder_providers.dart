@@ -1,6 +1,7 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../core/client.dart';
+import '../../home/providers/home_providers.dart';
 
 part 'program_builder_providers.g.dart';
 
@@ -233,6 +234,10 @@ class ProgramBuilder extends _$ProgramBuilder {
 
         await programClient.createProgram(request);
       }
+
+      // Invalidate related providers
+      ref.invalidate(workoutsForProgramProvider);
+      ref.invalidate(dashboardStatsProvider);
 
       state = state.copyWith(isLoading: false);
       return true;

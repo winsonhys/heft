@@ -1,6 +1,8 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../core/client.dart';
+import '../../home/providers/home_providers.dart';
+import '../../progress/providers/progress_providers.dart';
 
 part 'session_providers.g.dart';
 
@@ -71,6 +73,11 @@ class ActiveSession extends _$ActiveSession {
         await loadSession(sessionId: currentSession.id);
       }
 
+      // If PR achieved, invalidate personal records provider
+      if (response.isPersonalRecord) {
+        ref.invalidate(personalRecordsProvider);
+      }
+
       return response.isPersonalRecord;
     } catch (e) {
       return false;
@@ -119,6 +126,13 @@ class ActiveSession extends _$ActiveSession {
 
       await sessionClient.finishSession(request);
       state = const AsyncValue.data(null);
+
+      // Invalidate progress providers so stats update
+      ref.invalidate(progressStatsProvider);
+      ref.invalidate(weeklyActivityProvider);
+      ref.invalidate(personalRecordsProvider);
+      ref.invalidate(dashboardStatsProvider);
+      ref.invalidate(hasActiveSessionProvider);
     } catch (e, st) {
       state = AsyncValue.error(e, st);
     }
@@ -134,6 +148,9 @@ class ActiveSession extends _$ActiveSession {
 
       await sessionClient.abandonSession(request);
       state = const AsyncValue.data(null);
+
+      // Invalidate active session check
+      ref.invalidate(hasActiveSessionProvider);
     } catch (e, st) {
       state = AsyncValue.error(e, st);
     }

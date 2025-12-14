@@ -27,3 +27,9 @@ Future<Workout> workoutDetail(Ref ref, String workoutId) async {
   final response = await workoutClient.getWorkout(request);
   return response.workout;
 }
+
+/// Delete a workout by ID
+Future<void> deleteWorkout(String workoutId) async {
+  final request = DeleteWorkoutRequest()..id = workoutId;
+  await workoutClient.deleteWorkout(request);
+}

@@ -2,6 +2,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../../core/client.dart';
+import '../../home/providers/home_providers.dart';
 
 part 'workout_builder_providers.g.dart';
 
@@ -472,6 +473,12 @@ class WorkoutBuilder extends _$WorkoutBuilder {
           ..sections.addAll(createSections);
 
         await workoutClient.createWorkout(request);
+      }
+
+      // Invalidate workout list so home screen refreshes with new/updated workout
+      ref.invalidate(workoutListProvider);
+      if (state.id != null) {
+        ref.invalidate(workoutDetailProvider(state.id!));
       }
 
       state = state.copyWith(isLoading: false);

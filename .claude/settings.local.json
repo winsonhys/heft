@@ -41,7 +41,13 @@
       "Bash(open:*)",
       "Bash(docker info:*)",
       "Bash(xargs:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(PGPASSWORD='SaviorOfSong1!' psql \"postgresql://postgres.kmsngqbysqbsubexhwff@aws-1-ap-southeast-1.pooler.supabase.com:5432/postgres\" -c \"\n-- Delete in order respecting foreign keys\nTRUNCATE TABLE \n    exercise_history,\n    personal_records,\n    session_sets,\n    session_exercises,\n    workout_sessions,\n    program_days,\n    programs,\n    exercise_target_sets,\n    section_items,\n    workout_sections,\n    workout_templates,\n    weight_logs,\n    users\nCASCADE;\n\n-- Delete custom exercises (keep system ones)\nDELETE FROM exercises WHERE is_system = FALSE;\n\")",
+      "Bash(PGPASSWORD='SaviorOfSong1!' psql \"postgresql://postgres.kmsngqbysqbsubexhwff@aws-1-ap-southeast-1.pooler.supabase.com:5432/postgres\" -c \"SELECT COUNT(*) as count, is_system FROM exercises GROUP BY is_system;\")",
+      "Bash(PGPASSWORD='SaviorOfSong1!' psql \"postgresql://postgres:SaviorOfSong1!@db.kmsngqbysqbsubexhwff.supabase.co:5432/postgres\" -c \"SELECT COUNT(*) as count, is_system FROM exercises GROUP BY is_system;\")",
+      "Bash(source .env)",
+      "Bash(goose:*)"
     ],
     "deny": [],
     "ask": []
