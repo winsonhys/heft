@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:go_router/go_router.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 import '../../shared/theme/app_colors.dart';
 import '../../gen/session.pb.dart';
@@ -10,7 +11,7 @@ import 'widgets/exercise_card.dart';
 import 'widgets/rest_timer_sheet.dart';
 
 /// Tracker screen for active workout session
-class TrackerScreen extends ConsumerStatefulWidget {
+class TrackerScreen extends HookConsumerWidget {
   final String? workoutTemplateId;
   final String? sessionId;
 
@@ -21,85 +22,77 @@ class TrackerScreen extends ConsumerStatefulWidget {
   });
 
   @override
-  ConsumerState<TrackerScreen> createState() => _TrackerScreenState();
-}
+  Widget build(BuildContext context, WidgetRef ref) {
+    final isLoading = useState(true);
+    final showRestTimer = useState(false);
+    final restTimeRemaining = useState(120);
+    final nextExerciseName = useState('');
+    final nextSetNumber = useState(1);
 
-class _TrackerScreenState extends ConsumerState<TrackerScreen> {
-  bool _isLoading = true;
-  bool _showRestTimer = false;
-  final int _restTimeRemaining = 120;
-  final String _nextExerciseName = '';
-  final int _nextSetNumber = 1;
+    final sessionAsync = ref.watch(activeSessionProvider);
 
-  @override
-  void initState() {
-    super.initState();
-    _initSession();
-  }
+    // Initialize session on mount
+    useEffect(() {
+      Future<void> initSession() async {
+        final notifier = ref.read(activeSessionProvider.notifier);
 
-  Future<void> _initSession() async {
-    final notifier = ref.read(activeSessionProvider.notifier);
+        if (sessionId != null) {
+          // Resume existing session
+          await notifier.loadSession(sessionId: sessionId!);
+        } else if (workoutTemplateId != null) {
+          // Start new session
+          await notifier.startSession(workoutTemplateId: workoutTemplateId!);
+        }
 
-    if (widget.sessionId != null) {
-      // Resume existing session
-      await notifier.loadSession(sessionId: widget.sessionId!);
-    } else if (widget.workoutTemplateId != null) {
-      // Start new session
-      await notifier.startSession(workoutTemplateId: widget.workoutTemplateId!);
+        isLoading.value = false;
+      }
+      initSession();
+      return null;
+    }, [sessionId, workoutTemplateId]);
+
+    void hideRestTimer() {
+      showRestTimer.value = false;
     }
 
-    if (mounted) {
-      setState(() => _isLoading = false);
-    }
-  }
-
-  void _hideRestTimer() {
-    setState(() => _showRestTimer = false);
-  }
-
-  Future<void> _finishWorkout() async {
-    final confirm = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: AppColors.bgCard,
-        title: const Text(
-          'Finish Workout?',
-          style: TextStyle(color: AppColors.textPrimary),
-        ),
-        content: const Text(
-          'Are you sure you want to finish this workout?',
-          style: TextStyle(color: AppColors.textSecondary),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text(
-              'Cancel',
-              style: TextStyle(color: AppColors.textSecondary),
-            ),
+    Future<void> finishWorkout() async {
+      final confirm = await showDialog<bool>(
+        context: context,
+        builder: (context) => AlertDialog(
+          backgroundColor: AppColors.bgCard,
+          title: const Text(
+            'Finish Workout?',
+            style: TextStyle(color: AppColors.textPrimary),
           ),
-          ElevatedButton(
-            onPressed: () => Navigator.pop(context, true),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.accentGreen,
-            ),
-            child: const Text('Finish'),
+          content: const Text(
+            'Are you sure you want to finish this workout?',
+            style: TextStyle(color: AppColors.textSecondary),
           ),
-        ],
-      ),
-    );
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text(
+                'Cancel',
+                style: TextStyle(color: AppColors.textSecondary),
+              ),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.pop(context, true),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.accentGreen,
+              ),
+              child: const Text('Finish'),
+            ),
+          ],
+        ),
+      );
 
-    if (confirm == true && mounted) {
-      await ref.read(activeSessionProvider.notifier).finishSession();
-      if (mounted) {
-        context.go('/');
+      if (confirm == true && context.mounted) {
+        await ref.read(activeSessionProvider.notifier).finishSession();
+        if (context.mounted) {
+          context.go('/');
+        }
       }
     }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final sessionAsync = ref.watch(activeSessionProvider);
 
     return Scaffold(
       backgroundColor: AppColors.bgPrimary,
@@ -109,11 +102,11 @@ class _TrackerScreenState extends ConsumerState<TrackerScreen> {
             Column(
               children: [
                 // Header
-                _buildHeader(),
+                _buildHeader(context, finishWorkout),
 
                 // Content
                 Expanded(
-                  child: _isLoading
+                  child: isLoading.value
                       ? const Center(
                           child: CircularProgressIndicator(
                             color: AppColors.accentBlue,
@@ -122,9 +115,9 @@ class _TrackerScreenState extends ConsumerState<TrackerScreen> {
                       : sessionAsync.when(
                           data: (session) {
                             if (session == null) {
-                              return _buildNoSession();
+                              return _buildNoSession(context);
                             }
-                            return _buildSessionContent(session);
+                            return _buildSessionContent(context, ref, session);
                           },
                           loading: () => const Center(
                             child: CircularProgressIndicator(
@@ -150,7 +143,10 @@ class _TrackerScreenState extends ConsumerState<TrackerScreen> {
                                 ),
                                 const SizedBox(height: 8),
                                 TextButton(
-                                  onPressed: _initSession,
+                                  onPressed: () {
+                                    isLoading.value = true;
+                                    // Re-trigger init
+                                  },
                                   child: const Text(
                                     'Retry',
                                     style: TextStyle(color: AppColors.accentBlue),
@@ -165,13 +161,13 @@ class _TrackerScreenState extends ConsumerState<TrackerScreen> {
             ),
 
             // Rest Timer Bottom Sheet
-            if (_showRestTimer)
+            if (showRestTimer.value)
               RestTimerSheet(
-                initialTime: _restTimeRemaining,
-                nextExerciseName: _nextExerciseName,
-                nextSetNumber: _nextSetNumber,
-                onSkip: _hideRestTimer,
-                onComplete: _hideRestTimer,
+                initialTime: restTimeRemaining.value,
+                nextExerciseName: nextExerciseName.value,
+                nextSetNumber: nextSetNumber.value,
+                onSkip: hideRestTimer,
+                onComplete: hideRestTimer,
               ),
           ],
         ),
@@ -179,7 +175,7 @@ class _TrackerScreenState extends ConsumerState<TrackerScreen> {
     );
   }
 
-  Widget _buildHeader() {
+  Widget _buildHeader(BuildContext context, VoidCallback onFinish) {
     return Container(
       padding: const EdgeInsets.all(12),
       child: Row(
@@ -205,7 +201,7 @@ class _TrackerScreenState extends ConsumerState<TrackerScreen> {
             ),
           ),
           GestureDetector(
-            onTap: _finishWorkout,
+            onTap: onFinish,
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               decoration: BoxDecoration(
@@ -227,7 +223,7 @@ class _TrackerScreenState extends ConsumerState<TrackerScreen> {
     );
   }
 
-  Widget _buildNoSession() {
+  Widget _buildNoSession(BuildContext context) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -259,7 +255,7 @@ class _TrackerScreenState extends ConsumerState<TrackerScreen> {
     );
   }
 
-  Widget _buildSessionContent(Session session) {
+  Widget _buildSessionContent(BuildContext context, WidgetRef ref, Session session) {
     final completedSets = session.completedSets;
     final totalSets = session.totalSets;
     final progress = totalSets > 0 ? completedSets / totalSets : 0.0;
@@ -335,7 +331,7 @@ class _TrackerScreenState extends ConsumerState<TrackerScreen> {
                                     reps: reps,
                                     timeSeconds: timeSeconds,
                                   );
-                              if (isPR && mounted) {
+                              if (isPR && context.mounted) {
                                 scaffoldMessenger.showSnackBar(
                                   const SnackBar(
                                     content: Text('New Personal Record! 🎉'),
@@ -363,7 +359,7 @@ class _TrackerScreenState extends ConsumerState<TrackerScreen> {
                                 reps: reps,
                                 timeSeconds: timeSeconds,
                               );
-                          if (isPR && mounted) {
+                          if (isPR && context.mounted) {
                             scaffoldMessenger.showSnackBar(
                               const SnackBar(
                                 content: Text('New Personal Record! 🎉'),

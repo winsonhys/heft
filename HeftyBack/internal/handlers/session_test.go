@@ -9,6 +9,7 @@ import (
 	"connectrpc.com/connect"
 
 	heftv1 "github.com/heftyback/gen/heft/v1"
+	"github.com/heftyback/internal/auth"
 	"github.com/heftyback/internal/handlers"
 	"github.com/heftyback/internal/repository"
 	"github.com/heftyback/internal/testutil"
@@ -21,6 +22,8 @@ func TestSessionHandler_StartSession(t *testing.T) {
 
 	tests := []struct {
 		name          string
+		userID        string
+		withAuth      bool
 		request       *heftv1.StartSessionRequest
 		mockSetup     func(*testutil.MockSessionRepository, *testutil.MockWorkoutRepository)
 		wantErr       bool
@@ -28,10 +31,10 @@ func TestSessionHandler_StartSession(t *testing.T) {
 		checkResponse func(*testing.T, *heftv1.StartSessionResponse)
 	}{
 		{
-			name: "success - create empty session",
-			request: &heftv1.StartSessionRequest{
-				UserId: "user-123",
-			},
+			name:     "success - create empty session",
+			userID:   "user-123",
+			withAuth: true,
+			request:  &heftv1.StartSessionRequest{},
 			mockSetup: func(sr *testutil.MockSessionRepository, wr *testutil.MockWorkoutRepository) {
 				now := time.Now()
 				sr.CreateFunc = func(ctx context.Context, userID string, workoutTemplateID, programID *string, programDayNumber *int, name *string) (*repository.WorkoutSession, error) {
@@ -70,19 +73,19 @@ func TestSessionHandler_StartSession(t *testing.T) {
 			},
 		},
 		{
-			name: "error - missing user_id",
-			request: &heftv1.StartSessionRequest{
-				UserId: "",
-			},
+			name:        "error - not authenticated",
+			userID:      "",
+			withAuth:    false,
+			request:     &heftv1.StartSessionRequest{},
 			mockSetup:   func(sr *testutil.MockSessionRepository, wr *testutil.MockWorkoutRepository) {},
 			wantErr:     true,
-			wantErrCode: connect.CodeInvalidArgument,
+			wantErrCode: connect.CodeUnauthenticated,
 		},
 		{
-			name: "error - database error",
-			request: &heftv1.StartSessionRequest{
-				UserId: "user-123",
-			},
+			name:     "error - database error",
+			userID:   "user-123",
+			withAuth: true,
+			request:  &heftv1.StartSessionRequest{},
 			mockSetup: func(sr *testutil.MockSessionRepository, wr *testutil.MockWorkoutRepository) {
 				sr.CreateFunc = func(ctx context.Context, userID string, workoutTemplateID, programID *string, programDayNumber *int, name *string) (*repository.WorkoutSession, error) {
 					return nil, errors.New("database error")
@@ -101,7 +104,12 @@ func TestSessionHandler_StartSession(t *testing.T) {
 
 			handler := handlers.NewSessionHandler(mockSessionRepo, mockWorkoutRepo)
 
-			resp, err := handler.StartSession(context.Background(), connect.NewRequest(tt.request))
+			ctx := context.Background()
+			if tt.withAuth {
+				ctx = auth.ContextWithUserID(ctx, tt.userID)
+			}
+
+			resp, err := handler.StartSession(ctx, connect.NewRequest(tt.request))
 
 			if tt.wantErr {
 				if err == nil {
@@ -134,6 +142,8 @@ func TestSessionHandler_GetSession(t *testing.T) {
 
 	tests := []struct {
 		name          string
+		userID        string
+		withAuth      bool
 		request       *heftv1.GetSessionRequest
 		mockSetup     func(*testutil.MockSessionRepository)
 		wantErr       bool
@@ -141,10 +151,11 @@ func TestSessionHandler_GetSession(t *testing.T) {
 		checkResponse func(*testing.T, *heftv1.GetSessionResponse)
 	}{
 		{
-			name: "success - session found",
+			name:     "success - session found",
+			userID:   "user-123",
+			withAuth: true,
 			request: &heftv1.GetSessionRequest{
-				Id:     "session-123",
-				UserId: "user-123",
+				Id: "session-123",
 			},
 			mockSetup: func(sr *testutil.MockSessionRepository) {
 				now := time.Now()
@@ -171,30 +182,33 @@ func TestSessionHandler_GetSession(t *testing.T) {
 			},
 		},
 		{
-			name: "error - missing id",
+			name:     "error - missing id",
+			userID:   "user-123",
+			withAuth: true,
 			request: &heftv1.GetSessionRequest{
-				Id:     "",
-				UserId: "user-123",
+				Id: "",
 			},
 			mockSetup:   func(sr *testutil.MockSessionRepository) {},
 			wantErr:     true,
 			wantErrCode: connect.CodeInvalidArgument,
 		},
 		{
-			name: "error - missing user_id",
+			name:     "error - not authenticated",
+			userID:   "",
+			withAuth: false,
 			request: &heftv1.GetSessionRequest{
-				Id:     "session-123",
-				UserId: "",
+				Id: "session-123",
 			},
 			mockSetup:   func(sr *testutil.MockSessionRepository) {},
 			wantErr:     true,
-			wantErrCode: connect.CodeInvalidArgument,
+			wantErrCode: connect.CodeUnauthenticated,
 		},
 		{
-			name: "error - session not found",
+			name:     "error - session not found",
+			userID:   "user-123",
+			withAuth: true,
 			request: &heftv1.GetSessionRequest{
-				Id:     "nonexistent",
-				UserId: "user-123",
+				Id: "nonexistent",
 			},
 			mockSetup: func(sr *testutil.MockSessionRepository) {
 				sr.GetByIDFunc = func(ctx context.Context, id, userID string) (*repository.WorkoutSession, error) {
@@ -214,7 +228,12 @@ func TestSessionHandler_GetSession(t *testing.T) {
 
 			handler := handlers.NewSessionHandler(mockSessionRepo, mockWorkoutRepo)
 
-			resp, err := handler.GetSession(context.Background(), connect.NewRequest(tt.request))
+			ctx := context.Background()
+			if tt.withAuth {
+				ctx = auth.ContextWithUserID(ctx, tt.userID)
+			}
+
+			resp, err := handler.GetSession(ctx, connect.NewRequest(tt.request))
 
 			if tt.wantErr {
 				if err == nil {
@@ -247,6 +266,8 @@ func TestSessionHandler_FinishSession(t *testing.T) {
 
 	tests := []struct {
 		name          string
+		userID        string
+		withAuth      bool
 		request       *heftv1.FinishSessionRequest
 		mockSetup     func(*testutil.MockSessionRepository)
 		wantErr       bool
@@ -254,10 +275,11 @@ func TestSessionHandler_FinishSession(t *testing.T) {
 		checkResponse func(*testing.T, *heftv1.FinishSessionResponse)
 	}{
 		{
-			name: "success - session finished",
+			name:     "success - session finished",
+			userID:   "user-123",
+			withAuth: true,
 			request: &heftv1.FinishSessionRequest{
-				Id:     "session-123",
-				UserId: "user-123",
+				Id: "session-123",
 			},
 			mockSetup: func(sr *testutil.MockSessionRepository) {
 				now := time.Now()
@@ -296,14 +318,26 @@ func TestSessionHandler_FinishSession(t *testing.T) {
 			},
 		},
 		{
-			name: "error - missing id",
+			name:     "error - missing id",
+			userID:   "user-123",
+			withAuth: true,
 			request: &heftv1.FinishSessionRequest{
-				Id:     "",
-				UserId: "user-123",
+				Id: "",
 			},
 			mockSetup:   func(sr *testutil.MockSessionRepository) {},
 			wantErr:     true,
 			wantErrCode: connect.CodeInvalidArgument,
+		},
+		{
+			name:     "error - not authenticated",
+			userID:   "",
+			withAuth: false,
+			request: &heftv1.FinishSessionRequest{
+				Id: "session-123",
+			},
+			mockSetup:   func(sr *testutil.MockSessionRepository) {},
+			wantErr:     true,
+			wantErrCode: connect.CodeUnauthenticated,
 		},
 	}
 
@@ -315,7 +349,12 @@ func TestSessionHandler_FinishSession(t *testing.T) {
 
 			handler := handlers.NewSessionHandler(mockSessionRepo, mockWorkoutRepo)
 
-			resp, err := handler.FinishSession(context.Background(), connect.NewRequest(tt.request))
+			ctx := context.Background()
+			if tt.withAuth {
+				ctx = auth.ContextWithUserID(ctx, tt.userID)
+			}
+
+			resp, err := handler.FinishSession(ctx, connect.NewRequest(tt.request))
 
 			if tt.wantErr {
 				if err == nil {
@@ -348,16 +387,19 @@ func TestSessionHandler_AbandonSession(t *testing.T) {
 
 	tests := []struct {
 		name        string
+		userID      string
+		withAuth    bool
 		request     *heftv1.AbandonSessionRequest
 		mockSetup   func(*testutil.MockSessionRepository)
 		wantErr     bool
 		wantErrCode connect.Code
 	}{
 		{
-			name: "success - session abandoned",
+			name:     "success - session abandoned",
+			userID:   "user-123",
+			withAuth: true,
 			request: &heftv1.AbandonSessionRequest{
-				Id:     "session-123",
-				UserId: "user-123",
+				Id: "session-123",
 			},
 			mockSetup: func(sr *testutil.MockSessionRepository) {
 				sr.AbandonSessionFunc = func(ctx context.Context, id, userID string) error {
@@ -366,20 +408,33 @@ func TestSessionHandler_AbandonSession(t *testing.T) {
 			},
 		},
 		{
-			name: "error - missing id",
+			name:     "error - missing id",
+			userID:   "user-123",
+			withAuth: true,
 			request: &heftv1.AbandonSessionRequest{
-				Id:     "",
-				UserId: "user-123",
+				Id: "",
 			},
 			mockSetup:   func(sr *testutil.MockSessionRepository) {},
 			wantErr:     true,
 			wantErrCode: connect.CodeInvalidArgument,
 		},
 		{
-			name: "error - database error",
+			name:     "error - not authenticated",
+			userID:   "",
+			withAuth: false,
 			request: &heftv1.AbandonSessionRequest{
-				Id:     "session-123",
-				UserId: "user-123",
+				Id: "session-123",
+			},
+			mockSetup:   func(sr *testutil.MockSessionRepository) {},
+			wantErr:     true,
+			wantErrCode: connect.CodeUnauthenticated,
+		},
+		{
+			name:     "error - database error",
+			userID:   "user-123",
+			withAuth: true,
+			request: &heftv1.AbandonSessionRequest{
+				Id: "session-123",
 			},
 			mockSetup: func(sr *testutil.MockSessionRepository) {
 				sr.AbandonSessionFunc = func(ctx context.Context, id, userID string) error {
@@ -399,7 +454,12 @@ func TestSessionHandler_AbandonSession(t *testing.T) {
 
 			handler := handlers.NewSessionHandler(mockSessionRepo, mockWorkoutRepo)
 
-			resp, err := handler.AbandonSession(context.Background(), connect.NewRequest(tt.request))
+			ctx := context.Background()
+			if tt.withAuth {
+				ctx = auth.ContextWithUserID(ctx, tt.userID)
+			}
+
+			resp, err := handler.AbandonSession(ctx, connect.NewRequest(tt.request))
 
 			if tt.wantErr {
 				if err == nil {
@@ -432,6 +492,8 @@ func TestSessionHandler_ListSessions(t *testing.T) {
 
 	tests := []struct {
 		name          string
+		userID        string
+		withAuth      bool
 		request       *heftv1.ListSessionsRequest
 		mockSetup     func(*testutil.MockSessionRepository)
 		wantErr       bool
@@ -439,10 +501,10 @@ func TestSessionHandler_ListSessions(t *testing.T) {
 		checkResponse func(*testing.T, *heftv1.ListSessionsResponse)
 	}{
 		{
-			name: "success - list sessions",
-			request: &heftv1.ListSessionsRequest{
-				UserId: "user-123",
-			},
+			name:     "success - list sessions",
+			userID:   "user-123",
+			withAuth: true,
+			request:  &heftv1.ListSessionsRequest{},
 			mockSetup: func(sr *testutil.MockSessionRepository) {
 				now := time.Now()
 				sr.ListFunc = func(ctx context.Context, userID string, status *string, startDate, endDate *time.Time, limit, offset int) ([]*repository.WorkoutSession, int, error) {
@@ -472,10 +534,10 @@ func TestSessionHandler_ListSessions(t *testing.T) {
 			},
 		},
 		{
-			name: "success - empty list",
-			request: &heftv1.ListSessionsRequest{
-				UserId: "user-123",
-			},
+			name:     "success - empty list",
+			userID:   "user-123",
+			withAuth: true,
+			request:  &heftv1.ListSessionsRequest{},
 			mockSetup: func(sr *testutil.MockSessionRepository) {
 				sr.ListFunc = func(ctx context.Context, userID string, status *string, startDate, endDate *time.Time, limit, offset int) ([]*repository.WorkoutSession, int, error) {
 					return []*repository.WorkoutSession{}, 0, nil
@@ -488,13 +550,13 @@ func TestSessionHandler_ListSessions(t *testing.T) {
 			},
 		},
 		{
-			name: "error - missing user_id",
-			request: &heftv1.ListSessionsRequest{
-				UserId: "",
-			},
+			name:        "error - not authenticated",
+			userID:      "",
+			withAuth:    false,
+			request:     &heftv1.ListSessionsRequest{},
 			mockSetup:   func(sr *testutil.MockSessionRepository) {},
 			wantErr:     true,
-			wantErrCode: connect.CodeInvalidArgument,
+			wantErrCode: connect.CodeUnauthenticated,
 		},
 	}
 
@@ -506,7 +568,12 @@ func TestSessionHandler_ListSessions(t *testing.T) {
 
 			handler := handlers.NewSessionHandler(mockSessionRepo, mockWorkoutRepo)
 
-			resp, err := handler.ListSessions(context.Background(), connect.NewRequest(tt.request))
+			ctx := context.Background()
+			if tt.withAuth {
+				ctx = auth.ContextWithUserID(ctx, tt.userID)
+			}
+
+			resp, err := handler.ListSessions(ctx, connect.NewRequest(tt.request))
 
 			if tt.wantErr {
 				if err == nil {
@@ -539,6 +606,8 @@ func TestSessionHandler_CompleteSet(t *testing.T) {
 
 	tests := []struct {
 		name          string
+		userID        string
+		withAuth      bool
 		request       *heftv1.CompleteSetRequest
 		mockSetup     func(*testutil.MockSessionRepository)
 		wantErr       bool
@@ -546,10 +615,11 @@ func TestSessionHandler_CompleteSet(t *testing.T) {
 		checkResponse func(*testing.T, *heftv1.CompleteSetResponse)
 	}{
 		{
-			name: "success - complete set with weight and reps",
+			name:     "success - complete set with weight and reps",
+			userID:   "user-123",
+			withAuth: true,
 			request: &heftv1.CompleteSetRequest{
 				SessionSetId: "set-123",
-				UserId:       "user-123",
 				WeightKg:     ptrFloat64(100.0),
 				Reps:         ptrInt32(10),
 			},
@@ -580,14 +650,26 @@ func TestSessionHandler_CompleteSet(t *testing.T) {
 			},
 		},
 		{
-			name: "error - missing session_set_id",
+			name:     "error - missing session_set_id",
+			userID:   "user-123",
+			withAuth: true,
 			request: &heftv1.CompleteSetRequest{
 				SessionSetId: "",
-				UserId:       "user-123",
 			},
 			mockSetup:   func(sr *testutil.MockSessionRepository) {},
 			wantErr:     true,
 			wantErrCode: connect.CodeInvalidArgument,
+		},
+		{
+			name:     "error - not authenticated",
+			userID:   "",
+			withAuth: false,
+			request: &heftv1.CompleteSetRequest{
+				SessionSetId: "set-123",
+			},
+			mockSetup:   func(sr *testutil.MockSessionRepository) {},
+			wantErr:     true,
+			wantErrCode: connect.CodeUnauthenticated,
 		},
 	}
 
@@ -599,7 +681,12 @@ func TestSessionHandler_CompleteSet(t *testing.T) {
 
 			handler := handlers.NewSessionHandler(mockSessionRepo, mockWorkoutRepo)
 
-			resp, err := handler.CompleteSet(context.Background(), connect.NewRequest(tt.request))
+			ctx := context.Background()
+			if tt.withAuth {
+				ctx = auth.ContextWithUserID(ctx, tt.userID)
+			}
+
+			resp, err := handler.CompleteSet(ctx, connect.NewRequest(tt.request))
 
 			if tt.wantErr {
 				if err == nil {
@@ -632,6 +719,8 @@ func TestSessionHandler_AddExercise(t *testing.T) {
 
 	tests := []struct {
 		name          string
+		userID        string
+		withAuth      bool
 		request       *heftv1.AddExerciseRequest
 		mockSetup     func(*testutil.MockSessionRepository)
 		wantErr       bool
@@ -639,10 +728,11 @@ func TestSessionHandler_AddExercise(t *testing.T) {
 		checkResponse func(*testing.T, *heftv1.AddExerciseResponse)
 	}{
 		{
-			name: "success - add exercise",
+			name:     "success - add exercise",
+			userID:   "user-123",
+			withAuth: true,
 			request: &heftv1.AddExerciseRequest{
 				SessionId:  "session-123",
-				UserId:     "user-123",
 				ExerciseId: "exercise-456",
 				NumSets:    3,
 			},
@@ -699,10 +789,11 @@ func TestSessionHandler_AddExercise(t *testing.T) {
 			},
 		},
 		{
-			name: "error - missing session_id",
+			name:     "error - missing session_id",
+			userID:   "user-123",
+			withAuth: true,
 			request: &heftv1.AddExerciseRequest{
 				SessionId:  "",
-				UserId:     "user-123",
 				ExerciseId: "exercise-456",
 			},
 			mockSetup:   func(sr *testutil.MockSessionRepository) {},
@@ -710,15 +801,28 @@ func TestSessionHandler_AddExercise(t *testing.T) {
 			wantErrCode: connect.CodeInvalidArgument,
 		},
 		{
-			name: "error - missing exercise_id",
+			name:     "error - missing exercise_id",
+			userID:   "user-123",
+			withAuth: true,
 			request: &heftv1.AddExerciseRequest{
 				SessionId:  "session-123",
-				UserId:     "user-123",
 				ExerciseId: "",
 			},
 			mockSetup:   func(sr *testutil.MockSessionRepository) {},
 			wantErr:     true,
 			wantErrCode: connect.CodeInvalidArgument,
+		},
+		{
+			name:     "error - not authenticated",
+			userID:   "",
+			withAuth: false,
+			request: &heftv1.AddExerciseRequest{
+				SessionId:  "session-123",
+				ExerciseId: "exercise-456",
+			},
+			mockSetup:   func(sr *testutil.MockSessionRepository) {},
+			wantErr:     true,
+			wantErrCode: connect.CodeUnauthenticated,
 		},
 	}
 
@@ -730,7 +834,12 @@ func TestSessionHandler_AddExercise(t *testing.T) {
 
 			handler := handlers.NewSessionHandler(mockSessionRepo, mockWorkoutRepo)
 
-			resp, err := handler.AddExercise(context.Background(), connect.NewRequest(tt.request))
+			ctx := context.Background()
+			if tt.withAuth {
+				ctx = auth.ContextWithUserID(ctx, tt.userID)
+			}
+
+			resp, err := handler.AddExercise(ctx, connect.NewRequest(tt.request))
 
 			if tt.wantErr {
 				if err == nil {

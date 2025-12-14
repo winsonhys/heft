@@ -335,6 +335,26 @@ func (m *MockProgressRepository) GetStreak(ctx context.Context, userID string) (
 	return 0, 0, nil, nil
 }
 
+// MockAuthRepository is a mock implementation of AuthRepositoryInterface
+type MockAuthRepository struct {
+	GetByEmailFunc func(ctx context.Context, email string) (*repository.User, error)
+	CreateFunc     func(ctx context.Context, email string) (*repository.User, error)
+}
+
+func (m *MockAuthRepository) GetByEmail(ctx context.Context, email string) (*repository.User, error) {
+	if m.GetByEmailFunc != nil {
+		return m.GetByEmailFunc(ctx, email)
+	}
+	return nil, nil
+}
+
+func (m *MockAuthRepository) Create(ctx context.Context, email string) (*repository.User, error) {
+	if m.CreateFunc != nil {
+		return m.CreateFunc(ctx, email)
+	}
+	return nil, nil
+}
+
 // Compile-time interface compliance checks
 var _ repository.UserRepositoryInterface = (*MockUserRepository)(nil)
 var _ repository.ExerciseRepositoryInterface = (*MockExerciseRepository)(nil)
@@ -342,3 +362,4 @@ var _ repository.SessionRepositoryInterface = (*MockSessionRepository)(nil)
 var _ repository.WorkoutRepositoryInterface = (*MockWorkoutRepository)(nil)
 var _ repository.ProgramRepositoryInterface = (*MockProgramRepository)(nil)
 var _ repository.ProgressRepositoryInterface = (*MockProgressRepository)(nil)
+var _ repository.AuthRepositoryInterface = (*MockAuthRepository)(nil)

@@ -9,6 +9,7 @@ import (
 	"connectrpc.com/connect"
 
 	heftv1 "github.com/heftyback/gen/heft/v1"
+	"github.com/heftyback/internal/auth"
 	"github.com/heftyback/internal/handlers"
 	"github.com/heftyback/internal/repository"
 	"github.com/heftyback/internal/testutil"
@@ -18,13 +19,15 @@ func TestUserHandler_GetProfile(t *testing.T) {
 	tests := []struct {
 		name        string
 		userID      string
+		withAuth    bool
 		mockSetup   func(*testutil.MockUserRepository)
 		wantErr     bool
 		wantErrCode connect.Code
 	}{
 		{
-			name:   "success - user found",
-			userID: "user-123",
+			name:     "success - user found",
+			userID:   "user-123",
+			withAuth: true,
 			mockSetup: func(m *testutil.MockUserRepository) {
 				m.GetByIDFunc = func(ctx context.Context, id string) (*repository.User, error) {
 					displayName := "Test User"
@@ -43,17 +46,19 @@ func TestUserHandler_GetProfile(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name:   "error - empty user_id",
-			userID: "",
+			name:     "error - not authenticated",
+			userID:   "",
+			withAuth: false,
 			mockSetup: func(m *testutil.MockUserRepository) {
-				// No mock needed - validation happens before repo call
+				// No mock needed - authentication check happens first
 			},
 			wantErr:     true,
-			wantErrCode: connect.CodeInvalidArgument,
+			wantErrCode: connect.CodeUnauthenticated,
 		},
 		{
-			name:   "error - user not found",
-			userID: "nonexistent",
+			name:     "error - user not found",
+			userID:   "nonexistent",
+			withAuth: true,
 			mockSetup: func(m *testutil.MockUserRepository) {
 				m.GetByIDFunc = func(ctx context.Context, id string) (*repository.User, error) {
 					return nil, nil // Not found returns nil, nil
@@ -63,8 +68,9 @@ func TestUserHandler_GetProfile(t *testing.T) {
 			wantErrCode: connect.CodeNotFound,
 		},
 		{
-			name:   "error - database error",
-			userID: "user-123",
+			name:     "error - database error",
+			userID:   "user-123",
+			withAuth: true,
 			mockSetup: func(m *testutil.MockUserRepository) {
 				m.GetByIDFunc = func(ctx context.Context, id string) (*repository.User, error) {
 					return nil, errors.New("database connection failed")
@@ -82,11 +88,14 @@ func TestUserHandler_GetProfile(t *testing.T) {
 
 			handler := handlers.NewUserHandler(mockRepo)
 
-			req := connect.NewRequest(&heftv1.GetProfileRequest{
-				UserId: tt.userID,
-			})
+			ctx := context.Background()
+			if tt.withAuth {
+				ctx = auth.ContextWithUserID(ctx, tt.userID)
+			}
 
-			resp, err := handler.GetProfile(context.Background(), req)
+			req := connect.NewRequest(&heftv1.GetProfileRequest{})
+
+			resp, err := handler.GetProfile(ctx, req)
 
 			if tt.wantErr {
 				if err == nil {
@@ -118,19 +127,21 @@ func TestUserHandler_GetProfile(t *testing.T) {
 func TestUserHandler_UpdateProfile(t *testing.T) {
 	tests := []struct {
 		name        string
-		request     *heftv1.UpdateProfileRequest
+		userID      string
+		withAuth    bool
+		displayName *string
+		avatarURL   *string
 		mockSetup   func(*testutil.MockUserRepository)
 		wantErr     bool
 		wantErrCode connect.Code
 	}{
 		{
-			name: "success - update display name",
-			request: func() *heftv1.UpdateProfileRequest {
-				displayName := "New Name"
-				return &heftv1.UpdateProfileRequest{
-					UserId:      "user-123",
-					DisplayName: &displayName,
-				}
+			name:     "success - update display name",
+			userID:   "user-123",
+			withAuth: true,
+			displayName: func() *string {
+				s := "New Name"
+				return &s
 			}(),
 			mockSetup: func(m *testutil.MockUserRepository) {
 				m.UpdateProfileFunc = func(ctx context.Context, id string, displayName, avatarURL *string) (*repository.User, error) {
@@ -148,13 +159,12 @@ func TestUserHandler_UpdateProfile(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "error - missing user_id",
-			request: &heftv1.UpdateProfileRequest{
-				UserId: "",
-			},
+			name:        "error - not authenticated",
+			userID:      "",
+			withAuth:    false,
 			mockSetup:   func(m *testutil.MockUserRepository) {},
 			wantErr:     true,
-			wantErrCode: connect.CodeInvalidArgument,
+			wantErrCode: connect.CodeUnauthenticated,
 		},
 	}
 
@@ -165,8 +175,16 @@ func TestUserHandler_UpdateProfile(t *testing.T) {
 
 			handler := handlers.NewUserHandler(mockRepo)
 
-			req := connect.NewRequest(tt.request)
-			resp, err := handler.UpdateProfile(context.Background(), req)
+			ctx := context.Background()
+			if tt.withAuth {
+				ctx = auth.ContextWithUserID(ctx, tt.userID)
+			}
+
+			req := connect.NewRequest(&heftv1.UpdateProfileRequest{
+				DisplayName: tt.displayName,
+				AvatarUrl:   tt.avatarURL,
+			})
+			resp, err := handler.UpdateProfile(ctx, req)
 
 			if tt.wantErr {
 				if err == nil {
@@ -194,20 +212,22 @@ func TestUserHandler_UpdateProfile(t *testing.T) {
 
 func TestUserHandler_UpdateSettings(t *testing.T) {
 	tests := []struct {
-		name        string
-		request     *heftv1.UpdateSettingsRequest
-		mockSetup   func(*testutil.MockUserRepository)
-		wantErr     bool
-		wantErrCode connect.Code
+		name             string
+		userID           string
+		withAuth         bool
+		usePounds        *bool
+		restTimerSeconds *int32
+		mockSetup        func(*testutil.MockUserRepository)
+		wantErr          bool
+		wantErrCode      connect.Code
 	}{
 		{
-			name: "success - update use_pounds",
-			request: func() *heftv1.UpdateSettingsRequest {
-				usePounds := true
-				return &heftv1.UpdateSettingsRequest{
-					UserId:    "user-123",
-					UsePounds: &usePounds,
-				}
+			name:     "success - update use_pounds",
+			userID:   "user-123",
+			withAuth: true,
+			usePounds: func() *bool {
+				b := true
+				return &b
 			}(),
 			mockSetup: func(m *testutil.MockUserRepository) {
 				m.UpdateSettingsFunc = func(ctx context.Context, id string, usePounds *bool, restTimerSeconds *int) (*repository.User, error) {
@@ -224,13 +244,12 @@ func TestUserHandler_UpdateSettings(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "success - update rest_timer_seconds",
-			request: func() *heftv1.UpdateSettingsRequest {
-				restTimer := int32(90)
-				return &heftv1.UpdateSettingsRequest{
-					UserId:           "user-123",
-					RestTimerSeconds: &restTimer,
-				}
+			name:     "success - update rest_timer_seconds",
+			userID:   "user-123",
+			withAuth: true,
+			restTimerSeconds: func() *int32 {
+				i := int32(90)
+				return &i
 			}(),
 			mockSetup: func(m *testutil.MockUserRepository) {
 				m.UpdateSettingsFunc = func(ctx context.Context, id string, usePounds *bool, restTimerSeconds *int) (*repository.User, error) {
@@ -247,13 +266,12 @@ func TestUserHandler_UpdateSettings(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "error - missing user_id",
-			request: &heftv1.UpdateSettingsRequest{
-				UserId: "",
-			},
+			name:        "error - not authenticated",
+			userID:      "",
+			withAuth:    false,
 			mockSetup:   func(m *testutil.MockUserRepository) {},
 			wantErr:     true,
-			wantErrCode: connect.CodeInvalidArgument,
+			wantErrCode: connect.CodeUnauthenticated,
 		},
 	}
 
@@ -264,8 +282,16 @@ func TestUserHandler_UpdateSettings(t *testing.T) {
 
 			handler := handlers.NewUserHandler(mockRepo)
 
-			req := connect.NewRequest(tt.request)
-			resp, err := handler.UpdateSettings(context.Background(), req)
+			ctx := context.Background()
+			if tt.withAuth {
+				ctx = auth.ContextWithUserID(ctx, tt.userID)
+			}
+
+			req := connect.NewRequest(&heftv1.UpdateSettingsRequest{
+				UsePounds:        tt.usePounds,
+				RestTimerSeconds: tt.restTimerSeconds,
+			})
+			resp, err := handler.UpdateSettings(ctx, req)
 
 			if tt.wantErr {
 				if err == nil {
@@ -294,18 +320,21 @@ func TestUserHandler_UpdateSettings(t *testing.T) {
 func TestUserHandler_LogWeight(t *testing.T) {
 	tests := []struct {
 		name        string
-		request     *heftv1.LogWeightRequest
+		userID      string
+		withAuth    bool
+		weightKg    float64
+		loggedDate  string
+		notes       *string
 		mockSetup   func(*testutil.MockUserRepository)
 		wantErr     bool
 		wantErrCode connect.Code
 	}{
 		{
-			name: "success - weight logged",
-			request: &heftv1.LogWeightRequest{
-				UserId:     "user-123",
-				WeightKg:   75.5,
-				LoggedDate: "2024-01-15",
-			},
+			name:       "success - weight logged",
+			userID:     "user-123",
+			withAuth:   true,
+			weightKg:   75.5,
+			loggedDate: "2024-01-15",
 			mockSetup: func(m *testutil.MockUserRepository) {
 				m.LogWeightFunc = func(ctx context.Context, userID string, weightKg float64, loggedDate time.Time, notes *string) (*repository.WeightLog, error) {
 					return &repository.WeightLog{
@@ -320,16 +349,15 @@ func TestUserHandler_LogWeight(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "success - weight logged with notes",
-			request: func() *heftv1.LogWeightRequest {
-				notes := "Morning weight"
-				return &heftv1.LogWeightRequest{
-					UserId:     "user-123",
-					WeightKg:   75.5,
-					LoggedDate: "2024-01-15",
-					Notes:      &notes,
-				}
+			name:     "success - weight logged with notes",
+			userID:   "user-123",
+			withAuth: true,
+			weightKg: 75.5,
+			notes: func() *string {
+				s := "Morning weight"
+				return &s
 			}(),
+			loggedDate: "2024-01-15",
 			mockSetup: func(m *testutil.MockUserRepository) {
 				m.LogWeightFunc = func(ctx context.Context, userID string, weightKg float64, loggedDate time.Time, notes *string) (*repository.WeightLog, error) {
 					return &repository.WeightLog{
@@ -345,45 +373,41 @@ func TestUserHandler_LogWeight(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "error - missing user_id",
-			request: &heftv1.LogWeightRequest{
-				UserId:     "",
-				WeightKg:   75.5,
-				LoggedDate: "2024-01-15",
-			},
+			name:        "error - not authenticated",
+			userID:      "",
+			withAuth:    false,
+			weightKg:    75.5,
+			loggedDate:  "2024-01-15",
+			mockSetup:   func(m *testutil.MockUserRepository) {},
+			wantErr:     true,
+			wantErrCode: connect.CodeUnauthenticated,
+		},
+		{
+			name:        "error - invalid weight (zero)",
+			userID:      "user-123",
+			withAuth:    true,
+			weightKg:    0,
+			loggedDate:  "2024-01-15",
 			mockSetup:   func(m *testutil.MockUserRepository) {},
 			wantErr:     true,
 			wantErrCode: connect.CodeInvalidArgument,
 		},
 		{
-			name: "error - invalid weight (zero)",
-			request: &heftv1.LogWeightRequest{
-				UserId:     "user-123",
-				WeightKg:   0,
-				LoggedDate: "2024-01-15",
-			},
+			name:        "error - negative weight",
+			userID:      "user-123",
+			withAuth:    true,
+			weightKg:    -5.0,
+			loggedDate:  "2024-01-15",
 			mockSetup:   func(m *testutil.MockUserRepository) {},
 			wantErr:     true,
 			wantErrCode: connect.CodeInvalidArgument,
 		},
 		{
-			name: "error - negative weight",
-			request: &heftv1.LogWeightRequest{
-				UserId:     "user-123",
-				WeightKg:   -5.0,
-				LoggedDate: "2024-01-15",
-			},
-			mockSetup:   func(m *testutil.MockUserRepository) {},
-			wantErr:     true,
-			wantErrCode: connect.CodeInvalidArgument,
-		},
-		{
-			name: "error - invalid date format",
-			request: &heftv1.LogWeightRequest{
-				UserId:     "user-123",
-				WeightKg:   75.5,
-				LoggedDate: "01-15-2024", // Wrong format
-			},
+			name:        "error - invalid date format",
+			userID:      "user-123",
+			withAuth:    true,
+			weightKg:    75.5,
+			loggedDate:  "01-15-2024", // Wrong format
 			mockSetup:   func(m *testutil.MockUserRepository) {},
 			wantErr:     true,
 			wantErrCode: connect.CodeInvalidArgument,
@@ -397,8 +421,17 @@ func TestUserHandler_LogWeight(t *testing.T) {
 
 			handler := handlers.NewUserHandler(mockRepo)
 
-			req := connect.NewRequest(tt.request)
-			resp, err := handler.LogWeight(context.Background(), req)
+			ctx := context.Background()
+			if tt.withAuth {
+				ctx = auth.ContextWithUserID(ctx, tt.userID)
+			}
+
+			req := connect.NewRequest(&heftv1.LogWeightRequest{
+				WeightKg:   tt.weightKg,
+				LoggedDate: tt.loggedDate,
+				Notes:      tt.notes,
+			})
+			resp, err := handler.LogWeight(ctx, req)
 
 			if tt.wantErr {
 				if err == nil {
@@ -427,17 +460,17 @@ func TestUserHandler_LogWeight(t *testing.T) {
 func TestUserHandler_GetWeightHistory(t *testing.T) {
 	tests := []struct {
 		name        string
-		request     *heftv1.GetWeightHistoryRequest
+		userID      string
+		withAuth    bool
 		mockSetup   func(*testutil.MockUserRepository)
 		wantErr     bool
 		wantErrCode connect.Code
 		wantCount   int
 	}{
 		{
-			name: "success - returns weight history",
-			request: &heftv1.GetWeightHistoryRequest{
-				UserId: "user-123",
-			},
+			name:     "success - returns weight history",
+			userID:   "user-123",
+			withAuth: true,
 			mockSetup: func(m *testutil.MockUserRepository) {
 				m.GetWeightHistoryFunc = func(ctx context.Context, userID string, startDate, endDate *time.Time, limit int) ([]*repository.WeightLog, error) {
 					return []*repository.WeightLog{
@@ -450,10 +483,9 @@ func TestUserHandler_GetWeightHistory(t *testing.T) {
 			wantCount: 2,
 		},
 		{
-			name: "success - empty history",
-			request: &heftv1.GetWeightHistoryRequest{
-				UserId: "user-123",
-			},
+			name:     "success - empty history",
+			userID:   "user-123",
+			withAuth: true,
 			mockSetup: func(m *testutil.MockUserRepository) {
 				m.GetWeightHistoryFunc = func(ctx context.Context, userID string, startDate, endDate *time.Time, limit int) ([]*repository.WeightLog, error) {
 					return []*repository.WeightLog{}, nil
@@ -463,13 +495,12 @@ func TestUserHandler_GetWeightHistory(t *testing.T) {
 			wantCount: 0,
 		},
 		{
-			name: "error - missing user_id",
-			request: &heftv1.GetWeightHistoryRequest{
-				UserId: "",
-			},
+			name:        "error - not authenticated",
+			userID:      "",
+			withAuth:    false,
 			mockSetup:   func(m *testutil.MockUserRepository) {},
 			wantErr:     true,
-			wantErrCode: connect.CodeInvalidArgument,
+			wantErrCode: connect.CodeUnauthenticated,
 		},
 	}
 
@@ -480,8 +511,13 @@ func TestUserHandler_GetWeightHistory(t *testing.T) {
 
 			handler := handlers.NewUserHandler(mockRepo)
 
-			req := connect.NewRequest(tt.request)
-			resp, err := handler.GetWeightHistory(context.Background(), req)
+			ctx := context.Background()
+			if tt.withAuth {
+				ctx = auth.ContextWithUserID(ctx, tt.userID)
+			}
+
+			req := connect.NewRequest(&heftv1.GetWeightHistoryRequest{})
+			resp, err := handler.GetWeightHistory(ctx, req)
 
 			if tt.wantErr {
 				if err == nil {
@@ -510,17 +546,18 @@ func TestUserHandler_GetWeightHistory(t *testing.T) {
 func TestUserHandler_DeleteWeightLog(t *testing.T) {
 	tests := []struct {
 		name        string
-		request     *heftv1.DeleteWeightLogRequest
+		userID      string
+		withAuth    bool
+		logID       string
 		mockSetup   func(*testutil.MockUserRepository)
 		wantErr     bool
 		wantErrCode connect.Code
 	}{
 		{
-			name: "success - weight log deleted",
-			request: &heftv1.DeleteWeightLogRequest{
-				Id:     "log-123",
-				UserId: "user-123",
-			},
+			name:     "success - weight log deleted",
+			userID:   "user-123",
+			withAuth: true,
+			logID:    "log-123",
 			mockSetup: func(m *testutil.MockUserRepository) {
 				m.DeleteWeightLogFunc = func(ctx context.Context, id, userID string) error {
 					return nil
@@ -529,31 +566,28 @@ func TestUserHandler_DeleteWeightLog(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "error - missing id",
-			request: &heftv1.DeleteWeightLogRequest{
-				Id:     "",
-				UserId: "user-123",
-			},
+			name:        "error - missing id",
+			userID:      "user-123",
+			withAuth:    true,
+			logID:       "",
 			mockSetup:   func(m *testutil.MockUserRepository) {},
 			wantErr:     true,
 			wantErrCode: connect.CodeInvalidArgument,
 		},
 		{
-			name: "error - missing user_id",
-			request: &heftv1.DeleteWeightLogRequest{
-				Id:     "log-123",
-				UserId: "",
-			},
+			name:        "error - not authenticated",
+			userID:      "",
+			withAuth:    false,
+			logID:       "log-123",
 			mockSetup:   func(m *testutil.MockUserRepository) {},
 			wantErr:     true,
-			wantErrCode: connect.CodeInvalidArgument,
+			wantErrCode: connect.CodeUnauthenticated,
 		},
 		{
-			name: "error - database error",
-			request: &heftv1.DeleteWeightLogRequest{
-				Id:     "log-123",
-				UserId: "user-123",
-			},
+			name:     "error - database error",
+			userID:   "user-123",
+			withAuth: true,
+			logID:    "log-123",
 			mockSetup: func(m *testutil.MockUserRepository) {
 				m.DeleteWeightLogFunc = func(ctx context.Context, id, userID string) error {
 					return errors.New("database error")
@@ -571,8 +605,15 @@ func TestUserHandler_DeleteWeightLog(t *testing.T) {
 
 			handler := handlers.NewUserHandler(mockRepo)
 
-			req := connect.NewRequest(tt.request)
-			resp, err := handler.DeleteWeightLog(context.Background(), req)
+			ctx := context.Background()
+			if tt.withAuth {
+				ctx = auth.ContextWithUserID(ctx, tt.userID)
+			}
+
+			req := connect.NewRequest(&heftv1.DeleteWeightLogRequest{
+				Id: tt.logID,
+			})
+			resp, err := handler.DeleteWeightLog(ctx, req)
 
 			if tt.wantErr {
 				if err == nil {

@@ -9,6 +9,7 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 
 	heftv1 "github.com/heftyback/gen/heft/v1"
+	"github.com/heftyback/internal/auth"
 	"github.com/heftyback/internal/repository"
 )
 
@@ -24,11 +25,12 @@ func NewUserHandler(repo repository.UserRepositoryInterface) *UserHandler {
 
 // GetProfile retrieves a user's profile
 func (h *UserHandler) GetProfile(ctx context.Context, req *connect.Request[heftv1.GetProfileRequest]) (*connect.Response[heftv1.GetProfileResponse], error) {
-	if req.Msg.UserId == "" {
-		return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("user_id is required"))
+	userID, ok := auth.UserIDFromContext(ctx)
+	if !ok {
+		return nil, connect.NewError(connect.CodeUnauthenticated, errors.New("not authenticated"))
 	}
 
-	user, err := h.repo.GetByID(ctx, req.Msg.UserId)
+	user, err := h.repo.GetByID(ctx, userID)
 	if err != nil {
 		return nil, connect.NewError(connect.CodeInternal, err)
 	}
@@ -43,8 +45,9 @@ func (h *UserHandler) GetProfile(ctx context.Context, req *connect.Request[heftv
 
 // UpdateProfile updates a user's profile
 func (h *UserHandler) UpdateProfile(ctx context.Context, req *connect.Request[heftv1.UpdateProfileRequest]) (*connect.Response[heftv1.UpdateProfileResponse], error) {
-	if req.Msg.UserId == "" {
-		return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("user_id is required"))
+	userID, ok := auth.UserIDFromContext(ctx)
+	if !ok {
+		return nil, connect.NewError(connect.CodeUnauthenticated, errors.New("not authenticated"))
 	}
 
 	var displayName, avatarURL *string
@@ -55,7 +58,7 @@ func (h *UserHandler) UpdateProfile(ctx context.Context, req *connect.Request[he
 		avatarURL = req.Msg.AvatarUrl
 	}
 
-	user, err := h.repo.UpdateProfile(ctx, req.Msg.UserId, displayName, avatarURL)
+	user, err := h.repo.UpdateProfile(ctx, userID, displayName, avatarURL)
 	if err != nil {
 		return nil, connect.NewError(connect.CodeInternal, err)
 	}
@@ -67,8 +70,9 @@ func (h *UserHandler) UpdateProfile(ctx context.Context, req *connect.Request[he
 
 // UpdateSettings updates a user's settings
 func (h *UserHandler) UpdateSettings(ctx context.Context, req *connect.Request[heftv1.UpdateSettingsRequest]) (*connect.Response[heftv1.UpdateSettingsResponse], error) {
-	if req.Msg.UserId == "" {
-		return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("user_id is required"))
+	userID, ok := auth.UserIDFromContext(ctx)
+	if !ok {
+		return nil, connect.NewError(connect.CodeUnauthenticated, errors.New("not authenticated"))
 	}
 
 	var usePounds *bool
@@ -81,7 +85,7 @@ func (h *UserHandler) UpdateSettings(ctx context.Context, req *connect.Request[h
 		restTimerSeconds = &v
 	}
 
-	user, err := h.repo.UpdateSettings(ctx, req.Msg.UserId, usePounds, restTimerSeconds)
+	user, err := h.repo.UpdateSettings(ctx, userID, usePounds, restTimerSeconds)
 	if err != nil {
 		return nil, connect.NewError(connect.CodeInternal, err)
 	}
@@ -93,8 +97,9 @@ func (h *UserHandler) UpdateSettings(ctx context.Context, req *connect.Request[h
 
 // LogWeight logs a user's weight
 func (h *UserHandler) LogWeight(ctx context.Context, req *connect.Request[heftv1.LogWeightRequest]) (*connect.Response[heftv1.LogWeightResponse], error) {
-	if req.Msg.UserId == "" {
-		return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("user_id is required"))
+	userID, ok := auth.UserIDFromContext(ctx)
+	if !ok {
+		return nil, connect.NewError(connect.CodeUnauthenticated, errors.New("not authenticated"))
 	}
 	if req.Msg.WeightKg <= 0 {
 		return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("weight_kg must be positive"))
@@ -110,7 +115,7 @@ func (h *UserHandler) LogWeight(ctx context.Context, req *connect.Request[heftv1
 		notes = req.Msg.Notes
 	}
 
-	log, err := h.repo.LogWeight(ctx, req.Msg.UserId, req.Msg.WeightKg, loggedDate, notes)
+	log, err := h.repo.LogWeight(ctx, userID, req.Msg.WeightKg, loggedDate, notes)
 	if err != nil {
 		return nil, connect.NewError(connect.CodeInternal, err)
 	}
@@ -122,8 +127,9 @@ func (h *UserHandler) LogWeight(ctx context.Context, req *connect.Request[heftv1
 
 // GetWeightHistory retrieves weight history
 func (h *UserHandler) GetWeightHistory(ctx context.Context, req *connect.Request[heftv1.GetWeightHistoryRequest]) (*connect.Response[heftv1.GetWeightHistoryResponse], error) {
-	if req.Msg.UserId == "" {
-		return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("user_id is required"))
+	userID, ok := auth.UserIDFromContext(ctx)
+	if !ok {
+		return nil, connect.NewError(connect.CodeUnauthenticated, errors.New("not authenticated"))
 	}
 
 	var startDate, endDate *time.Time
@@ -145,7 +151,7 @@ func (h *UserHandler) GetWeightHistory(ctx context.Context, req *connect.Request
 		limit = int(*req.Msg.Limit)
 	}
 
-	logs, err := h.repo.GetWeightHistory(ctx, req.Msg.UserId, startDate, endDate, limit)
+	logs, err := h.repo.GetWeightHistory(ctx, userID, startDate, endDate, limit)
 	if err != nil {
 		return nil, connect.NewError(connect.CodeInternal, err)
 	}
@@ -162,11 +168,15 @@ func (h *UserHandler) GetWeightHistory(ctx context.Context, req *connect.Request
 
 // DeleteWeightLog deletes a weight log entry
 func (h *UserHandler) DeleteWeightLog(ctx context.Context, req *connect.Request[heftv1.DeleteWeightLogRequest]) (*connect.Response[heftv1.DeleteWeightLogResponse], error) {
-	if req.Msg.Id == "" || req.Msg.UserId == "" {
-		return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("id and user_id are required"))
+	userID, ok := auth.UserIDFromContext(ctx)
+	if !ok {
+		return nil, connect.NewError(connect.CodeUnauthenticated, errors.New("not authenticated"))
+	}
+	if req.Msg.Id == "" {
+		return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("id is required"))
 	}
 
-	err := h.repo.DeleteWeightLog(ctx, req.Msg.Id, req.Msg.UserId)
+	err := h.repo.DeleteWeightLog(ctx, req.Msg.Id, userID)
 	if err != nil {
 		return nil, connect.NewError(connect.CodeInternal, err)
 	}

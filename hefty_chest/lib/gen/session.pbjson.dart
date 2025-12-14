@@ -13,8 +13,8 @@ import 'dart:convert' as $convert;
 import 'dart:core' as $core;
 import 'dart:typed_data' as $typed_data;
 
-import 'common.pbjson.dart' as $1;
-import 'google/protobuf/timestamp.pbjson.dart' as $0;
+import 'common.pbjson.dart' as $2;
+import 'google/protobuf/timestamp.pbjson.dart' as $1;
 
 @$core.Deprecated('Use sessionDescriptor instead')
 const Session$json = {
@@ -472,7 +472,7 @@ const $core.Map<$core.String, $core.Map<$core.String, $core.dynamic>> SessionSer
   '.heft.v1.StartSessionRequest': StartSessionRequest$json,
   '.heft.v1.StartSessionResponse': StartSessionResponse$json,
   '.heft.v1.Session': Session$json,
-  '.google.protobuf.Timestamp': $0.Timestamp$json,
+  '.google.protobuf.Timestamp': $1.Timestamp$json,
   '.heft.v1.SessionExercise': SessionExercise$json,
   '.heft.v1.SessionSet': SessionSet$json,
   '.heft.v1.GetSessionRequest': GetSessionRequest$json,
@@ -488,10 +488,10 @@ const $core.Map<$core.String, $core.Map<$core.String, $core.dynamic>> SessionSer
   '.heft.v1.AbandonSessionRequest': AbandonSessionRequest$json,
   '.heft.v1.AbandonSessionResponse': AbandonSessionResponse$json,
   '.heft.v1.ListSessionsRequest': ListSessionsRequest$json,
-  '.heft.v1.PaginationRequest': $1.PaginationRequest$json,
+  '.heft.v1.PaginationRequest': $2.PaginationRequest$json,
   '.heft.v1.ListSessionsResponse': ListSessionsResponse$json,
   '.heft.v1.SessionSummary': SessionSummary$json,
-  '.heft.v1.PaginationResponse': $1.PaginationResponse$json,
+  '.heft.v1.PaginationResponse': $2.PaginationResponse$json,
 };
 
 /// Descriptor for `SessionService`. Decode as a `google.protobuf.ServiceDescriptorProto`.

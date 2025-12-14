@@ -3,39 +3,24 @@ package handlers_test
 import (
 	"context"
 	"errors"
-	"net/http"
-	"net/http/httptest"
 	"testing"
 	"time"
 
 	"connectrpc.com/connect"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 
 	heftv1 "github.com/heftyback/gen/heft/v1"
-	"github.com/heftyback/gen/heft/v1/heftv1connect"
+	"github.com/heftyback/internal/auth"
 	"github.com/heftyback/internal/handlers"
 	"github.com/heftyback/internal/repository"
 	"github.com/heftyback/internal/testutil"
 )
 
-func setupWorkoutTest(t *testing.T, mockRepo *testutil.MockWorkoutRepository) heftv1connect.WorkoutServiceClient {
-	t.Helper()
-
-	handler := handlers.NewWorkoutHandler(mockRepo)
-	mux := http.NewServeMux()
-	path, h := heftv1connect.NewWorkoutServiceHandler(handler)
-	mux.Handle(path, h)
-
-	server := httptest.NewServer(mux)
-	t.Cleanup(server.Close)
-
-	return heftv1connect.NewWorkoutServiceClient(server.Client(), server.URL)
-}
 
 func TestWorkoutHandler_ListWorkouts(t *testing.T) {
 	tests := []struct {
 		name          string
+		userID        string
+		withAuth      bool
 		request       *heftv1.ListWorkoutsRequest
 		setupMock     func(*testutil.MockWorkoutRepository)
 		wantErr       bool
@@ -43,9 +28,10 @@ func TestWorkoutHandler_ListWorkouts(t *testing.T) {
 		validateResp  func(*testing.T, *heftv1.ListWorkoutsResponse)
 	}{
 		{
-			name: "success - returns workouts with pagination",
+			name:     "success - returns workouts with pagination",
+			userID:   "user-123",
+			withAuth: true,
 			request: &heftv1.ListWorkoutsRequest{
-				UserId: "user-123",
 				Pagination: &heftv1.PaginationRequest{
 					Page:     1,
 					PageSize: 10,
@@ -76,37 +62,54 @@ func TestWorkoutHandler_ListWorkouts(t *testing.T) {
 				}
 			},
 			validateResp: func(t *testing.T, resp *heftv1.ListWorkoutsResponse) {
-				assert.Len(t, resp.Workouts, 2)
-				assert.Equal(t, "Push Day", resp.Workouts[0].Name)
-				assert.Equal(t, "Pull Day", resp.Workouts[1].Name)
-				assert.Equal(t, int32(2), resp.Pagination.TotalCount)
-				assert.Equal(t, int32(1), resp.Pagination.TotalPages)
+				if len(resp.Workouts) != 2 {
+					t.Errorf("expected 2 workouts, got %d", len(resp.Workouts))
+				}
+				if resp.Workouts[0].Name != "Push Day" {
+					t.Errorf("expected first workout name 'Push Day', got %s", resp.Workouts[0].Name)
+				}
+				if resp.Workouts[1].Name != "Pull Day" {
+					t.Errorf("expected second workout name 'Pull Day', got %s", resp.Workouts[1].Name)
+				}
+				if resp.Pagination.TotalCount != 2 {
+					t.Errorf("expected total count 2, got %d", resp.Pagination.TotalCount)
+				}
+				if resp.Pagination.TotalPages != 1 {
+					t.Errorf("expected total pages 1, got %d", resp.Pagination.TotalPages)
+				}
 			},
 		},
 		{
-			name: "success - empty list",
-			request: &heftv1.ListWorkoutsRequest{
-				UserId: "user-123",
-			},
+			name:     "success - empty list",
+			userID:   "user-123",
+			withAuth: true,
+			request:  &heftv1.ListWorkoutsRequest{},
 			setupMock: func(m *testutil.MockWorkoutRepository) {
 				m.ListFunc = func(ctx context.Context, userID string, includeArchived bool, limit, offset int) ([]*repository.WorkoutTemplate, int, error) {
 					return []*repository.WorkoutTemplate{}, 0, nil
 				}
 			},
 			validateResp: func(t *testing.T, resp *heftv1.ListWorkoutsResponse) {
-				assert.Empty(t, resp.Workouts)
-				assert.Equal(t, int32(0), resp.Pagination.TotalCount)
+				if len(resp.Workouts) != 0 {
+					t.Errorf("expected empty workouts list, got %d", len(resp.Workouts))
+				}
+				if resp.Pagination.TotalCount != 0 {
+					t.Errorf("expected total count 0, got %d", resp.Pagination.TotalCount)
+				}
 			},
 		},
 		{
-			name: "success - includes archived",
+			name:     "success - includes archived",
+			userID:   "user-123",
+			withAuth: true,
 			request: &heftv1.ListWorkoutsRequest{
-				UserId:          "user-123",
 				IncludeArchived: ptrBool(true),
 			},
 			setupMock: func(m *testutil.MockWorkoutRepository) {
 				m.ListFunc = func(ctx context.Context, userID string, includeArchived bool, limit, offset int) ([]*repository.WorkoutTemplate, int, error) {
-					assert.True(t, includeArchived)
+					if !includeArchived {
+						t.Error("expected includeArchived to be true")
+					}
 					return []*repository.WorkoutTemplate{
 						{
 							ID:         "workout-1",
@@ -120,24 +123,28 @@ func TestWorkoutHandler_ListWorkouts(t *testing.T) {
 				}
 			},
 			validateResp: func(t *testing.T, resp *heftv1.ListWorkoutsResponse) {
-				assert.Len(t, resp.Workouts, 1)
-				assert.True(t, resp.Workouts[0].IsArchived)
+				if len(resp.Workouts) != 1 {
+					t.Errorf("expected 1 workout, got %d", len(resp.Workouts))
+				}
+				if !resp.Workouts[0].IsArchived {
+					t.Error("expected workout to be archived")
+				}
 			},
 		},
 		{
-			name: "error - missing user_id",
-			request: &heftv1.ListWorkoutsRequest{
-				UserId: "",
-			},
+			name:      "error - not authenticated",
+			userID:    "",
+			withAuth:  false,
+			request:   &heftv1.ListWorkoutsRequest{},
 			setupMock: func(m *testutil.MockWorkoutRepository) {},
 			wantErr:   true,
-			wantCode:  connect.CodeInvalidArgument,
+			wantCode:  connect.CodeUnauthenticated,
 		},
 		{
-			name: "error - database error",
-			request: &heftv1.ListWorkoutsRequest{
-				UserId: "user-123",
-			},
+			name:     "error - database error",
+			userID:   "user-123",
+			withAuth: true,
+			request:  &heftv1.ListWorkoutsRequest{},
 			setupMock: func(m *testutil.MockWorkoutRepository) {
 				m.ListFunc = func(ctx context.Context, userID string, includeArchived bool, limit, offset int) ([]*repository.WorkoutTemplate, int, error) {
 					return nil, 0, errors.New("database error")
@@ -153,18 +160,33 @@ func TestWorkoutHandler_ListWorkouts(t *testing.T) {
 			mockRepo := &testutil.MockWorkoutRepository{}
 			tt.setupMock(mockRepo)
 
-			client := setupWorkoutTest(t, mockRepo)
-			resp, err := client.ListWorkouts(context.Background(), connect.NewRequest(tt.request))
+			handler := handlers.NewWorkoutHandler(mockRepo)
+
+			ctx := context.Background()
+			if tt.withAuth {
+				ctx = auth.ContextWithUserID(ctx, tt.userID)
+			}
+
+			resp, err := handler.ListWorkouts(ctx, connect.NewRequest(tt.request))
 
 			if tt.wantErr {
-				require.Error(t, err)
+				if err == nil {
+					t.Errorf("expected error, got nil")
+					return
+				}
 				var connectErr *connect.Error
-				require.True(t, errors.As(err, &connectErr))
-				assert.Equal(t, tt.wantCode, connectErr.Code())
+				if errors.As(err, &connectErr) {
+					if connectErr.Code() != tt.wantCode {
+						t.Errorf("expected error code %v, got %v", tt.wantCode, connectErr.Code())
+					}
+				}
 				return
 			}
 
-			require.NoError(t, err)
+			if err != nil {
+				t.Errorf("unexpected error: %v", err)
+				return
+			}
 			tt.validateResp(t, resp.Msg)
 		})
 	}
@@ -173,6 +195,8 @@ func TestWorkoutHandler_ListWorkouts(t *testing.T) {
 func TestWorkoutHandler_GetWorkout(t *testing.T) {
 	tests := []struct {
 		name         string
+		userID       string
+		withAuth     bool
 		request      *heftv1.GetWorkoutRequest
 		setupMock    func(*testutil.MockWorkoutRepository)
 		wantErr      bool
@@ -180,10 +204,11 @@ func TestWorkoutHandler_GetWorkout(t *testing.T) {
 		validateResp func(*testing.T, *heftv1.GetWorkoutResponse)
 	}{
 		{
-			name: "success - returns workout with sections",
+			name:     "success - returns workout with sections",
+			userID:   "user-123",
+			withAuth: true,
 			request: &heftv1.GetWorkoutRequest{
-				Id:     "workout-123",
-				UserId: "user-123",
+				Id: "workout-123",
 			},
 			setupMock: func(m *testutil.MockWorkoutRepository) {
 				m.GetByIDFunc = func(ctx context.Context, id, userID string) (*repository.WorkoutTemplate, error) {
@@ -215,17 +240,26 @@ func TestWorkoutHandler_GetWorkout(t *testing.T) {
 				}
 			},
 			validateResp: func(t *testing.T, resp *heftv1.GetWorkoutResponse) {
-				assert.Equal(t, "workout-123", resp.Workout.Id)
-				assert.Equal(t, "Push Day", resp.Workout.Name)
-				assert.Len(t, resp.Workout.Sections, 1)
-				assert.Equal(t, "Main Lifts", resp.Workout.Sections[0].Name)
+				if resp.Workout.Id != "workout-123" {
+					t.Errorf("expected workout ID 'workout-123', got %s", resp.Workout.Id)
+				}
+				if resp.Workout.Name != "Push Day" {
+					t.Errorf("expected workout name 'Push Day', got %s", resp.Workout.Name)
+				}
+				if len(resp.Workout.Sections) != 1 {
+					t.Errorf("expected 1 section, got %d", len(resp.Workout.Sections))
+				}
+				if resp.Workout.Sections[0].Name != "Main Lifts" {
+					t.Errorf("expected section name 'Main Lifts', got %s", resp.Workout.Sections[0].Name)
+				}
 			},
 		},
 		{
-			name: "error - workout not found",
+			name:     "error - workout not found",
+			userID:   "user-123",
+			withAuth: true,
 			request: &heftv1.GetWorkoutRequest{
-				Id:     "nonexistent",
-				UserId: "user-123",
+				Id: "nonexistent",
 			},
 			setupMock: func(m *testutil.MockWorkoutRepository) {
 				m.GetByIDFunc = func(ctx context.Context, id, userID string) (*repository.WorkoutTemplate, error) {
@@ -236,30 +270,31 @@ func TestWorkoutHandler_GetWorkout(t *testing.T) {
 			wantCode: connect.CodeNotFound,
 		},
 		{
-			name: "error - missing id",
+			name:     "error - missing id",
+			userID:   "user-123",
+			withAuth: true,
 			request: &heftv1.GetWorkoutRequest{
-				Id:     "",
-				UserId: "user-123",
+				Id: "",
 			},
 			setupMock: func(m *testutil.MockWorkoutRepository) {},
 			wantErr:   true,
 			wantCode:  connect.CodeInvalidArgument,
 		},
 		{
-			name: "error - missing user_id",
-			request: &heftv1.GetWorkoutRequest{
-				Id:     "workout-123",
-				UserId: "",
-			},
+			name:      "error - not authenticated",
+			userID:    "",
+			withAuth:  false,
+			request:   &heftv1.GetWorkoutRequest{Id: "workout-123"},
 			setupMock: func(m *testutil.MockWorkoutRepository) {},
 			wantErr:   true,
-			wantCode:  connect.CodeInvalidArgument,
+			wantCode:  connect.CodeUnauthenticated,
 		},
 		{
-			name: "error - database error",
+			name:     "error - database error",
+			userID:   "user-123",
+			withAuth: true,
 			request: &heftv1.GetWorkoutRequest{
-				Id:     "workout-123",
-				UserId: "user-123",
+				Id: "workout-123",
 			},
 			setupMock: func(m *testutil.MockWorkoutRepository) {
 				m.GetByIDFunc = func(ctx context.Context, id, userID string) (*repository.WorkoutTemplate, error) {
@@ -276,18 +311,33 @@ func TestWorkoutHandler_GetWorkout(t *testing.T) {
 			mockRepo := &testutil.MockWorkoutRepository{}
 			tt.setupMock(mockRepo)
 
-			client := setupWorkoutTest(t, mockRepo)
-			resp, err := client.GetWorkout(context.Background(), connect.NewRequest(tt.request))
+			handler := handlers.NewWorkoutHandler(mockRepo)
+
+			ctx := context.Background()
+			if tt.withAuth {
+				ctx = auth.ContextWithUserID(ctx, tt.userID)
+			}
+
+			resp, err := handler.GetWorkout(ctx, connect.NewRequest(tt.request))
 
 			if tt.wantErr {
-				require.Error(t, err)
+				if err == nil {
+					t.Errorf("expected error, got nil")
+					return
+				}
 				var connectErr *connect.Error
-				require.True(t, errors.As(err, &connectErr))
-				assert.Equal(t, tt.wantCode, connectErr.Code())
+				if errors.As(err, &connectErr) {
+					if connectErr.Code() != tt.wantCode {
+						t.Errorf("expected error code %v, got %v", tt.wantCode, connectErr.Code())
+					}
+				}
 				return
 			}
 
-			require.NoError(t, err)
+			if err != nil {
+				t.Errorf("unexpected error: %v", err)
+				return
+			}
 			tt.validateResp(t, resp.Msg)
 		})
 	}
@@ -296,6 +346,8 @@ func TestWorkoutHandler_GetWorkout(t *testing.T) {
 func TestWorkoutHandler_CreateWorkout(t *testing.T) {
 	tests := []struct {
 		name         string
+		userID       string
+		withAuth     bool
 		request      *heftv1.CreateWorkoutRequest
 		setupMock    func(*testutil.MockWorkoutRepository)
 		wantErr      bool
@@ -303,9 +355,10 @@ func TestWorkoutHandler_CreateWorkout(t *testing.T) {
 		validateResp func(*testing.T, *heftv1.CreateWorkoutResponse)
 	}{
 		{
-			name: "success - creates basic workout",
+			name:     "success - creates basic workout",
+			userID:   "user-123",
+			withAuth: true,
 			request: &heftv1.CreateWorkoutRequest{
-				UserId:      "user-123",
 				Name:        "New Workout",
 				Description: ptrString("A test workout"),
 			},
@@ -331,15 +384,20 @@ func TestWorkoutHandler_CreateWorkout(t *testing.T) {
 				}
 			},
 			validateResp: func(t *testing.T, resp *heftv1.CreateWorkoutResponse) {
-				assert.Equal(t, "workout-new", resp.Workout.Id)
-				assert.Equal(t, "New Workout", resp.Workout.Name)
+				if resp.Workout.Id != "workout-new" {
+					t.Errorf("expected workout ID 'workout-new', got %s", resp.Workout.Id)
+				}
+				if resp.Workout.Name != "New Workout" {
+					t.Errorf("expected workout name 'New Workout', got %s", resp.Workout.Name)
+				}
 			},
 		},
 		{
-			name: "success - creates workout with sections",
+			name:     "success - creates workout with sections",
+			userID:   "user-123",
+			withAuth: true,
 			request: &heftv1.CreateWorkoutRequest{
-				UserId: "user-123",
-				Name:   "Full Workout",
+				Name: "Full Workout",
 				Sections: []*heftv1.CreateWorkoutSection{
 					{
 						Name:         "Warmup",
@@ -425,36 +483,43 @@ func TestWorkoutHandler_CreateWorkout(t *testing.T) {
 				}
 			},
 			validateResp: func(t *testing.T, resp *heftv1.CreateWorkoutResponse) {
-				assert.Equal(t, "Full Workout", resp.Workout.Name)
-				assert.Len(t, resp.Workout.Sections, 1)
-				assert.Equal(t, "Warmup", resp.Workout.Sections[0].Name)
+				if resp.Workout.Name != "Full Workout" {
+					t.Errorf("expected workout name 'Full Workout', got %s", resp.Workout.Name)
+				}
+				if len(resp.Workout.Sections) != 1 {
+					t.Errorf("expected 1 section, got %d", len(resp.Workout.Sections))
+				}
+				if resp.Workout.Sections[0].Name != "Warmup" {
+					t.Errorf("expected section name 'Warmup', got %s", resp.Workout.Sections[0].Name)
+				}
 			},
 		},
 		{
-			name: "error - missing user_id",
+			name:      "error - not authenticated",
+			userID:    "",
+			withAuth:  false,
+			request:   &heftv1.CreateWorkoutRequest{Name: "Test"},
+			setupMock: func(m *testutil.MockWorkoutRepository) {},
+			wantErr:   true,
+			wantCode:  connect.CodeUnauthenticated,
+		},
+		{
+			name:     "error - missing name",
+			userID:   "user-123",
+			withAuth: true,
 			request: &heftv1.CreateWorkoutRequest{
-				UserId: "",
-				Name:   "Test",
+				Name: "",
 			},
 			setupMock: func(m *testutil.MockWorkoutRepository) {},
 			wantErr:   true,
 			wantCode:  connect.CodeInvalidArgument,
 		},
 		{
-			name: "error - missing name",
+			name:     "error - database error on create",
+			userID:   "user-123",
+			withAuth: true,
 			request: &heftv1.CreateWorkoutRequest{
-				UserId: "user-123",
-				Name:   "",
-			},
-			setupMock: func(m *testutil.MockWorkoutRepository) {},
-			wantErr:   true,
-			wantCode:  connect.CodeInvalidArgument,
-		},
-		{
-			name: "error - database error on create",
-			request: &heftv1.CreateWorkoutRequest{
-				UserId: "user-123",
-				Name:   "Test",
+				Name: "Test",
 			},
 			setupMock: func(m *testutil.MockWorkoutRepository) {
 				m.CreateFunc = func(ctx context.Context, userID, name string, description *string) (*repository.WorkoutTemplate, error) {
@@ -471,18 +536,33 @@ func TestWorkoutHandler_CreateWorkout(t *testing.T) {
 			mockRepo := &testutil.MockWorkoutRepository{}
 			tt.setupMock(mockRepo)
 
-			client := setupWorkoutTest(t, mockRepo)
-			resp, err := client.CreateWorkout(context.Background(), connect.NewRequest(tt.request))
+			handler := handlers.NewWorkoutHandler(mockRepo)
+
+			ctx := context.Background()
+			if tt.withAuth {
+				ctx = auth.ContextWithUserID(ctx, tt.userID)
+			}
+
+			resp, err := handler.CreateWorkout(ctx, connect.NewRequest(tt.request))
 
 			if tt.wantErr {
-				require.Error(t, err)
+				if err == nil {
+					t.Errorf("expected error, got nil")
+					return
+				}
 				var connectErr *connect.Error
-				require.True(t, errors.As(err, &connectErr))
-				assert.Equal(t, tt.wantCode, connectErr.Code())
+				if errors.As(err, &connectErr) {
+					if connectErr.Code() != tt.wantCode {
+						t.Errorf("expected error code %v, got %v", tt.wantCode, connectErr.Code())
+					}
+				}
 				return
 			}
 
-			require.NoError(t, err)
+			if err != nil {
+				t.Errorf("unexpected error: %v", err)
+				return
+			}
 			tt.validateResp(t, resp.Msg)
 		})
 	}
@@ -491,6 +571,8 @@ func TestWorkoutHandler_CreateWorkout(t *testing.T) {
 func TestWorkoutHandler_DeleteWorkout(t *testing.T) {
 	tests := []struct {
 		name         string
+		userID       string
+		withAuth     bool
 		request      *heftv1.DeleteWorkoutRequest
 		setupMock    func(*testutil.MockWorkoutRepository)
 		wantErr      bool
@@ -498,10 +580,11 @@ func TestWorkoutHandler_DeleteWorkout(t *testing.T) {
 		validateResp func(*testing.T, *heftv1.DeleteWorkoutResponse)
 	}{
 		{
-			name: "success - deletes workout",
+			name:     "success - deletes workout",
+			userID:   "user-123",
+			withAuth: true,
 			request: &heftv1.DeleteWorkoutRequest{
-				Id:     "workout-123",
-				UserId: "user-123",
+				Id: "workout-123",
 			},
 			setupMock: func(m *testutil.MockWorkoutRepository) {
 				m.DeleteFunc = func(ctx context.Context, id, userID string) error {
@@ -509,34 +592,37 @@ func TestWorkoutHandler_DeleteWorkout(t *testing.T) {
 				}
 			},
 			validateResp: func(t *testing.T, resp *heftv1.DeleteWorkoutResponse) {
-				assert.True(t, resp.Success)
+				if !resp.Success {
+					t.Error("expected success to be true")
+				}
 			},
 		},
 		{
-			name: "error - missing id",
+			name:     "error - missing id",
+			userID:   "user-123",
+			withAuth: true,
 			request: &heftv1.DeleteWorkoutRequest{
-				Id:     "",
-				UserId: "user-123",
-			},
-			setupMock: func(m *testutil.MockWorkoutRepository) {},
-			wantErr:   true,
-			wantCode:  connect.CodeInvalidArgument,
-		},
-		{
-			name: "error - missing user_id",
-			request: &heftv1.DeleteWorkoutRequest{
-				Id:     "workout-123",
-				UserId: "",
+				Id: "",
 			},
 			setupMock: func(m *testutil.MockWorkoutRepository) {},
 			wantErr:   true,
 			wantCode:  connect.CodeInvalidArgument,
 		},
 		{
-			name: "error - database error",
+			name:      "error - not authenticated",
+			userID:    "",
+			withAuth:  false,
+			request:   &heftv1.DeleteWorkoutRequest{Id: "workout-123"},
+			setupMock: func(m *testutil.MockWorkoutRepository) {},
+			wantErr:   true,
+			wantCode:  connect.CodeUnauthenticated,
+		},
+		{
+			name:     "error - database error",
+			userID:   "user-123",
+			withAuth: true,
 			request: &heftv1.DeleteWorkoutRequest{
-				Id:     "workout-123",
-				UserId: "user-123",
+				Id: "workout-123",
 			},
 			setupMock: func(m *testutil.MockWorkoutRepository) {
 				m.DeleteFunc = func(ctx context.Context, id, userID string) error {
@@ -553,18 +639,33 @@ func TestWorkoutHandler_DeleteWorkout(t *testing.T) {
 			mockRepo := &testutil.MockWorkoutRepository{}
 			tt.setupMock(mockRepo)
 
-			client := setupWorkoutTest(t, mockRepo)
-			resp, err := client.DeleteWorkout(context.Background(), connect.NewRequest(tt.request))
+			handler := handlers.NewWorkoutHandler(mockRepo)
+
+			ctx := context.Background()
+			if tt.withAuth {
+				ctx = auth.ContextWithUserID(ctx, tt.userID)
+			}
+
+			resp, err := handler.DeleteWorkout(ctx, connect.NewRequest(tt.request))
 
 			if tt.wantErr {
-				require.Error(t, err)
+				if err == nil {
+					t.Errorf("expected error, got nil")
+					return
+				}
 				var connectErr *connect.Error
-				require.True(t, errors.As(err, &connectErr))
-				assert.Equal(t, tt.wantCode, connectErr.Code())
+				if errors.As(err, &connectErr) {
+					if connectErr.Code() != tt.wantCode {
+						t.Errorf("expected error code %v, got %v", tt.wantCode, connectErr.Code())
+					}
+				}
 				return
 			}
 
-			require.NoError(t, err)
+			if err != nil {
+				t.Errorf("unexpected error: %v", err)
+				return
+			}
 			tt.validateResp(t, resp.Msg)
 		})
 	}
@@ -573,6 +674,8 @@ func TestWorkoutHandler_DeleteWorkout(t *testing.T) {
 func TestWorkoutHandler_DuplicateWorkout(t *testing.T) {
 	tests := []struct {
 		name         string
+		userID       string
+		withAuth     bool
 		request      *heftv1.DuplicateWorkoutRequest
 		setupMock    func(*testutil.MockWorkoutRepository)
 		wantErr      bool
@@ -580,10 +683,11 @@ func TestWorkoutHandler_DuplicateWorkout(t *testing.T) {
 		validateResp func(*testing.T, *heftv1.DuplicateWorkoutResponse)
 	}{
 		{
-			name: "success - duplicates workout with default name",
+			name:     "success - duplicates workout with default name",
+			userID:   "user-123",
+			withAuth: true,
 			request: &heftv1.DuplicateWorkoutRequest{
-				Id:     "workout-123",
-				UserId: "user-123",
+				Id: "workout-123",
 			},
 			setupMock: func(m *testutil.MockWorkoutRepository) {
 				m.GetByIDFunc = func(ctx context.Context, id, userID string) (*repository.WorkoutTemplate, error) {
@@ -617,15 +721,20 @@ func TestWorkoutHandler_DuplicateWorkout(t *testing.T) {
 				}
 			},
 			validateResp: func(t *testing.T, resp *heftv1.DuplicateWorkoutResponse) {
-				assert.Equal(t, "workout-copy", resp.Workout.Id)
-				assert.Equal(t, "Original Workout (Copy)", resp.Workout.Name)
+				if resp.Workout.Id != "workout-copy" {
+					t.Errorf("expected workout ID 'workout-copy', got %s", resp.Workout.Id)
+				}
+				if resp.Workout.Name != "Original Workout (Copy)" {
+					t.Errorf("expected workout name 'Original Workout (Copy)', got %s", resp.Workout.Name)
+				}
 			},
 		},
 		{
-			name: "success - duplicates workout with custom name",
+			name:     "success - duplicates workout with custom name",
+			userID:   "user-123",
+			withAuth: true,
 			request: &heftv1.DuplicateWorkoutRequest{
 				Id:      "workout-123",
-				UserId:  "user-123",
 				NewName: ptrString("My Custom Name"),
 			},
 			setupMock: func(m *testutil.MockWorkoutRepository) {
@@ -649,7 +758,9 @@ func TestWorkoutHandler_DuplicateWorkout(t *testing.T) {
 					}, nil
 				}
 				m.CreateFunc = func(ctx context.Context, userID, name string, description *string) (*repository.WorkoutTemplate, error) {
-					assert.Equal(t, "My Custom Name", name)
+					if name != "My Custom Name" {
+						t.Errorf("expected name 'My Custom Name', got %s", name)
+					}
 					return &repository.WorkoutTemplate{
 						ID:        "workout-copy",
 						UserID:    userID,
@@ -660,14 +771,17 @@ func TestWorkoutHandler_DuplicateWorkout(t *testing.T) {
 				}
 			},
 			validateResp: func(t *testing.T, resp *heftv1.DuplicateWorkoutResponse) {
-				assert.Equal(t, "My Custom Name", resp.Workout.Name)
+				if resp.Workout.Name != "My Custom Name" {
+					t.Errorf("expected workout name 'My Custom Name', got %s", resp.Workout.Name)
+				}
 			},
 		},
 		{
-			name: "error - workout not found",
+			name:     "error - workout not found",
+			userID:   "user-123",
+			withAuth: true,
 			request: &heftv1.DuplicateWorkoutRequest{
-				Id:     "nonexistent",
-				UserId: "user-123",
+				Id: "nonexistent",
 			},
 			setupMock: func(m *testutil.MockWorkoutRepository) {
 				m.GetByIDFunc = func(ctx context.Context, id, userID string) (*repository.WorkoutTemplate, error) {
@@ -678,24 +792,24 @@ func TestWorkoutHandler_DuplicateWorkout(t *testing.T) {
 			wantCode: connect.CodeNotFound,
 		},
 		{
-			name: "error - missing id",
+			name:     "error - missing id",
+			userID:   "user-123",
+			withAuth: true,
 			request: &heftv1.DuplicateWorkoutRequest{
-				Id:     "",
-				UserId: "user-123",
+				Id: "",
 			},
 			setupMock: func(m *testutil.MockWorkoutRepository) {},
 			wantErr:   true,
 			wantCode:  connect.CodeInvalidArgument,
 		},
 		{
-			name: "error - missing user_id",
-			request: &heftv1.DuplicateWorkoutRequest{
-				Id:     "workout-123",
-				UserId: "",
-			},
+			name:      "error - not authenticated",
+			userID:    "",
+			withAuth:  false,
+			request:   &heftv1.DuplicateWorkoutRequest{Id: "workout-123"},
 			setupMock: func(m *testutil.MockWorkoutRepository) {},
 			wantErr:   true,
-			wantCode:  connect.CodeInvalidArgument,
+			wantCode:  connect.CodeUnauthenticated,
 		},
 	}
 
@@ -704,18 +818,33 @@ func TestWorkoutHandler_DuplicateWorkout(t *testing.T) {
 			mockRepo := &testutil.MockWorkoutRepository{}
 			tt.setupMock(mockRepo)
 
-			client := setupWorkoutTest(t, mockRepo)
-			resp, err := client.DuplicateWorkout(context.Background(), connect.NewRequest(tt.request))
+			handler := handlers.NewWorkoutHandler(mockRepo)
+
+			ctx := context.Background()
+			if tt.withAuth {
+				ctx = auth.ContextWithUserID(ctx, tt.userID)
+			}
+
+			resp, err := handler.DuplicateWorkout(ctx, connect.NewRequest(tt.request))
 
 			if tt.wantErr {
-				require.Error(t, err)
+				if err == nil {
+					t.Errorf("expected error, got nil")
+					return
+				}
 				var connectErr *connect.Error
-				require.True(t, errors.As(err, &connectErr))
-				assert.Equal(t, tt.wantCode, connectErr.Code())
+				if errors.As(err, &connectErr) {
+					if connectErr.Code() != tt.wantCode {
+						t.Errorf("expected error code %v, got %v", tt.wantCode, connectErr.Code())
+					}
+				}
 				return
 			}
 
-			require.NoError(t, err)
+			if err != nil {
+				t.Errorf("unexpected error: %v", err)
+				return
+			}
 			tt.validateResp(t, resp.Msg)
 		})
 	}
@@ -724,6 +853,8 @@ func TestWorkoutHandler_DuplicateWorkout(t *testing.T) {
 func TestWorkoutHandler_UpdateWorkout(t *testing.T) {
 	tests := []struct {
 		name         string
+		userID       string
+		withAuth     bool
 		request      *heftv1.UpdateWorkoutRequest
 		setupMock    func(*testutil.MockWorkoutRepository)
 		wantErr      bool
@@ -731,10 +862,11 @@ func TestWorkoutHandler_UpdateWorkout(t *testing.T) {
 		validateResp func(*testing.T, *heftv1.UpdateWorkoutResponse)
 	}{
 		{
-			name: "success - returns existing workout",
+			name:     "success - returns existing workout",
+			userID:   "user-123",
+			withAuth: true,
 			request: &heftv1.UpdateWorkoutRequest{
-				Id:     "workout-123",
-				UserId: "user-123",
+				Id: "workout-123",
 			},
 			setupMock: func(m *testutil.MockWorkoutRepository) {
 				m.GetByIDFunc = func(ctx context.Context, id, userID string) (*repository.WorkoutTemplate, error) {
@@ -748,15 +880,20 @@ func TestWorkoutHandler_UpdateWorkout(t *testing.T) {
 				}
 			},
 			validateResp: func(t *testing.T, resp *heftv1.UpdateWorkoutResponse) {
-				assert.Equal(t, "workout-123", resp.Workout.Id)
-				assert.Equal(t, "Existing Workout", resp.Workout.Name)
+				if resp.Workout.Id != "workout-123" {
+					t.Errorf("expected workout ID 'workout-123', got %s", resp.Workout.Id)
+				}
+				if resp.Workout.Name != "Existing Workout" {
+					t.Errorf("expected workout name 'Existing Workout', got %s", resp.Workout.Name)
+				}
 			},
 		},
 		{
-			name: "error - workout not found",
+			name:     "error - workout not found",
+			userID:   "user-123",
+			withAuth: true,
 			request: &heftv1.UpdateWorkoutRequest{
-				Id:     "nonexistent",
-				UserId: "user-123",
+				Id: "nonexistent",
 			},
 			setupMock: func(m *testutil.MockWorkoutRepository) {
 				m.GetByIDFunc = func(ctx context.Context, id, userID string) (*repository.WorkoutTemplate, error) {
@@ -767,24 +904,24 @@ func TestWorkoutHandler_UpdateWorkout(t *testing.T) {
 			wantCode: connect.CodeNotFound,
 		},
 		{
-			name: "error - missing id",
+			name:     "error - missing id",
+			userID:   "user-123",
+			withAuth: true,
 			request: &heftv1.UpdateWorkoutRequest{
-				Id:     "",
-				UserId: "user-123",
+				Id: "",
 			},
 			setupMock: func(m *testutil.MockWorkoutRepository) {},
 			wantErr:   true,
 			wantCode:  connect.CodeInvalidArgument,
 		},
 		{
-			name: "error - missing user_id",
-			request: &heftv1.UpdateWorkoutRequest{
-				Id:     "workout-123",
-				UserId: "",
-			},
+			name:      "error - not authenticated",
+			userID:    "",
+			withAuth:  false,
+			request:   &heftv1.UpdateWorkoutRequest{Id: "workout-123"},
 			setupMock: func(m *testutil.MockWorkoutRepository) {},
 			wantErr:   true,
-			wantCode:  connect.CodeInvalidArgument,
+			wantCode:  connect.CodeUnauthenticated,
 		},
 	}
 
@@ -793,20 +930,34 @@ func TestWorkoutHandler_UpdateWorkout(t *testing.T) {
 			mockRepo := &testutil.MockWorkoutRepository{}
 			tt.setupMock(mockRepo)
 
-			client := setupWorkoutTest(t, mockRepo)
-			resp, err := client.UpdateWorkout(context.Background(), connect.NewRequest(tt.request))
+			handler := handlers.NewWorkoutHandler(mockRepo)
+
+			ctx := context.Background()
+			if tt.withAuth {
+				ctx = auth.ContextWithUserID(ctx, tt.userID)
+			}
+
+			resp, err := handler.UpdateWorkout(ctx, connect.NewRequest(tt.request))
 
 			if tt.wantErr {
-				require.Error(t, err)
+				if err == nil {
+					t.Errorf("expected error, got nil")
+					return
+				}
 				var connectErr *connect.Error
-				require.True(t, errors.As(err, &connectErr))
-				assert.Equal(t, tt.wantCode, connectErr.Code())
+				if errors.As(err, &connectErr) {
+					if connectErr.Code() != tt.wantCode {
+						t.Errorf("expected error code %v, got %v", tt.wantCode, connectErr.Code())
+					}
+				}
 				return
 			}
 
-			require.NoError(t, err)
+			if err != nil {
+				t.Errorf("unexpected error: %v", err)
+				return
+			}
 			tt.validateResp(t, resp.Msg)
 		})
 	}
 }
-

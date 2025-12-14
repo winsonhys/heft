@@ -2,11 +2,12 @@ import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 
 import '../../../shared/theme/app_colors.dart';
 
 /// Rest timer bottom sheet with circular progress
-class RestTimerSheet extends StatefulWidget {
+class RestTimerSheet extends HookWidget {
   final int initialTime;
   final String nextExerciseName;
   final int nextSetNumber;
@@ -22,68 +23,25 @@ class RestTimerSheet extends StatefulWidget {
     required this.onComplete,
   });
 
-  @override
-  State<RestTimerSheet> createState() => _RestTimerSheetState();
-}
-
-class _RestTimerSheetState extends State<RestTimerSheet> {
-  late int _timeRemaining;
-  late int _totalDuration;
-  Timer? _timer;
-
-  @override
-  void initState() {
-    super.initState();
-    _timeRemaining = widget.initialTime;
-    _totalDuration = widget.initialTime;
-    _startTimer();
-  }
-
-  @override
-  void dispose() {
-    _timer?.cancel();
-    super.dispose();
-  }
-
-  void _startTimer() {
-    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      if (_timeRemaining <= 0) {
-        timer.cancel();
-        widget.onComplete();
-      } else {
-        setState(() {
-          _timeRemaining--;
-        });
-      }
-    });
-  }
-
-  void _addTime() {
-    setState(() {
-      _timeRemaining += 30;
-      _totalDuration += 30;
-    });
-  }
-
   String _formatTime(int seconds) {
     final mins = seconds ~/ 60;
     final secs = seconds % 60;
     return '$mins:${secs.toString().padLeft(2, '0')}';
   }
 
-  Color _getProgressColor() {
-    if (_timeRemaining <= 10) {
+  Color _getProgressColor(int timeRemaining) {
+    if (timeRemaining <= 10) {
       return AppColors.accentGreen;
-    } else if (_timeRemaining <= 30) {
+    } else if (timeRemaining <= 30) {
       return AppColors.accentOrange;
     }
     return AppColors.accentBlue;
   }
 
-  Color _getTextColor() {
-    if (_timeRemaining <= 10) {
+  Color _getTextColor(int timeRemaining) {
+    if (timeRemaining <= 10) {
       return AppColors.accentGreen;
-    } else if (_timeRemaining <= 30) {
+    } else if (timeRemaining <= 30) {
       return AppColors.accentOrange;
     }
     return AppColors.textPrimary;
@@ -91,9 +49,30 @@ class _RestTimerSheetState extends State<RestTimerSheet> {
 
   @override
   Widget build(BuildContext context) {
-    final progress = _timeRemaining / _totalDuration;
-    final progressColor = _getProgressColor();
-    final textColor = _getTextColor();
+    final timeRemaining = useState(initialTime);
+    final totalDuration = useState(initialTime);
+
+    // Timer effect with cleanup
+    useEffect(() {
+      final timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+        if (timeRemaining.value <= 0) {
+          timer.cancel();
+          onComplete();
+        } else {
+          timeRemaining.value--;
+        }
+      });
+      return () => timer.cancel();
+    }, []);
+
+    void addTime() {
+      timeRemaining.value += 30;
+      totalDuration.value += 30;
+    }
+
+    final progress = timeRemaining.value / totalDuration.value;
+    final progressColor = _getProgressColor(timeRemaining.value);
+    final textColor = _getTextColor(timeRemaining.value);
 
     return Positioned(
       left: 12,
@@ -133,7 +112,7 @@ class _RestTimerSheetState extends State<RestTimerSheet> {
                   ),
                   // Time text
                   Text(
-                    _formatTime(_timeRemaining),
+                    _formatTime(timeRemaining.value),
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w700,
@@ -163,7 +142,7 @@ class _RestTimerSheetState extends State<RestTimerSheet> {
                   ),
                   const SizedBox(height: 2),
                   Text(
-                    'Next: ${widget.nextExerciseName} - Set ${widget.nextSetNumber}',
+                    'Next: $nextExerciseName - Set $nextSetNumber',
                     style: const TextStyle(
                       fontSize: 12,
                       color: AppColors.textMuted,
@@ -180,7 +159,7 @@ class _RestTimerSheetState extends State<RestTimerSheet> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 GestureDetector(
-                  onTap: widget.onSkip,
+                  onTap: onSkip,
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                     decoration: BoxDecoration(
@@ -199,7 +178,7 @@ class _RestTimerSheetState extends State<RestTimerSheet> {
                 ),
                 const SizedBox(width: 8),
                 GestureDetector(
-                  onTap: _addTime,
+                  onTap: addTime,
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                     decoration: BoxDecoration(

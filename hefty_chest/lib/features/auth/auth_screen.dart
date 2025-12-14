@@ -1,0 +1,174 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:go_router/go_router.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
+
+import '../../shared/theme/app_colors.dart';
+import 'providers/auth_providers.dart';
+
+/// Landing screen with email login
+class AuthScreen extends HookConsumerWidget {
+  const AuthScreen({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final emailController = useTextEditingController();
+    final isLoading = useState(false);
+    final errorMessage = useState<String?>(null);
+
+    Future<void> handleLogin() async {
+      final email = emailController.text.trim();
+
+      // Basic validation
+      if (email.isEmpty) {
+        errorMessage.value = 'Please enter your email';
+        return;
+      }
+
+      if (!RegExp(r'^[\w\.\-\+]+@[\w\.\-]+\.\w+$').hasMatch(email)) {
+        errorMessage.value = 'Please enter a valid email';
+        return;
+      }
+
+      errorMessage.value = null;
+      isLoading.value = true;
+
+      final success = await ref.read(authProvider.notifier).login(email);
+
+      isLoading.value = false;
+
+      if (success && context.mounted) {
+        context.go('/');
+      } else {
+        errorMessage.value = ref.read(authProvider).error ?? 'Login failed';
+      }
+    }
+
+    return Scaffold(
+      backgroundColor: AppColors.bgPrimary,
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(24.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // Logo/Brand
+              const Icon(
+                Icons.fitness_center,
+                size: 64,
+                color: AppColors.accentBlue,
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                'Heft',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 32,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.textPrimary,
+                ),
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                'Track your workouts',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 16,
+                  color: AppColors.textSecondary,
+                ),
+              ),
+              const SizedBox(height: 48),
+
+              // Email field
+              TextField(
+                controller: emailController,
+                keyboardType: TextInputType.emailAddress,
+                autocorrect: false,
+                style: const TextStyle(color: AppColors.textPrimary),
+                decoration: InputDecoration(
+                  labelText: 'Email',
+                  labelStyle: const TextStyle(color: AppColors.textSecondary),
+                  hintText: 'you@example.com',
+                  hintStyle: const TextStyle(color: AppColors.textMuted),
+                  filled: true,
+                  fillColor: AppColors.bgCard,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: const BorderSide(color: AppColors.borderColor),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: const BorderSide(color: AppColors.borderColor),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: const BorderSide(color: AppColors.accentBlue),
+                  ),
+                  prefixIcon:
+                      const Icon(Icons.email, color: AppColors.textSecondary),
+                ),
+                onSubmitted: (_) => handleLogin(),
+              ),
+
+              // Error message
+              if (errorMessage.value != null) ...[
+                const SizedBox(height: 12),
+                Text(
+                  errorMessage.value!,
+                  style: const TextStyle(
+                    color: AppColors.accentRed,
+                    fontSize: 14,
+                  ),
+                ),
+              ],
+
+              const SizedBox(height: 24),
+
+              // Login button
+              SizedBox(
+                height: 50,
+                child: ElevatedButton(
+                  onPressed: isLoading.value ? null : handleLogin,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.accentBlue,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    disabledBackgroundColor:
+                        AppColors.accentBlue.withValues(alpha: 0.5),
+                  ),
+                  child: isLoading.value
+                      ? const SizedBox(
+                          width: 24,
+                          height: 24,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
+                        )
+                      : const Text(
+                          'Continue',
+                          style: TextStyle(
+                              fontSize: 16, fontWeight: FontWeight.w600),
+                        ),
+                ),
+              ),
+
+              const SizedBox(height: 16),
+              const Text(
+                'No password needed - just enter your email to get started',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 12,
+                  color: AppColors.textMuted,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}

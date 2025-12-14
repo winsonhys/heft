@@ -1,14 +1,22 @@
 import 'package:hefty_chest/core/client.dart';
 
+import 'test_setup.dart';
+
 /// Test data utilities for integration tests.
 ///
 /// Provides helpers for creating, seeding, and cleaning up test data
 /// against the real backend.
+///
+/// IMPORTANT: Call [IntegrationTestSetup.authenticateTestUser()] before
+/// using any methods in this class.
 class TestData {
   TestData._();
 
-  /// Test user ID (matches seed data in migrations)
-  static const testUserId = '00000000-0000-0000-0000-000000000001';
+  /// Get the authenticated test user ID.
+  ///
+  /// This returns the user ID from the login response, not a hardcoded value.
+  /// Throws if [IntegrationTestSetup.authenticateTestUser()] hasn't been called.
+  static String get testUserId => IntegrationTestSetup.testUserId;
 
   /// Create a test workout with optional sections.
   static Future<String> createTestWorkout({

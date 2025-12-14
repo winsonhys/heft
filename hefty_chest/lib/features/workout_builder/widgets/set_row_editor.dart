@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 import '../../../shared/theme/app_colors.dart';
 import '../../../core/client.dart';
 import '../providers/workout_builder_providers.dart';
 
 /// Editor row for a single set
-class SetRowEditor extends ConsumerStatefulWidget {
+class SetRowEditor extends HookConsumerWidget {
   final BuilderSet set;
   final String sectionId;
   final String itemId;
@@ -21,55 +22,30 @@ class SetRowEditor extends ConsumerStatefulWidget {
   });
 
   @override
-  ConsumerState<SetRowEditor> createState() => _SetRowEditorState();
-}
-
-class _SetRowEditorState extends ConsumerState<SetRowEditor> {
-  late TextEditingController _weightController;
-  late TextEditingController _repsController;
-  late TextEditingController _timeController;
-
-  @override
-  void initState() {
-    super.initState();
-    _weightController = TextEditingController(
-      text: widget.set.targetWeightKg > 0
-          ? widget.set.targetWeightKg.toString()
-          : '',
+  Widget build(BuildContext context, WidgetRef ref) {
+    final weightController = useTextEditingController(
+      text: set.targetWeightKg > 0 ? set.targetWeightKg.toString() : '',
     );
-    _repsController = TextEditingController(
-      text: widget.set.targetReps > 0 ? widget.set.targetReps.toString() : '',
+    final repsController = useTextEditingController(
+      text: set.targetReps > 0 ? set.targetReps.toString() : '',
     );
-    _timeController = TextEditingController(
-      text: widget.set.targetTimeSeconds > 0
-          ? widget.set.targetTimeSeconds.toString()
-          : '',
+    final timeController = useTextEditingController(
+      text: set.targetTimeSeconds > 0 ? set.targetTimeSeconds.toString() : '',
     );
-  }
 
-  @override
-  void dispose() {
-    _weightController.dispose();
-    _repsController.dispose();
-    _timeController.dispose();
-    super.dispose();
-  }
+    void updateValues({double? weight, int? reps, int? time}) {
+      ref.read(workoutBuilderProvider.notifier).updateSetValues(
+            sectionId,
+            itemId,
+            set.id,
+            weight: weight,
+            reps: reps,
+            time: time,
+          );
+    }
 
-  void _updateValues({double? weight, int? reps, int? time}) {
-    ref.read(workoutBuilderProvider.notifier).updateSetValues(
-          widget.sectionId,
-          widget.itemId,
-          widget.set.id,
-          weight: weight,
-          reps: reps,
-          time: time,
-        );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final isWeight = widget.exerciseType == ExerciseType.EXERCISE_TYPE_WEIGHT_REPS;
-    final isTime = widget.exerciseType == ExerciseType.EXERCISE_TYPE_TIME;
+    final isWeight = exerciseType == ExerciseType.EXERCISE_TYPE_WEIGHT_REPS;
+    final isTime = exerciseType == ExerciseType.EXERCISE_TYPE_TIME;
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
@@ -79,7 +55,7 @@ class _SetRowEditorState extends ConsumerState<SetRowEditor> {
           SizedBox(
             width: 32,
             child: Text(
-              '${widget.set.setNumber}',
+              '${set.setNumber}',
               style: const TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.w600,
@@ -92,8 +68,8 @@ class _SetRowEditorState extends ConsumerState<SetRowEditor> {
           if (isWeight) ...[
             Expanded(
               child: _InputField(
-                controller: _weightController,
-                onChanged: (v) => _updateValues(weight: double.tryParse(v)),
+                controller: weightController,
+                onChanged: (v) => updateValues(weight: double.tryParse(v)),
                 placeholder: '0',
               ),
             ),
@@ -101,8 +77,8 @@ class _SetRowEditorState extends ConsumerState<SetRowEditor> {
             // Reps input
             Expanded(
               child: _InputField(
-                controller: _repsController,
-                onChanged: (v) => _updateValues(reps: int.tryParse(v)),
+                controller: repsController,
+                onChanged: (v) => updateValues(reps: int.tryParse(v)),
                 placeholder: '10',
               ),
             ),
@@ -110,8 +86,8 @@ class _SetRowEditorState extends ConsumerState<SetRowEditor> {
             // Time input
             Expanded(
               child: _InputField(
-                controller: _timeController,
-                onChanged: (v) => _updateValues(time: int.tryParse(v)),
+                controller: timeController,
+                onChanged: (v) => updateValues(time: int.tryParse(v)),
                 placeholder: '30',
               ),
             ),
@@ -119,8 +95,8 @@ class _SetRowEditorState extends ConsumerState<SetRowEditor> {
             // Bodyweight - just reps
             Expanded(
               child: _InputField(
-                controller: _repsController,
-                onChanged: (v) => _updateValues(reps: int.tryParse(v)),
+                controller: repsController,
+                onChanged: (v) => updateValues(reps: int.tryParse(v)),
                 placeholder: '10',
               ),
             ),
@@ -131,9 +107,9 @@ class _SetRowEditorState extends ConsumerState<SetRowEditor> {
             child: GestureDetector(
               onTap: () {
                 ref.read(workoutBuilderProvider.notifier).deleteSet(
-                      widget.sectionId,
-                      widget.itemId,
-                      widget.set.id,
+                      sectionId,
+                      itemId,
+                      set.id,
                     );
               },
               child: Icon(

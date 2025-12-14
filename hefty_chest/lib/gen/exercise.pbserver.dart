@@ -15,36 +15,36 @@ import 'dart:core' as $core;
 
 import 'package:protobuf/protobuf.dart' as $pb;
 
-import 'exercise.pb.dart' as $2;
+import 'exercise.pb.dart' as $3;
 import 'exercise.pbjson.dart';
 
 export 'exercise.pb.dart';
 
 abstract class ExerciseServiceBase extends $pb.GeneratedService {
-  $async.Future<$2.ListExercisesResponse> listExercises($pb.ServerContext ctx, $2.ListExercisesRequest request);
-  $async.Future<$2.GetExerciseResponse> getExercise($pb.ServerContext ctx, $2.GetExerciseRequest request);
-  $async.Future<$2.CreateExerciseResponse> createExercise($pb.ServerContext ctx, $2.CreateExerciseRequest request);
-  $async.Future<$2.ListCategoriesResponse> listCategories($pb.ServerContext ctx, $2.ListCategoriesRequest request);
-  $async.Future<$2.SearchExercisesResponse> searchExercises($pb.ServerContext ctx, $2.SearchExercisesRequest request);
+  $async.Future<$3.ListExercisesResponse> listExercises($pb.ServerContext ctx, $3.ListExercisesRequest request);
+  $async.Future<$3.GetExerciseResponse> getExercise($pb.ServerContext ctx, $3.GetExerciseRequest request);
+  $async.Future<$3.CreateExerciseResponse> createExercise($pb.ServerContext ctx, $3.CreateExerciseRequest request);
+  $async.Future<$3.ListCategoriesResponse> listCategories($pb.ServerContext ctx, $3.ListCategoriesRequest request);
+  $async.Future<$3.SearchExercisesResponse> searchExercises($pb.ServerContext ctx, $3.SearchExercisesRequest request);
 
   $pb.GeneratedMessage createRequest($core.String methodName) {
     switch (methodName) {
-      case 'ListExercises': return $2.ListExercisesRequest();
-      case 'GetExercise': return $2.GetExerciseRequest();
-      case 'CreateExercise': return $2.CreateExerciseRequest();
-      case 'ListCategories': return $2.ListCategoriesRequest();
-      case 'SearchExercises': return $2.SearchExercisesRequest();
+      case 'ListExercises': return $3.ListExercisesRequest();
+      case 'GetExercise': return $3.GetExerciseRequest();
+      case 'CreateExercise': return $3.CreateExerciseRequest();
+      case 'ListCategories': return $3.ListCategoriesRequest();
+      case 'SearchExercises': return $3.SearchExercisesRequest();
       default: throw $core.ArgumentError('Unknown method: $methodName');
     }
   }
 
   $async.Future<$pb.GeneratedMessage> handleCall($pb.ServerContext ctx, $core.String methodName, $pb.GeneratedMessage request) {
     switch (methodName) {
-      case 'ListExercises': return this.listExercises(ctx, request as $2.ListExercisesRequest);
-      case 'GetExercise': return this.getExercise(ctx, request as $2.GetExerciseRequest);
-      case 'CreateExercise': return this.createExercise(ctx, request as $2.CreateExerciseRequest);
-      case 'ListCategories': return this.listCategories(ctx, request as $2.ListCategoriesRequest);
-      case 'SearchExercises': return this.searchExercises(ctx, request as $2.SearchExercisesRequest);
+      case 'ListExercises': return this.listExercises(ctx, request as $3.ListExercisesRequest);
+      case 'GetExercise': return this.getExercise(ctx, request as $3.GetExerciseRequest);
+      case 'CreateExercise': return this.createExercise(ctx, request as $3.CreateExerciseRequest);
+      case 'ListCategories': return this.listCategories(ctx, request as $3.ListCategoriesRequest);
+      case 'SearchExercises': return this.searchExercises(ctx, request as $3.SearchExercisesRequest);
       default: throw $core.ArgumentError('Unknown method: $methodName');
     }
   }

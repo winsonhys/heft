@@ -8,6 +8,7 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 
 	heftv1 "github.com/heftyback/gen/heft/v1"
+	"github.com/heftyback/internal/auth"
 	"github.com/heftyback/internal/repository"
 )
 
@@ -96,8 +97,9 @@ func (h *ExerciseHandler) GetExercise(ctx context.Context, req *connect.Request[
 
 // CreateExercise creates a custom exercise
 func (h *ExerciseHandler) CreateExercise(ctx context.Context, req *connect.Request[heftv1.CreateExerciseRequest]) (*connect.Response[heftv1.CreateExerciseResponse], error) {
-	if req.Msg.UserId == "" {
-		return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("user_id is required"))
+	userID, ok := auth.UserIDFromContext(ctx)
+	if !ok {
+		return nil, connect.NewError(connect.CodeUnauthenticated, errors.New("not authenticated"))
 	}
 	if req.Msg.Name == "" {
 		return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("name is required"))
@@ -116,7 +118,7 @@ func (h *ExerciseHandler) CreateExercise(ctx context.Context, req *connect.Reque
 		description = req.Msg.Description
 	}
 
-	exercise, err := h.repo.Create(ctx, req.Msg.UserId, req.Msg.Name, req.Msg.CategoryId, exerciseType, description)
+	exercise, err := h.repo.Create(ctx, userID, req.Msg.Name, req.Msg.CategoryId, exerciseType, description)
 	if err != nil {
 		return nil, connect.NewError(connect.CodeInternal, err)
 	}

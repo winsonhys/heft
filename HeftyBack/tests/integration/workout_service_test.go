@@ -26,9 +26,11 @@ func TestWorkoutService_Integration_ListWorkouts(t *testing.T) {
 	t.Run("list empty workouts", func(t *testing.T) {
 		ctx := context.Background()
 
-		resp, err := ts.WorkoutClient.ListWorkouts(ctx, connect.NewRequest(&heftv1.ListWorkoutsRequest{
+		req := connect.NewRequest(&heftv1.ListWorkoutsRequest{
 			UserId: userID,
-		}))
+		})
+		req.Header().Set("Authorization", ts.AuthHeader(userID))
+		resp, err := ts.WorkoutClient.ListWorkouts(ctx, req)
 
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
@@ -44,18 +46,22 @@ func TestWorkoutService_Integration_ListWorkouts(t *testing.T) {
 		ctx := context.Background()
 
 		// Create a workout
-		_, err := ts.WorkoutClient.CreateWorkout(ctx, connect.NewRequest(&heftv1.CreateWorkoutRequest{
+		createReq := connect.NewRequest(&heftv1.CreateWorkoutRequest{
 			UserId: userID,
 			Name:   "Test Workout",
-		}))
+		})
+		createReq.Header().Set("Authorization", ts.AuthHeader(userID))
+		_, err := ts.WorkoutClient.CreateWorkout(ctx, createReq)
 		if err != nil {
 			t.Fatalf("failed to create workout: %v", err)
 		}
 
 		// List workouts
-		resp, err := ts.WorkoutClient.ListWorkouts(ctx, connect.NewRequest(&heftv1.ListWorkoutsRequest{
+		listReq := connect.NewRequest(&heftv1.ListWorkoutsRequest{
 			UserId: userID,
-		}))
+		})
+		listReq.Header().Set("Authorization", ts.AuthHeader(userID))
+		resp, err := ts.WorkoutClient.ListWorkouts(ctx, listReq)
 
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
@@ -80,12 +86,14 @@ func TestWorkoutService_Integration_CreateWorkout(t *testing.T) {
 	userID := testutil.SeedTestUser(t, pool, testUser)
 
 	// Get an exercise ID
-	exercisesResp, err := ts.ExerciseClient.ListExercises(context.Background(), connect.NewRequest(&heftv1.ListExercisesRequest{
+	exercisesReq := connect.NewRequest(&heftv1.ListExercisesRequest{
 		Pagination: &heftv1.PaginationRequest{
 			Page:     1,
 			PageSize: 1,
 		},
-	}))
+	})
+	exercisesReq.Header().Set("Authorization", ts.AuthHeader(userID))
+	exercisesResp, err := ts.ExerciseClient.ListExercises(context.Background(), exercisesReq)
 	if err != nil {
 		t.Fatalf("failed to list exercises: %v", err)
 	}
@@ -97,10 +105,12 @@ func TestWorkoutService_Integration_CreateWorkout(t *testing.T) {
 	t.Run("create basic workout", func(t *testing.T) {
 		ctx := context.Background()
 
-		resp, err := ts.WorkoutClient.CreateWorkout(ctx, connect.NewRequest(&heftv1.CreateWorkoutRequest{
+		req := connect.NewRequest(&heftv1.CreateWorkoutRequest{
 			UserId: userID,
 			Name:   "Push Day",
-		}))
+		})
+		req.Header().Set("Authorization", ts.AuthHeader(userID))
+		resp, err := ts.WorkoutClient.CreateWorkout(ctx, req)
 
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
@@ -119,11 +129,13 @@ func TestWorkoutService_Integration_CreateWorkout(t *testing.T) {
 		ctx := context.Background()
 		description := "A pushing focused workout"
 
-		resp, err := ts.WorkoutClient.CreateWorkout(ctx, connect.NewRequest(&heftv1.CreateWorkoutRequest{
+		req := connect.NewRequest(&heftv1.CreateWorkoutRequest{
 			UserId:      userID,
 			Name:        "Push Day v2",
 			Description: &description,
-		}))
+		})
+		req.Header().Set("Authorization", ts.AuthHeader(userID))
+		resp, err := ts.WorkoutClient.CreateWorkout(ctx, req)
 
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
@@ -139,7 +151,7 @@ func TestWorkoutService_Integration_CreateWorkout(t *testing.T) {
 		targetReps := int32(10)
 		targetWeight := float64(100)
 
-		resp, err := ts.WorkoutClient.CreateWorkout(ctx, connect.NewRequest(&heftv1.CreateWorkoutRequest{
+		req := connect.NewRequest(&heftv1.CreateWorkoutRequest{
 			UserId: userID,
 			Name:   "Full Workout Template",
 			Sections: []*heftv1.CreateWorkoutSection{
@@ -168,7 +180,9 @@ func TestWorkoutService_Integration_CreateWorkout(t *testing.T) {
 					},
 				},
 			},
-		}))
+		})
+		req.Header().Set("Authorization", ts.AuthHeader(userID))
+		resp, err := ts.WorkoutClient.CreateWorkout(ctx, req)
 
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
@@ -211,10 +225,12 @@ func TestWorkoutService_Integration_GetWorkout(t *testing.T) {
 		ctx := context.Background()
 
 		// Create a workout first
-		createResp, err := ts.WorkoutClient.CreateWorkout(ctx, connect.NewRequest(&heftv1.CreateWorkoutRequest{
+		createReq := connect.NewRequest(&heftv1.CreateWorkoutRequest{
 			UserId: userID,
 			Name:   "Test Workout",
-		}))
+		})
+		createReq.Header().Set("Authorization", ts.AuthHeader(userID))
+		createResp, err := ts.WorkoutClient.CreateWorkout(ctx, createReq)
 		if err != nil {
 			t.Fatalf("failed to create workout: %v", err)
 		}
@@ -222,10 +238,12 @@ func TestWorkoutService_Integration_GetWorkout(t *testing.T) {
 		workoutID := createResp.Msg.Workout.Id
 
 		// Get the workout
-		getResp, err := ts.WorkoutClient.GetWorkout(ctx, connect.NewRequest(&heftv1.GetWorkoutRequest{
+		getReq := connect.NewRequest(&heftv1.GetWorkoutRequest{
 			Id:     workoutID,
 			UserId: userID,
-		}))
+		})
+		getReq.Header().Set("Authorization", ts.AuthHeader(userID))
+		getResp, err := ts.WorkoutClient.GetWorkout(ctx, getReq)
 
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
@@ -239,10 +257,12 @@ func TestWorkoutService_Integration_GetWorkout(t *testing.T) {
 	t.Run("get non-existent workout returns not found", func(t *testing.T) {
 		ctx := context.Background()
 
-		_, err := ts.WorkoutClient.GetWorkout(ctx, connect.NewRequest(&heftv1.GetWorkoutRequest{
+		req := connect.NewRequest(&heftv1.GetWorkoutRequest{
 			Id:     "00000000-0000-0000-0000-000000000000",
 			UserId: userID,
-		}))
+		})
+		req.Header().Set("Authorization", ts.AuthHeader(userID))
+		_, err := ts.WorkoutClient.GetWorkout(ctx, req)
 
 		if err == nil {
 			t.Fatal("expected error for non-existent workout")
@@ -275,10 +295,12 @@ func TestWorkoutService_Integration_DeleteWorkout(t *testing.T) {
 		ctx := context.Background()
 
 		// Create a workout first
-		createResp, err := ts.WorkoutClient.CreateWorkout(ctx, connect.NewRequest(&heftv1.CreateWorkoutRequest{
+		createReq := connect.NewRequest(&heftv1.CreateWorkoutRequest{
 			UserId: userID,
 			Name:   "To Be Deleted",
-		}))
+		})
+		createReq.Header().Set("Authorization", ts.AuthHeader(userID))
+		createResp, err := ts.WorkoutClient.CreateWorkout(ctx, createReq)
 		if err != nil {
 			t.Fatalf("failed to create workout: %v", err)
 		}
@@ -286,10 +308,12 @@ func TestWorkoutService_Integration_DeleteWorkout(t *testing.T) {
 		workoutID := createResp.Msg.Workout.Id
 
 		// Delete the workout
-		deleteResp, err := ts.WorkoutClient.DeleteWorkout(ctx, connect.NewRequest(&heftv1.DeleteWorkoutRequest{
+		deleteReq := connect.NewRequest(&heftv1.DeleteWorkoutRequest{
 			Id:     workoutID,
 			UserId: userID,
-		}))
+		})
+		deleteReq.Header().Set("Authorization", ts.AuthHeader(userID))
+		deleteResp, err := ts.WorkoutClient.DeleteWorkout(ctx, deleteReq)
 
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
@@ -300,10 +324,12 @@ func TestWorkoutService_Integration_DeleteWorkout(t *testing.T) {
 		}
 
 		// Verify workout is deleted
-		_, err = ts.WorkoutClient.GetWorkout(ctx, connect.NewRequest(&heftv1.GetWorkoutRequest{
+		verifyReq := connect.NewRequest(&heftv1.GetWorkoutRequest{
 			Id:     workoutID,
 			UserId: userID,
-		}))
+		})
+		verifyReq.Header().Set("Authorization", ts.AuthHeader(userID))
+		_, err = ts.WorkoutClient.GetWorkout(ctx, verifyReq)
 
 		if err == nil {
 			t.Error("expected error when getting deleted workout")
@@ -331,12 +357,14 @@ func TestWorkoutService_Integration_DuplicateWorkout(t *testing.T) {
 	userID := testutil.SeedTestUser(t, pool, testUser)
 
 	// Get an exercise ID
-	exercisesResp, err := ts.ExerciseClient.ListExercises(context.Background(), connect.NewRequest(&heftv1.ListExercisesRequest{
+	exercisesReq := connect.NewRequest(&heftv1.ListExercisesRequest{
 		Pagination: &heftv1.PaginationRequest{
 			Page:     1,
 			PageSize: 1,
 		},
-	}))
+	})
+	exercisesReq.Header().Set("Authorization", ts.AuthHeader(userID))
+	exercisesResp, err := ts.ExerciseClient.ListExercises(context.Background(), exercisesReq)
 	if err != nil {
 		t.Fatalf("failed to list exercises: %v", err)
 	}
@@ -350,7 +378,7 @@ func TestWorkoutService_Integration_DuplicateWorkout(t *testing.T) {
 		targetReps := int32(8)
 
 		// Create original workout with sections
-		createResp, err := ts.WorkoutClient.CreateWorkout(ctx, connect.NewRequest(&heftv1.CreateWorkoutRequest{
+		createReq := connect.NewRequest(&heftv1.CreateWorkoutRequest{
 			UserId: userID,
 			Name:   "Original Workout",
 			Sections: []*heftv1.CreateWorkoutSection{
@@ -371,7 +399,9 @@ func TestWorkoutService_Integration_DuplicateWorkout(t *testing.T) {
 					},
 				},
 			},
-		}))
+		})
+		createReq.Header().Set("Authorization", ts.AuthHeader(userID))
+		createResp, err := ts.WorkoutClient.CreateWorkout(ctx, createReq)
 		if err != nil {
 			t.Fatalf("failed to create workout: %v", err)
 		}
@@ -379,10 +409,12 @@ func TestWorkoutService_Integration_DuplicateWorkout(t *testing.T) {
 		originalID := createResp.Msg.Workout.Id
 
 		// Duplicate the workout
-		dupResp, err := ts.WorkoutClient.DuplicateWorkout(ctx, connect.NewRequest(&heftv1.DuplicateWorkoutRequest{
+		dupReq := connect.NewRequest(&heftv1.DuplicateWorkoutRequest{
 			Id:     originalID,
 			UserId: userID,
-		}))
+		})
+		dupReq.Header().Set("Authorization", ts.AuthHeader(userID))
+		dupResp, err := ts.WorkoutClient.DuplicateWorkout(ctx, dupReq)
 
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
@@ -412,10 +444,12 @@ func TestWorkoutService_Integration_DuplicateWorkout(t *testing.T) {
 		ctx := context.Background()
 
 		// Create original workout
-		createResp, err := ts.WorkoutClient.CreateWorkout(ctx, connect.NewRequest(&heftv1.CreateWorkoutRequest{
+		createReq := connect.NewRequest(&heftv1.CreateWorkoutRequest{
 			UserId: userID,
 			Name:   "Template",
-		}))
+		})
+		createReq.Header().Set("Authorization", ts.AuthHeader(userID))
+		createResp, err := ts.WorkoutClient.CreateWorkout(ctx, createReq)
 		if err != nil {
 			t.Fatalf("failed to create workout: %v", err)
 		}
@@ -424,11 +458,13 @@ func TestWorkoutService_Integration_DuplicateWorkout(t *testing.T) {
 		customName := "My Custom Copy"
 
 		// Duplicate with custom name
-		dupResp, err := ts.WorkoutClient.DuplicateWorkout(ctx, connect.NewRequest(&heftv1.DuplicateWorkoutRequest{
+		dupReq := connect.NewRequest(&heftv1.DuplicateWorkoutRequest{
 			Id:      originalID,
 			UserId:  userID,
 			NewName: &customName,
-		}))
+		})
+		dupReq.Header().Set("Authorization", ts.AuthHeader(userID))
+		dupResp, err := ts.WorkoutClient.DuplicateWorkout(ctx, dupReq)
 
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)

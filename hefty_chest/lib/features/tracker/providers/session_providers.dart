@@ -1,10 +1,12 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../core/client.dart';
-import '../../../core/config.dart';
+
+part 'session_providers.g.dart';
 
 /// Active session notifier
-class ActiveSessionNotifier extends Notifier<AsyncValue<Session?>> {
+@riverpod
+class ActiveSession extends _$ActiveSession {
   @override
   AsyncValue<Session?> build() => const AsyncValue.data(null);
 
@@ -14,7 +16,6 @@ class ActiveSessionNotifier extends Notifier<AsyncValue<Session?>> {
       state = const AsyncValue.loading();
 
       final request = StartSessionRequest()
-        ..userId = AppConfig.hardcodedUserId
         ..workoutTemplateId = workoutTemplateId;
 
       final response = await sessionClient.startSession(request);
@@ -31,9 +32,7 @@ class ActiveSessionNotifier extends Notifier<AsyncValue<Session?>> {
     try {
       state = const AsyncValue.loading();
 
-      final request = GetSessionRequest()
-        ..id = sessionId
-        ..userId = AppConfig.hardcodedUserId;
+      final request = GetSessionRequest()..id = sessionId;
 
       final response = await sessionClient.getSession(request);
       state = AsyncValue.data(response.session);
@@ -52,9 +51,7 @@ class ActiveSessionNotifier extends Notifier<AsyncValue<Session?>> {
     int? timeSeconds,
   }) async {
     try {
-      final request = CompleteSetRequest()
-        ..sessionSetId = sessionSetId
-        ..userId = AppConfig.hardcodedUserId;
+      final request = CompleteSetRequest()..sessionSetId = sessionSetId;
 
       if (weightKg != null) {
         request.weightKg = weightKg;
@@ -88,9 +85,7 @@ class ActiveSessionNotifier extends Notifier<AsyncValue<Session?>> {
     int? timeSeconds,
   }) async {
     try {
-      final request = UpdateSetRequest()
-        ..sessionSetId = sessionSetId
-        ..userId = AppConfig.hardcodedUserId;
+      final request = UpdateSetRequest()..sessionSetId = sessionSetId;
 
       if (weightKg != null) {
         request.weightKg = weightKg;
@@ -120,9 +115,7 @@ class ActiveSessionNotifier extends Notifier<AsyncValue<Session?>> {
     if (currentSession == null) return;
 
     try {
-      final request = FinishSessionRequest()
-        ..id = currentSession.id
-        ..userId = AppConfig.hardcodedUserId;
+      final request = FinishSessionRequest()..id = currentSession.id;
 
       await sessionClient.finishSession(request);
       state = const AsyncValue.data(null);
@@ -137,9 +130,7 @@ class ActiveSessionNotifier extends Notifier<AsyncValue<Session?>> {
     if (currentSession == null) return;
 
     try {
-      final request = AbandonSessionRequest()
-        ..id = currentSession.id
-        ..userId = AppConfig.hardcodedUserId;
+      final request = AbandonSessionRequest()..id = currentSession.id;
 
       await sessionClient.abandonSession(request);
       state = const AsyncValue.data(null);
@@ -154,14 +145,10 @@ class ActiveSessionNotifier extends Notifier<AsyncValue<Session?>> {
   }
 }
 
-final activeSessionProvider =
-    NotifierProvider<ActiveSessionNotifier, AsyncValue<Session?>>(
-        ActiveSessionNotifier.new);
-
 /// Provider for checking if there's an in-progress session
-final hasActiveSessionProvider = FutureProvider<Session?>((ref) async {
+@riverpod
+Future<Session?> hasActiveSession(Ref ref) async {
   final request = ListSessionsRequest()
-    ..userId = AppConfig.hardcodedUserId
     ..status = WorkoutStatus.WORKOUT_STATUS_IN_PROGRESS;
 
   final response = await sessionClient.listSessions(request);
@@ -169,10 +156,8 @@ final hasActiveSessionProvider = FutureProvider<Session?>((ref) async {
   if (response.sessions.isEmpty) return null;
 
   // Load the full session
-  final getRequest = GetSessionRequest()
-    ..id = response.sessions.first.id
-    ..userId = AppConfig.hardcodedUserId;
+  final getRequest = GetSessionRequest()..id = response.sessions.first.id;
 
   final sessionResponse = await sessionClient.getSession(getRequest);
   return sessionResponse.session;
-});
+}

@@ -14,9 +14,9 @@ import 'dart:core' as $core;
 
 import 'package:protobuf/protobuf.dart' as $pb;
 
-import 'common.pb.dart' as $1;
-import 'common.pbenum.dart' as $1;
-import 'google/protobuf/timestamp.pb.dart' as $0;
+import 'common.pb.dart' as $2;
+import 'common.pbenum.dart' as $2;
+import 'google/protobuf/timestamp.pb.dart' as $1;
 
 /// Workout session
 class Session extends $pb.GeneratedMessage {
@@ -27,16 +27,16 @@ class Session extends $pb.GeneratedMessage {
     $core.String? programId,
     $core.int? programDayNumber,
     $core.String? name,
-    $1.WorkoutStatus? status,
-    $0.Timestamp? startedAt,
-    $0.Timestamp? completedAt,
+    $2.WorkoutStatus? status,
+    $1.Timestamp? startedAt,
+    $1.Timestamp? completedAt,
     $core.int? durationSeconds,
     $core.int? totalSets,
     $core.int? completedSets,
     $core.String? notes,
     $core.Iterable<SessionExercise>? exercises,
-    $0.Timestamp? createdAt,
-    $0.Timestamp? updatedAt,
+    $1.Timestamp? createdAt,
+    $1.Timestamp? updatedAt,
   }) {
     final $result = create();
     if (id != null) {
@@ -100,16 +100,16 @@ class Session extends $pb.GeneratedMessage {
     ..aOS(4, _omitFieldNames ? '' : 'programId')
     ..a<$core.int>(5, _omitFieldNames ? '' : 'programDayNumber', $pb.PbFieldType.O3)
     ..aOS(6, _omitFieldNames ? '' : 'name')
-    ..e<$1.WorkoutStatus>(7, _omitFieldNames ? '' : 'status', $pb.PbFieldType.OE, defaultOrMaker: $1.WorkoutStatus.WORKOUT_STATUS_UNSPECIFIED, valueOf: $1.WorkoutStatus.valueOf, enumValues: $1.WorkoutStatus.values)
-    ..aOM<$0.Timestamp>(8, _omitFieldNames ? '' : 'startedAt', subBuilder: $0.Timestamp.create)
-    ..aOM<$0.Timestamp>(9, _omitFieldNames ? '' : 'completedAt', subBuilder: $0.Timestamp.create)
+    ..e<$2.WorkoutStatus>(7, _omitFieldNames ? '' : 'status', $pb.PbFieldType.OE, defaultOrMaker: $2.WorkoutStatus.WORKOUT_STATUS_UNSPECIFIED, valueOf: $2.WorkoutStatus.valueOf, enumValues: $2.WorkoutStatus.values)
+    ..aOM<$1.Timestamp>(8, _omitFieldNames ? '' : 'startedAt', subBuilder: $1.Timestamp.create)
+    ..aOM<$1.Timestamp>(9, _omitFieldNames ? '' : 'completedAt', subBuilder: $1.Timestamp.create)
     ..a<$core.int>(10, _omitFieldNames ? '' : 'durationSeconds', $pb.PbFieldType.O3)
     ..a<$core.int>(11, _omitFieldNames ? '' : 'totalSets', $pb.PbFieldType.O3)
     ..a<$core.int>(12, _omitFieldNames ? '' : 'completedSets', $pb.PbFieldType.O3)
     ..aOS(13, _omitFieldNames ? '' : 'notes')
     ..pc<SessionExercise>(14, _omitFieldNames ? '' : 'exercises', $pb.PbFieldType.PM, subBuilder: SessionExercise.create)
-    ..aOM<$0.Timestamp>(15, _omitFieldNames ? '' : 'createdAt', subBuilder: $0.Timestamp.create)
-    ..aOM<$0.Timestamp>(16, _omitFieldNames ? '' : 'updatedAt', subBuilder: $0.Timestamp.create)
+    ..aOM<$1.Timestamp>(15, _omitFieldNames ? '' : 'createdAt', subBuilder: $1.Timestamp.create)
+    ..aOM<$1.Timestamp>(16, _omitFieldNames ? '' : 'updatedAt', subBuilder: $1.Timestamp.create)
     ..hasRequiredFields = false
   ;
 
@@ -189,35 +189,35 @@ class Session extends $pb.GeneratedMessage {
   void clearName() => clearField(6);
 
   @$pb.TagNumber(7)
-  $1.WorkoutStatus get status => $_getN(6);
+  $2.WorkoutStatus get status => $_getN(6);
   @$pb.TagNumber(7)
-  set status($1.WorkoutStatus v) { setField(7, v); }
+  set status($2.WorkoutStatus v) { setField(7, v); }
   @$pb.TagNumber(7)
   $core.bool hasStatus() => $_has(6);
   @$pb.TagNumber(7)
   void clearStatus() => clearField(7);
 
   @$pb.TagNumber(8)
-  $0.Timestamp get startedAt => $_getN(7);
+  $1.Timestamp get startedAt => $_getN(7);
   @$pb.TagNumber(8)
-  set startedAt($0.Timestamp v) { setField(8, v); }
+  set startedAt($1.Timestamp v) { setField(8, v); }
   @$pb.TagNumber(8)
   $core.bool hasStartedAt() => $_has(7);
   @$pb.TagNumber(8)
   void clearStartedAt() => clearField(8);
   @$pb.TagNumber(8)
-  $0.Timestamp ensureStartedAt() => $_ensure(7);
+  $1.Timestamp ensureStartedAt() => $_ensure(7);
 
   @$pb.TagNumber(9)
-  $0.Timestamp get completedAt => $_getN(8);
+  $1.Timestamp get completedAt => $_getN(8);
   @$pb.TagNumber(9)
-  set completedAt($0.Timestamp v) { setField(9, v); }
+  set completedAt($1.Timestamp v) { setField(9, v); }
   @$pb.TagNumber(9)
   $core.bool hasCompletedAt() => $_has(8);
   @$pb.TagNumber(9)
   void clearCompletedAt() => clearField(9);
   @$pb.TagNumber(9)
-  $0.Timestamp ensureCompletedAt() => $_ensure(8);
+  $1.Timestamp ensureCompletedAt() => $_ensure(8);
 
   @$pb.TagNumber(10)
   $core.int get durationSeconds => $_getIZ(9);
@@ -259,26 +259,26 @@ class Session extends $pb.GeneratedMessage {
   $core.List<SessionExercise> get exercises => $_getList(13);
 
   @$pb.TagNumber(15)
-  $0.Timestamp get createdAt => $_getN(14);
+  $1.Timestamp get createdAt => $_getN(14);
   @$pb.TagNumber(15)
-  set createdAt($0.Timestamp v) { setField(15, v); }
+  set createdAt($1.Timestamp v) { setField(15, v); }
   @$pb.TagNumber(15)
   $core.bool hasCreatedAt() => $_has(14);
   @$pb.TagNumber(15)
   void clearCreatedAt() => clearField(15);
   @$pb.TagNumber(15)
-  $0.Timestamp ensureCreatedAt() => $_ensure(14);
+  $1.Timestamp ensureCreatedAt() => $_ensure(14);
 
   @$pb.TagNumber(16)
-  $0.Timestamp get updatedAt => $_getN(15);
+  $1.Timestamp get updatedAt => $_getN(15);
   @$pb.TagNumber(16)
-  set updatedAt($0.Timestamp v) { setField(16, v); }
+  set updatedAt($1.Timestamp v) { setField(16, v); }
   @$pb.TagNumber(16)
   $core.bool hasUpdatedAt() => $_has(15);
   @$pb.TagNumber(16)
   void clearUpdatedAt() => clearField(16);
   @$pb.TagNumber(16)
-  $0.Timestamp ensureUpdatedAt() => $_ensure(15);
+  $1.Timestamp ensureUpdatedAt() => $_ensure(15);
 }
 
 /// Session exercise
@@ -288,7 +288,7 @@ class SessionExercise extends $pb.GeneratedMessage {
     $core.String? sessionId,
     $core.String? exerciseId,
     $core.String? exerciseName,
-    $1.ExerciseType? exerciseType,
+    $2.ExerciseType? exerciseType,
     $core.int? displayOrder,
     $core.String? sectionName,
     $core.String? notes,
@@ -333,7 +333,7 @@ class SessionExercise extends $pb.GeneratedMessage {
     ..aOS(2, _omitFieldNames ? '' : 'sessionId')
     ..aOS(3, _omitFieldNames ? '' : 'exerciseId')
     ..aOS(4, _omitFieldNames ? '' : 'exerciseName')
-    ..e<$1.ExerciseType>(5, _omitFieldNames ? '' : 'exerciseType', $pb.PbFieldType.OE, defaultOrMaker: $1.ExerciseType.EXERCISE_TYPE_UNSPECIFIED, valueOf: $1.ExerciseType.valueOf, enumValues: $1.ExerciseType.values)
+    ..e<$2.ExerciseType>(5, _omitFieldNames ? '' : 'exerciseType', $pb.PbFieldType.OE, defaultOrMaker: $2.ExerciseType.EXERCISE_TYPE_UNSPECIFIED, valueOf: $2.ExerciseType.valueOf, enumValues: $2.ExerciseType.values)
     ..a<$core.int>(6, _omitFieldNames ? '' : 'displayOrder', $pb.PbFieldType.O3)
     ..aOS(7, _omitFieldNames ? '' : 'sectionName')
     ..aOS(8, _omitFieldNames ? '' : 'notes')
@@ -399,9 +399,9 @@ class SessionExercise extends $pb.GeneratedMessage {
   void clearExerciseName() => clearField(4);
 
   @$pb.TagNumber(5)
-  $1.ExerciseType get exerciseType => $_getN(4);
+  $2.ExerciseType get exerciseType => $_getN(4);
   @$pb.TagNumber(5)
-  set exerciseType($1.ExerciseType v) { setField(5, v); }
+  set exerciseType($2.ExerciseType v) { setField(5, v); }
   @$pb.TagNumber(5)
   $core.bool hasExerciseType() => $_has(4);
   @$pb.TagNumber(5)
@@ -450,7 +450,7 @@ class SessionSet extends $pb.GeneratedMessage {
     $core.double? distanceM,
     $core.bool? isBodyweight,
     $core.bool? isCompleted,
-    $0.Timestamp? completedAt,
+    $1.Timestamp? completedAt,
     $core.double? targetWeightKg,
     $core.int? targetReps,
     $core.int? targetTimeSeconds,
@@ -519,7 +519,7 @@ class SessionSet extends $pb.GeneratedMessage {
     ..a<$core.double>(7, _omitFieldNames ? '' : 'distanceM', $pb.PbFieldType.OD)
     ..aOB(8, _omitFieldNames ? '' : 'isBodyweight')
     ..aOB(9, _omitFieldNames ? '' : 'isCompleted')
-    ..aOM<$0.Timestamp>(10, _omitFieldNames ? '' : 'completedAt', subBuilder: $0.Timestamp.create)
+    ..aOM<$1.Timestamp>(10, _omitFieldNames ? '' : 'completedAt', subBuilder: $1.Timestamp.create)
     ..a<$core.double>(11, _omitFieldNames ? '' : 'targetWeightKg', $pb.PbFieldType.OD)
     ..a<$core.int>(12, _omitFieldNames ? '' : 'targetReps', $pb.PbFieldType.O3)
     ..a<$core.int>(13, _omitFieldNames ? '' : 'targetTimeSeconds', $pb.PbFieldType.O3)
@@ -632,15 +632,15 @@ class SessionSet extends $pb.GeneratedMessage {
   void clearIsCompleted() => clearField(9);
 
   @$pb.TagNumber(10)
-  $0.Timestamp get completedAt => $_getN(9);
+  $1.Timestamp get completedAt => $_getN(9);
   @$pb.TagNumber(10)
-  set completedAt($0.Timestamp v) { setField(10, v); }
+  set completedAt($1.Timestamp v) { setField(10, v); }
   @$pb.TagNumber(10)
   $core.bool hasCompletedAt() => $_has(9);
   @$pb.TagNumber(10)
   void clearCompletedAt() => clearField(10);
   @$pb.TagNumber(10)
-  $0.Timestamp ensureCompletedAt() => $_ensure(9);
+  $1.Timestamp ensureCompletedAt() => $_ensure(9);
 
   /// Targets (copied from template)
   @$pb.TagNumber(11)
@@ -695,9 +695,9 @@ class SessionSummary extends $pb.GeneratedMessage {
     $core.String? id,
     $core.String? userId,
     $core.String? name,
-    $1.WorkoutStatus? status,
-    $0.Timestamp? startedAt,
-    $0.Timestamp? completedAt,
+    $2.WorkoutStatus? status,
+    $1.Timestamp? startedAt,
+    $1.Timestamp? completedAt,
     $core.int? durationSeconds,
     $core.int? totalSets,
     $core.int? completedSets,
@@ -744,9 +744,9 @@ class SessionSummary extends $pb.GeneratedMessage {
     ..aOS(1, _omitFieldNames ? '' : 'id')
     ..aOS(2, _omitFieldNames ? '' : 'userId')
     ..aOS(3, _omitFieldNames ? '' : 'name')
-    ..e<$1.WorkoutStatus>(4, _omitFieldNames ? '' : 'status', $pb.PbFieldType.OE, defaultOrMaker: $1.WorkoutStatus.WORKOUT_STATUS_UNSPECIFIED, valueOf: $1.WorkoutStatus.valueOf, enumValues: $1.WorkoutStatus.values)
-    ..aOM<$0.Timestamp>(5, _omitFieldNames ? '' : 'startedAt', subBuilder: $0.Timestamp.create)
-    ..aOM<$0.Timestamp>(6, _omitFieldNames ? '' : 'completedAt', subBuilder: $0.Timestamp.create)
+    ..e<$2.WorkoutStatus>(4, _omitFieldNames ? '' : 'status', $pb.PbFieldType.OE, defaultOrMaker: $2.WorkoutStatus.WORKOUT_STATUS_UNSPECIFIED, valueOf: $2.WorkoutStatus.valueOf, enumValues: $2.WorkoutStatus.values)
+    ..aOM<$1.Timestamp>(5, _omitFieldNames ? '' : 'startedAt', subBuilder: $1.Timestamp.create)
+    ..aOM<$1.Timestamp>(6, _omitFieldNames ? '' : 'completedAt', subBuilder: $1.Timestamp.create)
     ..a<$core.int>(7, _omitFieldNames ? '' : 'durationSeconds', $pb.PbFieldType.O3)
     ..a<$core.int>(8, _omitFieldNames ? '' : 'totalSets', $pb.PbFieldType.O3)
     ..a<$core.int>(9, _omitFieldNames ? '' : 'completedSets', $pb.PbFieldType.O3)
@@ -803,35 +803,35 @@ class SessionSummary extends $pb.GeneratedMessage {
   void clearName() => clearField(3);
 
   @$pb.TagNumber(4)
-  $1.WorkoutStatus get status => $_getN(3);
+  $2.WorkoutStatus get status => $_getN(3);
   @$pb.TagNumber(4)
-  set status($1.WorkoutStatus v) { setField(4, v); }
+  set status($2.WorkoutStatus v) { setField(4, v); }
   @$pb.TagNumber(4)
   $core.bool hasStatus() => $_has(3);
   @$pb.TagNumber(4)
   void clearStatus() => clearField(4);
 
   @$pb.TagNumber(5)
-  $0.Timestamp get startedAt => $_getN(4);
+  $1.Timestamp get startedAt => $_getN(4);
   @$pb.TagNumber(5)
-  set startedAt($0.Timestamp v) { setField(5, v); }
+  set startedAt($1.Timestamp v) { setField(5, v); }
   @$pb.TagNumber(5)
   $core.bool hasStartedAt() => $_has(4);
   @$pb.TagNumber(5)
   void clearStartedAt() => clearField(5);
   @$pb.TagNumber(5)
-  $0.Timestamp ensureStartedAt() => $_ensure(4);
+  $1.Timestamp ensureStartedAt() => $_ensure(4);
 
   @$pb.TagNumber(6)
-  $0.Timestamp get completedAt => $_getN(5);
+  $1.Timestamp get completedAt => $_getN(5);
   @$pb.TagNumber(6)
-  set completedAt($0.Timestamp v) { setField(6, v); }
+  set completedAt($1.Timestamp v) { setField(6, v); }
   @$pb.TagNumber(6)
   $core.bool hasCompletedAt() => $_has(5);
   @$pb.TagNumber(6)
   void clearCompletedAt() => clearField(6);
   @$pb.TagNumber(6)
-  $0.Timestamp ensureCompletedAt() => $_ensure(5);
+  $1.Timestamp ensureCompletedAt() => $_ensure(5);
 
   @$pb.TagNumber(7)
   $core.int get durationSeconds => $_getIZ(6);
@@ -1999,10 +1999,10 @@ class AbandonSessionResponse extends $pb.GeneratedMessage {
 class ListSessionsRequest extends $pb.GeneratedMessage {
   factory ListSessionsRequest({
     $core.String? userId,
-    $1.WorkoutStatus? status,
+    $2.WorkoutStatus? status,
     $core.String? startDate,
     $core.String? endDate,
-    $1.PaginationRequest? pagination,
+    $2.PaginationRequest? pagination,
   }) {
     final $result = create();
     if (userId != null) {
@@ -2028,10 +2028,10 @@ class ListSessionsRequest extends $pb.GeneratedMessage {
 
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'ListSessionsRequest', package: const $pb.PackageName(_omitMessageNames ? '' : 'heft.v1'), createEmptyInstance: create)
     ..aOS(1, _omitFieldNames ? '' : 'userId')
-    ..e<$1.WorkoutStatus>(2, _omitFieldNames ? '' : 'status', $pb.PbFieldType.OE, defaultOrMaker: $1.WorkoutStatus.WORKOUT_STATUS_UNSPECIFIED, valueOf: $1.WorkoutStatus.valueOf, enumValues: $1.WorkoutStatus.values)
+    ..e<$2.WorkoutStatus>(2, _omitFieldNames ? '' : 'status', $pb.PbFieldType.OE, defaultOrMaker: $2.WorkoutStatus.WORKOUT_STATUS_UNSPECIFIED, valueOf: $2.WorkoutStatus.valueOf, enumValues: $2.WorkoutStatus.values)
     ..aOS(3, _omitFieldNames ? '' : 'startDate')
     ..aOS(4, _omitFieldNames ? '' : 'endDate')
-    ..aOM<$1.PaginationRequest>(5, _omitFieldNames ? '' : 'pagination', subBuilder: $1.PaginationRequest.create)
+    ..aOM<$2.PaginationRequest>(5, _omitFieldNames ? '' : 'pagination', subBuilder: $2.PaginationRequest.create)
     ..hasRequiredFields = false
   ;
 
@@ -2066,9 +2066,9 @@ class ListSessionsRequest extends $pb.GeneratedMessage {
   void clearUserId() => clearField(1);
 
   @$pb.TagNumber(2)
-  $1.WorkoutStatus get status => $_getN(1);
+  $2.WorkoutStatus get status => $_getN(1);
   @$pb.TagNumber(2)
-  set status($1.WorkoutStatus v) { setField(2, v); }
+  set status($2.WorkoutStatus v) { setField(2, v); }
   @$pb.TagNumber(2)
   $core.bool hasStatus() => $_has(1);
   @$pb.TagNumber(2)
@@ -2093,21 +2093,21 @@ class ListSessionsRequest extends $pb.GeneratedMessage {
   void clearEndDate() => clearField(4);
 
   @$pb.TagNumber(5)
-  $1.PaginationRequest get pagination => $_getN(4);
+  $2.PaginationRequest get pagination => $_getN(4);
   @$pb.TagNumber(5)
-  set pagination($1.PaginationRequest v) { setField(5, v); }
+  set pagination($2.PaginationRequest v) { setField(5, v); }
   @$pb.TagNumber(5)
   $core.bool hasPagination() => $_has(4);
   @$pb.TagNumber(5)
   void clearPagination() => clearField(5);
   @$pb.TagNumber(5)
-  $1.PaginationRequest ensurePagination() => $_ensure(4);
+  $2.PaginationRequest ensurePagination() => $_ensure(4);
 }
 
 class ListSessionsResponse extends $pb.GeneratedMessage {
   factory ListSessionsResponse({
     $core.Iterable<SessionSummary>? sessions,
-    $1.PaginationResponse? pagination,
+    $2.PaginationResponse? pagination,
   }) {
     final $result = create();
     if (sessions != null) {
@@ -2124,7 +2124,7 @@ class ListSessionsResponse extends $pb.GeneratedMessage {
 
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'ListSessionsResponse', package: const $pb.PackageName(_omitMessageNames ? '' : 'heft.v1'), createEmptyInstance: create)
     ..pc<SessionSummary>(1, _omitFieldNames ? '' : 'sessions', $pb.PbFieldType.PM, subBuilder: SessionSummary.create)
-    ..aOM<$1.PaginationResponse>(2, _omitFieldNames ? '' : 'pagination', subBuilder: $1.PaginationResponse.create)
+    ..aOM<$2.PaginationResponse>(2, _omitFieldNames ? '' : 'pagination', subBuilder: $2.PaginationResponse.create)
     ..hasRequiredFields = false
   ;
 
@@ -2153,15 +2153,15 @@ class ListSessionsResponse extends $pb.GeneratedMessage {
   $core.List<SessionSummary> get sessions => $_getList(0);
 
   @$pb.TagNumber(2)
-  $1.PaginationResponse get pagination => $_getN(1);
+  $2.PaginationResponse get pagination => $_getN(1);
   @$pb.TagNumber(2)
-  set pagination($1.PaginationResponse v) { setField(2, v); }
+  set pagination($2.PaginationResponse v) { setField(2, v); }
   @$pb.TagNumber(2)
   $core.bool hasPagination() => $_has(1);
   @$pb.TagNumber(2)
   void clearPagination() => clearField(2);
   @$pb.TagNumber(2)
-  $1.PaginationResponse ensurePagination() => $_ensure(1);
+  $2.PaginationResponse ensurePagination() => $_ensure(1);
 }
 
 class SessionServiceApi {

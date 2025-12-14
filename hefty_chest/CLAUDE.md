@@ -25,7 +25,10 @@ hefty_chest/
 │   ├── core/
 │   │   ├── client.dart              # RPC client setup & exports
 │   │   └── config.dart              # App configuration
-│   ├── features/                    # Feature modules (7 total)
+│   ├── features/                    # Feature modules (8 total)
+│   │   ├── auth/
+│   │   │   └── providers/
+│   │   │       └── auth_providers.dart
 │   │   ├── home/
 │   │   │   ├── home_screen.dart
 │   │   │   ├── providers/
@@ -82,7 +85,24 @@ hefty_chest/
 │   ├── session.proto
 │   └── progress.proto
 ├── test/
-│   └── widget_test.dart
+│   ├── widget_test.dart
+│   ├── test_utils/
+│   │   ├── test_setup.dart          # Integration test setup & auth
+│   │   └── test_data.dart           # Test data helpers
+│   └── integration/
+│       ├── providers/               # Provider integration tests
+│       │   ├── auth_provider_test.dart
+│       │   ├── exercise_provider_test.dart
+│       │   ├── workout_provider_test.dart
+│       │   ├── session_provider_test.dart
+│       │   ├── program_provider_test.dart
+│       │   ├── progress_provider_test.dart
+│       │   └── user_provider_test.dart
+│       └── e2e/                     # End-to-end tests
+│           ├── workout_flow_test.dart
+│           └── session_flow_test.dart
+├── scripts/
+│   └── run_integration_tests.sh     # Integration test runner
 ├── pubspec.yaml
 ├── buf.yaml
 ├── buf.gen.yaml
@@ -110,8 +130,8 @@ feature_name/
 ┌─────────────────────────────────────────────────────────────┐
 │                         UI Layer                             │
 │  ┌─────────────────┐  ┌─────────────────────────────────┐   │
-│  │ ConsumerWidget  │  │ ConsumerStatefulWidget          │   │
-│  │ (stateless)     │  │ (stateful)                      │   │
+│  │ ConsumerWidget  │  │ HookConsumerWidget              │   │
+│  │ (stateless)     │  │ (stateful with hooks)           │   │
 │  └────────┬────────┘  └────────────────┬────────────────┘   │
 │           │ ref.watch                   │ ref.watch/read    │
 └───────────┼─────────────────────────────┼───────────────────┘
@@ -119,7 +139,7 @@ feature_name/
 ┌─────────────────────────────────────────────────────────────┐
 │                     Provider Layer (Riverpod)                │
 │  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────┐  │
-│  │ FutureProvider  │  │ NotifierProvider│  │  Provider   │  │
+│  │ @riverpod       │  │ @riverpod class │  │ @riverpod   │  │
 │  │ (async data)    │  │ (mutable state) │  │ (computed)  │  │
 │  └────────┬────────┘  └────────┬────────┘  └─────────────┘  │
 │           │                     │                            │
@@ -132,25 +152,29 @@ feature_name/
 │  └──────────────────────────────────────────────────────┘   │
 └─────────────────────────────────────────────────────────────┘
             │
-            ▼ HTTP/2 + Protobuf
+            ▼ Connect-RPC (HTTP/2 native, fetch on web)
 ┌─────────────────────────────────────────────────────────────┐
 │                    Backend (HeftyBack)                       │
 └─────────────────────────────────────────────────────────────┘
 ```
 
-## State Management (Riverpod 3.0)
+## State Management (Riverpod 3.0 + Code Generation)
+
+All providers use `@riverpod` annotation for code generation. Run `flutter pub run build_runner build` after changes.
 
 ### Provider Types
 
-**FutureProvider** - Async data fetching:
+**Async Provider** - Data fetching with `@riverpod`:
 ```dart
-final workoutListProvider = FutureProvider<List<WorkoutSummary>>((ref) async {
-  final request = ListWorkoutsRequest()..userId = AppConfig.hardcodedUserId;
+@riverpod
+Future<List<WorkoutSummary>> workoutList(Ref ref) async {
+  // User ID is extracted from JWT token by backend - no need to pass it
+  final request = ListWorkoutsRequest();
   final response = await workoutClient.listWorkouts(request);
   return response.workouts;
-});
+}
 
-// Usage in widget
+// Usage in widget (provider name is workoutListProvider)
 ref.watch(workoutListProvider).when(
   loading: () => CircularProgressIndicator(),
   error: (err, stack) => Text('Error: $err'),
@@ -158,9 +182,10 @@ ref.watch(workoutListProvider).when(
 );
 ```
 
-**NotifierProvider** - Mutable state with business logic:
+**Notifier Provider** - Mutable state with `@riverpod class`:
 ```dart
-class WorkoutBuilderNotifier extends Notifier<WorkoutBuilderState> {
+@riverpod
+class WorkoutBuilder extends _$WorkoutBuilder {
   @override
   WorkoutBuilderState build() => const WorkoutBuilderState();
 
@@ -178,20 +203,21 @@ class WorkoutBuilderNotifier extends Notifier<WorkoutBuilderState> {
   }
 }
 
-final workoutBuilderProvider = NotifierProvider<WorkoutBuilderNotifier, WorkoutBuilderState>(
-  () => WorkoutBuilderNotifier(),
-);
+// Usage (provider name is workoutBuilderProvider)
+ref.watch(workoutBuilderProvider);
+ref.read(workoutBuilderProvider.notifier).updateName('Leg Day');
 ```
 
-**Provider** - Computed/derived state:
+**Computed Provider** - Derived state:
 ```dart
-final filteredExercisesProvider = Provider<List<Exercise>>((ref) {
+@riverpod
+List<Exercise> filteredExercises(Ref ref) {
   final exercises = ref.watch(exerciseListProvider).valueOrNull ?? [];
   final query = ref.watch(exerciseSearchQueryProvider);
 
   if (query.isEmpty) return exercises;
   return exercises.where((e) => e.name.toLowerCase().contains(query.toLowerCase())).toList();
-});
+}
 ```
 
 ### Immutable State Pattern
@@ -313,62 +339,127 @@ ElevatedButton(
 )
 ```
 
+## Authentication
+
+The app uses JWT-based authentication. The backend validates tokens and extracts user ID from the JWT claims.
+
+### Auth Flow
+
+1. User logs in with email via `authClient.login()`
+2. Backend returns JWT token and user ID
+3. Token is stored in SharedPreferences
+4. Token provider is set so all API calls include `Authorization: Bearer <token>`
+
+### Auth Provider (`lib/features/auth/providers/auth_providers.dart`)
+
+```dart
+// Login
+final success = await ref.read(authProvider.notifier).login(email);
+
+// Check auth state
+final state = ref.watch(authProvider);
+if (state.isAuthenticated) {
+  // User is logged in
+}
+
+// Get current user ID
+final userId = ref.watch(currentUserIdProvider);
+
+// Get auth token
+final token = ref.watch(authTokenProvider);
+
+// Logout
+await ref.read(authProvider.notifier).logout();
+```
+
+### Client Auth Interceptor (`lib/core/client.dart`)
+
+The auth interceptor automatically adds JWT token to all requests:
+
+```dart
+/// Token provider function - set by auth provider after login
+typedef TokenProvider = String? Function();
+TokenProvider? _tokenProvider;
+
+void setTokenProvider(TokenProvider provider) {
+  _tokenProvider = provider;
+}
+
+/// Auth interceptor adds Bearer token to requests
+Interceptor authInterceptor = <I extends Object, O extends Object>(next) {
+  return (req) async {
+    final token = _tokenProvider?.call();
+    if (token != null) {
+      req.headers['Authorization'] = 'Bearer $token';
+    }
+    return next(req);
+  };
+};
+```
+
 ## API Integration
 
 ### Client Setup (lib/core/client.dart)
 
+Uses conditional imports for platform-specific HTTP clients with auth interceptor:
+
 ```dart
-import 'package:connectrpc/connect.dart' as protocol;
+import 'package:connectrpc/connect.dart';
 import 'package:connectrpc/protobuf.dart';
-import '../gen/user.connect.client.dart';
-import '../gen/exercise.connect.client.dart';
-// ...
+import 'package:connectrpc/protocol/connect.dart' as protocol;
 
 protocol.Transport createTransport() {
   return protocol.Transport(
-    baseUrl: AppConfig.backendUrl,  // http://localhost:8080
+    baseUrl: AppConfig.backendUrl,
     codec: const ProtoCodec(),
     httpClient: createHttpClient(),
+    interceptors: [authInterceptor],  // Auth interceptor for JWT
   );
 }
 
 final _transport = createTransport();
 
 // Service clients
+final authClient = AuthServiceClient(_transport);
 final userClient = UserServiceClient(_transport);
 final exerciseClient = ExerciseServiceClient(_transport);
 final workoutClient = WorkoutServiceClient(_transport);
 final programClient = ProgramServiceClient(_transport);
 final sessionClient = SessionServiceClient(_transport);
 final progressClient = ProgressServiceClient(_transport);
-
-// Re-export common types for convenience
-export '../gen/user.pb.dart';
-export '../gen/exercise.pb.dart';
-export '../gen/workout.pb.dart';
-// ...
 ```
+
+### Platform-Specific HTTP Files
+
+| File | Platform | HTTP Library |
+|------|----------|--------------|
+| `http.dart` | Stub | Throws UnimplementedError |
+| `http_io.dart` | Native (iOS, Android, macOS) | `connectrpc/http2.dart` |
+| `http_web.dart` | Web (Chrome, browsers) | `connectrpc/web.dart` |
 
 ### Making API Calls
 
 ```dart
-// In a provider
-final workoutListProvider = FutureProvider<List<WorkoutSummary>>((ref) async {
+// In a provider - user ID is extracted from JWT token by backend
+@riverpod
+Future<List<WorkoutSummary>> workoutList(Ref ref) async {
   final request = ListWorkoutsRequest()
-    ..userId = AppConfig.hardcodedUserId
     ..pagination = (PaginationRequest()..pageSize = 50);
 
   final response = await workoutClient.listWorkouts(request);
   return response.workouts;
-});
+}
 
 // In a notifier
-class ActiveSessionNotifier extends Notifier<AsyncValue<Session?>> {
+@riverpod
+class ActiveSession extends _$ActiveSession {
+  @override
+  AsyncValue<Session?> build() => const AsyncValue.data(null);
+
   Future<Session?> startSession({required String workoutTemplateId}) async {
     state = const AsyncValue.loading();
     try {
       final request = StartSessionRequest()
-        ..userId = AppConfig.hardcodedUserId
         ..workoutTemplateId = workoutTemplateId;
 
       final response = await sessionClient.startSession(request);
@@ -483,11 +574,84 @@ flutter build ios              # iOS
 flutter build web              # Web
 flutter build macos            # macOS
 
-# Test
+# Test (unit tests only)
 flutter test
 
 # Analyze
 flutter analyze
+
+# Integration tests (requires Docker)
+./scripts/run_integration_tests.sh
+```
+
+## Testing
+
+### Integration Tests
+
+Integration tests run against a real backend in TEST_MODE. The test script handles:
+1. Starting PostgreSQL and backend via Docker Compose
+2. Waiting for services to be healthy
+3. Running tests with authentication
+4. Cleaning up containers
+
+```bash
+# Run all integration tests
+./scripts/run_integration_tests.sh
+```
+
+### Test Setup (`test/test_utils/test_setup.dart`)
+
+```dart
+// In setUpAll() of integration tests:
+setUpAll(() async {
+  await IntegrationTestSetup.waitForBackend();
+  await IntegrationTestSetup.resetDatabase();
+  await IntegrationTestSetup.authenticateTestUser();
+});
+
+// Create test container
+final container = IntegrationTestSetup.createContainer();
+
+// Get authenticated test user ID
+final userId = IntegrationTestSetup.testUserId;
+```
+
+### Test Data Helpers (`test/test_utils/test_data.dart`)
+
+```dart
+// Create test workout
+final workoutId = await TestData.createTestWorkout(name: 'Test Workout');
+
+// Create workout with exercise
+final workoutId = await TestData.createWorkoutWithExercise();
+
+// Start session
+final sessionId = await TestData.startSession(workoutTemplateId: workoutId);
+
+// Clean up
+await TestData.deleteWorkout(workoutId);
+await TestData.abandonSession(sessionId);
+```
+
+### Test Structure
+
+```
+test/
+├── test_utils/
+│   ├── test_setup.dart     # Backend setup, auth helpers
+│   └── test_data.dart      # Data creation/cleanup helpers
+└── integration/
+    ├── providers/          # Test each provider against real API
+    │   ├── auth_provider_test.dart
+    │   ├── exercise_provider_test.dart
+    │   ├── workout_provider_test.dart
+    │   ├── session_provider_test.dart
+    │   ├── program_provider_test.dart
+    │   ├── progress_provider_test.dart
+    │   └── user_provider_test.dart
+    └── e2e/                # Full user flow tests
+        ├── workout_flow_test.dart
+        └── session_flow_test.dart
 ```
 
 ## Configuration (lib/core/config.dart)
@@ -499,13 +663,12 @@ class AppConfig {
   /// Backend API base URL
   static const String backendUrl = 'http://localhost:8080';
 
-  /// Hardcoded user ID for MVP (matches seed data)
-  static const String hardcodedUserId = '00000000-0000-0000-0000-000000000001';
-
   /// Default rest timer duration in seconds
   static const int defaultRestTimerSeconds = 90;
 }
 ```
+
+Note: User ID is no longer hardcoded. The backend extracts user ID from the JWT token on each request.
 
 ## Common Tasks
 
@@ -560,15 +723,23 @@ class NewFeatureRoute extends GoRouteData {
 
 ### Add New Provider
 
+Use `@riverpod` annotation (requires `part` directive and code generation):
+
 ```dart
-// Simple async data
-final myDataProvider = FutureProvider<MyData>((ref) async {
-  final response = await myClient.getData(MyRequest()..userId = AppConfig.hardcodedUserId);
+// In feature_providers.dart
+import 'package:riverpod_annotation/riverpod_annotation.dart';
+part 'feature_providers.g.dart';
+
+// Simple async data - user ID extracted from JWT by backend
+@riverpod
+Future<MyData> myData(Ref ref) async {
+  final response = await myClient.getData(MyRequest());
   return response.data;
-});
+}
 
 // Complex mutable state
-class MyNotifier extends Notifier<MyState> {
+@riverpod
+class MyNotifier extends _$MyNotifier {
   @override
   MyState build() => const MyState();
 
@@ -576,9 +747,9 @@ class MyNotifier extends Notifier<MyState> {
     state = state.copyWith(/* changes */);
   }
 }
-
-final myProvider = NotifierProvider<MyNotifier, MyState>(() => MyNotifier());
 ```
+
+Then run: `flutter pub run build_runner build --delete-conflicting-outputs`
 
 ### Update Proto Schema
 
@@ -612,45 +783,49 @@ class WorkoutCard extends ConsumerWidget {
 }
 ```
 
-### ConsumerStatefulWidget (Stateful)
+### HookConsumerWidget (Stateful with Hooks)
+
+Uses `flutter_hooks` for cleaner state management - no `dispose()` needed:
 
 ```dart
-class WorkoutBuilderScreen extends ConsumerStatefulWidget {
+class WorkoutBuilderScreen extends HookConsumerWidget {
   final String? workoutId;
 
   const WorkoutBuilderScreen({super.key, this.workoutId});
 
   @override
-  ConsumerState<WorkoutBuilderScreen> createState() => _WorkoutBuilderScreenState();
-}
-
-class _WorkoutBuilderScreenState extends ConsumerState<WorkoutBuilderScreen> {
-  final _nameController = TextEditingController();
-
-  @override
-  void initState() {
-    super.initState();
-    if (widget.workoutId != null) {
-      // Load existing workout
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        ref.read(workoutBuilderProvider.notifier).loadWorkout(widget.workoutId!);
-      });
-    }
-  }
-
-  @override
-  void dispose() {
-    _nameController.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    // Hooks auto-dispose resources
+    final nameController = useTextEditingController();
+    final isLoading = useState(false);
     final state = ref.watch(workoutBuilderProvider);
-    // ...
+
+    // useEffect replaces initState
+    useEffect(() {
+      if (workoutId != null) {
+        isLoading.value = true;
+        ref.read(workoutBuilderProvider.notifier).loadWorkout(workoutId!).then((_) {
+          nameController.text = ref.read(workoutBuilderProvider).name;
+          isLoading.value = false;
+        });
+      }
+      return null;
+    }, [workoutId]);
+
+    // Build UI...
   }
 }
 ```
+
+### Common Hooks
+
+| Hook | Replaces | Purpose |
+|------|----------|---------|
+| `useTextEditingController()` | `TextEditingController` + `dispose()` | Text input controller |
+| `useState<T>(initial)` | `setState()` | Local state |
+| `useEffect(() => cleanup, [deps])` | `initState()` + `dispose()` | Side effects |
+| `useFocusNode()` | `FocusNode` + `dispose()` | Focus management |
+| `useMemoized(() => value, [deps])` | `late final` | Cached computation |
 
 ### Modal Bottom Sheet
 

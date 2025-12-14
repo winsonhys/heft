@@ -3,8 +3,6 @@ package handlers_test
 import (
 	"context"
 	"errors"
-	"net/http"
-	"net/http/httptest"
 	"testing"
 	"time"
 
@@ -13,40 +11,26 @@ import (
 	"github.com/stretchr/testify/require"
 
 	heftv1 "github.com/heftyback/gen/heft/v1"
-	"github.com/heftyback/gen/heft/v1/heftv1connect"
+	"github.com/heftyback/internal/auth"
 	"github.com/heftyback/internal/handlers"
 	"github.com/heftyback/internal/repository"
 	"github.com/heftyback/internal/testutil"
 )
 
-func setupProgressTest(t *testing.T, mockProgressRepo *testutil.MockProgressRepository, mockExerciseRepo *testutil.MockExerciseRepository) heftv1connect.ProgressServiceClient {
-	t.Helper()
-
-	handler := handlers.NewProgressHandler(mockProgressRepo, mockExerciseRepo)
-	mux := http.NewServeMux()
-	path, h := heftv1connect.NewProgressServiceHandler(handler)
-	mux.Handle(path, h)
-
-	server := httptest.NewServer(mux)
-	t.Cleanup(server.Close)
-
-	return heftv1connect.NewProgressServiceClient(server.Client(), server.URL)
-}
-
 func TestProgressHandler_GetDashboardStats(t *testing.T) {
 	tests := []struct {
 		name         string
-		request      *heftv1.GetDashboardStatsRequest
+		userID       string
+		withAuth     bool
 		setupMock    func(*testutil.MockProgressRepository, *testutil.MockExerciseRepository)
 		wantErr      bool
 		wantCode     connect.Code
 		validateResp func(*testing.T, *heftv1.GetDashboardStatsResponse)
 	}{
 		{
-			name: "success - returns dashboard stats",
-			request: &heftv1.GetDashboardStatsRequest{
-				UserId: "user-123",
-			},
+			name:     "success - returns dashboard stats",
+			userID:   "user-123",
+			withAuth: true,
 			setupMock: func(mp *testutil.MockProgressRepository, me *testutil.MockExerciseRepository) {
 				mp.GetDashboardStatsFunc = func(ctx context.Context, userID string) (*repository.DashboardStats, error) {
 					return &repository.DashboardStats{
@@ -67,10 +51,9 @@ func TestProgressHandler_GetDashboardStats(t *testing.T) {
 			},
 		},
 		{
-			name: "success - zero stats for new user",
-			request: &heftv1.GetDashboardStatsRequest{
-				UserId: "user-new",
-			},
+			name:     "success - zero stats for new user",
+			userID:   "user-new",
+			withAuth: true,
 			setupMock: func(mp *testutil.MockProgressRepository, me *testutil.MockExerciseRepository) {
 				mp.GetDashboardStatsFunc = func(ctx context.Context, userID string) (*repository.DashboardStats, error) {
 					return &repository.DashboardStats{
@@ -88,19 +71,17 @@ func TestProgressHandler_GetDashboardStats(t *testing.T) {
 			},
 		},
 		{
-			name: "error - missing user_id",
-			request: &heftv1.GetDashboardStatsRequest{
-				UserId: "",
-			},
+			name:      "error - not authenticated",
+			userID:    "",
+			withAuth:  false,
 			setupMock: func(mp *testutil.MockProgressRepository, me *testutil.MockExerciseRepository) {},
 			wantErr:   true,
-			wantCode:  connect.CodeInvalidArgument,
+			wantCode:  connect.CodeUnauthenticated,
 		},
 		{
-			name: "error - database error",
-			request: &heftv1.GetDashboardStatsRequest{
-				UserId: "user-123",
-			},
+			name:     "error - database error",
+			userID:   "user-123",
+			withAuth: true,
 			setupMock: func(mp *testutil.MockProgressRepository, me *testutil.MockExerciseRepository) {
 				mp.GetDashboardStatsFunc = func(ctx context.Context, userID string) (*repository.DashboardStats, error) {
 					return nil, errors.New("database error")
@@ -117,8 +98,15 @@ func TestProgressHandler_GetDashboardStats(t *testing.T) {
 			mockExerciseRepo := &testutil.MockExerciseRepository{}
 			tt.setupMock(mockProgressRepo, mockExerciseRepo)
 
-			client := setupProgressTest(t, mockProgressRepo, mockExerciseRepo)
-			resp, err := client.GetDashboardStats(context.Background(), connect.NewRequest(tt.request))
+			handler := handlers.NewProgressHandler(mockProgressRepo, mockExerciseRepo)
+
+			ctx := context.Background()
+			if tt.withAuth {
+				ctx = auth.ContextWithUserID(ctx, tt.userID)
+			}
+
+			req := connect.NewRequest(&heftv1.GetDashboardStatsRequest{})
+			resp, err := handler.GetDashboardStats(ctx, req)
 
 			if tt.wantErr {
 				require.Error(t, err)
@@ -137,17 +125,17 @@ func TestProgressHandler_GetDashboardStats(t *testing.T) {
 func TestProgressHandler_GetWeeklyActivity(t *testing.T) {
 	tests := []struct {
 		name         string
-		request      *heftv1.GetWeeklyActivityRequest
+		userID       string
+		withAuth     bool
 		setupMock    func(*testutil.MockProgressRepository, *testutil.MockExerciseRepository)
 		wantErr      bool
 		wantCode     connect.Code
 		validateResp func(*testing.T, *heftv1.GetWeeklyActivityResponse)
 	}{
 		{
-			name: "success - returns weekly activity",
-			request: &heftv1.GetWeeklyActivityRequest{
-				UserId: "user-123",
-			},
+			name:     "success - returns weekly activity",
+			userID:   "user-123",
+			withAuth: true,
 			setupMock: func(mp *testutil.MockProgressRepository, me *testutil.MockExerciseRepository) {
 				mp.GetWeeklyActivityFunc = func(ctx context.Context, userID string, weekStart *time.Time) ([]*repository.WeeklyActivityDay, error) {
 					now := time.Now()
@@ -177,10 +165,9 @@ func TestProgressHandler_GetWeeklyActivity(t *testing.T) {
 			},
 		},
 		{
-			name: "success - empty week",
-			request: &heftv1.GetWeeklyActivityRequest{
-				UserId: "user-123",
-			},
+			name:     "success - empty week",
+			userID:   "user-123",
+			withAuth: true,
 			setupMock: func(mp *testutil.MockProgressRepository, me *testutil.MockExerciseRepository) {
 				mp.GetWeeklyActivityFunc = func(ctx context.Context, userID string, weekStart *time.Time) ([]*repository.WeeklyActivityDay, error) {
 					return []*repository.WeeklyActivityDay{}, nil
@@ -192,19 +179,17 @@ func TestProgressHandler_GetWeeklyActivity(t *testing.T) {
 			},
 		},
 		{
-			name: "error - missing user_id",
-			request: &heftv1.GetWeeklyActivityRequest{
-				UserId: "",
-			},
+			name:      "error - not authenticated",
+			userID:    "",
+			withAuth:  false,
 			setupMock: func(mp *testutil.MockProgressRepository, me *testutil.MockExerciseRepository) {},
 			wantErr:   true,
-			wantCode:  connect.CodeInvalidArgument,
+			wantCode:  connect.CodeUnauthenticated,
 		},
 		{
-			name: "error - database error",
-			request: &heftv1.GetWeeklyActivityRequest{
-				UserId: "user-123",
-			},
+			name:     "error - database error",
+			userID:   "user-123",
+			withAuth: true,
 			setupMock: func(mp *testutil.MockProgressRepository, me *testutil.MockExerciseRepository) {
 				mp.GetWeeklyActivityFunc = func(ctx context.Context, userID string, weekStart *time.Time) ([]*repository.WeeklyActivityDay, error) {
 					return nil, errors.New("database error")
@@ -221,8 +206,15 @@ func TestProgressHandler_GetWeeklyActivity(t *testing.T) {
 			mockExerciseRepo := &testutil.MockExerciseRepository{}
 			tt.setupMock(mockProgressRepo, mockExerciseRepo)
 
-			client := setupProgressTest(t, mockProgressRepo, mockExerciseRepo)
-			resp, err := client.GetWeeklyActivity(context.Background(), connect.NewRequest(tt.request))
+			handler := handlers.NewProgressHandler(mockProgressRepo, mockExerciseRepo)
+
+			ctx := context.Background()
+			if tt.withAuth {
+				ctx = auth.ContextWithUserID(ctx, tt.userID)
+			}
+
+			req := connect.NewRequest(&heftv1.GetWeeklyActivityRequest{})
+			resp, err := handler.GetWeeklyActivity(ctx, req)
 
 			if tt.wantErr {
 				require.Error(t, err)
@@ -241,17 +233,19 @@ func TestProgressHandler_GetWeeklyActivity(t *testing.T) {
 func TestProgressHandler_GetPersonalRecords(t *testing.T) {
 	tests := []struct {
 		name         string
-		request      *heftv1.GetPersonalRecordsRequest
+		userID       string
+		withAuth     bool
+		exerciseID   *string
+		limit        *int32
 		setupMock    func(*testutil.MockProgressRepository, *testutil.MockExerciseRepository)
 		wantErr      bool
 		wantCode     connect.Code
 		validateResp func(*testing.T, *heftv1.GetPersonalRecordsResponse)
 	}{
 		{
-			name: "success - returns personal records",
-			request: &heftv1.GetPersonalRecordsRequest{
-				UserId: "user-123",
-			},
+			name:     "success - returns personal records",
+			userID:   "user-123",
+			withAuth: true,
 			setupMock: func(mp *testutil.MockProgressRepository, me *testutil.MockExerciseRepository) {
 				weight := 100.0
 				reps := 5
@@ -279,11 +273,10 @@ func TestProgressHandler_GetPersonalRecords(t *testing.T) {
 			},
 		},
 		{
-			name: "success - with exercise filter",
-			request: &heftv1.GetPersonalRecordsRequest{
-				UserId:     "user-123",
-				ExerciseId: ptrString("exercise-1"),
-			},
+			name:       "success - with exercise filter",
+			userID:     "user-123",
+			withAuth:   true,
+			exerciseID: ptrString("exercise-1"),
 			setupMock: func(mp *testutil.MockProgressRepository, me *testutil.MockExerciseRepository) {
 				weight := 140.0
 				mp.GetPersonalRecordsFunc = func(ctx context.Context, userID string, limit int, exerciseID *string) ([]*repository.PersonalRecord, error) {
@@ -307,11 +300,10 @@ func TestProgressHandler_GetPersonalRecords(t *testing.T) {
 			},
 		},
 		{
-			name: "success - with custom limit",
-			request: &heftv1.GetPersonalRecordsRequest{
-				UserId: "user-123",
-				Limit:  ptrInt32(5),
-			},
+			name:     "success - with custom limit",
+			userID:   "user-123",
+			withAuth: true,
+			limit:    ptrInt32(5),
 			setupMock: func(mp *testutil.MockProgressRepository, me *testutil.MockExerciseRepository) {
 				mp.GetPersonalRecordsFunc = func(ctx context.Context, userID string, limit int, exerciseID *string) ([]*repository.PersonalRecord, error) {
 					assert.Equal(t, 5, limit)
@@ -323,10 +315,9 @@ func TestProgressHandler_GetPersonalRecords(t *testing.T) {
 			},
 		},
 		{
-			name: "success - empty records",
-			request: &heftv1.GetPersonalRecordsRequest{
-				UserId: "user-123",
-			},
+			name:     "success - empty records",
+			userID:   "user-123",
+			withAuth: true,
 			setupMock: func(mp *testutil.MockProgressRepository, me *testutil.MockExerciseRepository) {
 				mp.GetPersonalRecordsFunc = func(ctx context.Context, userID string, limit int, exerciseID *string) ([]*repository.PersonalRecord, error) {
 					return []*repository.PersonalRecord{}, nil
@@ -337,19 +328,17 @@ func TestProgressHandler_GetPersonalRecords(t *testing.T) {
 			},
 		},
 		{
-			name: "error - missing user_id",
-			request: &heftv1.GetPersonalRecordsRequest{
-				UserId: "",
-			},
+			name:      "error - not authenticated",
+			userID:    "",
+			withAuth:  false,
 			setupMock: func(mp *testutil.MockProgressRepository, me *testutil.MockExerciseRepository) {},
 			wantErr:   true,
-			wantCode:  connect.CodeInvalidArgument,
+			wantCode:  connect.CodeUnauthenticated,
 		},
 		{
-			name: "error - database error",
-			request: &heftv1.GetPersonalRecordsRequest{
-				UserId: "user-123",
-			},
+			name:     "error - database error",
+			userID:   "user-123",
+			withAuth: true,
 			setupMock: func(mp *testutil.MockProgressRepository, me *testutil.MockExerciseRepository) {
 				mp.GetPersonalRecordsFunc = func(ctx context.Context, userID string, limit int, exerciseID *string) ([]*repository.PersonalRecord, error) {
 					return nil, errors.New("database error")
@@ -366,8 +355,18 @@ func TestProgressHandler_GetPersonalRecords(t *testing.T) {
 			mockExerciseRepo := &testutil.MockExerciseRepository{}
 			tt.setupMock(mockProgressRepo, mockExerciseRepo)
 
-			client := setupProgressTest(t, mockProgressRepo, mockExerciseRepo)
-			resp, err := client.GetPersonalRecords(context.Background(), connect.NewRequest(tt.request))
+			handler := handlers.NewProgressHandler(mockProgressRepo, mockExerciseRepo)
+
+			ctx := context.Background()
+			if tt.withAuth {
+				ctx = auth.ContextWithUserID(ctx, tt.userID)
+			}
+
+			req := connect.NewRequest(&heftv1.GetPersonalRecordsRequest{
+				ExerciseId: tt.exerciseID,
+				Limit:      tt.limit,
+			})
+			resp, err := handler.GetPersonalRecords(ctx, req)
 
 			if tt.wantErr {
 				require.Error(t, err)
@@ -386,18 +385,20 @@ func TestProgressHandler_GetPersonalRecords(t *testing.T) {
 func TestProgressHandler_GetExerciseProgress(t *testing.T) {
 	tests := []struct {
 		name         string
-		request      *heftv1.GetExerciseProgressRequest
+		userID       string
+		withAuth     bool
+		exerciseID   string
+		limit        *int32
 		setupMock    func(*testutil.MockProgressRepository, *testutil.MockExerciseRepository)
 		wantErr      bool
 		wantCode     connect.Code
 		validateResp func(*testing.T, *heftv1.GetExerciseProgressResponse)
 	}{
 		{
-			name: "success - returns exercise progress",
-			request: &heftv1.GetExerciseProgressRequest{
-				UserId:     "user-123",
-				ExerciseId: "exercise-1",
-			},
+			name:       "success - returns exercise progress",
+			userID:     "user-123",
+			withAuth:   true,
+			exerciseID: "exercise-1",
 			setupMock: func(mp *testutil.MockProgressRepository, me *testutil.MockExerciseRepository) {
 				weight1 := 80.0
 				weight2 := 85.0
@@ -427,12 +428,11 @@ func TestProgressHandler_GetExerciseProgress(t *testing.T) {
 			},
 		},
 		{
-			name: "success - with custom limit",
-			request: &heftv1.GetExerciseProgressRequest{
-				UserId:     "user-123",
-				ExerciseId: "exercise-1",
-				Limit:      ptrInt32(4),
-			},
+			name:       "success - with custom limit",
+			userID:     "user-123",
+			withAuth:   true,
+			exerciseID: "exercise-1",
+			limit:      ptrInt32(4),
 			setupMock: func(mp *testutil.MockProgressRepository, me *testutil.MockExerciseRepository) {
 				mp.GetExerciseProgressFunc = func(ctx context.Context, userID, exerciseID string, limit int) ([]*repository.ExerciseProgressPoint, error) {
 					assert.Equal(t, 4, limit)
@@ -447,11 +447,10 @@ func TestProgressHandler_GetExerciseProgress(t *testing.T) {
 			},
 		},
 		{
-			name: "success - no data points",
-			request: &heftv1.GetExerciseProgressRequest{
-				UserId:     "user-123",
-				ExerciseId: "exercise-1",
-			},
+			name:       "success - no data points",
+			userID:     "user-123",
+			withAuth:   true,
+			exerciseID: "exercise-1",
 			setupMock: func(mp *testutil.MockProgressRepository, me *testutil.MockExerciseRepository) {
 				mp.GetExerciseProgressFunc = func(ctx context.Context, userID, exerciseID string, limit int) ([]*repository.ExerciseProgressPoint, error) {
 					return []*repository.ExerciseProgressPoint{}, nil
@@ -466,31 +465,28 @@ func TestProgressHandler_GetExerciseProgress(t *testing.T) {
 			},
 		},
 		{
-			name: "error - missing user_id",
-			request: &heftv1.GetExerciseProgressRequest{
-				UserId:     "",
-				ExerciseId: "exercise-1",
-			},
-			setupMock: func(mp *testutil.MockProgressRepository, me *testutil.MockExerciseRepository) {},
-			wantErr:   true,
-			wantCode:  connect.CodeInvalidArgument,
+			name:       "error - not authenticated",
+			userID:     "",
+			withAuth:   false,
+			exerciseID: "exercise-1",
+			setupMock:  func(mp *testutil.MockProgressRepository, me *testutil.MockExerciseRepository) {},
+			wantErr:    true,
+			wantCode:   connect.CodeUnauthenticated,
 		},
 		{
-			name: "error - missing exercise_id",
-			request: &heftv1.GetExerciseProgressRequest{
-				UserId:     "user-123",
-				ExerciseId: "",
-			},
-			setupMock: func(mp *testutil.MockProgressRepository, me *testutil.MockExerciseRepository) {},
-			wantErr:   true,
-			wantCode:  connect.CodeInvalidArgument,
+			name:       "error - missing exercise_id",
+			userID:     "user-123",
+			withAuth:   true,
+			exerciseID: "",
+			setupMock:  func(mp *testutil.MockProgressRepository, me *testutil.MockExerciseRepository) {},
+			wantErr:    true,
+			wantCode:   connect.CodeInvalidArgument,
 		},
 		{
-			name: "error - database error on progress",
-			request: &heftv1.GetExerciseProgressRequest{
-				UserId:     "user-123",
-				ExerciseId: "exercise-1",
-			},
+			name:       "error - database error on progress",
+			userID:     "user-123",
+			withAuth:   true,
+			exerciseID: "exercise-1",
 			setupMock: func(mp *testutil.MockProgressRepository, me *testutil.MockExerciseRepository) {
 				mp.GetExerciseProgressFunc = func(ctx context.Context, userID, exerciseID string, limit int) ([]*repository.ExerciseProgressPoint, error) {
 					return nil, errors.New("database error")
@@ -500,11 +496,10 @@ func TestProgressHandler_GetExerciseProgress(t *testing.T) {
 			wantCode: connect.CodeInternal,
 		},
 		{
-			name: "error - database error on exercise lookup",
-			request: &heftv1.GetExerciseProgressRequest{
-				UserId:     "user-123",
-				ExerciseId: "exercise-1",
-			},
+			name:       "error - database error on exercise lookup",
+			userID:     "user-123",
+			withAuth:   true,
+			exerciseID: "exercise-1",
 			setupMock: func(mp *testutil.MockProgressRepository, me *testutil.MockExerciseRepository) {
 				mp.GetExerciseProgressFunc = func(ctx context.Context, userID, exerciseID string, limit int) ([]*repository.ExerciseProgressPoint, error) {
 					return []*repository.ExerciseProgressPoint{}, nil
@@ -524,8 +519,18 @@ func TestProgressHandler_GetExerciseProgress(t *testing.T) {
 			mockExerciseRepo := &testutil.MockExerciseRepository{}
 			tt.setupMock(mockProgressRepo, mockExerciseRepo)
 
-			client := setupProgressTest(t, mockProgressRepo, mockExerciseRepo)
-			resp, err := client.GetExerciseProgress(context.Background(), connect.NewRequest(tt.request))
+			handler := handlers.NewProgressHandler(mockProgressRepo, mockExerciseRepo)
+
+			ctx := context.Background()
+			if tt.withAuth {
+				ctx = auth.ContextWithUserID(ctx, tt.userID)
+			}
+
+			req := connect.NewRequest(&heftv1.GetExerciseProgressRequest{
+				ExerciseId: tt.exerciseID,
+				Limit:      tt.limit,
+			})
+			resp, err := handler.GetExerciseProgress(ctx, req)
 
 			if tt.wantErr {
 				require.Error(t, err)
@@ -544,17 +549,17 @@ func TestProgressHandler_GetExerciseProgress(t *testing.T) {
 func TestProgressHandler_GetStreak(t *testing.T) {
 	tests := []struct {
 		name         string
-		request      *heftv1.GetStreakRequest
+		userID       string
+		withAuth     bool
 		setupMock    func(*testutil.MockProgressRepository, *testutil.MockExerciseRepository)
 		wantErr      bool
 		wantCode     connect.Code
 		validateResp func(*testing.T, *heftv1.GetStreakResponse)
 	}{
 		{
-			name: "success - has active streak",
-			request: &heftv1.GetStreakRequest{
-				UserId: "user-123",
-			},
+			name:     "success - has active streak",
+			userID:   "user-123",
+			withAuth: true,
 			setupMock: func(mp *testutil.MockProgressRepository, me *testutil.MockExerciseRepository) {
 				lastWorkout := time.Now().AddDate(0, 0, -1)
 				mp.GetStreakFunc = func(ctx context.Context, userID string) (int, int, *time.Time, error) {
@@ -568,10 +573,9 @@ func TestProgressHandler_GetStreak(t *testing.T) {
 			},
 		},
 		{
-			name: "success - no workouts yet",
-			request: &heftv1.GetStreakRequest{
-				UserId: "user-123",
-			},
+			name:     "success - no workouts yet",
+			userID:   "user-123",
+			withAuth: true,
 			setupMock: func(mp *testutil.MockProgressRepository, me *testutil.MockExerciseRepository) {
 				mp.GetStreakFunc = func(ctx context.Context, userID string) (int, int, *time.Time, error) {
 					return 0, 0, nil, nil
@@ -584,19 +588,17 @@ func TestProgressHandler_GetStreak(t *testing.T) {
 			},
 		},
 		{
-			name: "error - missing user_id",
-			request: &heftv1.GetStreakRequest{
-				UserId: "",
-			},
+			name:      "error - not authenticated",
+			userID:    "",
+			withAuth:  false,
 			setupMock: func(mp *testutil.MockProgressRepository, me *testutil.MockExerciseRepository) {},
 			wantErr:   true,
-			wantCode:  connect.CodeInvalidArgument,
+			wantCode:  connect.CodeUnauthenticated,
 		},
 		{
-			name: "error - database error",
-			request: &heftv1.GetStreakRequest{
-				UserId: "user-123",
-			},
+			name:     "error - database error",
+			userID:   "user-123",
+			withAuth: true,
 			setupMock: func(mp *testutil.MockProgressRepository, me *testutil.MockExerciseRepository) {
 				mp.GetStreakFunc = func(ctx context.Context, userID string) (int, int, *time.Time, error) {
 					return 0, 0, nil, errors.New("database error")
@@ -613,8 +615,15 @@ func TestProgressHandler_GetStreak(t *testing.T) {
 			mockExerciseRepo := &testutil.MockExerciseRepository{}
 			tt.setupMock(mockProgressRepo, mockExerciseRepo)
 
-			client := setupProgressTest(t, mockProgressRepo, mockExerciseRepo)
-			resp, err := client.GetStreak(context.Background(), connect.NewRequest(tt.request))
+			handler := handlers.NewProgressHandler(mockProgressRepo, mockExerciseRepo)
+
+			ctx := context.Background()
+			if tt.withAuth {
+				ctx = auth.ContextWithUserID(ctx, tt.userID)
+			}
+
+			req := connect.NewRequest(&heftv1.GetStreakRequest{})
+			resp, err := handler.GetStreak(ctx, req)
 
 			if tt.wantErr {
 				require.Error(t, err)
@@ -633,19 +642,21 @@ func TestProgressHandler_GetStreak(t *testing.T) {
 func TestProgressHandler_GetCalendarMonth(t *testing.T) {
 	tests := []struct {
 		name         string
-		request      *heftv1.GetCalendarMonthRequest
+		userID       string
+		withAuth     bool
+		year         int32
+		month        int32
 		setupMock    func(*testutil.MockProgressRepository, *testutil.MockExerciseRepository)
 		wantErr      bool
 		wantCode     connect.Code
 		validateResp func(*testing.T, *heftv1.GetCalendarMonthResponse)
 	}{
 		{
-			name: "success - returns empty calendar (current implementation)",
-			request: &heftv1.GetCalendarMonthRequest{
-				UserId: "user-123",
-				Year:   2024,
-				Month:  12,
-			},
+			name:     "success - returns empty calendar (current implementation)",
+			userID:   "user-123",
+			withAuth: true,
+			year:     2024,
+			month:    12,
 			setupMock: func(mp *testutil.MockProgressRepository, me *testutil.MockExerciseRepository) {},
 			validateResp: func(t *testing.T, resp *heftv1.GetCalendarMonthResponse) {
 				// Current implementation returns empty
@@ -655,15 +666,14 @@ func TestProgressHandler_GetCalendarMonth(t *testing.T) {
 			},
 		},
 		{
-			name: "error - missing user_id",
-			request: &heftv1.GetCalendarMonthRequest{
-				UserId: "",
-				Year:   2024,
-				Month:  12,
-			},
+			name:      "error - not authenticated",
+			userID:    "",
+			withAuth:  false,
+			year:      2024,
+			month:     12,
 			setupMock: func(mp *testutil.MockProgressRepository, me *testutil.MockExerciseRepository) {},
 			wantErr:   true,
-			wantCode:  connect.CodeInvalidArgument,
+			wantCode:  connect.CodeUnauthenticated,
 		},
 	}
 
@@ -673,8 +683,18 @@ func TestProgressHandler_GetCalendarMonth(t *testing.T) {
 			mockExerciseRepo := &testutil.MockExerciseRepository{}
 			tt.setupMock(mockProgressRepo, mockExerciseRepo)
 
-			client := setupProgressTest(t, mockProgressRepo, mockExerciseRepo)
-			resp, err := client.GetCalendarMonth(context.Background(), connect.NewRequest(tt.request))
+			handler := handlers.NewProgressHandler(mockProgressRepo, mockExerciseRepo)
+
+			ctx := context.Background()
+			if tt.withAuth {
+				ctx = auth.ContextWithUserID(ctx, tt.userID)
+			}
+
+			req := connect.NewRequest(&heftv1.GetCalendarMonthRequest{
+				Year:  tt.year,
+				Month: tt.month,
+			})
+			resp, err := handler.GetCalendarMonth(ctx, req)
 
 			if tt.wantErr {
 				require.Error(t, err)

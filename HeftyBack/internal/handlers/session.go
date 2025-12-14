@@ -9,6 +9,7 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 
 	heftv1 "github.com/heftyback/gen/heft/v1"
+	"github.com/heftyback/internal/auth"
 	"github.com/heftyback/internal/repository"
 )
 
@@ -28,8 +29,9 @@ func NewSessionHandler(sessionRepo repository.SessionRepositoryInterface, workou
 
 // StartSession starts a new workout session
 func (h *SessionHandler) StartSession(ctx context.Context, req *connect.Request[heftv1.StartSessionRequest]) (*connect.Response[heftv1.StartSessionResponse], error) {
-	if req.Msg.UserId == "" {
-		return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("user_id is required"))
+	userID, ok := auth.UserIDFromContext(ctx)
+	if !ok {
+		return nil, connect.NewError(connect.CodeUnauthenticated, errors.New("not authenticated"))
 	}
 
 	var workoutTemplateID, programID, name *string
@@ -49,14 +51,14 @@ func (h *SessionHandler) StartSession(ctx context.Context, req *connect.Request[
 	}
 
 	// Create session
-	session, err := h.sessionRepo.Create(ctx, req.Msg.UserId, workoutTemplateID, programID, programDayNumber, name)
+	session, err := h.sessionRepo.Create(ctx, userID, workoutTemplateID, programID, programDayNumber, name)
 	if err != nil {
 		return nil, connect.NewError(connect.CodeInternal, err)
 	}
 
 	// If based on template, populate exercises from template
 	if workoutTemplateID != nil {
-		workout, err := h.workoutRepo.GetByID(ctx, *workoutTemplateID, req.Msg.UserId)
+		workout, err := h.workoutRepo.GetByID(ctx, *workoutTemplateID, userID)
 		if err == nil && workout != nil {
 			displayOrder := 0
 			for _, section := range workout.Sections {
@@ -89,7 +91,7 @@ func (h *SessionHandler) StartSession(ctx context.Context, req *connect.Request[
 	}
 
 	// Reload session with all details
-	session, err = h.sessionRepo.GetByID(ctx, session.ID, req.Msg.UserId)
+	session, err = h.sessionRepo.GetByID(ctx, session.ID, userID)
 	if err != nil {
 		return nil, connect.NewError(connect.CodeInternal, err)
 	}
@@ -101,11 +103,15 @@ func (h *SessionHandler) StartSession(ctx context.Context, req *connect.Request[
 
 // GetSession retrieves a session with full details
 func (h *SessionHandler) GetSession(ctx context.Context, req *connect.Request[heftv1.GetSessionRequest]) (*connect.Response[heftv1.GetSessionResponse], error) {
-	if req.Msg.Id == "" || req.Msg.UserId == "" {
-		return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("id and user_id are required"))
+	userID, ok := auth.UserIDFromContext(ctx)
+	if !ok {
+		return nil, connect.NewError(connect.CodeUnauthenticated, errors.New("not authenticated"))
+	}
+	if req.Msg.Id == "" {
+		return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("id is required"))
 	}
 
-	session, err := h.sessionRepo.GetByID(ctx, req.Msg.Id, req.Msg.UserId)
+	session, err := h.sessionRepo.GetByID(ctx, req.Msg.Id, userID)
 	if err != nil {
 		return nil, connect.NewError(connect.CodeInternal, err)
 	}
@@ -120,8 +126,12 @@ func (h *SessionHandler) GetSession(ctx context.Context, req *connect.Request[he
 
 // CompleteSet marks a set as completed
 func (h *SessionHandler) CompleteSet(ctx context.Context, req *connect.Request[heftv1.CompleteSetRequest]) (*connect.Response[heftv1.CompleteSetResponse], error) {
-	if req.Msg.SessionSetId == "" || req.Msg.UserId == "" {
-		return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("session_set_id and user_id are required"))
+	_, ok := auth.UserIDFromContext(ctx)
+	if !ok {
+		return nil, connect.NewError(connect.CodeUnauthenticated, errors.New("not authenticated"))
+	}
+	if req.Msg.SessionSetId == "" {
+		return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("session_set_id is required"))
 	}
 
 	var weightKg, distanceM, rpe *float64
@@ -165,8 +175,12 @@ func (h *SessionHandler) CompleteSet(ctx context.Context, req *connect.Request[h
 
 // UpdateSet updates set values
 func (h *SessionHandler) UpdateSet(ctx context.Context, req *connect.Request[heftv1.UpdateSetRequest]) (*connect.Response[heftv1.UpdateSetResponse], error) {
-	if req.Msg.SessionSetId == "" || req.Msg.UserId == "" {
-		return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("session_set_id and user_id are required"))
+	_, ok := auth.UserIDFromContext(ctx)
+	if !ok {
+		return nil, connect.NewError(connect.CodeUnauthenticated, errors.New("not authenticated"))
+	}
+	if req.Msg.SessionSetId == "" {
+		return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("session_set_id is required"))
 	}
 
 	// For now, use CompleteSet logic
@@ -207,8 +221,12 @@ func (h *SessionHandler) UpdateSet(ctx context.Context, req *connect.Request[hef
 
 // AddExercise adds an exercise to the session
 func (h *SessionHandler) AddExercise(ctx context.Context, req *connect.Request[heftv1.AddExerciseRequest]) (*connect.Response[heftv1.AddExerciseResponse], error) {
-	if req.Msg.SessionId == "" || req.Msg.UserId == "" || req.Msg.ExerciseId == "" {
-		return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("session_id, user_id, and exercise_id are required"))
+	userID, ok := auth.UserIDFromContext(ctx)
+	if !ok {
+		return nil, connect.NewError(connect.CodeUnauthenticated, errors.New("not authenticated"))
+	}
+	if req.Msg.SessionId == "" || req.Msg.ExerciseId == "" {
+		return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("session_id and exercise_id are required"))
 	}
 
 	var sectionName *string
@@ -234,7 +252,7 @@ func (h *SessionHandler) AddExercise(ctx context.Context, req *connect.Request[h
 	}
 
 	// Reload exercise with sets
-	session, err := h.sessionRepo.GetByID(ctx, req.Msg.SessionId, req.Msg.UserId)
+	session, err := h.sessionRepo.GetByID(ctx, req.Msg.SessionId, userID)
 	if err != nil {
 		return nil, connect.NewError(connect.CodeInternal, err)
 	}
@@ -258,8 +276,12 @@ func (h *SessionHandler) AddExercise(ctx context.Context, req *connect.Request[h
 
 // FinishSession completes the workout session
 func (h *SessionHandler) FinishSession(ctx context.Context, req *connect.Request[heftv1.FinishSessionRequest]) (*connect.Response[heftv1.FinishSessionResponse], error) {
-	if req.Msg.Id == "" || req.Msg.UserId == "" {
-		return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("id and user_id are required"))
+	userID, ok := auth.UserIDFromContext(ctx)
+	if !ok {
+		return nil, connect.NewError(connect.CodeUnauthenticated, errors.New("not authenticated"))
+	}
+	if req.Msg.Id == "" {
+		return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("id is required"))
 	}
 
 	var notes *string
@@ -267,13 +289,13 @@ func (h *SessionHandler) FinishSession(ctx context.Context, req *connect.Request
 		notes = req.Msg.Notes
 	}
 
-	session, err := h.sessionRepo.FinishSession(ctx, req.Msg.Id, req.Msg.UserId, notes)
+	session, err := h.sessionRepo.FinishSession(ctx, req.Msg.Id, userID, notes)
 	if err != nil {
 		return nil, connect.NewError(connect.CodeInternal, err)
 	}
 
 	// Reload with all details
-	session, err = h.sessionRepo.GetByID(ctx, session.ID, req.Msg.UserId)
+	session, err = h.sessionRepo.GetByID(ctx, session.ID, userID)
 	if err != nil {
 		return nil, connect.NewError(connect.CodeInternal, err)
 	}
@@ -285,11 +307,15 @@ func (h *SessionHandler) FinishSession(ctx context.Context, req *connect.Request
 
 // AbandonSession marks the session as abandoned
 func (h *SessionHandler) AbandonSession(ctx context.Context, req *connect.Request[heftv1.AbandonSessionRequest]) (*connect.Response[heftv1.AbandonSessionResponse], error) {
-	if req.Msg.Id == "" || req.Msg.UserId == "" {
-		return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("id and user_id are required"))
+	userID, ok := auth.UserIDFromContext(ctx)
+	if !ok {
+		return nil, connect.NewError(connect.CodeUnauthenticated, errors.New("not authenticated"))
+	}
+	if req.Msg.Id == "" {
+		return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("id is required"))
 	}
 
-	err := h.sessionRepo.AbandonSession(ctx, req.Msg.Id, req.Msg.UserId)
+	err := h.sessionRepo.AbandonSession(ctx, req.Msg.Id, userID)
 	if err != nil {
 		return nil, connect.NewError(connect.CodeInternal, err)
 	}
@@ -301,8 +327,9 @@ func (h *SessionHandler) AbandonSession(ctx context.Context, req *connect.Reques
 
 // ListSessions lists sessions for a user
 func (h *SessionHandler) ListSessions(ctx context.Context, req *connect.Request[heftv1.ListSessionsRequest]) (*connect.Response[heftv1.ListSessionsResponse], error) {
-	if req.Msg.UserId == "" {
-		return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("user_id is required"))
+	userID, ok := auth.UserIDFromContext(ctx)
+	if !ok {
+		return nil, connect.NewError(connect.CodeUnauthenticated, errors.New("not authenticated"))
 	}
 
 	var status *string
@@ -337,7 +364,7 @@ func (h *SessionHandler) ListSessions(ctx context.Context, req *connect.Request[
 	}
 
 	offset := (page - 1) * pageSize
-	sessions, totalCount, err := h.sessionRepo.List(ctx, req.Msg.UserId, status, startDate, endDate, int(pageSize), int(offset))
+	sessions, totalCount, err := h.sessionRepo.List(ctx, userID, status, startDate, endDate, int(pageSize), int(offset))
 	if err != nil {
 		return nil, connect.NewError(connect.CodeInternal, err)
 	}

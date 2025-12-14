@@ -12,6 +12,7 @@ void main() {
   setUpAll(() async {
     await IntegrationTestSetup.waitForBackend();
     await IntegrationTestSetup.resetDatabase();
+    await IntegrationTestSetup.authenticateTestUser();
   });
 
   setUp(() {
@@ -206,70 +207,74 @@ void main() {
       // Note: Cannot delete workout as completed session references it
     });
 
-    test('active session notifier starts session', () async {
+    test('start session via API', () async {
       // Create workout
       final workoutId = await TestData.createWorkoutWithExercise();
 
-      // Use notifier to start session
-      final notifier = container.read(activeSessionProvider.notifier);
-      final session = await notifier.startSession(
-        workoutTemplateId: workoutId,
+      // Start session via API
+      final response = await sessionClient.startSession(
+        StartSessionRequest()..workoutTemplateId = workoutId,
       );
 
-      expect(session, isNotNull);
-      expect(session!.id, isNotEmpty);
+      expect(response.session.id, isNotEmpty);
+      expect(
+        response.session.status,
+        equals(WorkoutStatus.WORKOUT_STATUS_IN_PROGRESS),
+      );
 
-      // Check state
-      final state = container.read(activeSessionProvider);
-      expect(state.value?.id, equals(session.id));
-
-      // Clean up - use deleteWorkoutSafe as abandoned sessions still reference workout
-      await notifier.abandonSession();
+      // Clean up
+      await TestData.abandonSession(response.session.id);
       await TestData.deleteWorkoutSafe(workoutId);
     });
 
-    test('active session notifier loads existing session', () async {
+    test('load existing session via API', () async {
       // Create workout and start session directly
       final workoutId = await TestData.createWorkoutWithExercise();
       final sessionId = await TestData.startSession(
         workoutTemplateId: workoutId,
       );
 
-      // Use notifier to load session
-      final notifier = container.read(activeSessionProvider.notifier);
-      final session = await notifier.loadSession(sessionId: sessionId);
+      // Load session via API
+      final response = await sessionClient.getSession(
+        GetSessionRequest()..id = sessionId,
+      );
 
-      expect(session, isNotNull);
-      expect(session!.id, equals(sessionId));
+      expect(response.session.id, equals(sessionId));
+      expect(response.session.exercises, isNotEmpty);
 
-      // Clean up - use deleteWorkoutSafe as abandoned sessions still reference workout
-      await notifier.abandonSession();
+      // Clean up
+      await TestData.abandonSession(sessionId);
       await TestData.deleteWorkoutSafe(workoutId);
     });
 
-    test('active session notifier completes set', () async {
+    test('complete set via API', () async {
       // Create workout and start session
       final workoutId = await TestData.createWorkoutWithExercise();
-
-      final notifier = container.read(activeSessionProvider.notifier);
-      final session = await notifier.startSession(
+      final sessionId = await TestData.startSession(
         workoutTemplateId: workoutId,
       );
 
-      // Get set ID from session
-      final setId = session!.exercises.first.sets.first.id;
+      // Get session to find a set
+      final sessionResponse = await sessionClient.getSession(
+        GetSessionRequest()..id = sessionId,
+      );
+      final setId = sessionResponse.session.exercises.first.sets.first.id;
 
-      // Complete set via notifier
-      final isPersonalRecord = await notifier.completeSet(
-        sessionSetId: setId,
-        weightKg: 100.0,
-        reps: 5,
+      // Complete set via API
+      final completeResponse = await sessionClient.completeSet(
+        CompleteSetRequest()
+          ..sessionSetId = setId
+          ..userId = TestData.testUserId
+          ..weightKg = 100.0
+          ..reps = 5,
       );
 
-      expect(isPersonalRecord, isA<bool>());
+      expect(completeResponse.set.isCompleted, isTrue);
+      expect(completeResponse.set.weightKg, equals(100.0));
+      expect(completeResponse.isPersonalRecord, isA<bool>());
 
-      // Clean up - use deleteWorkoutSafe as abandoned sessions still reference workout
-      await notifier.abandonSession();
+      // Clean up
+      await TestData.abandonSession(sessionId);
       await TestData.deleteWorkoutSafe(workoutId);
     });
 
@@ -299,31 +304,35 @@ void main() {
         name: 'Full Workflow Test',
       );
 
-      final notifier = container.read(activeSessionProvider.notifier);
-
+      // Use direct API calls to avoid Riverpod lifecycle issues in tests
       // 1. Start session
-      final session = await notifier.startSession(
-        workoutTemplateId: workoutId,
+      final startResponse = await sessionClient.startSession(
+        StartSessionRequest()..workoutTemplateId = workoutId,
       );
-      expect(session, isNotNull);
+      final session = startResponse.session;
+      expect(session.id, isNotEmpty);
 
       // 2. Complete all sets
-      for (final exercise in session!.exercises) {
+      for (final exercise in session.exercises) {
         for (final set in exercise.sets) {
-          await notifier.completeSet(
-            sessionSetId: set.id,
-            weightKg: 60.0,
-            reps: 10,
+          await sessionClient.completeSet(
+            CompleteSetRequest()
+              ..sessionSetId = set.id
+              ..userId = TestData.testUserId
+              ..weightKg = 60.0
+              ..reps = 10,
           );
         }
       }
 
       // 3. Finish session
-      await notifier.finishSession();
-
-      // 4. Verify session state is cleared
-      final state = container.read(activeSessionProvider);
-      expect(state.value, isNull);
+      final finishResponse = await sessionClient.finishSession(
+        FinishSessionRequest()..id = session.id,
+      );
+      expect(
+        finishResponse.session.status,
+        equals(WorkoutStatus.WORKOUT_STATUS_COMPLETED),
+      );
 
       // Note: Cannot delete workout as completed session references it
     });

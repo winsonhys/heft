@@ -26,9 +26,10 @@ func TestUserService_Integration_GetProfile(t *testing.T) {
 	t.Run("get existing user profile", func(t *testing.T) {
 		ctx := context.Background()
 
-		resp, err := ts.UserClient.GetProfile(ctx, connect.NewRequest(&heftv1.GetProfileRequest{
-			UserId: userID,
-		}))
+		req := connect.NewRequest(&heftv1.GetProfileRequest{})
+		req.Header().Set("Authorization", ts.AuthHeader(userID))
+
+		resp, err := ts.UserClient.GetProfile(ctx, req)
 
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
@@ -53,10 +54,12 @@ func TestUserService_Integration_GetProfile(t *testing.T) {
 
 	t.Run("get non-existent user returns not found", func(t *testing.T) {
 		ctx := context.Background()
+		nonExistentUserID := "00000000-0000-0000-0000-000000000000"
 
-		_, err := ts.UserClient.GetProfile(ctx, connect.NewRequest(&heftv1.GetProfileRequest{
-			UserId: "00000000-0000-0000-0000-000000000000",
-		}))
+		req := connect.NewRequest(&heftv1.GetProfileRequest{})
+		req.Header().Set("Authorization", ts.AuthHeader(nonExistentUserID))
+
+		_, err := ts.UserClient.GetProfile(ctx, req)
 
 		if err == nil {
 			t.Fatal("expected error for non-existent user")
@@ -69,6 +72,27 @@ func TestUserService_Integration_GetProfile(t *testing.T) {
 
 		if connectErr.Code() != connect.CodeNotFound {
 			t.Errorf("expected NotFound error, got %v", connectErr.Code())
+		}
+	})
+
+	t.Run("unauthenticated request returns error", func(t *testing.T) {
+		ctx := context.Background()
+
+		req := connect.NewRequest(&heftv1.GetProfileRequest{})
+
+		_, err := ts.UserClient.GetProfile(ctx, req)
+
+		if err == nil {
+			t.Fatal("expected error for unauthenticated request")
+		}
+
+		var connectErr *connect.Error
+		if !errors.As(err, &connectErr) {
+			t.Fatalf("expected connect error, got %T", err)
+		}
+
+		if connectErr.Code() != connect.CodeUnauthenticated {
+			t.Errorf("expected Unauthenticated error, got %v", connectErr.Code())
 		}
 	})
 }
@@ -88,10 +112,12 @@ func TestUserService_Integration_UpdateProfile(t *testing.T) {
 		ctx := context.Background()
 		newDisplayName := "Updated Name"
 
-		resp, err := ts.UserClient.UpdateProfile(ctx, connect.NewRequest(&heftv1.UpdateProfileRequest{
-			UserId:      userID,
+		req := connect.NewRequest(&heftv1.UpdateProfileRequest{
 			DisplayName: &newDisplayName,
-		}))
+		})
+		req.Header().Set("Authorization", ts.AuthHeader(userID))
+
+		resp, err := ts.UserClient.UpdateProfile(ctx, req)
 
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
@@ -106,10 +132,12 @@ func TestUserService_Integration_UpdateProfile(t *testing.T) {
 		ctx := context.Background()
 		newAvatarURL := "https://example.com/avatar.png"
 
-		resp, err := ts.UserClient.UpdateProfile(ctx, connect.NewRequest(&heftv1.UpdateProfileRequest{
-			UserId:    userID,
+		req := connect.NewRequest(&heftv1.UpdateProfileRequest{
 			AvatarUrl: &newAvatarURL,
-		}))
+		})
+		req.Header().Set("Authorization", ts.AuthHeader(userID))
+
+		resp, err := ts.UserClient.UpdateProfile(ctx, req)
 
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
@@ -136,10 +164,12 @@ func TestUserService_Integration_UpdateSettings(t *testing.T) {
 		ctx := context.Background()
 		usePounds := true
 
-		resp, err := ts.UserClient.UpdateSettings(ctx, connect.NewRequest(&heftv1.UpdateSettingsRequest{
-			UserId:    userID,
+		req := connect.NewRequest(&heftv1.UpdateSettingsRequest{
 			UsePounds: &usePounds,
-		}))
+		})
+		req.Header().Set("Authorization", ts.AuthHeader(userID))
+
+		resp, err := ts.UserClient.UpdateSettings(ctx, req)
 
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
@@ -154,10 +184,12 @@ func TestUserService_Integration_UpdateSettings(t *testing.T) {
 		ctx := context.Background()
 		restTimer := int32(90)
 
-		resp, err := ts.UserClient.UpdateSettings(ctx, connect.NewRequest(&heftv1.UpdateSettingsRequest{
-			UserId:           userID,
+		req := connect.NewRequest(&heftv1.UpdateSettingsRequest{
 			RestTimerSeconds: &restTimer,
-		}))
+		})
+		req.Header().Set("Authorization", ts.AuthHeader(userID))
+
+		resp, err := ts.UserClient.UpdateSettings(ctx, req)
 
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
@@ -185,11 +217,13 @@ func TestUserService_Integration_WeightLogging(t *testing.T) {
 
 		// Log weight for today
 		today := time.Now().Format("2006-01-02")
-		logResp, err := ts.UserClient.LogWeight(ctx, connect.NewRequest(&heftv1.LogWeightRequest{
-			UserId:     userID,
+		logReq := connect.NewRequest(&heftv1.LogWeightRequest{
 			WeightKg:   75.5,
 			LoggedDate: today,
-		}))
+		})
+		logReq.Header().Set("Authorization", ts.AuthHeader(userID))
+
+		logResp, err := ts.UserClient.LogWeight(ctx, logReq)
 
 		if err != nil {
 			t.Fatalf("failed to log weight: %v", err)
@@ -200,9 +234,10 @@ func TestUserService_Integration_WeightLogging(t *testing.T) {
 		}
 
 		// Retrieve history
-		historyResp, err := ts.UserClient.GetWeightHistory(ctx, connect.NewRequest(&heftv1.GetWeightHistoryRequest{
-			UserId: userID,
-		}))
+		historyReq := connect.NewRequest(&heftv1.GetWeightHistoryRequest{})
+		historyReq.Header().Set("Authorization", ts.AuthHeader(userID))
+
+		historyResp, err := ts.UserClient.GetWeightHistory(ctx, historyReq)
 
 		if err != nil {
 			t.Fatalf("failed to get weight history: %v", err)
@@ -218,20 +253,23 @@ func TestUserService_Integration_WeightLogging(t *testing.T) {
 		today := time.Now().Format("2006-01-02")
 
 		// Log updated weight for same day
-		_, err := ts.UserClient.LogWeight(ctx, connect.NewRequest(&heftv1.LogWeightRequest{
-			UserId:     userID,
+		logReq := connect.NewRequest(&heftv1.LogWeightRequest{
 			WeightKg:   76.0,
 			LoggedDate: today,
-		}))
+		})
+		logReq.Header().Set("Authorization", ts.AuthHeader(userID))
+
+		_, err := ts.UserClient.LogWeight(ctx, logReq)
 
 		if err != nil {
 			t.Fatalf("failed to update weight: %v", err)
 		}
 
 		// Verify only one entry exists for today
-		historyResp, err := ts.UserClient.GetWeightHistory(ctx, connect.NewRequest(&heftv1.GetWeightHistoryRequest{
-			UserId: userID,
-		}))
+		historyReq := connect.NewRequest(&heftv1.GetWeightHistoryRequest{})
+		historyReq.Header().Set("Authorization", ts.AuthHeader(userID))
+
+		historyResp, err := ts.UserClient.GetWeightHistory(ctx, historyReq)
 
 		if err != nil {
 			t.Fatalf("failed to get weight history: %v", err)
@@ -251,9 +289,10 @@ func TestUserService_Integration_WeightLogging(t *testing.T) {
 		ctx := context.Background()
 
 		// Get the weight log ID
-		historyResp, _ := ts.UserClient.GetWeightHistory(ctx, connect.NewRequest(&heftv1.GetWeightHistoryRequest{
-			UserId: userID,
-		}))
+		historyReq := connect.NewRequest(&heftv1.GetWeightHistoryRequest{})
+		historyReq.Header().Set("Authorization", ts.AuthHeader(userID))
+
+		historyResp, _ := ts.UserClient.GetWeightHistory(ctx, historyReq)
 
 		if len(historyResp.Msg.WeightLogs) == 0 {
 			t.Fatal("no weight logs to delete")
@@ -262,10 +301,12 @@ func TestUserService_Integration_WeightLogging(t *testing.T) {
 		logID := historyResp.Msg.WeightLogs[0].Id
 
 		// Delete the weight log
-		deleteResp, err := ts.UserClient.DeleteWeightLog(ctx, connect.NewRequest(&heftv1.DeleteWeightLogRequest{
-			Id:     logID,
-			UserId: userID,
-		}))
+		deleteReq := connect.NewRequest(&heftv1.DeleteWeightLogRequest{
+			Id: logID,
+		})
+		deleteReq.Header().Set("Authorization", ts.AuthHeader(userID))
+
+		deleteResp, err := ts.UserClient.DeleteWeightLog(ctx, deleteReq)
 
 		if err != nil {
 			t.Fatalf("failed to delete weight log: %v", err)
@@ -276,9 +317,10 @@ func TestUserService_Integration_WeightLogging(t *testing.T) {
 		}
 
 		// Verify deletion
-		historyResp, _ = ts.UserClient.GetWeightHistory(ctx, connect.NewRequest(&heftv1.GetWeightHistoryRequest{
-			UserId: userID,
-		}))
+		historyReq2 := connect.NewRequest(&heftv1.GetWeightHistoryRequest{})
+		historyReq2.Header().Set("Authorization", ts.AuthHeader(userID))
+
+		historyResp, _ = ts.UserClient.GetWeightHistory(ctx, historyReq2)
 
 		if len(historyResp.Msg.WeightLogs) != 0 {
 			t.Errorf("expected 0 weight logs after deletion, got %d", len(historyResp.Msg.WeightLogs))

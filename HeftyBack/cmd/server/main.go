@@ -16,6 +16,7 @@ import (
 	"golang.org/x/net/http2/h2c"
 
 	"github.com/heftyback/gen/heft/v1/heftv1connect"
+	"github.com/heftyback/internal/auth"
 	"github.com/heftyback/internal/config"
 	"github.com/heftyback/internal/db"
 	"github.com/heftyback/internal/handlers"
@@ -40,7 +41,11 @@ func main() {
 
 	log.Println("Connected to database")
 
+	// Initialize JWT manager
+	jwtManager := auth.NewJWTManager(cfg.JWTSecret, cfg.JWTExpirationHours)
+
 	// Initialize repositories
+	authRepo := repository.NewAuthRepository(database.Pool)
 	userRepo := repository.NewUserRepository(database.Pool)
 	exerciseRepo := repository.NewExerciseRepository(database.Pool)
 	workoutRepo := repository.NewWorkoutRepository(database.Pool)
@@ -49,6 +54,7 @@ func main() {
 	progressRepo := repository.NewProgressRepository(database.Pool)
 
 	// Initialize handlers
+	authHandler := handlers.NewAuthHandler(authRepo, jwtManager)
 	userHandler := handlers.NewUserHandler(userRepo)
 	exerciseHandler := handlers.NewExerciseHandler(exerciseRepo)
 	workoutHandler := handlers.NewWorkoutHandler(workoutRepo)
@@ -56,8 +62,9 @@ func main() {
 	sessionHandler := handlers.NewSessionHandler(sessionRepo, workoutRepo)
 	progressHandler := handlers.NewProgressHandler(progressRepo, exerciseRepo)
 
-	// Create interceptors
+	// Create interceptors (auth first, then logging)
 	interceptors := connect.WithInterceptors(
+		middleware.NewAuthInterceptor(jwtManager),
 		middleware.NewLoggingInterceptor(),
 	)
 
@@ -120,6 +127,7 @@ func main() {
 	}
 
 	// Register Connect services
+	authPath, authHTTPHandler := heftv1connect.NewAuthServiceHandler(authHandler, interceptors)
 	userPath, userHTTPHandler := heftv1connect.NewUserServiceHandler(userHandler, interceptors)
 	exercisePath, exerciseHTTPHandler := heftv1connect.NewExerciseServiceHandler(exerciseHandler, interceptors)
 	workoutPath, workoutHTTPHandler := heftv1connect.NewWorkoutServiceHandler(workoutHandler, interceptors)
@@ -127,6 +135,7 @@ func main() {
 	sessionPath, sessionHTTPHandler := heftv1connect.NewSessionServiceHandler(sessionHandler, interceptors)
 	progressPath, progressHTTPHandler := heftv1connect.NewProgressServiceHandler(progressHandler, interceptors)
 
+	mux.Handle(authPath, authHTTPHandler)
 	mux.Handle(userPath, userHTTPHandler)
 	mux.Handle(exercisePath, exerciseHTTPHandler)
 	mux.Handle(workoutPath, workoutHTTPHandler)
@@ -140,7 +149,7 @@ func main() {
 		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "Connect-Protocol-Version"},
 		ExposedHeaders:   []string{"Connect-Protocol-Version"},
-		AllowCredentials: true,
+		AllowCredentials: false,
 		MaxAge:           300,
 	})
 
@@ -158,6 +167,7 @@ func main() {
 	go func() {
 		log.Printf("Server starting on %s", addr)
 		log.Printf("Services registered:")
+		log.Printf("  - AuthService:     %s", authPath)
 		log.Printf("  - UserService:     %s", userPath)
 		log.Printf("  - ExerciseService: %s", exercisePath)
 		log.Printf("  - WorkoutService:  %s", workoutPath)

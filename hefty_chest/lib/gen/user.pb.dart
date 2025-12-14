@@ -14,7 +14,7 @@ import 'dart:core' as $core;
 
 import 'package:protobuf/protobuf.dart' as $pb;
 
-import 'google/protobuf/timestamp.pb.dart' as $0;
+import 'google/protobuf/timestamp.pb.dart' as $1;
 
 /// User profile
 class User extends $pb.GeneratedMessage {
@@ -25,9 +25,9 @@ class User extends $pb.GeneratedMessage {
     $core.String? avatarUrl,
     $core.bool? usePounds,
     $core.int? restTimerSeconds,
-    $0.Timestamp? memberSince,
-    $0.Timestamp? createdAt,
-    $0.Timestamp? updatedAt,
+    $1.Timestamp? memberSince,
+    $1.Timestamp? createdAt,
+    $1.Timestamp? updatedAt,
   }) {
     final $result = create();
     if (id != null) {
@@ -70,9 +70,9 @@ class User extends $pb.GeneratedMessage {
     ..aOS(4, _omitFieldNames ? '' : 'avatarUrl')
     ..aOB(5, _omitFieldNames ? '' : 'usePounds')
     ..a<$core.int>(6, _omitFieldNames ? '' : 'restTimerSeconds', $pb.PbFieldType.O3)
-    ..aOM<$0.Timestamp>(7, _omitFieldNames ? '' : 'memberSince', subBuilder: $0.Timestamp.create)
-    ..aOM<$0.Timestamp>(8, _omitFieldNames ? '' : 'createdAt', subBuilder: $0.Timestamp.create)
-    ..aOM<$0.Timestamp>(9, _omitFieldNames ? '' : 'updatedAt', subBuilder: $0.Timestamp.create)
+    ..aOM<$1.Timestamp>(7, _omitFieldNames ? '' : 'memberSince', subBuilder: $1.Timestamp.create)
+    ..aOM<$1.Timestamp>(8, _omitFieldNames ? '' : 'createdAt', subBuilder: $1.Timestamp.create)
+    ..aOM<$1.Timestamp>(9, _omitFieldNames ? '' : 'updatedAt', subBuilder: $1.Timestamp.create)
     ..hasRequiredFields = false
   ;
 
@@ -152,37 +152,37 @@ class User extends $pb.GeneratedMessage {
   void clearRestTimerSeconds() => clearField(6);
 
   @$pb.TagNumber(7)
-  $0.Timestamp get memberSince => $_getN(6);
+  $1.Timestamp get memberSince => $_getN(6);
   @$pb.TagNumber(7)
-  set memberSince($0.Timestamp v) { setField(7, v); }
+  set memberSince($1.Timestamp v) { setField(7, v); }
   @$pb.TagNumber(7)
   $core.bool hasMemberSince() => $_has(6);
   @$pb.TagNumber(7)
   void clearMemberSince() => clearField(7);
   @$pb.TagNumber(7)
-  $0.Timestamp ensureMemberSince() => $_ensure(6);
+  $1.Timestamp ensureMemberSince() => $_ensure(6);
 
   @$pb.TagNumber(8)
-  $0.Timestamp get createdAt => $_getN(7);
+  $1.Timestamp get createdAt => $_getN(7);
   @$pb.TagNumber(8)
-  set createdAt($0.Timestamp v) { setField(8, v); }
+  set createdAt($1.Timestamp v) { setField(8, v); }
   @$pb.TagNumber(8)
   $core.bool hasCreatedAt() => $_has(7);
   @$pb.TagNumber(8)
   void clearCreatedAt() => clearField(8);
   @$pb.TagNumber(8)
-  $0.Timestamp ensureCreatedAt() => $_ensure(7);
+  $1.Timestamp ensureCreatedAt() => $_ensure(7);
 
   @$pb.TagNumber(9)
-  $0.Timestamp get updatedAt => $_getN(8);
+  $1.Timestamp get updatedAt => $_getN(8);
   @$pb.TagNumber(9)
-  set updatedAt($0.Timestamp v) { setField(9, v); }
+  set updatedAt($1.Timestamp v) { setField(9, v); }
   @$pb.TagNumber(9)
   $core.bool hasUpdatedAt() => $_has(8);
   @$pb.TagNumber(9)
   void clearUpdatedAt() => clearField(9);
   @$pb.TagNumber(9)
-  $0.Timestamp ensureUpdatedAt() => $_ensure(8);
+  $1.Timestamp ensureUpdatedAt() => $_ensure(8);
 }
 
 /// Weight log entry
@@ -193,7 +193,7 @@ class WeightLog extends $pb.GeneratedMessage {
     $core.double? weightKg,
     $core.String? loggedDate,
     $core.String? notes,
-    $0.Timestamp? createdAt,
+    $1.Timestamp? createdAt,
   }) {
     final $result = create();
     if (id != null) {
@@ -226,7 +226,7 @@ class WeightLog extends $pb.GeneratedMessage {
     ..a<$core.double>(3, _omitFieldNames ? '' : 'weightKg', $pb.PbFieldType.OD)
     ..aOS(4, _omitFieldNames ? '' : 'loggedDate')
     ..aOS(5, _omitFieldNames ? '' : 'notes')
-    ..aOM<$0.Timestamp>(6, _omitFieldNames ? '' : 'createdAt', subBuilder: $0.Timestamp.create)
+    ..aOM<$1.Timestamp>(6, _omitFieldNames ? '' : 'createdAt', subBuilder: $1.Timestamp.create)
     ..hasRequiredFields = false
   ;
 
@@ -297,15 +297,15 @@ class WeightLog extends $pb.GeneratedMessage {
   void clearNotes() => clearField(5);
 
   @$pb.TagNumber(6)
-  $0.Timestamp get createdAt => $_getN(5);
+  $1.Timestamp get createdAt => $_getN(5);
   @$pb.TagNumber(6)
-  set createdAt($0.Timestamp v) { setField(6, v); }
+  set createdAt($1.Timestamp v) { setField(6, v); }
   @$pb.TagNumber(6)
   $core.bool hasCreatedAt() => $_has(5);
   @$pb.TagNumber(6)
   void clearCreatedAt() => clearField(6);
   @$pb.TagNumber(6)
-  $0.Timestamp ensureCreatedAt() => $_ensure(5);
+  $1.Timestamp ensureCreatedAt() => $_ensure(5);
 }
 
 /// User settings

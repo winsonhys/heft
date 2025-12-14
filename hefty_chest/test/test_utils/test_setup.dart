@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:hefty_chest/core/client.dart';
 
 /// Setup utilities for integration tests.
 ///
@@ -12,8 +13,27 @@ class IntegrationTestSetup {
   /// Backend URL for integration tests
   static const backendUrl = 'http://localhost:8080';
 
-  /// Test user ID (matches seed data in migrations)
-  static const testUserId = '00000000-0000-0000-0000-000000000001';
+  /// Test user email for authentication
+  static const testUserEmail = 'integration-test@example.com';
+
+  /// Cached test user ID after login
+  static String? _testUserId;
+
+  /// Cached auth token after login
+  static String? _authToken;
+
+  /// Get the authenticated test user ID
+  static String get testUserId {
+    if (_testUserId == null) {
+      throw StateError(
+        'Test user not authenticated. Call authenticateTestUser() in setUpAll.',
+      );
+    }
+    return _testUserId!;
+  }
+
+  /// Get the auth token
+  static String? get authToken => _authToken;
 
   /// Wait for backend to be healthy.
   ///
@@ -41,16 +61,48 @@ class IntegrationTestSetup {
     throw Exception('Backend not available after $timeout');
   }
 
+  /// Authenticate the test user and set up the token provider.
+  ///
+  /// This logs in with the test email and configures the global token
+  /// provider so all subsequent API calls include the auth token.
+  /// Call this in setUpAll() before running test groups.
+  static Future<void> authenticateTestUser() async {
+    // Login to get a token
+    final request = LoginRequest()..email = testUserEmail;
+    final response = await authClient.login(request);
+
+    _authToken = response.token;
+    _testUserId = response.userId;
+
+    // Set the global token provider for the auth interceptor
+    setTokenProvider(() => _authToken);
+  }
+
+  /// Clear authentication state.
+  ///
+  /// Call this in tearDownAll() if needed.
+  static void clearAuth() {
+    _authToken = null;
+    _testUserId = null;
+    setTokenProvider(() => null);
+  }
+
   /// Reset test database to clean state.
   ///
   /// Calls the /test/reset endpoint which truncates user-generated data
   /// while keeping seed data (users, categories, system exercises).
+  /// This endpoint is only available when backend runs with TEST_MODE=true.
   /// Call this in setUpAll() before running test groups.
   static Future<void> resetDatabase() async {
     final client = HttpClient();
     try {
       final request = await client.postUrl(Uri.parse('$backendUrl/test/reset'));
       final response = await request.close();
+      if (response.statusCode == 404) {
+        // Test mode not enabled - skip reset (tests may have stale data)
+        print('Warning: /test/reset not available. Run tests via run_integration_tests.sh');
+        return;
+      }
       if (response.statusCode != 200) {
         throw Exception('Failed to reset database: ${response.statusCode}');
       }

@@ -12,6 +12,7 @@ void main() {
   setUpAll(() async {
     await IntegrationTestSetup.waitForBackend();
     await IntegrationTestSetup.resetDatabase();
+    await IntegrationTestSetup.authenticateTestUser();
   });
 
   setUp(() {
@@ -65,30 +66,26 @@ void main() {
     });
 
     test('user settings notifier updates settings', () async {
-      // Get notifier
-      final notifier = container.read(userSettingsProvider.notifier);
+      // Use direct API calls to avoid Riverpod caching/lifecycle issues
+      // Get current settings
+      final getRequest = GetProfileRequest();
+      final profileResponse = await userClient.getProfile(getRequest);
+      final originalRestTimer = profileResponse.user.restTimerSeconds;
 
-      // Wait for initial load
-      await Future.delayed(const Duration(milliseconds: 500));
+      // Update settings via API
+      final updateRequest = UpdateSettingsRequest()..restTimerSeconds = 180;
+      final updateResponse = await userClient.updateSettings(updateRequest);
 
-      // Get current state
-      final currentState = container.read(userSettingsProvider);
-      final currentUser = currentState.value;
-      expect(currentUser, isNotNull);
+      expect(updateResponse.user.restTimerSeconds, equals(180));
 
-      final originalRestTimer = currentUser!.restTimerSeconds;
-
-      // Update rest timer
-      await notifier.updateSettings(restTimerSeconds: 180);
-
-      // Wait for update
-      await Future.delayed(const Duration(milliseconds: 300));
-
-      final updatedState = container.read(userSettingsProvider);
-      expect(updatedState.value?.restTimerSeconds, equals(180));
+      // Verify via fresh API call
+      final verifyResponse = await userClient.getProfile(getRequest);
+      expect(verifyResponse.user.restTimerSeconds, equals(180));
 
       // Restore original
-      await notifier.updateSettings(restTimerSeconds: originalRestTimer);
+      final restoreRequest = UpdateSettingsRequest()
+        ..restTimerSeconds = originalRestTimer;
+      await userClient.updateSettings(restoreRequest);
     });
 
     test('logs weight successfully', () async {

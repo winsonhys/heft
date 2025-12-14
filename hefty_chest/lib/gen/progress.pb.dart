@@ -14,7 +14,7 @@ import 'dart:core' as $core;
 
 import 'package:protobuf/protobuf.dart' as $pb;
 
-import 'common.pbenum.dart' as $1;
+import 'common.pbenum.dart' as $2;
 
 /// Dashboard stats
 class DashboardStats extends $pb.GeneratedMessage {
@@ -519,7 +519,7 @@ class ExerciseProgressSummary extends $pb.GeneratedMessage {
   factory ExerciseProgressSummary({
     $core.String? exerciseId,
     $core.String? exerciseName,
-    $1.ExerciseType? exerciseType,
+    $2.ExerciseType? exerciseType,
     $core.double? startingWeightKg,
     $core.double? currentWeightKg,
     $core.double? maxWeightKg,
@@ -564,7 +564,7 @@ class ExerciseProgressSummary extends $pb.GeneratedMessage {
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'ExerciseProgressSummary', package: const $pb.PackageName(_omitMessageNames ? '' : 'heft.v1'), createEmptyInstance: create)
     ..aOS(1, _omitFieldNames ? '' : 'exerciseId')
     ..aOS(2, _omitFieldNames ? '' : 'exerciseName')
-    ..e<$1.ExerciseType>(3, _omitFieldNames ? '' : 'exerciseType', $pb.PbFieldType.OE, defaultOrMaker: $1.ExerciseType.EXERCISE_TYPE_UNSPECIFIED, valueOf: $1.ExerciseType.valueOf, enumValues: $1.ExerciseType.values)
+    ..e<$2.ExerciseType>(3, _omitFieldNames ? '' : 'exerciseType', $pb.PbFieldType.OE, defaultOrMaker: $2.ExerciseType.EXERCISE_TYPE_UNSPECIFIED, valueOf: $2.ExerciseType.valueOf, enumValues: $2.ExerciseType.values)
     ..a<$core.double>(4, _omitFieldNames ? '' : 'startingWeightKg', $pb.PbFieldType.OD)
     ..a<$core.double>(5, _omitFieldNames ? '' : 'currentWeightKg', $pb.PbFieldType.OD)
     ..a<$core.double>(6, _omitFieldNames ? '' : 'maxWeightKg', $pb.PbFieldType.OD)
@@ -614,9 +614,9 @@ class ExerciseProgressSummary extends $pb.GeneratedMessage {
   void clearExerciseName() => clearField(2);
 
   @$pb.TagNumber(3)
-  $1.ExerciseType get exerciseType => $_getN(2);
+  $2.ExerciseType get exerciseType => $_getN(2);
   @$pb.TagNumber(3)
-  set exerciseType($1.ExerciseType v) { setField(3, v); }
+  set exerciseType($2.ExerciseType v) { setField(3, v); }
   @$pb.TagNumber(3)
   $core.bool hasExerciseType() => $_has(2);
   @$pb.TagNumber(3)

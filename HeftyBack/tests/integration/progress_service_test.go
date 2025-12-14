@@ -25,9 +25,11 @@ func TestProgressService_Integration_GetDashboardStats(t *testing.T) {
 	t.Run("get stats for new user", func(t *testing.T) {
 		ctx := context.Background()
 
-		resp, err := ts.ProgressClient.GetDashboardStats(ctx, connect.NewRequest(&heftv1.GetDashboardStatsRequest{
+		req := connect.NewRequest(&heftv1.GetDashboardStatsRequest{
 			UserId: userID,
-		}))
+		})
+		req.Header().Set("Authorization", ts.AuthHeader(userID))
+		resp, err := ts.ProgressClient.GetDashboardStats(ctx, req)
 
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
@@ -47,25 +49,31 @@ func TestProgressService_Integration_GetDashboardStats(t *testing.T) {
 		ctx := context.Background()
 
 		// Start and finish a session
-		startResp, err := ts.SessionClient.StartSession(ctx, connect.NewRequest(&heftv1.StartSessionRequest{
+		startReq := connect.NewRequest(&heftv1.StartSessionRequest{
 			UserId: userID,
-		}))
+		})
+		startReq.Header().Set("Authorization", ts.AuthHeader(userID))
+		startResp, err := ts.SessionClient.StartSession(ctx, startReq)
 		if err != nil {
 			t.Fatalf("failed to start session: %v", err)
 		}
 
-		_, err = ts.SessionClient.FinishSession(ctx, connect.NewRequest(&heftv1.FinishSessionRequest{
+		finishReq := connect.NewRequest(&heftv1.FinishSessionRequest{
 			Id:     startResp.Msg.Session.Id,
 			UserId: userID,
-		}))
+		})
+		finishReq.Header().Set("Authorization", ts.AuthHeader(userID))
+		_, err = ts.SessionClient.FinishSession(ctx, finishReq)
 		if err != nil {
 			t.Fatalf("failed to finish session: %v", err)
 		}
 
 		// Get updated stats
-		resp, err := ts.ProgressClient.GetDashboardStats(ctx, connect.NewRequest(&heftv1.GetDashboardStatsRequest{
+		statsReq := connect.NewRequest(&heftv1.GetDashboardStatsRequest{
 			UserId: userID,
-		}))
+		})
+		statsReq.Header().Set("Authorization", ts.AuthHeader(userID))
+		resp, err := ts.ProgressClient.GetDashboardStats(ctx, statsReq)
 
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
@@ -93,9 +101,11 @@ func TestProgressService_Integration_GetWeeklyActivity(t *testing.T) {
 	t.Run("get weekly activity for new user", func(t *testing.T) {
 		ctx := context.Background()
 
-		resp, err := ts.ProgressClient.GetWeeklyActivity(ctx, connect.NewRequest(&heftv1.GetWeeklyActivityRequest{
+		req := connect.NewRequest(&heftv1.GetWeeklyActivityRequest{
 			UserId: userID,
-		}))
+		})
+		req.Header().Set("Authorization", ts.AuthHeader(userID))
+		resp, err := ts.ProgressClient.GetWeeklyActivity(ctx, req)
 
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
@@ -118,25 +128,31 @@ func TestProgressService_Integration_GetWeeklyActivity(t *testing.T) {
 		ctx := context.Background()
 
 		// Complete a workout
-		startResp, err := ts.SessionClient.StartSession(ctx, connect.NewRequest(&heftv1.StartSessionRequest{
+		startReq := connect.NewRequest(&heftv1.StartSessionRequest{
 			UserId: userID,
-		}))
+		})
+		startReq.Header().Set("Authorization", ts.AuthHeader(userID))
+		startResp, err := ts.SessionClient.StartSession(ctx, startReq)
 		if err != nil {
 			t.Fatalf("failed to start session: %v", err)
 		}
 
-		_, err = ts.SessionClient.FinishSession(ctx, connect.NewRequest(&heftv1.FinishSessionRequest{
+		finishReq := connect.NewRequest(&heftv1.FinishSessionRequest{
 			Id:     startResp.Msg.Session.Id,
 			UserId: userID,
-		}))
+		})
+		finishReq.Header().Set("Authorization", ts.AuthHeader(userID))
+		_, err = ts.SessionClient.FinishSession(ctx, finishReq)
 		if err != nil {
 			t.Fatalf("failed to finish session: %v", err)
 		}
 
 		// Get weekly activity
-		resp, err := ts.ProgressClient.GetWeeklyActivity(ctx, connect.NewRequest(&heftv1.GetWeeklyActivityRequest{
+		activityReq := connect.NewRequest(&heftv1.GetWeeklyActivityRequest{
 			UserId: userID,
-		}))
+		})
+		activityReq.Header().Set("Authorization", ts.AuthHeader(userID))
+		resp, err := ts.ProgressClient.GetWeeklyActivity(ctx, activityReq)
 
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
@@ -164,9 +180,11 @@ func TestProgressService_Integration_GetPersonalRecords(t *testing.T) {
 	t.Run("get empty personal records", func(t *testing.T) {
 		ctx := context.Background()
 
-		resp, err := ts.ProgressClient.GetPersonalRecords(ctx, connect.NewRequest(&heftv1.GetPersonalRecordsRequest{
+		req := connect.NewRequest(&heftv1.GetPersonalRecordsRequest{
 			UserId: userID,
-		}))
+		})
+		req.Header().Set("Authorization", ts.AuthHeader(userID))
+		resp, err := ts.ProgressClient.GetPersonalRecords(ctx, req)
 
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
@@ -182,12 +200,14 @@ func TestProgressService_Integration_GetPersonalRecords(t *testing.T) {
 		ctx := context.Background()
 
 		// Get an exercise
-		exercisesResp, err := ts.ExerciseClient.ListExercises(ctx, connect.NewRequest(&heftv1.ListExercisesRequest{
+		exercisesReq := connect.NewRequest(&heftv1.ListExercisesRequest{
 			Pagination: &heftv1.PaginationRequest{
 				Page:     1,
 				PageSize: 1,
 			},
-		}))
+		})
+		exercisesReq.Header().Set("Authorization", ts.AuthHeader(userID))
+		exercisesResp, err := ts.ExerciseClient.ListExercises(ctx, exercisesReq)
 		if err != nil {
 			t.Fatalf("failed to list exercises: %v", err)
 		}
@@ -197,21 +217,25 @@ func TestProgressService_Integration_GetPersonalRecords(t *testing.T) {
 		exerciseID := exercisesResp.Msg.Exercises[0].Id
 
 		// Start a session
-		startResp, err := ts.SessionClient.StartSession(ctx, connect.NewRequest(&heftv1.StartSessionRequest{
+		startReq := connect.NewRequest(&heftv1.StartSessionRequest{
 			UserId: userID,
-		}))
+		})
+		startReq.Header().Set("Authorization", ts.AuthHeader(userID))
+		startResp, err := ts.SessionClient.StartSession(ctx, startReq)
 		if err != nil {
 			t.Fatalf("failed to start session: %v", err)
 		}
 		sessionID := startResp.Msg.Session.Id
 
 		// Add exercise with 1 set
-		addExResp, err := ts.SessionClient.AddExercise(ctx, connect.NewRequest(&heftv1.AddExerciseRequest{
+		addExReq := connect.NewRequest(&heftv1.AddExerciseRequest{
 			SessionId:  sessionID,
 			UserId:     userID,
 			ExerciseId: exerciseID,
 			NumSets:    1,
-		}))
+		})
+		addExReq.Header().Set("Authorization", ts.AuthHeader(userID))
+		addExResp, err := ts.SessionClient.AddExercise(ctx, addExReq)
 		if err != nil {
 			t.Fatalf("failed to add exercise: %v", err)
 		}
@@ -224,29 +248,35 @@ func TestProgressService_Integration_GetPersonalRecords(t *testing.T) {
 
 		weight := float64(150)
 		reps := int32(5)
-		_, err = ts.SessionClient.CompleteSet(ctx, connect.NewRequest(&heftv1.CompleteSetRequest{
+		completeReq := connect.NewRequest(&heftv1.CompleteSetRequest{
 			SessionSetId: setID,
 			UserId:       userID,
 			WeightKg:     &weight,
 			Reps:         &reps,
-		}))
+		})
+		completeReq.Header().Set("Authorization", ts.AuthHeader(userID))
+		_, err = ts.SessionClient.CompleteSet(ctx, completeReq)
 		if err != nil {
 			t.Fatalf("failed to complete set: %v", err)
 		}
 
 		// Finish session
-		_, err = ts.SessionClient.FinishSession(ctx, connect.NewRequest(&heftv1.FinishSessionRequest{
+		finishReq := connect.NewRequest(&heftv1.FinishSessionRequest{
 			Id:     sessionID,
 			UserId: userID,
-		}))
+		})
+		finishReq.Header().Set("Authorization", ts.AuthHeader(userID))
+		_, err = ts.SessionClient.FinishSession(ctx, finishReq)
 		if err != nil {
 			t.Fatalf("failed to finish session: %v", err)
 		}
 
 		// Get PRs - should have at least one
-		resp, err := ts.ProgressClient.GetPersonalRecords(ctx, connect.NewRequest(&heftv1.GetPersonalRecordsRequest{
+		prReq := connect.NewRequest(&heftv1.GetPersonalRecordsRequest{
 			UserId: userID,
-		}))
+		})
+		prReq.Header().Set("Authorization", ts.AuthHeader(userID))
+		resp, err := ts.ProgressClient.GetPersonalRecords(ctx, prReq)
 
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
@@ -261,12 +291,14 @@ func TestProgressService_Integration_GetPersonalRecords(t *testing.T) {
 		ctx := context.Background()
 
 		// Get an exercise ID
-		exercisesResp, err := ts.ExerciseClient.ListExercises(ctx, connect.NewRequest(&heftv1.ListExercisesRequest{
+		exercisesReq := connect.NewRequest(&heftv1.ListExercisesRequest{
 			Pagination: &heftv1.PaginationRequest{
 				Page:     1,
 				PageSize: 1,
 			},
-		}))
+		})
+		exercisesReq.Header().Set("Authorization", ts.AuthHeader(userID))
+		exercisesResp, err := ts.ExerciseClient.ListExercises(ctx, exercisesReq)
 		if err != nil {
 			t.Fatalf("failed to list exercises: %v", err)
 		}
@@ -276,10 +308,12 @@ func TestProgressService_Integration_GetPersonalRecords(t *testing.T) {
 		exerciseID := exercisesResp.Msg.Exercises[0].Id
 
 		// Get PRs filtered by exercise
-		resp, err := ts.ProgressClient.GetPersonalRecords(ctx, connect.NewRequest(&heftv1.GetPersonalRecordsRequest{
+		req := connect.NewRequest(&heftv1.GetPersonalRecordsRequest{
 			UserId:     userID,
 			ExerciseId: &exerciseID,
-		}))
+		})
+		req.Header().Set("Authorization", ts.AuthHeader(userID))
+		resp, err := ts.ProgressClient.GetPersonalRecords(ctx, req)
 
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
@@ -307,12 +341,14 @@ func TestProgressService_Integration_GetExerciseProgress(t *testing.T) {
 	userID := testutil.SeedTestUser(t, pool, testUser)
 
 	// Get an exercise
-	exercisesResp, err := ts.ExerciseClient.ListExercises(context.Background(), connect.NewRequest(&heftv1.ListExercisesRequest{
+	exercisesReq := connect.NewRequest(&heftv1.ListExercisesRequest{
 		Pagination: &heftv1.PaginationRequest{
 			Page:     1,
 			PageSize: 1,
 		},
-	}))
+	})
+	exercisesReq.Header().Set("Authorization", ts.AuthHeader(userID))
+	exercisesResp, err := ts.ExerciseClient.ListExercises(context.Background(), exercisesReq)
 	if err != nil {
 		t.Fatalf("failed to list exercises: %v", err)
 	}
@@ -324,10 +360,12 @@ func TestProgressService_Integration_GetExerciseProgress(t *testing.T) {
 	t.Run("get progress for new user", func(t *testing.T) {
 		ctx := context.Background()
 
-		resp, err := ts.ProgressClient.GetExerciseProgress(ctx, connect.NewRequest(&heftv1.GetExerciseProgressRequest{
+		req := connect.NewRequest(&heftv1.GetExerciseProgressRequest{
 			UserId:     userID,
 			ExerciseId: exerciseID,
-		}))
+		})
+		req.Header().Set("Authorization", ts.AuthHeader(userID))
+		resp, err := ts.ProgressClient.GetExerciseProgress(ctx, req)
 
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
@@ -348,20 +386,24 @@ func TestProgressService_Integration_GetExerciseProgress(t *testing.T) {
 		ctx := context.Background()
 
 		// Complete a session with the exercise
-		startResp, err := ts.SessionClient.StartSession(ctx, connect.NewRequest(&heftv1.StartSessionRequest{
+		startReq := connect.NewRequest(&heftv1.StartSessionRequest{
 			UserId: userID,
-		}))
+		})
+		startReq.Header().Set("Authorization", ts.AuthHeader(userID))
+		startResp, err := ts.SessionClient.StartSession(ctx, startReq)
 		if err != nil {
 			t.Fatalf("failed to start session: %v", err)
 		}
 
 		// Add exercise with 1 set
-		addExResp, err := ts.SessionClient.AddExercise(ctx, connect.NewRequest(&heftv1.AddExerciseRequest{
+		addExReq := connect.NewRequest(&heftv1.AddExerciseRequest{
 			SessionId:  startResp.Msg.Session.Id,
 			UserId:     userID,
 			ExerciseId: exerciseID,
 			NumSets:    1,
-		}))
+		})
+		addExReq.Header().Set("Authorization", ts.AuthHeader(userID))
+		addExResp, err := ts.SessionClient.AddExercise(ctx, addExReq)
 		if err != nil {
 			t.Fatalf("failed to add exercise: %v", err)
 		}
@@ -374,30 +416,36 @@ func TestProgressService_Integration_GetExerciseProgress(t *testing.T) {
 
 		weight := float64(100)
 		reps := int32(10)
-		_, err = ts.SessionClient.CompleteSet(ctx, connect.NewRequest(&heftv1.CompleteSetRequest{
+		completeReq := connect.NewRequest(&heftv1.CompleteSetRequest{
 			SessionSetId: setID,
 			UserId:       userID,
 			WeightKg:     &weight,
 			Reps:         &reps,
-		}))
+		})
+		completeReq.Header().Set("Authorization", ts.AuthHeader(userID))
+		_, err = ts.SessionClient.CompleteSet(ctx, completeReq)
 		if err != nil {
 			t.Fatalf("failed to complete set: %v", err)
 		}
 
 		// Finish session
-		_, err = ts.SessionClient.FinishSession(ctx, connect.NewRequest(&heftv1.FinishSessionRequest{
+		finishReq := connect.NewRequest(&heftv1.FinishSessionRequest{
 			Id:     startResp.Msg.Session.Id,
 			UserId: userID,
-		}))
+		})
+		finishReq.Header().Set("Authorization", ts.AuthHeader(userID))
+		_, err = ts.SessionClient.FinishSession(ctx, finishReq)
 		if err != nil {
 			t.Fatalf("failed to finish session: %v", err)
 		}
 
 		// Get progress
-		resp, err := ts.ProgressClient.GetExerciseProgress(ctx, connect.NewRequest(&heftv1.GetExerciseProgressRequest{
+		progressReq := connect.NewRequest(&heftv1.GetExerciseProgressRequest{
 			UserId:     userID,
 			ExerciseId: exerciseID,
-		}))
+		})
+		progressReq.Header().Set("Authorization", ts.AuthHeader(userID))
+		resp, err := ts.ProgressClient.GetExerciseProgress(ctx, progressReq)
 
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
@@ -425,9 +473,11 @@ func TestProgressService_Integration_GetStreak(t *testing.T) {
 	t.Run("get streak for new user", func(t *testing.T) {
 		ctx := context.Background()
 
-		resp, err := ts.ProgressClient.GetStreak(ctx, connect.NewRequest(&heftv1.GetStreakRequest{
+		req := connect.NewRequest(&heftv1.GetStreakRequest{
 			UserId: userID,
-		}))
+		})
+		req.Header().Set("Authorization", ts.AuthHeader(userID))
+		resp, err := ts.ProgressClient.GetStreak(ctx, req)
 
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
@@ -451,25 +501,31 @@ func TestProgressService_Integration_GetStreak(t *testing.T) {
 		ctx := context.Background()
 
 		// Complete a workout
-		startResp, err := ts.SessionClient.StartSession(ctx, connect.NewRequest(&heftv1.StartSessionRequest{
+		startReq := connect.NewRequest(&heftv1.StartSessionRequest{
 			UserId: userID,
-		}))
+		})
+		startReq.Header().Set("Authorization", ts.AuthHeader(userID))
+		startResp, err := ts.SessionClient.StartSession(ctx, startReq)
 		if err != nil {
 			t.Fatalf("failed to start session: %v", err)
 		}
 
-		_, err = ts.SessionClient.FinishSession(ctx, connect.NewRequest(&heftv1.FinishSessionRequest{
+		finishReq := connect.NewRequest(&heftv1.FinishSessionRequest{
 			Id:     startResp.Msg.Session.Id,
 			UserId: userID,
-		}))
+		})
+		finishReq.Header().Set("Authorization", ts.AuthHeader(userID))
+		_, err = ts.SessionClient.FinishSession(ctx, finishReq)
 		if err != nil {
 			t.Fatalf("failed to finish session: %v", err)
 		}
 
 		// Get streak
-		resp, err := ts.ProgressClient.GetStreak(ctx, connect.NewRequest(&heftv1.GetStreakRequest{
+		streakReq := connect.NewRequest(&heftv1.GetStreakRequest{
 			UserId: userID,
-		}))
+		})
+		streakReq.Header().Set("Authorization", ts.AuthHeader(userID))
+		resp, err := ts.ProgressClient.GetStreak(ctx, streakReq)
 
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
@@ -501,11 +557,13 @@ func TestProgressService_Integration_GetCalendarMonth(t *testing.T) {
 	t.Run("get calendar month", func(t *testing.T) {
 		ctx := context.Background()
 
-		resp, err := ts.ProgressClient.GetCalendarMonth(ctx, connect.NewRequest(&heftv1.GetCalendarMonthRequest{
+		req := connect.NewRequest(&heftv1.GetCalendarMonthRequest{
 			UserId: userID,
 			Year:   2024,
 			Month:  12,
-		}))
+		})
+		req.Header().Set("Authorization", ts.AuthHeader(userID))
+		resp, err := ts.ProgressClient.GetCalendarMonth(ctx, req)
 
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)

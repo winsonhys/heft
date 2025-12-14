@@ -14,10 +14,10 @@ import 'dart:core' as $core;
 
 import 'package:protobuf/protobuf.dart' as $pb;
 
-import 'common.pb.dart' as $1;
-import 'common.pbenum.dart' as $1;
-import 'google/protobuf/timestamp.pb.dart' as $0;
-import 'workout.pb.dart' as $3;
+import 'common.pb.dart' as $2;
+import 'common.pbenum.dart' as $2;
+import 'google/protobuf/timestamp.pb.dart' as $1;
+import 'workout.pb.dart' as $4;
 
 /// Program summary
 class ProgramSummary extends $pb.GeneratedMessage {
@@ -32,8 +32,8 @@ class ProgramSummary extends $pb.GeneratedMessage {
     $core.int? totalRestDays,
     $core.bool? isActive,
     $core.bool? isArchived,
-    $0.Timestamp? createdAt,
-    $0.Timestamp? updatedAt,
+    $1.Timestamp? createdAt,
+    $1.Timestamp? updatedAt,
   }) {
     final $result = create();
     if (id != null) {
@@ -89,8 +89,8 @@ class ProgramSummary extends $pb.GeneratedMessage {
     ..a<$core.int>(8, _omitFieldNames ? '' : 'totalRestDays', $pb.PbFieldType.O3)
     ..aOB(9, _omitFieldNames ? '' : 'isActive')
     ..aOB(10, _omitFieldNames ? '' : 'isArchived')
-    ..aOM<$0.Timestamp>(11, _omitFieldNames ? '' : 'createdAt', subBuilder: $0.Timestamp.create)
-    ..aOM<$0.Timestamp>(12, _omitFieldNames ? '' : 'updatedAt', subBuilder: $0.Timestamp.create)
+    ..aOM<$1.Timestamp>(11, _omitFieldNames ? '' : 'createdAt', subBuilder: $1.Timestamp.create)
+    ..aOM<$1.Timestamp>(12, _omitFieldNames ? '' : 'updatedAt', subBuilder: $1.Timestamp.create)
     ..hasRequiredFields = false
   ;
 
@@ -206,26 +206,26 @@ class ProgramSummary extends $pb.GeneratedMessage {
   void clearIsArchived() => clearField(10);
 
   @$pb.TagNumber(11)
-  $0.Timestamp get createdAt => $_getN(10);
+  $1.Timestamp get createdAt => $_getN(10);
   @$pb.TagNumber(11)
-  set createdAt($0.Timestamp v) { setField(11, v); }
+  set createdAt($1.Timestamp v) { setField(11, v); }
   @$pb.TagNumber(11)
   $core.bool hasCreatedAt() => $_has(10);
   @$pb.TagNumber(11)
   void clearCreatedAt() => clearField(11);
   @$pb.TagNumber(11)
-  $0.Timestamp ensureCreatedAt() => $_ensure(10);
+  $1.Timestamp ensureCreatedAt() => $_ensure(10);
 
   @$pb.TagNumber(12)
-  $0.Timestamp get updatedAt => $_getN(11);
+  $1.Timestamp get updatedAt => $_getN(11);
   @$pb.TagNumber(12)
-  set updatedAt($0.Timestamp v) { setField(12, v); }
+  set updatedAt($1.Timestamp v) { setField(12, v); }
   @$pb.TagNumber(12)
   $core.bool hasUpdatedAt() => $_has(11);
   @$pb.TagNumber(12)
   void clearUpdatedAt() => clearField(12);
   @$pb.TagNumber(12)
-  $0.Timestamp ensureUpdatedAt() => $_ensure(11);
+  $1.Timestamp ensureUpdatedAt() => $_ensure(11);
 }
 
 /// Program with full details
@@ -242,8 +242,8 @@ class Program extends $pb.GeneratedMessage {
     $core.bool? isActive,
     $core.bool? isArchived,
     $core.Iterable<ProgramDay>? days,
-    $0.Timestamp? createdAt,
-    $0.Timestamp? updatedAt,
+    $1.Timestamp? createdAt,
+    $1.Timestamp? updatedAt,
   }) {
     final $result = create();
     if (id != null) {
@@ -303,8 +303,8 @@ class Program extends $pb.GeneratedMessage {
     ..aOB(9, _omitFieldNames ? '' : 'isActive')
     ..aOB(10, _omitFieldNames ? '' : 'isArchived')
     ..pc<ProgramDay>(11, _omitFieldNames ? '' : 'days', $pb.PbFieldType.PM, subBuilder: ProgramDay.create)
-    ..aOM<$0.Timestamp>(12, _omitFieldNames ? '' : 'createdAt', subBuilder: $0.Timestamp.create)
-    ..aOM<$0.Timestamp>(13, _omitFieldNames ? '' : 'updatedAt', subBuilder: $0.Timestamp.create)
+    ..aOM<$1.Timestamp>(12, _omitFieldNames ? '' : 'createdAt', subBuilder: $1.Timestamp.create)
+    ..aOM<$1.Timestamp>(13, _omitFieldNames ? '' : 'updatedAt', subBuilder: $1.Timestamp.create)
     ..hasRequiredFields = false
   ;
 
@@ -423,26 +423,26 @@ class Program extends $pb.GeneratedMessage {
   $core.List<ProgramDay> get days => $_getList(10);
 
   @$pb.TagNumber(12)
-  $0.Timestamp get createdAt => $_getN(11);
+  $1.Timestamp get createdAt => $_getN(11);
   @$pb.TagNumber(12)
-  set createdAt($0.Timestamp v) { setField(12, v); }
+  set createdAt($1.Timestamp v) { setField(12, v); }
   @$pb.TagNumber(12)
   $core.bool hasCreatedAt() => $_has(11);
   @$pb.TagNumber(12)
   void clearCreatedAt() => clearField(12);
   @$pb.TagNumber(12)
-  $0.Timestamp ensureCreatedAt() => $_ensure(11);
+  $1.Timestamp ensureCreatedAt() => $_ensure(11);
 
   @$pb.TagNumber(13)
-  $0.Timestamp get updatedAt => $_getN(12);
+  $1.Timestamp get updatedAt => $_getN(12);
   @$pb.TagNumber(13)
-  set updatedAt($0.Timestamp v) { setField(13, v); }
+  set updatedAt($1.Timestamp v) { setField(13, v); }
   @$pb.TagNumber(13)
   $core.bool hasUpdatedAt() => $_has(12);
   @$pb.TagNumber(13)
   void clearUpdatedAt() => clearField(13);
   @$pb.TagNumber(13)
-  $0.Timestamp ensureUpdatedAt() => $_ensure(12);
+  $1.Timestamp ensureUpdatedAt() => $_ensure(12);
 }
 
 /// Program day
@@ -451,7 +451,7 @@ class ProgramDay extends $pb.GeneratedMessage {
     $core.String? id,
     $core.String? programId,
     $core.int? dayNumber,
-    $1.ProgramDayType? dayType,
+    $2.ProgramDayType? dayType,
     $core.String? workoutTemplateId,
     $core.String? workoutName,
     $core.String? customName,
@@ -488,7 +488,7 @@ class ProgramDay extends $pb.GeneratedMessage {
     ..aOS(1, _omitFieldNames ? '' : 'id')
     ..aOS(2, _omitFieldNames ? '' : 'programId')
     ..a<$core.int>(3, _omitFieldNames ? '' : 'dayNumber', $pb.PbFieldType.O3)
-    ..e<$1.ProgramDayType>(4, _omitFieldNames ? '' : 'dayType', $pb.PbFieldType.OE, defaultOrMaker: $1.ProgramDayType.PROGRAM_DAY_TYPE_UNSPECIFIED, valueOf: $1.ProgramDayType.valueOf, enumValues: $1.ProgramDayType.values)
+    ..e<$2.ProgramDayType>(4, _omitFieldNames ? '' : 'dayType', $pb.PbFieldType.OE, defaultOrMaker: $2.ProgramDayType.PROGRAM_DAY_TYPE_UNSPECIFIED, valueOf: $2.ProgramDayType.valueOf, enumValues: $2.ProgramDayType.values)
     ..aOS(5, _omitFieldNames ? '' : 'workoutTemplateId')
     ..aOS(6, _omitFieldNames ? '' : 'workoutName')
     ..aOS(7, _omitFieldNames ? '' : 'customName')
@@ -544,9 +544,9 @@ class ProgramDay extends $pb.GeneratedMessage {
   void clearDayNumber() => clearField(3);
 
   @$pb.TagNumber(4)
-  $1.ProgramDayType get dayType => $_getN(3);
+  $2.ProgramDayType get dayType => $_getN(3);
   @$pb.TagNumber(4)
-  set dayType($1.ProgramDayType v) { setField(4, v); }
+  set dayType($2.ProgramDayType v) { setField(4, v); }
   @$pb.TagNumber(4)
   $core.bool hasDayType() => $_has(3);
   @$pb.TagNumber(4)
@@ -585,7 +585,7 @@ class ListProgramsRequest extends $pb.GeneratedMessage {
   factory ListProgramsRequest({
     $core.String? userId,
     $core.bool? includeArchived,
-    $1.PaginationRequest? pagination,
+    $2.PaginationRequest? pagination,
   }) {
     final $result = create();
     if (userId != null) {
@@ -606,7 +606,7 @@ class ListProgramsRequest extends $pb.GeneratedMessage {
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'ListProgramsRequest', package: const $pb.PackageName(_omitMessageNames ? '' : 'heft.v1'), createEmptyInstance: create)
     ..aOS(1, _omitFieldNames ? '' : 'userId')
     ..aOB(2, _omitFieldNames ? '' : 'includeArchived')
-    ..aOM<$1.PaginationRequest>(3, _omitFieldNames ? '' : 'pagination', subBuilder: $1.PaginationRequest.create)
+    ..aOM<$2.PaginationRequest>(3, _omitFieldNames ? '' : 'pagination', subBuilder: $2.PaginationRequest.create)
     ..hasRequiredFields = false
   ;
 
@@ -650,21 +650,21 @@ class ListProgramsRequest extends $pb.GeneratedMessage {
   void clearIncludeArchived() => clearField(2);
 
   @$pb.TagNumber(3)
-  $1.PaginationRequest get pagination => $_getN(2);
+  $2.PaginationRequest get pagination => $_getN(2);
   @$pb.TagNumber(3)
-  set pagination($1.PaginationRequest v) { setField(3, v); }
+  set pagination($2.PaginationRequest v) { setField(3, v); }
   @$pb.TagNumber(3)
   $core.bool hasPagination() => $_has(2);
   @$pb.TagNumber(3)
   void clearPagination() => clearField(3);
   @$pb.TagNumber(3)
-  $1.PaginationRequest ensurePagination() => $_ensure(2);
+  $2.PaginationRequest ensurePagination() => $_ensure(2);
 }
 
 class ListProgramsResponse extends $pb.GeneratedMessage {
   factory ListProgramsResponse({
     $core.Iterable<ProgramSummary>? programs,
-    $1.PaginationResponse? pagination,
+    $2.PaginationResponse? pagination,
   }) {
     final $result = create();
     if (programs != null) {
@@ -681,7 +681,7 @@ class ListProgramsResponse extends $pb.GeneratedMessage {
 
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'ListProgramsResponse', package: const $pb.PackageName(_omitMessageNames ? '' : 'heft.v1'), createEmptyInstance: create)
     ..pc<ProgramSummary>(1, _omitFieldNames ? '' : 'programs', $pb.PbFieldType.PM, subBuilder: ProgramSummary.create)
-    ..aOM<$1.PaginationResponse>(2, _omitFieldNames ? '' : 'pagination', subBuilder: $1.PaginationResponse.create)
+    ..aOM<$2.PaginationResponse>(2, _omitFieldNames ? '' : 'pagination', subBuilder: $2.PaginationResponse.create)
     ..hasRequiredFields = false
   ;
 
@@ -710,15 +710,15 @@ class ListProgramsResponse extends $pb.GeneratedMessage {
   $core.List<ProgramSummary> get programs => $_getList(0);
 
   @$pb.TagNumber(2)
-  $1.PaginationResponse get pagination => $_getN(1);
+  $2.PaginationResponse get pagination => $_getN(1);
   @$pb.TagNumber(2)
-  set pagination($1.PaginationResponse v) { setField(2, v); }
+  set pagination($2.PaginationResponse v) { setField(2, v); }
   @$pb.TagNumber(2)
   $core.bool hasPagination() => $_has(1);
   @$pb.TagNumber(2)
   void clearPagination() => clearField(2);
   @$pb.TagNumber(2)
-  $1.PaginationResponse ensurePagination() => $_ensure(1);
+  $2.PaginationResponse ensurePagination() => $_ensure(1);
 }
 
 /// GetProgram
@@ -956,7 +956,7 @@ class CreateProgramRequest extends $pb.GeneratedMessage {
 class CreateProgramDay extends $pb.GeneratedMessage {
   factory CreateProgramDay({
     $core.int? dayNumber,
-    $1.ProgramDayType? dayType,
+    $2.ProgramDayType? dayType,
     $core.String? workoutTemplateId,
     $core.String? customName,
   }) {
@@ -981,7 +981,7 @@ class CreateProgramDay extends $pb.GeneratedMessage {
 
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'CreateProgramDay', package: const $pb.PackageName(_omitMessageNames ? '' : 'heft.v1'), createEmptyInstance: create)
     ..a<$core.int>(1, _omitFieldNames ? '' : 'dayNumber', $pb.PbFieldType.O3)
-    ..e<$1.ProgramDayType>(2, _omitFieldNames ? '' : 'dayType', $pb.PbFieldType.OE, defaultOrMaker: $1.ProgramDayType.PROGRAM_DAY_TYPE_UNSPECIFIED, valueOf: $1.ProgramDayType.valueOf, enumValues: $1.ProgramDayType.values)
+    ..e<$2.ProgramDayType>(2, _omitFieldNames ? '' : 'dayType', $pb.PbFieldType.OE, defaultOrMaker: $2.ProgramDayType.PROGRAM_DAY_TYPE_UNSPECIFIED, valueOf: $2.ProgramDayType.valueOf, enumValues: $2.ProgramDayType.values)
     ..aOS(3, _omitFieldNames ? '' : 'workoutTemplateId')
     ..aOS(4, _omitFieldNames ? '' : 'customName')
     ..hasRequiredFields = false
@@ -1018,9 +1018,9 @@ class CreateProgramDay extends $pb.GeneratedMessage {
   void clearDayNumber() => clearField(1);
 
   @$pb.TagNumber(2)
-  $1.ProgramDayType get dayType => $_getN(1);
+  $2.ProgramDayType get dayType => $_getN(1);
   @$pb.TagNumber(2)
-  set dayType($1.ProgramDayType v) { setField(2, v); }
+  set dayType($2.ProgramDayType v) { setField(2, v); }
   @$pb.TagNumber(2)
   $core.bool hasDayType() => $_has(1);
   @$pb.TagNumber(2)
@@ -1579,8 +1579,8 @@ class GetTodayWorkoutResponse extends $pb.GeneratedMessage {
   factory GetTodayWorkoutResponse({
     $core.bool? hasWorkout,
     $core.int? dayNumber,
-    $1.ProgramDayType? dayType,
-    $3.Workout? workout_4,
+    $2.ProgramDayType? dayType,
+    $4.Workout? workout_4,
     Program? program,
   }) {
     final $result = create();
@@ -1608,8 +1608,8 @@ class GetTodayWorkoutResponse extends $pb.GeneratedMessage {
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'GetTodayWorkoutResponse', package: const $pb.PackageName(_omitMessageNames ? '' : 'heft.v1'), createEmptyInstance: create)
     ..aOB(1, _omitFieldNames ? '' : 'hasWorkout')
     ..a<$core.int>(2, _omitFieldNames ? '' : 'dayNumber', $pb.PbFieldType.O3)
-    ..e<$1.ProgramDayType>(3, _omitFieldNames ? '' : 'dayType', $pb.PbFieldType.OE, defaultOrMaker: $1.ProgramDayType.PROGRAM_DAY_TYPE_UNSPECIFIED, valueOf: $1.ProgramDayType.valueOf, enumValues: $1.ProgramDayType.values)
-    ..aOM<$3.Workout>(4, _omitFieldNames ? '' : 'workout', subBuilder: $3.Workout.create)
+    ..e<$2.ProgramDayType>(3, _omitFieldNames ? '' : 'dayType', $pb.PbFieldType.OE, defaultOrMaker: $2.ProgramDayType.PROGRAM_DAY_TYPE_UNSPECIFIED, valueOf: $2.ProgramDayType.valueOf, enumValues: $2.ProgramDayType.values)
+    ..aOM<$4.Workout>(4, _omitFieldNames ? '' : 'workout', subBuilder: $4.Workout.create)
     ..aOM<Program>(5, _omitFieldNames ? '' : 'program', subBuilder: Program.create)
     ..hasRequiredFields = false
   ;
@@ -1654,24 +1654,24 @@ class GetTodayWorkoutResponse extends $pb.GeneratedMessage {
   void clearDayNumber() => clearField(2);
 
   @$pb.TagNumber(3)
-  $1.ProgramDayType get dayType => $_getN(2);
+  $2.ProgramDayType get dayType => $_getN(2);
   @$pb.TagNumber(3)
-  set dayType($1.ProgramDayType v) { setField(3, v); }
+  set dayType($2.ProgramDayType v) { setField(3, v); }
   @$pb.TagNumber(3)
   $core.bool hasDayType() => $_has(2);
   @$pb.TagNumber(3)
   void clearDayType() => clearField(3);
 
   @$pb.TagNumber(4)
-  $3.Workout get workout_4 => $_getN(3);
+  $4.Workout get workout_4 => $_getN(3);
   @$pb.TagNumber(4)
-  set workout_4($3.Workout v) { setField(4, v); }
+  set workout_4($4.Workout v) { setField(4, v); }
   @$pb.TagNumber(4)
   $core.bool hasWorkout_4() => $_has(3);
   @$pb.TagNumber(4)
   void clearWorkout_4() => clearField(4);
   @$pb.TagNumber(4)
-  $3.Workout ensureWorkout_4() => $_ensure(3);
+  $4.Workout ensureWorkout_4() => $_ensure(3);
 
   @$pb.TagNumber(5)
   Program get program => $_getN(4);

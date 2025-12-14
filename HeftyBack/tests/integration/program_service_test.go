@@ -26,9 +26,11 @@ func TestProgramService_Integration_ListPrograms(t *testing.T) {
 	t.Run("list empty programs", func(t *testing.T) {
 		ctx := context.Background()
 
-		resp, err := ts.ProgramClient.ListPrograms(ctx, connect.NewRequest(&heftv1.ListProgramsRequest{
+		req := connect.NewRequest(&heftv1.ListProgramsRequest{
 			UserId: userID,
-		}))
+		})
+		req.Header().Set("Authorization", ts.AuthHeader(userID))
+		resp, err := ts.ProgramClient.ListPrograms(ctx, req)
 
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
@@ -44,19 +46,23 @@ func TestProgramService_Integration_ListPrograms(t *testing.T) {
 		ctx := context.Background()
 
 		// Create a program
-		_, err := ts.ProgramClient.CreateProgram(ctx, connect.NewRequest(&heftv1.CreateProgramRequest{
+		createReq := connect.NewRequest(&heftv1.CreateProgramRequest{
 			UserId:        userID,
 			Name:          "Test Program",
 			DurationWeeks: 4,
-		}))
+		})
+		createReq.Header().Set("Authorization", ts.AuthHeader(userID))
+		_, err := ts.ProgramClient.CreateProgram(ctx, createReq)
 		if err != nil {
 			t.Fatalf("failed to create program: %v", err)
 		}
 
 		// List programs
-		resp, err := ts.ProgramClient.ListPrograms(ctx, connect.NewRequest(&heftv1.ListProgramsRequest{
+		listReq := connect.NewRequest(&heftv1.ListProgramsRequest{
 			UserId: userID,
-		}))
+		})
+		listReq.Header().Set("Authorization", ts.AuthHeader(userID))
+		resp, err := ts.ProgramClient.ListPrograms(ctx, listReq)
 
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
@@ -83,11 +89,13 @@ func TestProgramService_Integration_CreateProgram(t *testing.T) {
 	t.Run("create basic program", func(t *testing.T) {
 		ctx := context.Background()
 
-		resp, err := ts.ProgramClient.CreateProgram(ctx, connect.NewRequest(&heftv1.CreateProgramRequest{
+		req := connect.NewRequest(&heftv1.CreateProgramRequest{
 			UserId:        userID,
 			Name:          "5x5 Strength",
 			DurationWeeks: 12,
-		}))
+		})
+		req.Header().Set("Authorization", ts.AuthHeader(userID))
+		resp, err := ts.ProgramClient.CreateProgram(ctx, req)
 
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
@@ -110,12 +118,14 @@ func TestProgramService_Integration_CreateProgram(t *testing.T) {
 		ctx := context.Background()
 		description := "A classic strength building program"
 
-		resp, err := ts.ProgramClient.CreateProgram(ctx, connect.NewRequest(&heftv1.CreateProgramRequest{
+		req := connect.NewRequest(&heftv1.CreateProgramRequest{
 			UserId:        userID,
 			Name:          "StrongLifts 5x5",
 			Description:   &description,
 			DurationWeeks: 12,
-		}))
+		})
+		req.Header().Set("Authorization", ts.AuthHeader(userID))
+		resp, err := ts.ProgramClient.CreateProgram(ctx, req)
 
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
@@ -130,16 +140,18 @@ func TestProgramService_Integration_CreateProgram(t *testing.T) {
 		ctx := context.Background()
 
 		// First create a workout template
-		workoutResp, err := ts.WorkoutClient.CreateWorkout(ctx, connect.NewRequest(&heftv1.CreateWorkoutRequest{
+		workoutReq := connect.NewRequest(&heftv1.CreateWorkoutRequest{
 			UserId: userID,
 			Name:   "Push Day",
-		}))
+		})
+		workoutReq.Header().Set("Authorization", ts.AuthHeader(userID))
+		workoutResp, err := ts.WorkoutClient.CreateWorkout(ctx, workoutReq)
 		if err != nil {
 			t.Fatalf("failed to create workout: %v", err)
 		}
 		workoutID := workoutResp.Msg.Workout.Id
 
-		resp, err := ts.ProgramClient.CreateProgram(ctx, connect.NewRequest(&heftv1.CreateProgramRequest{
+		req := connect.NewRequest(&heftv1.CreateProgramRequest{
 			UserId:        userID,
 			Name:          "Weekly Program",
 			DurationWeeks: 1,
@@ -159,7 +171,9 @@ func TestProgramService_Integration_CreateProgram(t *testing.T) {
 					WorkoutTemplateId: &workoutID,
 				},
 			},
-		}))
+		})
+		req.Header().Set("Authorization", ts.AuthHeader(userID))
+		resp, err := ts.ProgramClient.CreateProgram(ctx, req)
 
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
@@ -197,11 +211,13 @@ func TestProgramService_Integration_GetProgram(t *testing.T) {
 		ctx := context.Background()
 
 		// Create a program first
-		createResp, err := ts.ProgramClient.CreateProgram(ctx, connect.NewRequest(&heftv1.CreateProgramRequest{
+		createReq := connect.NewRequest(&heftv1.CreateProgramRequest{
 			UserId:        userID,
 			Name:          "Test Program",
 			DurationWeeks: 4,
-		}))
+		})
+		createReq.Header().Set("Authorization", ts.AuthHeader(userID))
+		createResp, err := ts.ProgramClient.CreateProgram(ctx, createReq)
 		if err != nil {
 			t.Fatalf("failed to create program: %v", err)
 		}
@@ -209,10 +225,12 @@ func TestProgramService_Integration_GetProgram(t *testing.T) {
 		programID := createResp.Msg.Program.Id
 
 		// Get the program
-		getResp, err := ts.ProgramClient.GetProgram(ctx, connect.NewRequest(&heftv1.GetProgramRequest{
+		getReq := connect.NewRequest(&heftv1.GetProgramRequest{
 			Id:     programID,
 			UserId: userID,
-		}))
+		})
+		getReq.Header().Set("Authorization", ts.AuthHeader(userID))
+		getResp, err := ts.ProgramClient.GetProgram(ctx, getReq)
 
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
@@ -226,10 +244,12 @@ func TestProgramService_Integration_GetProgram(t *testing.T) {
 	t.Run("get non-existent program returns not found", func(t *testing.T) {
 		ctx := context.Background()
 
-		_, err := ts.ProgramClient.GetProgram(ctx, connect.NewRequest(&heftv1.GetProgramRequest{
+		req := connect.NewRequest(&heftv1.GetProgramRequest{
 			Id:     "00000000-0000-0000-0000-000000000000",
 			UserId: userID,
-		}))
+		})
+		req.Header().Set("Authorization", ts.AuthHeader(userID))
+		_, err := ts.ProgramClient.GetProgram(ctx, req)
 
 		if err == nil {
 			t.Fatal("expected error for non-existent program")
@@ -262,11 +282,13 @@ func TestProgramService_Integration_DeleteProgram(t *testing.T) {
 		ctx := context.Background()
 
 		// Create a program first
-		createResp, err := ts.ProgramClient.CreateProgram(ctx, connect.NewRequest(&heftv1.CreateProgramRequest{
+		createReq := connect.NewRequest(&heftv1.CreateProgramRequest{
 			UserId:        userID,
 			Name:          "To Be Deleted",
 			DurationWeeks: 4,
-		}))
+		})
+		createReq.Header().Set("Authorization", ts.AuthHeader(userID))
+		createResp, err := ts.ProgramClient.CreateProgram(ctx, createReq)
 		if err != nil {
 			t.Fatalf("failed to create program: %v", err)
 		}
@@ -274,10 +296,12 @@ func TestProgramService_Integration_DeleteProgram(t *testing.T) {
 		programID := createResp.Msg.Program.Id
 
 		// Delete the program
-		deleteResp, err := ts.ProgramClient.DeleteProgram(ctx, connect.NewRequest(&heftv1.DeleteProgramRequest{
+		deleteReq := connect.NewRequest(&heftv1.DeleteProgramRequest{
 			Id:     programID,
 			UserId: userID,
-		}))
+		})
+		deleteReq.Header().Set("Authorization", ts.AuthHeader(userID))
+		deleteResp, err := ts.ProgramClient.DeleteProgram(ctx, deleteReq)
 
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
@@ -288,10 +312,12 @@ func TestProgramService_Integration_DeleteProgram(t *testing.T) {
 		}
 
 		// Verify program is deleted
-		_, err = ts.ProgramClient.GetProgram(ctx, connect.NewRequest(&heftv1.GetProgramRequest{
+		verifyReq := connect.NewRequest(&heftv1.GetProgramRequest{
 			Id:     programID,
 			UserId: userID,
-		}))
+		})
+		verifyReq.Header().Set("Authorization", ts.AuthHeader(userID))
+		_, err = ts.ProgramClient.GetProgram(ctx, verifyReq)
 
 		if err == nil {
 			t.Error("expected error when getting deleted program")
@@ -322,11 +348,13 @@ func TestProgramService_Integration_SetActiveProgram(t *testing.T) {
 		ctx := context.Background()
 
 		// Create a program
-		createResp, err := ts.ProgramClient.CreateProgram(ctx, connect.NewRequest(&heftv1.CreateProgramRequest{
+		createReq := connect.NewRequest(&heftv1.CreateProgramRequest{
 			UserId:        userID,
 			Name:          "Active Program",
 			DurationWeeks: 4,
-		}))
+		})
+		createReq.Header().Set("Authorization", ts.AuthHeader(userID))
+		createResp, err := ts.ProgramClient.CreateProgram(ctx, createReq)
 		if err != nil {
 			t.Fatalf("failed to create program: %v", err)
 		}
@@ -334,10 +362,12 @@ func TestProgramService_Integration_SetActiveProgram(t *testing.T) {
 		programID := createResp.Msg.Program.Id
 
 		// Set as active
-		setActiveResp, err := ts.ProgramClient.SetActiveProgram(ctx, connect.NewRequest(&heftv1.SetActiveProgramRequest{
+		setActiveReq := connect.NewRequest(&heftv1.SetActiveProgramRequest{
 			Id:     programID,
 			UserId: userID,
-		}))
+		})
+		setActiveReq.Header().Set("Authorization", ts.AuthHeader(userID))
+		setActiveResp, err := ts.ProgramClient.SetActiveProgram(ctx, setActiveReq)
 
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
@@ -352,49 +382,59 @@ func TestProgramService_Integration_SetActiveProgram(t *testing.T) {
 		ctx := context.Background()
 
 		// Create two programs
-		create1Resp, err := ts.ProgramClient.CreateProgram(ctx, connect.NewRequest(&heftv1.CreateProgramRequest{
+		create1Req := connect.NewRequest(&heftv1.CreateProgramRequest{
 			UserId:        userID,
 			Name:          "Program One",
 			DurationWeeks: 4,
-		}))
+		})
+		create1Req.Header().Set("Authorization", ts.AuthHeader(userID))
+		create1Resp, err := ts.ProgramClient.CreateProgram(ctx, create1Req)
 		if err != nil {
 			t.Fatalf("failed to create program 1: %v", err)
 		}
 		program1ID := create1Resp.Msg.Program.Id
 
-		create2Resp, err := ts.ProgramClient.CreateProgram(ctx, connect.NewRequest(&heftv1.CreateProgramRequest{
+		create2Req := connect.NewRequest(&heftv1.CreateProgramRequest{
 			UserId:        userID,
 			Name:          "Program Two",
 			DurationWeeks: 4,
-		}))
+		})
+		create2Req.Header().Set("Authorization", ts.AuthHeader(userID))
+		create2Resp, err := ts.ProgramClient.CreateProgram(ctx, create2Req)
 		if err != nil {
 			t.Fatalf("failed to create program 2: %v", err)
 		}
 		program2ID := create2Resp.Msg.Program.Id
 
 		// Set program 1 as active
-		_, err = ts.ProgramClient.SetActiveProgram(ctx, connect.NewRequest(&heftv1.SetActiveProgramRequest{
+		setActive1Req := connect.NewRequest(&heftv1.SetActiveProgramRequest{
 			Id:     program1ID,
 			UserId: userID,
-		}))
+		})
+		setActive1Req.Header().Set("Authorization", ts.AuthHeader(userID))
+		_, err = ts.ProgramClient.SetActiveProgram(ctx, setActive1Req)
 		if err != nil {
 			t.Fatalf("failed to set program 1 active: %v", err)
 		}
 
 		// Set program 2 as active
-		_, err = ts.ProgramClient.SetActiveProgram(ctx, connect.NewRequest(&heftv1.SetActiveProgramRequest{
+		setActive2Req := connect.NewRequest(&heftv1.SetActiveProgramRequest{
 			Id:     program2ID,
 			UserId: userID,
-		}))
+		})
+		setActive2Req.Header().Set("Authorization", ts.AuthHeader(userID))
+		_, err = ts.ProgramClient.SetActiveProgram(ctx, setActive2Req)
 		if err != nil {
 			t.Fatalf("failed to set program 2 active: %v", err)
 		}
 
 		// Verify program 1 is no longer active
-		get1Resp, err := ts.ProgramClient.GetProgram(ctx, connect.NewRequest(&heftv1.GetProgramRequest{
+		get1Req := connect.NewRequest(&heftv1.GetProgramRequest{
 			Id:     program1ID,
 			UserId: userID,
-		}))
+		})
+		get1Req.Header().Set("Authorization", ts.AuthHeader(userID))
+		get1Resp, err := ts.ProgramClient.GetProgram(ctx, get1Req)
 		if err != nil {
 			t.Fatalf("failed to get program 1: %v", err)
 		}
@@ -404,10 +444,12 @@ func TestProgramService_Integration_SetActiveProgram(t *testing.T) {
 		}
 
 		// Verify program 2 is active
-		get2Resp, err := ts.ProgramClient.GetProgram(ctx, connect.NewRequest(&heftv1.GetProgramRequest{
+		get2Req := connect.NewRequest(&heftv1.GetProgramRequest{
 			Id:     program2ID,
 			UserId: userID,
-		}))
+		})
+		get2Req.Header().Set("Authorization", ts.AuthHeader(userID))
+		get2Resp, err := ts.ProgramClient.GetProgram(ctx, get2Req)
 		if err != nil {
 			t.Fatalf("failed to get program 2: %v", err)
 		}
@@ -433,9 +475,11 @@ func TestProgramService_Integration_GetTodayWorkout(t *testing.T) {
 	t.Run("no active program returns no workout", func(t *testing.T) {
 		ctx := context.Background()
 
-		resp, err := ts.ProgramClient.GetTodayWorkout(ctx, connect.NewRequest(&heftv1.GetTodayWorkoutRequest{
+		req := connect.NewRequest(&heftv1.GetTodayWorkoutRequest{
 			UserId: userID,
-		}))
+		})
+		req.Header().Set("Authorization", ts.AuthHeader(userID))
+		resp, err := ts.ProgramClient.GetTodayWorkout(ctx, req)
 
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
@@ -450,17 +494,19 @@ func TestProgramService_Integration_GetTodayWorkout(t *testing.T) {
 		ctx := context.Background()
 
 		// Create a workout template
-		workoutResp, err := ts.WorkoutClient.CreateWorkout(ctx, connect.NewRequest(&heftv1.CreateWorkoutRequest{
+		workoutReq := connect.NewRequest(&heftv1.CreateWorkoutRequest{
 			UserId: userID,
 			Name:   "Day 1 Workout",
-		}))
+		})
+		workoutReq.Header().Set("Authorization", ts.AuthHeader(userID))
+		workoutResp, err := ts.WorkoutClient.CreateWorkout(ctx, workoutReq)
 		if err != nil {
 			t.Fatalf("failed to create workout: %v", err)
 		}
 		workoutID := workoutResp.Msg.Workout.Id
 
 		// Create a program with day 1 as workout
-		createResp, err := ts.ProgramClient.CreateProgram(ctx, connect.NewRequest(&heftv1.CreateProgramRequest{
+		createReq := connect.NewRequest(&heftv1.CreateProgramRequest{
 			UserId:        userID,
 			Name:          "Test Program",
 			DurationWeeks: 1,
@@ -471,25 +517,31 @@ func TestProgramService_Integration_GetTodayWorkout(t *testing.T) {
 					WorkoutTemplateId: &workoutID,
 				},
 			},
-		}))
+		})
+		createReq.Header().Set("Authorization", ts.AuthHeader(userID))
+		createResp, err := ts.ProgramClient.CreateProgram(ctx, createReq)
 		if err != nil {
 			t.Fatalf("failed to create program: %v", err)
 		}
 		programID := createResp.Msg.Program.Id
 
 		// Set as active
-		_, err = ts.ProgramClient.SetActiveProgram(ctx, connect.NewRequest(&heftv1.SetActiveProgramRequest{
+		setActiveReq := connect.NewRequest(&heftv1.SetActiveProgramRequest{
 			Id:     programID,
 			UserId: userID,
-		}))
+		})
+		setActiveReq.Header().Set("Authorization", ts.AuthHeader(userID))
+		_, err = ts.ProgramClient.SetActiveProgram(ctx, setActiveReq)
 		if err != nil {
 			t.Fatalf("failed to set active: %v", err)
 		}
 
 		// Get today's workout
-		resp, err := ts.ProgramClient.GetTodayWorkout(ctx, connect.NewRequest(&heftv1.GetTodayWorkoutRequest{
+		getTodayReq := connect.NewRequest(&heftv1.GetTodayWorkoutRequest{
 			UserId: userID,
-		}))
+		})
+		getTodayReq.Header().Set("Authorization", ts.AuthHeader(userID))
+		resp, err := ts.ProgramClient.GetTodayWorkout(ctx, getTodayReq)
 
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)

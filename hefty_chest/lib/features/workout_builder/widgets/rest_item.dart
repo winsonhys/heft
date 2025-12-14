@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 import '../../../shared/theme/app_colors.dart';
 import '../providers/workout_builder_providers.dart';
 
 /// Rest item in a section
-class RestItem extends ConsumerStatefulWidget {
+class RestItem extends HookConsumerWidget {
   final BuilderItem item;
   final String sectionId;
 
@@ -16,36 +17,17 @@ class RestItem extends ConsumerStatefulWidget {
   });
 
   @override
-  ConsumerState<RestItem> createState() => _RestItemState();
-}
-
-class _RestItemState extends ConsumerState<RestItem> {
-  late TextEditingController _controller;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = TextEditingController(
-      text: widget.item.restDurationSeconds.toString(),
+  Widget build(BuildContext context, WidgetRef ref) {
+    final controller = useTextEditingController(
+      text: item.restDurationSeconds.toString(),
     );
-  }
 
-  @override
-  void didUpdateWidget(RestItem oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (oldWidget.item.restDurationSeconds != widget.item.restDurationSeconds) {
-      _controller.text = widget.item.restDurationSeconds.toString();
-    }
-  }
+    // Sync controller when item changes (replaces didUpdateWidget)
+    useEffect(() {
+      controller.text = item.restDurationSeconds.toString();
+      return null;
+    }, [item.restDurationSeconds]);
 
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.all(12),
       child: Row(
@@ -79,7 +61,7 @@ class _RestItemState extends ConsumerState<RestItem> {
           SizedBox(
             width: 60,
             child: TextField(
-              controller: _controller,
+              controller: controller,
               keyboardType: TextInputType.number,
               textAlign: TextAlign.center,
               style: const TextStyle(
@@ -102,8 +84,8 @@ class _RestItemState extends ConsumerState<RestItem> {
               onChanged: (value) {
                 final seconds = int.tryParse(value) ?? 0;
                 ref.read(workoutBuilderProvider.notifier).updateRestDuration(
-                      widget.sectionId,
-                      widget.item.id,
+                      sectionId,
+                      item.id,
                       seconds,
                     );
               },
@@ -122,8 +104,8 @@ class _RestItemState extends ConsumerState<RestItem> {
           GestureDetector(
             onTap: () {
               ref.read(workoutBuilderProvider.notifier).deleteExercise(
-                    widget.sectionId,
-                    widget.item.id,
+                    sectionId,
+                    item.id,
                   );
             },
             child: Icon(

@@ -10,6 +10,7 @@ void main() {
   setUpAll(() async {
     await IntegrationTestSetup.waitForBackend();
     await IntegrationTestSetup.resetDatabase();
+    await IntegrationTestSetup.authenticateTestUser();
   });
 
   group('Workout Flow E2E', () {

@@ -32,7 +32,16 @@
       "Bash(docker logs:*)",
       "Bash(docker exec:*)",
       "Bash(curl:*)",
-      "Bash(./scripts/run_integration_tests.sh:*)"
+      "Bash(./scripts/run_integration_tests.sh:*)",
+      "Bash(ls:*)",
+      "Bash(flutter pub cache:*)",
+      "Bash(flutter pub run:*)",
+      "WebFetch(domain:pub.dev)",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "Bash(open:*)",
+      "Bash(docker info:*)",
+      "Bash(xargs:*)",
+      "Bash(git add:*)"
     ],
     "deny": [],
     "ask": []

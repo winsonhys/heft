@@ -8,6 +8,7 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 
 	heftv1 "github.com/heftyback/gen/heft/v1"
+	"github.com/heftyback/internal/auth"
 	"github.com/heftyback/internal/repository"
 )
 
@@ -23,8 +24,9 @@ func NewWorkoutHandler(repo repository.WorkoutRepositoryInterface) *WorkoutHandl
 
 // ListWorkouts lists workout templates
 func (h *WorkoutHandler) ListWorkouts(ctx context.Context, req *connect.Request[heftv1.ListWorkoutsRequest]) (*connect.Response[heftv1.ListWorkoutsResponse], error) {
-	if req.Msg.UserId == "" {
-		return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("user_id is required"))
+	userID, ok := auth.UserIDFromContext(ctx)
+	if !ok {
+		return nil, connect.NewError(connect.CodeUnauthenticated, errors.New("not authenticated"))
 	}
 
 	includeArchived := false
@@ -44,7 +46,7 @@ func (h *WorkoutHandler) ListWorkouts(ctx context.Context, req *connect.Request[
 	}
 
 	offset := (page - 1) * pageSize
-	workouts, totalCount, err := h.repo.List(ctx, req.Msg.UserId, includeArchived, int(pageSize), int(offset))
+	workouts, totalCount, err := h.repo.List(ctx, userID, includeArchived, int(pageSize), int(offset))
 	if err != nil {
 		return nil, connect.NewError(connect.CodeInternal, err)
 	}
@@ -69,11 +71,15 @@ func (h *WorkoutHandler) ListWorkouts(ctx context.Context, req *connect.Request[
 
 // GetWorkout retrieves a workout with full details
 func (h *WorkoutHandler) GetWorkout(ctx context.Context, req *connect.Request[heftv1.GetWorkoutRequest]) (*connect.Response[heftv1.GetWorkoutResponse], error) {
-	if req.Msg.Id == "" || req.Msg.UserId == "" {
-		return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("id and user_id are required"))
+	userID, ok := auth.UserIDFromContext(ctx)
+	if !ok {
+		return nil, connect.NewError(connect.CodeUnauthenticated, errors.New("not authenticated"))
+	}
+	if req.Msg.Id == "" {
+		return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("id is required"))
 	}
 
-	workout, err := h.repo.GetByID(ctx, req.Msg.Id, req.Msg.UserId)
+	workout, err := h.repo.GetByID(ctx, req.Msg.Id, userID)
 	if err != nil {
 		return nil, connect.NewError(connect.CodeInternal, err)
 	}
@@ -88,8 +94,9 @@ func (h *WorkoutHandler) GetWorkout(ctx context.Context, req *connect.Request[he
 
 // CreateWorkout creates a new workout template
 func (h *WorkoutHandler) CreateWorkout(ctx context.Context, req *connect.Request[heftv1.CreateWorkoutRequest]) (*connect.Response[heftv1.CreateWorkoutResponse], error) {
-	if req.Msg.UserId == "" {
-		return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("user_id is required"))
+	userID, ok := auth.UserIDFromContext(ctx)
+	if !ok {
+		return nil, connect.NewError(connect.CodeUnauthenticated, errors.New("not authenticated"))
 	}
 	if req.Msg.Name == "" {
 		return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("name is required"))
@@ -101,7 +108,7 @@ func (h *WorkoutHandler) CreateWorkout(ctx context.Context, req *connect.Request
 	}
 
 	// Create workout template
-	workout, err := h.repo.Create(ctx, req.Msg.UserId, req.Msg.Name, description)
+	workout, err := h.repo.Create(ctx, userID, req.Msg.Name, description)
 	if err != nil {
 		return nil, connect.NewError(connect.CodeInternal, err)
 	}
@@ -164,7 +171,7 @@ func (h *WorkoutHandler) CreateWorkout(ctx context.Context, req *connect.Request
 	}
 
 	// Reload workout with all details
-	workout, err = h.repo.GetByID(ctx, workout.ID, req.Msg.UserId)
+	workout, err = h.repo.GetByID(ctx, workout.ID, userID)
 	if err != nil {
 		return nil, connect.NewError(connect.CodeInternal, err)
 	}
@@ -176,13 +183,17 @@ func (h *WorkoutHandler) CreateWorkout(ctx context.Context, req *connect.Request
 
 // UpdateWorkout updates a workout template
 func (h *WorkoutHandler) UpdateWorkout(ctx context.Context, req *connect.Request[heftv1.UpdateWorkoutRequest]) (*connect.Response[heftv1.UpdateWorkoutResponse], error) {
-	if req.Msg.Id == "" || req.Msg.UserId == "" {
-		return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("id and user_id are required"))
+	userID, ok := auth.UserIDFromContext(ctx)
+	if !ok {
+		return nil, connect.NewError(connect.CodeUnauthenticated, errors.New("not authenticated"))
+	}
+	if req.Msg.Id == "" {
+		return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("id is required"))
 	}
 
 	// For now, just return the existing workout
 	// Full update would require deleting and recreating sections
-	workout, err := h.repo.GetByID(ctx, req.Msg.Id, req.Msg.UserId)
+	workout, err := h.repo.GetByID(ctx, req.Msg.Id, userID)
 	if err != nil {
 		return nil, connect.NewError(connect.CodeInternal, err)
 	}
@@ -197,11 +208,15 @@ func (h *WorkoutHandler) UpdateWorkout(ctx context.Context, req *connect.Request
 
 // DeleteWorkout deletes a workout template
 func (h *WorkoutHandler) DeleteWorkout(ctx context.Context, req *connect.Request[heftv1.DeleteWorkoutRequest]) (*connect.Response[heftv1.DeleteWorkoutResponse], error) {
-	if req.Msg.Id == "" || req.Msg.UserId == "" {
-		return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("id and user_id are required"))
+	userID, ok := auth.UserIDFromContext(ctx)
+	if !ok {
+		return nil, connect.NewError(connect.CodeUnauthenticated, errors.New("not authenticated"))
+	}
+	if req.Msg.Id == "" {
+		return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("id is required"))
 	}
 
-	err := h.repo.Delete(ctx, req.Msg.Id, req.Msg.UserId)
+	err := h.repo.Delete(ctx, req.Msg.Id, userID)
 	if err != nil {
 		return nil, connect.NewError(connect.CodeInternal, err)
 	}
@@ -213,12 +228,16 @@ func (h *WorkoutHandler) DeleteWorkout(ctx context.Context, req *connect.Request
 
 // DuplicateWorkout duplicates a workout template
 func (h *WorkoutHandler) DuplicateWorkout(ctx context.Context, req *connect.Request[heftv1.DuplicateWorkoutRequest]) (*connect.Response[heftv1.DuplicateWorkoutResponse], error) {
-	if req.Msg.Id == "" || req.Msg.UserId == "" {
-		return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("id and user_id are required"))
+	userID, ok := auth.UserIDFromContext(ctx)
+	if !ok {
+		return nil, connect.NewError(connect.CodeUnauthenticated, errors.New("not authenticated"))
+	}
+	if req.Msg.Id == "" {
+		return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("id is required"))
 	}
 
 	// Get original workout
-	original, err := h.repo.GetByID(ctx, req.Msg.Id, req.Msg.UserId)
+	original, err := h.repo.GetByID(ctx, req.Msg.Id, userID)
 	if err != nil {
 		return nil, connect.NewError(connect.CodeInternal, err)
 	}
@@ -233,7 +252,7 @@ func (h *WorkoutHandler) DuplicateWorkout(ctx context.Context, req *connect.Requ
 	}
 
 	// Create duplicate
-	duplicate, err := h.repo.Create(ctx, req.Msg.UserId, newName, original.Description)
+	duplicate, err := h.repo.Create(ctx, userID, newName, original.Description)
 	if err != nil {
 		return nil, connect.NewError(connect.CodeInternal, err)
 	}
@@ -268,7 +287,7 @@ func (h *WorkoutHandler) DuplicateWorkout(ctx context.Context, req *connect.Requ
 	}
 
 	// Reload with all details
-	duplicate, err = h.repo.GetByID(ctx, duplicate.ID, req.Msg.UserId)
+	duplicate, err = h.repo.GetByID(ctx, duplicate.ID, userID)
 	if err != nil {
 		return nil, connect.NewError(connect.CodeInternal, err)
 	}

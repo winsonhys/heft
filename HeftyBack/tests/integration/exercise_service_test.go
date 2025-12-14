@@ -20,10 +20,16 @@ func TestExerciseService_Integration_ListCategories(t *testing.T) {
 	pool := testutil.NewTestPool(t)
 	ts := testutil.NewTestServer(t, pool)
 
+	// Create test user for auth
+	testUser := testutil.DefaultTestUser()
+	userID := testutil.SeedTestUser(t, pool, testUser)
+
 	t.Run("list all seeded categories", func(t *testing.T) {
 		ctx := context.Background()
 
-		resp, err := ts.ExerciseClient.ListCategories(ctx, connect.NewRequest(&heftv1.ListCategoriesRequest{}))
+		req := connect.NewRequest(&heftv1.ListCategoriesRequest{})
+		req.Header().Set("Authorization", ts.AuthHeader(userID))
+		resp, err := ts.ExerciseClient.ListCategories(ctx, req)
 
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
@@ -51,13 +57,19 @@ func TestExerciseService_Integration_ListExercises(t *testing.T) {
 	pool := testutil.NewTestPool(t)
 	ts := testutil.NewTestServer(t, pool)
 
+	// Create test user for auth
+	testUser := testutil.DefaultTestUser()
+	userID := testutil.SeedTestUser(t, pool, testUser)
+
 	t.Run("list all system exercises", func(t *testing.T) {
 		ctx := context.Background()
 		systemOnly := true
 
-		resp, err := ts.ExerciseClient.ListExercises(ctx, connect.NewRequest(&heftv1.ListExercisesRequest{
+		req := connect.NewRequest(&heftv1.ListExercisesRequest{
 			SystemOnly: &systemOnly,
-		}))
+		})
+		req.Header().Set("Authorization", ts.AuthHeader(userID))
+		resp, err := ts.ExerciseClient.ListExercises(ctx, req)
 
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
@@ -73,9 +85,11 @@ func TestExerciseService_Integration_ListExercises(t *testing.T) {
 		ctx := context.Background()
 		chestCategoryID := testutil.GetChestCategoryID()
 
-		resp, err := ts.ExerciseClient.ListExercises(ctx, connect.NewRequest(&heftv1.ListExercisesRequest{
+		req := connect.NewRequest(&heftv1.ListExercisesRequest{
 			CategoryId: &chestCategoryID,
-		}))
+		})
+		req.Header().Set("Authorization", ts.AuthHeader(userID))
+		resp, err := ts.ExerciseClient.ListExercises(ctx, req)
 
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
@@ -93,12 +107,14 @@ func TestExerciseService_Integration_ListExercises(t *testing.T) {
 		ctx := context.Background()
 
 		// Get first page
-		page1Resp, err := ts.ExerciseClient.ListExercises(ctx, connect.NewRequest(&heftv1.ListExercisesRequest{
+		page1Req := connect.NewRequest(&heftv1.ListExercisesRequest{
 			Pagination: &heftv1.PaginationRequest{
 				Page:     1,
 				PageSize: 5,
 			},
-		}))
+		})
+		page1Req.Header().Set("Authorization", ts.AuthHeader(userID))
+		page1Resp, err := ts.ExerciseClient.ListExercises(ctx, page1Req)
 
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
@@ -109,12 +125,14 @@ func TestExerciseService_Integration_ListExercises(t *testing.T) {
 		}
 
 		// Get second page
-		page2Resp, err := ts.ExerciseClient.ListExercises(ctx, connect.NewRequest(&heftv1.ListExercisesRequest{
+		page2Req := connect.NewRequest(&heftv1.ListExercisesRequest{
 			Pagination: &heftv1.PaginationRequest{
 				Page:     2,
 				PageSize: 5,
 			},
-		}))
+		})
+		page2Req.Header().Set("Authorization", ts.AuthHeader(userID))
+		page2Resp, err := ts.ExerciseClient.ListExercises(ctx, page2Req)
 
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
@@ -137,16 +155,22 @@ func TestExerciseService_Integration_GetExercise(t *testing.T) {
 	pool := testutil.NewTestPool(t)
 	ts := testutil.NewTestServer(t, pool)
 
+	// Create test user for auth
+	testUser := testutil.DefaultTestUser()
+	userID := testutil.SeedTestUser(t, pool, testUser)
+
 	t.Run("get system exercise by ID", func(t *testing.T) {
 		ctx := context.Background()
 
 		// First, list exercises to get a valid ID
-		listResp, err := ts.ExerciseClient.ListExercises(ctx, connect.NewRequest(&heftv1.ListExercisesRequest{
+		listReq := connect.NewRequest(&heftv1.ListExercisesRequest{
 			Pagination: &heftv1.PaginationRequest{
 				Page:     1,
 				PageSize: 1,
 			},
-		}))
+		})
+		listReq.Header().Set("Authorization", ts.AuthHeader(userID))
+		listResp, err := ts.ExerciseClient.ListExercises(ctx, listReq)
 
 		if err != nil {
 			t.Fatalf("failed to list exercises: %v", err)
@@ -159,9 +183,11 @@ func TestExerciseService_Integration_GetExercise(t *testing.T) {
 		exerciseID := listResp.Msg.Exercises[0].Id
 
 		// Get the exercise
-		resp, err := ts.ExerciseClient.GetExercise(ctx, connect.NewRequest(&heftv1.GetExerciseRequest{
+		req := connect.NewRequest(&heftv1.GetExerciseRequest{
 			Id: exerciseID,
-		}))
+		})
+		req.Header().Set("Authorization", ts.AuthHeader(userID))
+		resp, err := ts.ExerciseClient.GetExercise(ctx, req)
 
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
@@ -175,9 +201,11 @@ func TestExerciseService_Integration_GetExercise(t *testing.T) {
 	t.Run("get non-existent exercise returns not found", func(t *testing.T) {
 		ctx := context.Background()
 
-		_, err := ts.ExerciseClient.GetExercise(ctx, connect.NewRequest(&heftv1.GetExerciseRequest{
+		req := connect.NewRequest(&heftv1.GetExerciseRequest{
 			Id: "00000000-0000-0000-0000-000000000000",
-		}))
+		})
+		req.Header().Set("Authorization", ts.AuthHeader(userID))
+		_, err := ts.ExerciseClient.GetExercise(ctx, req)
 
 		if err == nil {
 			t.Fatal("expected error for non-existent exercise")
@@ -210,12 +238,14 @@ func TestExerciseService_Integration_CreateExercise(t *testing.T) {
 		ctx := context.Background()
 		chestCategoryID := testutil.GetChestCategoryID()
 
-		resp, err := ts.ExerciseClient.CreateExercise(ctx, connect.NewRequest(&heftv1.CreateExerciseRequest{
+		req := connect.NewRequest(&heftv1.CreateExerciseRequest{
 			UserId:       userID,
 			Name:         "My Custom Bench Press",
 			CategoryId:   chestCategoryID,
 			ExerciseType: heftv1.ExerciseType_EXERCISE_TYPE_WEIGHT_REPS,
-		}))
+		})
+		req.Header().Set("Authorization", ts.AuthHeader(userID))
+		resp, err := ts.ExerciseClient.CreateExercise(ctx, req)
 
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
@@ -239,13 +269,15 @@ func TestExerciseService_Integration_CreateExercise(t *testing.T) {
 		chestCategoryID := testutil.GetChestCategoryID()
 		description := "A modified version of bench press"
 
-		resp, err := ts.ExerciseClient.CreateExercise(ctx, connect.NewRequest(&heftv1.CreateExerciseRequest{
+		req := connect.NewRequest(&heftv1.CreateExerciseRequest{
 			UserId:       userID,
 			Name:         "Modified Bench Press",
 			CategoryId:   chestCategoryID,
 			ExerciseType: heftv1.ExerciseType_EXERCISE_TYPE_WEIGHT_REPS,
 			Description:  &description,
-		}))
+		})
+		req.Header().Set("Authorization", ts.AuthHeader(userID))
+		resp, err := ts.ExerciseClient.CreateExercise(ctx, req)
 
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
@@ -259,9 +291,11 @@ func TestExerciseService_Integration_CreateExercise(t *testing.T) {
 	t.Run("custom exercise appears in user's exercise list", func(t *testing.T) {
 		ctx := context.Background()
 
-		resp, err := ts.ExerciseClient.ListExercises(ctx, connect.NewRequest(&heftv1.ListExercisesRequest{
+		req := connect.NewRequest(&heftv1.ListExercisesRequest{
 			UserId: &userID,
-		}))
+		})
+		req.Header().Set("Authorization", ts.AuthHeader(userID))
+		resp, err := ts.ExerciseClient.ListExercises(ctx, req)
 
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
@@ -290,12 +324,18 @@ func TestExerciseService_Integration_SearchExercises(t *testing.T) {
 	pool := testutil.NewTestPool(t)
 	ts := testutil.NewTestServer(t, pool)
 
+	// Create test user for auth
+	testUser := testutil.DefaultTestUser()
+	userID := testutil.SeedTestUser(t, pool, testUser)
+
 	t.Run("search for 'press' exercises", func(t *testing.T) {
 		ctx := context.Background()
 
-		resp, err := ts.ExerciseClient.SearchExercises(ctx, connect.NewRequest(&heftv1.SearchExercisesRequest{
+		req := connect.NewRequest(&heftv1.SearchExercisesRequest{
 			Query: "press",
-		}))
+		})
+		req.Header().Set("Authorization", ts.AuthHeader(userID))
+		resp, err := ts.ExerciseClient.SearchExercises(ctx, req)
 
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
@@ -318,10 +358,12 @@ func TestExerciseService_Integration_SearchExercises(t *testing.T) {
 		ctx := context.Background()
 		limit := int32(2)
 
-		resp, err := ts.ExerciseClient.SearchExercises(ctx, connect.NewRequest(&heftv1.SearchExercisesRequest{
+		req := connect.NewRequest(&heftv1.SearchExercisesRequest{
 			Query: "press",
 			Limit: &limit,
-		}))
+		})
+		req.Header().Set("Authorization", ts.AuthHeader(userID))
+		resp, err := ts.ExerciseClient.SearchExercises(ctx, req)
 
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
@@ -335,9 +377,11 @@ func TestExerciseService_Integration_SearchExercises(t *testing.T) {
 	t.Run("search for non-existent exercise", func(t *testing.T) {
 		ctx := context.Background()
 
-		resp, err := ts.ExerciseClient.SearchExercises(ctx, connect.NewRequest(&heftv1.SearchExercisesRequest{
+		req := connect.NewRequest(&heftv1.SearchExercisesRequest{
 			Query: "zzznonexistent",
-		}))
+		})
+		req.Header().Set("Authorization", ts.AuthHeader(userID))
+		resp, err := ts.ExerciseClient.SearchExercises(ctx, req)
 
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)

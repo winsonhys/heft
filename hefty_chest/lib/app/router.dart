@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../features/auth/auth_screen.dart';
+import '../features/auth/providers/auth_providers.dart';
 import '../features/home/home_screen.dart';
 import '../features/profile/profile_screen.dart';
 import '../features/tracker/tracker_screen.dart';
@@ -14,6 +17,18 @@ part 'router.g.dart';
 // =============================================================================
 // Type-Safe Route Definitions
 // =============================================================================
+
+/// Auth route - login screen
+@TypedGoRoute<AuthRoute>(path: '/auth')
+@immutable
+class AuthRoute extends GoRouteData with $AuthRoute {
+  const AuthRoute();
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) {
+    return const AuthScreen();
+  }
+}
 
 /// Home route - main screen with workout list
 @TypedGoRoute<HomeRoute>(path: '/')
@@ -147,17 +162,42 @@ class EditProgramRoute extends GoRouteData with $EditProgramRoute {
 // Router Configuration
 // =============================================================================
 
-/// App router configuration using generated type-safe routes
-final appRouter = GoRouter(
-  initialLocation: '/',
-  debugLogDiagnostics: true,
-  routes: $appRoutes,
-  errorBuilder: (context, state) => Scaffold(
-    body: Center(
-      child: Text('Page not found: ${state.uri}'),
+/// Creates the app router with auth-aware redirect
+GoRouter createAppRouter(WidgetRef ref) {
+  return GoRouter(
+    initialLocation: '/',
+    debugLogDiagnostics: true,
+    routes: $appRoutes,
+    redirect: (context, state) {
+      final authState = ref.read(authProvider);
+      final isAuthenticated = authState.isAuthenticated;
+      final isOnAuthPage = state.matchedLocation == '/auth';
+
+      // Still loading auth state - show nothing or a loading indicator
+      if (authState.isLoading) {
+        return null;
+      }
+
+      // Not authenticated and not on auth page -> redirect to auth
+      if (!isAuthenticated && !isOnAuthPage) {
+        return '/auth';
+      }
+
+      // Authenticated and on auth page -> redirect to home
+      if (isAuthenticated && isOnAuthPage) {
+        return '/';
+      }
+
+      return null;
+    },
+    errorBuilder: (context, state) => Scaffold(
+      body: Center(
+        child: Text('Page not found: ${state.uri}'),
+      ),
     ),
-  ),
-);
+  );
+}
+
 
 // =============================================================================
 // Navigation Extensions for BuildContext
@@ -186,16 +226,16 @@ extension NavigationExtension on BuildContext {
       ResumeSessionRoute(sessionId: sessionId).go(this);
 
   /// Navigate to workout builder (create new)
-  void goWorkoutBuilder() => const WorkoutBuilderRoute().go(this);
+  void goWorkoutBuilder() => const WorkoutBuilderRoute().push(this);
 
   /// Navigate to workout builder (edit existing)
   void goEditWorkout({required String workoutId}) =>
-      EditWorkoutRoute(workoutId: workoutId).go(this);
+      EditWorkoutRoute(workoutId: workoutId).push(this);
 
   /// Navigate to program builder (create new)
-  void goProgramBuilder() => const ProgramBuilderRoute().go(this);
+  void goProgramBuilder() => const ProgramBuilderRoute().push(this);
 
   /// Navigate to program builder (edit existing)
   void goEditProgram({required String programId}) =>
-      EditProgramRoute(programId: programId).go(this);
+      EditProgramRoute(programId: programId).push(this);
 }

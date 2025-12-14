@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 
 import '../../../shared/theme/app_colors.dart';
 import '../../../core/client.dart';
 
 /// Modal for selecting an exercise from the library
-class ExerciseSelectorModal extends StatefulWidget {
+class ExerciseSelectorModal extends HookWidget {
   final List<Exercise> exercises;
   final String? selectedId;
   final Function(String) onSelect;
@@ -17,40 +18,20 @@ class ExerciseSelectorModal extends StatefulWidget {
   });
 
   @override
-  State<ExerciseSelectorModal> createState() => _ExerciseSelectorModalState();
-}
+  Widget build(BuildContext context) {
+    final searchController = useTextEditingController();
+    final filteredExercises = useState(exercises);
 
-class _ExerciseSelectorModalState extends State<ExerciseSelectorModal> {
-  late TextEditingController _searchController;
-  List<Exercise> _filteredExercises = [];
-
-  @override
-  void initState() {
-    super.initState();
-    _searchController = TextEditingController();
-    _filteredExercises = widget.exercises;
-  }
-
-  @override
-  void dispose() {
-    _searchController.dispose();
-    super.dispose();
-  }
-
-  void _filterExercises(String query) {
-    setState(() {
+    void filterExercises(String query) {
       if (query.isEmpty) {
-        _filteredExercises = widget.exercises;
+        filteredExercises.value = exercises;
       } else {
-        _filteredExercises = widget.exercises
+        filteredExercises.value = exercises
             .where((e) => e.name.toLowerCase().contains(query.toLowerCase()))
             .toList();
       }
-    });
-  }
+    }
 
-  @override
-  Widget build(BuildContext context) {
     return Container(
       height: MediaQuery.of(context).size.height * 0.7,
       decoration: const BoxDecoration(
@@ -86,8 +67,8 @@ class _ExerciseSelectorModalState extends State<ExerciseSelectorModal> {
                 const SizedBox(height: 12),
                 // Search bar
                 TextField(
-                  controller: _searchController,
-                  onChanged: _filterExercises,
+                  controller: searchController,
+                  onChanged: filterExercises,
                   style: const TextStyle(
                     color: AppColors.textPrimary,
                     fontSize: 14,
@@ -116,7 +97,7 @@ class _ExerciseSelectorModalState extends State<ExerciseSelectorModal> {
           ),
           // Exercise list
           Expanded(
-            child: _filteredExercises.isEmpty
+            child: filteredExercises.value.isEmpty
                 ? Center(
                     child: Text(
                       'No exercises found',
@@ -128,12 +109,12 @@ class _ExerciseSelectorModalState extends State<ExerciseSelectorModal> {
                   )
                 : ListView.builder(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
-                    itemCount: _filteredExercises.length,
+                    itemCount: filteredExercises.value.length,
                     itemBuilder: (context, index) {
-                      final exercise = _filteredExercises[index];
-                      final isSelected = exercise.id == widget.selectedId;
+                      final exercise = filteredExercises.value[index];
+                      final isSelected = exercise.id == selectedId;
                       return GestureDetector(
-                        onTap: () => widget.onSelect(exercise.id),
+                        onTap: () => onSelect(exercise.id),
                         child: Container(
                           margin: const EdgeInsets.only(bottom: 8),
                           padding: const EdgeInsets.all(12),

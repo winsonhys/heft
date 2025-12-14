@@ -13,8 +13,8 @@ import 'dart:convert' as $convert;
 import 'dart:core' as $core;
 import 'dart:typed_data' as $typed_data;
 
-import 'common.pbjson.dart' as $1;
-import 'google/protobuf/timestamp.pbjson.dart' as $0;
+import 'common.pbjson.dart' as $2;
+import 'google/protobuf/timestamp.pbjson.dart' as $1;
 
 @$core.Deprecated('Use workoutSummaryDescriptor instead')
 const WorkoutSummary$json = {
@@ -433,11 +433,11 @@ const $core.Map<$core.String, $core.dynamic> WorkoutServiceBase$json = {
 @$core.Deprecated('Use workoutServiceDescriptor instead')
 const $core.Map<$core.String, $core.Map<$core.String, $core.dynamic>> WorkoutServiceBase$messageJson = {
   '.heft.v1.ListWorkoutsRequest': ListWorkoutsRequest$json,
-  '.heft.v1.PaginationRequest': $1.PaginationRequest$json,
+  '.heft.v1.PaginationRequest': $2.PaginationRequest$json,
   '.heft.v1.ListWorkoutsResponse': ListWorkoutsResponse$json,
   '.heft.v1.WorkoutSummary': WorkoutSummary$json,
-  '.google.protobuf.Timestamp': $0.Timestamp$json,
-  '.heft.v1.PaginationResponse': $1.PaginationResponse$json,
+  '.google.protobuf.Timestamp': $1.Timestamp$json,
+  '.heft.v1.PaginationResponse': $2.PaginationResponse$json,
   '.heft.v1.GetWorkoutRequest': GetWorkoutRequest$json,
   '.heft.v1.GetWorkoutResponse': GetWorkoutResponse$json,
   '.heft.v1.Workout': Workout$json,

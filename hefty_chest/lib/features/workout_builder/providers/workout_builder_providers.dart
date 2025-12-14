@@ -1,8 +1,9 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../../core/client.dart';
-import '../../../core/config.dart';
+
+part 'workout_builder_providers.g.dart';
 
 const _uuid = Uuid();
 
@@ -149,7 +150,8 @@ class BuilderSet {
 }
 
 /// Workout builder state notifier
-class WorkoutBuilderNotifier extends Notifier<WorkoutBuilderState> {
+@riverpod
+class WorkoutBuilder extends _$WorkoutBuilder {
   @override
   WorkoutBuilderState build() => const WorkoutBuilderState();
 
@@ -160,9 +162,7 @@ class WorkoutBuilderNotifier extends Notifier<WorkoutBuilderState> {
   Future<void> loadWorkout(String workoutId) async {
     state = state.copyWith(isLoading: true);
     try {
-      final request = GetWorkoutRequest()
-        ..id = workoutId
-        ..userId = AppConfig.hardcodedUserId;
+      final request = GetWorkoutRequest()..id = workoutId;
 
       final response = await workoutClient.getWorkout(request);
       final workout = response.workout;
@@ -239,6 +239,17 @@ class WorkoutBuilderNotifier extends Notifier<WorkoutBuilderState> {
       sections: state.sections.map((s) {
         if (s.id == sectionId) {
           return s.copyWith(isSuperset: !s.isSuperset);
+        }
+        return s;
+      }).toList(),
+    );
+  }
+
+  void updateSectionName(String sectionId, String name) {
+    state = state.copyWith(
+      sections: state.sections.map((s) {
+        if (s.id == sectionId) {
+          return s.copyWith(name: name);
         }
         return s;
       }).toList(),
@@ -450,7 +461,6 @@ class WorkoutBuilderNotifier extends Notifier<WorkoutBuilderState> {
         // Update existing workout
         final request = UpdateWorkoutRequest()
           ..id = state.id!
-          ..userId = AppConfig.hardcodedUserId
           ..name = state.name
           ..sections.addAll(createSections);
 
@@ -458,7 +468,6 @@ class WorkoutBuilderNotifier extends Notifier<WorkoutBuilderState> {
       } else {
         // Create new workout
         final request = CreateWorkoutRequest()
-          ..userId = AppConfig.hardcodedUserId
           ..name = state.name
           ..sections.addAll(createSections);
 
@@ -474,20 +483,17 @@ class WorkoutBuilderNotifier extends Notifier<WorkoutBuilderState> {
   }
 }
 
-/// Provider for the workout builder
-final workoutBuilderProvider =
-    NotifierProvider<WorkoutBuilderNotifier, WorkoutBuilderState>(
-        WorkoutBuilderNotifier.new);
-
 /// Provider for exercise list in the search modal
-final exerciseListProvider = FutureProvider<List<Exercise>>((ref) async {
+@riverpod
+Future<List<Exercise>> exerciseList(Ref ref) async {
   final request = ListExercisesRequest();
   final response = await exerciseClient.listExercises(request);
   return response.exercises;
-});
+}
 
 /// Notifier for exercise search query
-class ExerciseSearchQueryNotifier extends Notifier<String> {
+@riverpod
+class ExerciseSearchQuery extends _$ExerciseSearchQuery {
   @override
   String build() => '';
 
@@ -496,13 +502,9 @@ class ExerciseSearchQueryNotifier extends Notifier<String> {
   void clear() => state = '';
 }
 
-/// Exercise search query
-final exerciseSearchQueryProvider =
-    NotifierProvider<ExerciseSearchQueryNotifier, String>(
-        ExerciseSearchQueryNotifier.new);
-
 /// Filtered exercises based on search
-final filteredExercisesProvider = Provider<List<Exercise>>((ref) {
+@riverpod
+List<Exercise> filteredExercises(Ref ref) {
   final exercisesAsync = ref.watch(exerciseListProvider);
   final query = ref.watch(exerciseSearchQueryProvider).toLowerCase();
 
@@ -514,6 +516,6 @@ final filteredExercisesProvider = Provider<List<Exercise>>((ref) {
           .toList();
     },
     loading: () => [],
-    error: (_, _) => [],
+    error: (error, stack) => [],
   );
-});
+}

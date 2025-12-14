@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 import '../../../shared/theme/app_colors.dart';
 import '../../../core/client.dart';
 import '../providers/workout_builder_providers.dart';
 
 /// Modal for searching and selecting exercises
-class ExerciseSearchModal extends ConsumerStatefulWidget {
+class ExerciseSearchModal extends HookConsumerWidget {
   final Function(Exercise) onSelect;
 
   const ExerciseSearchModal({
@@ -15,33 +16,18 @@ class ExerciseSearchModal extends ConsumerStatefulWidget {
   });
 
   @override
-  ConsumerState<ExerciseSearchModal> createState() =>
-      _ExerciseSearchModalState();
-}
-
-class _ExerciseSearchModalState extends ConsumerState<ExerciseSearchModal> {
-  late TextEditingController _searchController;
-
-  @override
-  void initState() {
-    super.initState();
-    _searchController = TextEditingController();
-    // Reset search query
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(exerciseSearchQueryProvider.notifier).clear();
-    });
-  }
-
-  @override
-  void dispose() {
-    _searchController.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final searchController = useTextEditingController();
     final exercises = ref.watch(filteredExercisesProvider);
     final exercisesAsync = ref.watch(exerciseListProvider);
+
+    // Reset search query on mount (scheduled after build)
+    useEffect(() {
+      Future.microtask(() {
+        ref.read(exerciseSearchQueryProvider.notifier).clear();
+      });
+      return null;
+    }, []);
 
     return Container(
       height: MediaQuery.of(context).size.height * 0.7,
@@ -78,7 +64,7 @@ class _ExerciseSearchModalState extends ConsumerState<ExerciseSearchModal> {
                 const SizedBox(height: 12),
                 // Search bar
                 TextField(
-                  controller: _searchController,
+                  controller: searchController,
                   onChanged: (value) {
                     ref.read(exerciseSearchQueryProvider.notifier).setQuery(value);
                   },
@@ -114,7 +100,7 @@ class _ExerciseSearchModalState extends ConsumerState<ExerciseSearchModal> {
               loading: () => const Center(
                 child: CircularProgressIndicator(color: AppColors.accentBlue),
               ),
-              error: (_, _) => Center(
+              error: (error, stack) => Center(
                 child: Text(
                   'Failed to load exercises',
                   style: TextStyle(color: AppColors.textMuted),
@@ -136,7 +122,7 @@ class _ExerciseSearchModalState extends ConsumerState<ExerciseSearchModal> {
                     final exercise = exercises[index];
                     return _ExerciseTile(
                       exercise: exercise,
-                      onTap: () => widget.onSelect(exercise),
+                      onTap: () => onSelect(exercise),
                     );
                   },
                 );

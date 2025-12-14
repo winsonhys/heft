@@ -1,10 +1,12 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../core/client.dart';
-import '../../../core/config.dart';
+
+part 'calendar_providers.g.dart';
 
 /// Notifier for current month being viewed
-class CurrentMonthNotifier extends Notifier<DateTime> {
+@riverpod
+class CurrentMonth extends _$CurrentMonth {
   @override
   DateTime build() => DateTime.now();
 
@@ -23,12 +25,9 @@ class CurrentMonthNotifier extends Notifier<DateTime> {
   }
 }
 
-/// Current month being viewed
-final currentMonthProvider =
-    NotifierProvider<CurrentMonthNotifier, DateTime>(CurrentMonthNotifier.new);
-
 /// Notifier for selected day in calendar
-class SelectedDayNotifier extends Notifier<DateTime?> {
+@riverpod
+class SelectedDay extends _$SelectedDay {
   @override
   DateTime? build() => null;
 
@@ -37,21 +36,17 @@ class SelectedDayNotifier extends Notifier<DateTime?> {
   void clearSelection() => state = null;
 }
 
-/// Selected day in calendar
-final selectedDayProvider =
-    NotifierProvider<SelectedDayNotifier, DateTime?>(SelectedDayNotifier.new);
-
 /// Calendar data for the current month
-final currentCalendarDataProvider = FutureProvider<CalendarData>((ref) async {
+@riverpod
+Future<CalendarData> currentCalendarData(Ref ref) async {
   final currentMonth = ref.watch(currentMonthProvider);
   return ref.watch(calendarMonthProvider(currentMonth).future);
-});
+}
 
 /// Calendar month data provider
-final calendarMonthProvider =
-    FutureProvider.family<CalendarData, DateTime>((ref, month) async {
+@riverpod
+Future<CalendarData> calendarMonth(Ref ref, DateTime month) async {
   final request = GetCalendarMonthRequest()
-    ..userId = AppConfig.hardcodedUserId
     ..year = month.year
     ..month = month.month;
 
@@ -82,16 +77,16 @@ final calendarMonthProvider =
     days: response.days,
     upcoming: upcoming,
   );
-});
+}
 
 /// Provider for workouts available for scheduling
-final workoutsForSchedulingProvider =
-    FutureProvider<List<WorkoutSummary>>((ref) async {
-  final request = ListWorkoutsRequest()..userId = AppConfig.hardcodedUserId;
+@riverpod
+Future<List<WorkoutSummary>> workoutsForScheduling(Ref ref) async {
+  final request = ListWorkoutsRequest();
 
   final response = await workoutClient.listWorkouts(request);
   return response.workouts;
-});
+}
 
 /// Data class for calendar
 class CalendarData {

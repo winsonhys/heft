@@ -15,45 +15,45 @@ import 'dart:core' as $core;
 
 import 'package:protobuf/protobuf.dart' as $pb;
 
-import 'session.pb.dart' as $6;
+import 'session.pb.dart' as $7;
 import 'session.pbjson.dart';
 
 export 'session.pb.dart';
 
 abstract class SessionServiceBase extends $pb.GeneratedService {
-  $async.Future<$6.StartSessionResponse> startSession($pb.ServerContext ctx, $6.StartSessionRequest request);
-  $async.Future<$6.GetSessionResponse> getSession($pb.ServerContext ctx, $6.GetSessionRequest request);
-  $async.Future<$6.CompleteSetResponse> completeSet($pb.ServerContext ctx, $6.CompleteSetRequest request);
-  $async.Future<$6.UpdateSetResponse> updateSet($pb.ServerContext ctx, $6.UpdateSetRequest request);
-  $async.Future<$6.AddExerciseResponse> addExercise($pb.ServerContext ctx, $6.AddExerciseRequest request);
-  $async.Future<$6.FinishSessionResponse> finishSession($pb.ServerContext ctx, $6.FinishSessionRequest request);
-  $async.Future<$6.AbandonSessionResponse> abandonSession($pb.ServerContext ctx, $6.AbandonSessionRequest request);
-  $async.Future<$6.ListSessionsResponse> listSessions($pb.ServerContext ctx, $6.ListSessionsRequest request);
+  $async.Future<$7.StartSessionResponse> startSession($pb.ServerContext ctx, $7.StartSessionRequest request);
+  $async.Future<$7.GetSessionResponse> getSession($pb.ServerContext ctx, $7.GetSessionRequest request);
+  $async.Future<$7.CompleteSetResponse> completeSet($pb.ServerContext ctx, $7.CompleteSetRequest request);
+  $async.Future<$7.UpdateSetResponse> updateSet($pb.ServerContext ctx, $7.UpdateSetRequest request);
+  $async.Future<$7.AddExerciseResponse> addExercise($pb.ServerContext ctx, $7.AddExerciseRequest request);
+  $async.Future<$7.FinishSessionResponse> finishSession($pb.ServerContext ctx, $7.FinishSessionRequest request);
+  $async.Future<$7.AbandonSessionResponse> abandonSession($pb.ServerContext ctx, $7.AbandonSessionRequest request);
+  $async.Future<$7.ListSessionsResponse> listSessions($pb.ServerContext ctx, $7.ListSessionsRequest request);
 
   $pb.GeneratedMessage createRequest($core.String methodName) {
     switch (methodName) {
-      case 'StartSession': return $6.StartSessionRequest();
-      case 'GetSession': return $6.GetSessionRequest();
-      case 'CompleteSet': return $6.CompleteSetRequest();
-      case 'UpdateSet': return $6.UpdateSetRequest();
-      case 'AddExercise': return $6.AddExerciseRequest();
-      case 'FinishSession': return $6.FinishSessionRequest();
-      case 'AbandonSession': return $6.AbandonSessionRequest();
-      case 'ListSessions': return $6.ListSessionsRequest();
+      case 'StartSession': return $7.StartSessionRequest();
+      case 'GetSession': return $7.GetSessionRequest();
+      case 'CompleteSet': return $7.CompleteSetRequest();
+      case 'UpdateSet': return $7.UpdateSetRequest();
+      case 'AddExercise': return $7.AddExerciseRequest();
+      case 'FinishSession': return $7.FinishSessionRequest();
+      case 'AbandonSession': return $7.AbandonSessionRequest();
+      case 'ListSessions': return $7.ListSessionsRequest();
       default: throw $core.ArgumentError('Unknown method: $methodName');
     }
   }
 
   $async.Future<$pb.GeneratedMessage> handleCall($pb.ServerContext ctx, $core.String methodName, $pb.GeneratedMessage request) {
     switch (methodName) {
-      case 'StartSession': return this.startSession(ctx, request as $6.StartSessionRequest);
-      case 'GetSession': return this.getSession(ctx, request as $6.GetSessionRequest);
-      case 'CompleteSet': return this.completeSet(ctx, request as $6.CompleteSetRequest);
-      case 'UpdateSet': return this.updateSet(ctx, request as $6.UpdateSetRequest);
-      case 'AddExercise': return this.addExercise(ctx, request as $6.AddExerciseRequest);
-      case 'FinishSession': return this.finishSession(ctx, request as $6.FinishSessionRequest);
-      case 'AbandonSession': return this.abandonSession(ctx, request as $6.AbandonSessionRequest);
-      case 'ListSessions': return this.listSessions(ctx, request as $6.ListSessionsRequest);
+      case 'StartSession': return this.startSession(ctx, request as $7.StartSessionRequest);
+      case 'GetSession': return this.getSession(ctx, request as $7.GetSessionRequest);
+      case 'CompleteSet': return this.completeSet(ctx, request as $7.CompleteSetRequest);
+      case 'UpdateSet': return this.updateSet(ctx, request as $7.UpdateSetRequest);
+      case 'AddExercise': return this.addExercise(ctx, request as $7.AddExerciseRequest);
+      case 'FinishSession': return this.finishSession(ctx, request as $7.FinishSessionRequest);
+      case 'AbandonSession': return this.abandonSession(ctx, request as $7.AbandonSessionRequest);
+      case 'ListSessions': return this.listSessions(ctx, request as $7.ListSessionsRequest);
       default: throw $core.ArgumentError('Unknown method: $methodName');
     }
   }

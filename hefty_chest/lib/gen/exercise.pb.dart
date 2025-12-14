@@ -14,9 +14,9 @@ import 'dart:core' as $core;
 
 import 'package:protobuf/protobuf.dart' as $pb;
 
-import 'common.pb.dart' as $1;
-import 'common.pbenum.dart' as $1;
-import 'google/protobuf/timestamp.pb.dart' as $0;
+import 'common.pb.dart' as $2;
+import 'common.pbenum.dart' as $2;
+import 'google/protobuf/timestamp.pb.dart' as $1;
 
 /// Exercise category
 class ExerciseCategory extends $pb.GeneratedMessage {
@@ -104,12 +104,12 @@ class Exercise extends $pb.GeneratedMessage {
     $core.String? name,
     $core.String? categoryId,
     $core.String? categoryName,
-    $1.ExerciseType? exerciseType,
+    $2.ExerciseType? exerciseType,
     $core.String? description,
     $core.bool? isSystem,
     $core.String? createdBy,
-    $0.Timestamp? createdAt,
-    $0.Timestamp? updatedAt,
+    $1.Timestamp? createdAt,
+    $1.Timestamp? updatedAt,
   }) {
     final $result = create();
     if (id != null) {
@@ -153,12 +153,12 @@ class Exercise extends $pb.GeneratedMessage {
     ..aOS(2, _omitFieldNames ? '' : 'name')
     ..aOS(3, _omitFieldNames ? '' : 'categoryId')
     ..aOS(4, _omitFieldNames ? '' : 'categoryName')
-    ..e<$1.ExerciseType>(5, _omitFieldNames ? '' : 'exerciseType', $pb.PbFieldType.OE, defaultOrMaker: $1.ExerciseType.EXERCISE_TYPE_UNSPECIFIED, valueOf: $1.ExerciseType.valueOf, enumValues: $1.ExerciseType.values)
+    ..e<$2.ExerciseType>(5, _omitFieldNames ? '' : 'exerciseType', $pb.PbFieldType.OE, defaultOrMaker: $2.ExerciseType.EXERCISE_TYPE_UNSPECIFIED, valueOf: $2.ExerciseType.valueOf, enumValues: $2.ExerciseType.values)
     ..aOS(6, _omitFieldNames ? '' : 'description')
     ..aOB(7, _omitFieldNames ? '' : 'isSystem')
     ..aOS(8, _omitFieldNames ? '' : 'createdBy')
-    ..aOM<$0.Timestamp>(9, _omitFieldNames ? '' : 'createdAt', subBuilder: $0.Timestamp.create)
-    ..aOM<$0.Timestamp>(10, _omitFieldNames ? '' : 'updatedAt', subBuilder: $0.Timestamp.create)
+    ..aOM<$1.Timestamp>(9, _omitFieldNames ? '' : 'createdAt', subBuilder: $1.Timestamp.create)
+    ..aOM<$1.Timestamp>(10, _omitFieldNames ? '' : 'updatedAt', subBuilder: $1.Timestamp.create)
     ..hasRequiredFields = false
   ;
 
@@ -220,9 +220,9 @@ class Exercise extends $pb.GeneratedMessage {
   void clearCategoryName() => clearField(4);
 
   @$pb.TagNumber(5)
-  $1.ExerciseType get exerciseType => $_getN(4);
+  $2.ExerciseType get exerciseType => $_getN(4);
   @$pb.TagNumber(5)
-  set exerciseType($1.ExerciseType v) { setField(5, v); }
+  set exerciseType($2.ExerciseType v) { setField(5, v); }
   @$pb.TagNumber(5)
   $core.bool hasExerciseType() => $_has(4);
   @$pb.TagNumber(5)
@@ -256,36 +256,36 @@ class Exercise extends $pb.GeneratedMessage {
   void clearCreatedBy() => clearField(8);
 
   @$pb.TagNumber(9)
-  $0.Timestamp get createdAt => $_getN(8);
+  $1.Timestamp get createdAt => $_getN(8);
   @$pb.TagNumber(9)
-  set createdAt($0.Timestamp v) { setField(9, v); }
+  set createdAt($1.Timestamp v) { setField(9, v); }
   @$pb.TagNumber(9)
   $core.bool hasCreatedAt() => $_has(8);
   @$pb.TagNumber(9)
   void clearCreatedAt() => clearField(9);
   @$pb.TagNumber(9)
-  $0.Timestamp ensureCreatedAt() => $_ensure(8);
+  $1.Timestamp ensureCreatedAt() => $_ensure(8);
 
   @$pb.TagNumber(10)
-  $0.Timestamp get updatedAt => $_getN(9);
+  $1.Timestamp get updatedAt => $_getN(9);
   @$pb.TagNumber(10)
-  set updatedAt($0.Timestamp v) { setField(10, v); }
+  set updatedAt($1.Timestamp v) { setField(10, v); }
   @$pb.TagNumber(10)
   $core.bool hasUpdatedAt() => $_has(9);
   @$pb.TagNumber(10)
   void clearUpdatedAt() => clearField(10);
   @$pb.TagNumber(10)
-  $0.Timestamp ensureUpdatedAt() => $_ensure(9);
+  $1.Timestamp ensureUpdatedAt() => $_ensure(9);
 }
 
 /// ListExercises
 class ListExercisesRequest extends $pb.GeneratedMessage {
   factory ListExercisesRequest({
     $core.String? categoryId,
-    $1.ExerciseType? exerciseType,
+    $2.ExerciseType? exerciseType,
     $core.bool? systemOnly,
     $core.String? userId,
-    $1.PaginationRequest? pagination,
+    $2.PaginationRequest? pagination,
   }) {
     final $result = create();
     if (categoryId != null) {
@@ -311,10 +311,10 @@ class ListExercisesRequest extends $pb.GeneratedMessage {
 
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'ListExercisesRequest', package: const $pb.PackageName(_omitMessageNames ? '' : 'heft.v1'), createEmptyInstance: create)
     ..aOS(1, _omitFieldNames ? '' : 'categoryId')
-    ..e<$1.ExerciseType>(2, _omitFieldNames ? '' : 'exerciseType', $pb.PbFieldType.OE, defaultOrMaker: $1.ExerciseType.EXERCISE_TYPE_UNSPECIFIED, valueOf: $1.ExerciseType.valueOf, enumValues: $1.ExerciseType.values)
+    ..e<$2.ExerciseType>(2, _omitFieldNames ? '' : 'exerciseType', $pb.PbFieldType.OE, defaultOrMaker: $2.ExerciseType.EXERCISE_TYPE_UNSPECIFIED, valueOf: $2.ExerciseType.valueOf, enumValues: $2.ExerciseType.values)
     ..aOB(3, _omitFieldNames ? '' : 'systemOnly')
     ..aOS(4, _omitFieldNames ? '' : 'userId')
-    ..aOM<$1.PaginationRequest>(5, _omitFieldNames ? '' : 'pagination', subBuilder: $1.PaginationRequest.create)
+    ..aOM<$2.PaginationRequest>(5, _omitFieldNames ? '' : 'pagination', subBuilder: $2.PaginationRequest.create)
     ..hasRequiredFields = false
   ;
 
@@ -349,9 +349,9 @@ class ListExercisesRequest extends $pb.GeneratedMessage {
   void clearCategoryId() => clearField(1);
 
   @$pb.TagNumber(2)
-  $1.ExerciseType get exerciseType => $_getN(1);
+  $2.ExerciseType get exerciseType => $_getN(1);
   @$pb.TagNumber(2)
-  set exerciseType($1.ExerciseType v) { setField(2, v); }
+  set exerciseType($2.ExerciseType v) { setField(2, v); }
   @$pb.TagNumber(2)
   $core.bool hasExerciseType() => $_has(1);
   @$pb.TagNumber(2)
@@ -376,21 +376,21 @@ class ListExercisesRequest extends $pb.GeneratedMessage {
   void clearUserId() => clearField(4);
 
   @$pb.TagNumber(5)
-  $1.PaginationRequest get pagination => $_getN(4);
+  $2.PaginationRequest get pagination => $_getN(4);
   @$pb.TagNumber(5)
-  set pagination($1.PaginationRequest v) { setField(5, v); }
+  set pagination($2.PaginationRequest v) { setField(5, v); }
   @$pb.TagNumber(5)
   $core.bool hasPagination() => $_has(4);
   @$pb.TagNumber(5)
   void clearPagination() => clearField(5);
   @$pb.TagNumber(5)
-  $1.PaginationRequest ensurePagination() => $_ensure(4);
+  $2.PaginationRequest ensurePagination() => $_ensure(4);
 }
 
 class ListExercisesResponse extends $pb.GeneratedMessage {
   factory ListExercisesResponse({
     $core.Iterable<Exercise>? exercises,
-    $1.PaginationResponse? pagination,
+    $2.PaginationResponse? pagination,
   }) {
     final $result = create();
     if (exercises != null) {
@@ -407,7 +407,7 @@ class ListExercisesResponse extends $pb.GeneratedMessage {
 
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'ListExercisesResponse', package: const $pb.PackageName(_omitMessageNames ? '' : 'heft.v1'), createEmptyInstance: create)
     ..pc<Exercise>(1, _omitFieldNames ? '' : 'exercises', $pb.PbFieldType.PM, subBuilder: Exercise.create)
-    ..aOM<$1.PaginationResponse>(2, _omitFieldNames ? '' : 'pagination', subBuilder: $1.PaginationResponse.create)
+    ..aOM<$2.PaginationResponse>(2, _omitFieldNames ? '' : 'pagination', subBuilder: $2.PaginationResponse.create)
     ..hasRequiredFields = false
   ;
 
@@ -436,15 +436,15 @@ class ListExercisesResponse extends $pb.GeneratedMessage {
   $core.List<Exercise> get exercises => $_getList(0);
 
   @$pb.TagNumber(2)
-  $1.PaginationResponse get pagination => $_getN(1);
+  $2.PaginationResponse get pagination => $_getN(1);
   @$pb.TagNumber(2)
-  set pagination($1.PaginationResponse v) { setField(2, v); }
+  set pagination($2.PaginationResponse v) { setField(2, v); }
   @$pb.TagNumber(2)
   $core.bool hasPagination() => $_has(1);
   @$pb.TagNumber(2)
   void clearPagination() => clearField(2);
   @$pb.TagNumber(2)
-  $1.PaginationResponse ensurePagination() => $_ensure(1);
+  $2.PaginationResponse ensurePagination() => $_ensure(1);
 }
 
 /// GetExercise
@@ -556,7 +556,7 @@ class CreateExerciseRequest extends $pb.GeneratedMessage {
     $core.String? userId,
     $core.String? name,
     $core.String? categoryId,
-    $1.ExerciseType? exerciseType,
+    $2.ExerciseType? exerciseType,
     $core.String? description,
   }) {
     final $result = create();
@@ -585,7 +585,7 @@ class CreateExerciseRequest extends $pb.GeneratedMessage {
     ..aOS(1, _omitFieldNames ? '' : 'userId')
     ..aOS(2, _omitFieldNames ? '' : 'name')
     ..aOS(3, _omitFieldNames ? '' : 'categoryId')
-    ..e<$1.ExerciseType>(4, _omitFieldNames ? '' : 'exerciseType', $pb.PbFieldType.OE, defaultOrMaker: $1.ExerciseType.EXERCISE_TYPE_UNSPECIFIED, valueOf: $1.ExerciseType.valueOf, enumValues: $1.ExerciseType.values)
+    ..e<$2.ExerciseType>(4, _omitFieldNames ? '' : 'exerciseType', $pb.PbFieldType.OE, defaultOrMaker: $2.ExerciseType.EXERCISE_TYPE_UNSPECIFIED, valueOf: $2.ExerciseType.valueOf, enumValues: $2.ExerciseType.values)
     ..aOS(5, _omitFieldNames ? '' : 'description')
     ..hasRequiredFields = false
   ;
@@ -639,9 +639,9 @@ class CreateExerciseRequest extends $pb.GeneratedMessage {
   void clearCategoryId() => clearField(3);
 
   @$pb.TagNumber(4)
-  $1.ExerciseType get exerciseType => $_getN(3);
+  $2.ExerciseType get exerciseType => $_getN(3);
   @$pb.TagNumber(4)
-  set exerciseType($1.ExerciseType v) { setField(4, v); }
+  set exerciseType($2.ExerciseType v) { setField(4, v); }
   @$pb.TagNumber(4)
   $core.bool hasExerciseType() => $_has(3);
   @$pb.TagNumber(4)

@@ -13,7 +13,7 @@ import 'dart:convert' as $convert;
 import 'dart:core' as $core;
 import 'dart:typed_data' as $typed_data;
 
-import 'google/protobuf/timestamp.pbjson.dart' as $0;
+import 'google/protobuf/timestamp.pbjson.dart' as $1;
 
 @$core.Deprecated('Use userDescriptor instead')
 const User$json = {
@@ -279,7 +279,7 @@ const $core.Map<$core.String, $core.Map<$core.String, $core.dynamic>> UserServic
   '.heft.v1.GetProfileRequest': GetProfileRequest$json,
   '.heft.v1.GetProfileResponse': GetProfileResponse$json,
   '.heft.v1.User': User$json,
-  '.google.protobuf.Timestamp': $0.Timestamp$json,
+  '.google.protobuf.Timestamp': $1.Timestamp$json,
   '.heft.v1.UpdateProfileRequest': UpdateProfileRequest$json,
   '.heft.v1.UpdateProfileResponse': UpdateProfileResponse$json,
   '.heft.v1.UpdateSettingsRequest': UpdateSettingsRequest$json,

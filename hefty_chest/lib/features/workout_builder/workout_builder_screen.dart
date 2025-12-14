@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:go_router/go_router.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 import '../../shared/theme/app_colors.dart';
 import 'providers/workout_builder_providers.dart';
@@ -8,62 +9,61 @@ import 'widgets/section_card.dart';
 import 'widgets/exercise_search_modal.dart';
 
 /// Workout builder screen for creating and editing workouts
-class WorkoutBuilderScreen extends ConsumerStatefulWidget {
+class WorkoutBuilderScreen extends HookConsumerWidget {
   final String? workoutId;
 
   const WorkoutBuilderScreen({super.key, this.workoutId});
 
   @override
-  ConsumerState<WorkoutBuilderScreen> createState() =>
-      _WorkoutBuilderScreenState();
-}
-
-class _WorkoutBuilderScreenState extends ConsumerState<WorkoutBuilderScreen> {
-  late TextEditingController _nameController;
-  bool _isLoading = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _nameController = TextEditingController();
-    _initWorkout();
-  }
-
-  Future<void> _initWorkout() async {
-    if (widget.workoutId != null) {
-      setState(() => _isLoading = true);
-      await ref
-          .read(workoutBuilderProvider.notifier)
-          .loadWorkout(widget.workoutId!);
-      final state = ref.read(workoutBuilderProvider);
-      _nameController.text = state.name;
-      setState(() => _isLoading = false);
-    }
-  }
-
-  @override
-  void dispose() {
-    _nameController.dispose();
-    super.dispose();
-  }
-
-  Future<void> _saveWorkout() async {
-    final notifier = ref.read(workoutBuilderProvider.notifier);
-    notifier.updateName(_nameController.text);
-
-    setState(() => _isLoading = true);
-    final success = await notifier.saveWorkout();
-    setState(() => _isLoading = false);
-
-    if (success && mounted) {
-      context.pop();
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final nameController = useTextEditingController();
+    final isLoading = useState(false);
     final state = ref.watch(workoutBuilderProvider);
-    final isEditing = widget.workoutId != null;
+    final isEditing = workoutId != null;
+
+    // Initialize workout on mount
+    useEffect(() {
+      Future<void> initWorkout() async {
+        if (workoutId != null) {
+          isLoading.value = true;
+          await ref.read(workoutBuilderProvider.notifier).loadWorkout(workoutId!);
+          final loadedState = ref.read(workoutBuilderProvider);
+          nameController.text = loadedState.name;
+          isLoading.value = false;
+        }
+      }
+      initWorkout();
+      return null;
+    }, [workoutId]);
+
+    Future<void> saveWorkout() async {
+      final notifier = ref.read(workoutBuilderProvider.notifier);
+      notifier.updateName(nameController.text);
+
+      isLoading.value = true;
+      final success = await notifier.saveWorkout();
+      isLoading.value = false;
+
+      if (success && context.mounted) {
+        context.pop();
+      }
+    }
+
+    void showExerciseSearch(String sectionId) {
+      showModalBottomSheet(
+        context: context,
+        isScrollControlled: true,
+        backgroundColor: Colors.transparent,
+        builder: (context) => ExerciseSearchModal(
+          onSelect: (exercise) {
+            ref
+                .read(workoutBuilderProvider.notifier)
+                .addExercise(sectionId, exercise);
+            Navigator.pop(context);
+          },
+        ),
+      );
+    }
 
     return Scaffold(
       backgroundColor: AppColors.bgPrimary,
@@ -71,11 +71,11 @@ class _WorkoutBuilderScreenState extends ConsumerState<WorkoutBuilderScreen> {
         child: Column(
           children: [
             // Header
-            _buildHeader(isEditing),
+            _buildHeader(context, isEditing, saveWorkout),
 
             // Content
             Expanded(
-              child: _isLoading
+              child: isLoading.value
                   ? const Center(
                       child: CircularProgressIndicator(
                         color: AppColors.accentBlue,
@@ -88,7 +88,7 @@ class _WorkoutBuilderScreenState extends ConsumerState<WorkoutBuilderScreen> {
                         children: [
                           // Workout Name Input
                           TextField(
-                            controller: _nameController,
+                            controller: nameController,
                             style: const TextStyle(
                               fontSize: 20,
                               fontWeight: FontWeight.w600,
@@ -132,12 +132,17 @@ class _WorkoutBuilderScreenState extends ConsumerState<WorkoutBuilderScreen> {
                                     .deleteSection(section.id);
                               },
                               onAddExercise: () {
-                                _showExerciseSearch(context, section.id);
+                                showExerciseSearch(section.id);
                               },
                               onAddRest: () {
                                 ref
                                     .read(workoutBuilderProvider.notifier)
                                     .addRest(section.id);
+                              },
+                              onSectionNameChanged: (name) {
+                                ref
+                                    .read(workoutBuilderProvider.notifier)
+                                    .updateSectionName(section.id, name);
                               },
                             );
                           }),
@@ -192,7 +197,7 @@ class _WorkoutBuilderScreenState extends ConsumerState<WorkoutBuilderScreen> {
     );
   }
 
-  Widget _buildHeader(bool isEditing) {
+  Widget _buildHeader(BuildContext context, bool isEditing, VoidCallback onSave) {
     return Container(
       padding: const EdgeInsets.all(12),
       child: Row(
@@ -218,7 +223,7 @@ class _WorkoutBuilderScreenState extends ConsumerState<WorkoutBuilderScreen> {
             ),
           ),
           GestureDetector(
-            onTap: _saveWorkout,
+            onTap: onSave,
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               decoration: BoxDecoration(
@@ -236,22 +241,6 @@ class _WorkoutBuilderScreenState extends ConsumerState<WorkoutBuilderScreen> {
             ),
           ),
         ],
-      ),
-    );
-  }
-
-  void _showExerciseSearch(BuildContext context, String sectionId) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) => ExerciseSearchModal(
-        onSelect: (exercise) {
-          ref
-              .read(workoutBuilderProvider.notifier)
-              .addExercise(sectionId, exercise);
-          Navigator.pop(context);
-        },
       ),
     );
   }

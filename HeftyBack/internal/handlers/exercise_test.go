@@ -9,6 +9,7 @@ import (
 	"connectrpc.com/connect"
 
 	heftv1 "github.com/heftyback/gen/heft/v1"
+	"github.com/heftyback/internal/auth"
 	"github.com/heftyback/internal/handlers"
 	"github.com/heftyback/internal/repository"
 	"github.com/heftyback/internal/testutil"
@@ -251,15 +252,18 @@ func TestExerciseHandler_ListExercises(t *testing.T) {
 func TestExerciseHandler_CreateExercise(t *testing.T) {
 	tests := []struct {
 		name        string
+		userID      string
+		withAuth    bool
 		request     *heftv1.CreateExerciseRequest
 		mockSetup   func(*testutil.MockExerciseRepository)
 		wantErr     bool
 		wantErrCode connect.Code
 	}{
 		{
-			name: "success - custom exercise created",
+			name:     "success - custom exercise created",
+			userID:   "user-123",
+			withAuth: true,
 			request: &heftv1.CreateExerciseRequest{
-				UserId:       "user-123",
 				Name:         "My Custom Press",
 				CategoryId:   "category-123",
 				ExerciseType: heftv1.ExerciseType_EXERCISE_TYPE_WEIGHT_REPS,
@@ -281,11 +285,12 @@ func TestExerciseHandler_CreateExercise(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "success - with description",
+			name:     "success - with description",
+			userID:   "user-123",
+			withAuth: true,
 			request: func() *heftv1.CreateExerciseRequest {
 				description := "A modified version of bench press"
 				return &heftv1.CreateExerciseRequest{
-					UserId:       "user-123",
 					Name:         "Modified Bench Press",
 					CategoryId:   "category-123",
 					ExerciseType: heftv1.ExerciseType_EXERCISE_TYPE_WEIGHT_REPS,
@@ -313,20 +318,22 @@ func TestExerciseHandler_CreateExercise(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "error - missing user_id",
+			name:     "error - not authenticated",
+			userID:   "",
+			withAuth: false,
 			request: &heftv1.CreateExerciseRequest{
-				UserId:     "",
 				Name:       "My Custom Press",
 				CategoryId: "category-123",
 			},
 			mockSetup:   func(m *testutil.MockExerciseRepository) {},
 			wantErr:     true,
-			wantErrCode: connect.CodeInvalidArgument,
+			wantErrCode: connect.CodeUnauthenticated,
 		},
 		{
-			name: "error - missing name",
+			name:     "error - missing name",
+			userID:   "user-123",
+			withAuth: true,
 			request: &heftv1.CreateExerciseRequest{
-				UserId:     "user-123",
 				Name:       "",
 				CategoryId: "category-123",
 			},
@@ -335,9 +342,10 @@ func TestExerciseHandler_CreateExercise(t *testing.T) {
 			wantErrCode: connect.CodeInvalidArgument,
 		},
 		{
-			name: "error - missing category_id",
+			name:     "error - missing category_id",
+			userID:   "user-123",
+			withAuth: true,
 			request: &heftv1.CreateExerciseRequest{
-				UserId:     "user-123",
 				Name:       "My Custom Press",
 				CategoryId: "",
 			},
@@ -346,9 +354,10 @@ func TestExerciseHandler_CreateExercise(t *testing.T) {
 			wantErrCode: connect.CodeInvalidArgument,
 		},
 		{
-			name: "error - database error",
+			name:     "error - database error",
+			userID:   "user-123",
+			withAuth: true,
 			request: &heftv1.CreateExerciseRequest{
-				UserId:       "user-123",
 				Name:         "My Custom Press",
 				CategoryId:   "category-123",
 				ExerciseType: heftv1.ExerciseType_EXERCISE_TYPE_WEIGHT_REPS,
@@ -370,8 +379,13 @@ func TestExerciseHandler_CreateExercise(t *testing.T) {
 
 			handler := handlers.NewExerciseHandler(mockRepo)
 
+			ctx := context.Background()
+			if tt.withAuth {
+				ctx = auth.ContextWithUserID(ctx, tt.userID)
+			}
+
 			req := connect.NewRequest(tt.request)
-			resp, err := handler.CreateExercise(context.Background(), req)
+			resp, err := handler.CreateExercise(ctx, req)
 
 			if tt.wantErr {
 				if err == nil {

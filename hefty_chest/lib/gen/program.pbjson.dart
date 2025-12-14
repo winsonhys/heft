@@ -13,9 +13,9 @@ import 'dart:convert' as $convert;
 import 'dart:core' as $core;
 import 'dart:typed_data' as $typed_data;
 
-import 'common.pbjson.dart' as $1;
-import 'google/protobuf/timestamp.pbjson.dart' as $0;
-import 'workout.pbjson.dart' as $3;
+import 'common.pbjson.dart' as $2;
+import 'google/protobuf/timestamp.pbjson.dart' as $1;
+import 'workout.pbjson.dart' as $4;
 
 @$core.Deprecated('Use programSummaryDescriptor instead')
 const ProgramSummary$json = {
@@ -370,11 +370,11 @@ const $core.Map<$core.String, $core.dynamic> ProgramServiceBase$json = {
 @$core.Deprecated('Use programServiceDescriptor instead')
 const $core.Map<$core.String, $core.Map<$core.String, $core.dynamic>> ProgramServiceBase$messageJson = {
   '.heft.v1.ListProgramsRequest': ListProgramsRequest$json,
-  '.heft.v1.PaginationRequest': $1.PaginationRequest$json,
+  '.heft.v1.PaginationRequest': $2.PaginationRequest$json,
   '.heft.v1.ListProgramsResponse': ListProgramsResponse$json,
   '.heft.v1.ProgramSummary': ProgramSummary$json,
-  '.google.protobuf.Timestamp': $0.Timestamp$json,
-  '.heft.v1.PaginationResponse': $1.PaginationResponse$json,
+  '.google.protobuf.Timestamp': $1.Timestamp$json,
+  '.heft.v1.PaginationResponse': $2.PaginationResponse$json,
   '.heft.v1.GetProgramRequest': GetProgramRequest$json,
   '.heft.v1.GetProgramResponse': GetProgramResponse$json,
   '.heft.v1.Program': Program$json,
@@ -390,10 +390,10 @@ const $core.Map<$core.String, $core.Map<$core.String, $core.dynamic>> ProgramSer
   '.heft.v1.SetActiveProgramResponse': SetActiveProgramResponse$json,
   '.heft.v1.GetTodayWorkoutRequest': GetTodayWorkoutRequest$json,
   '.heft.v1.GetTodayWorkoutResponse': GetTodayWorkoutResponse$json,
-  '.heft.v1.Workout': $3.Workout$json,
-  '.heft.v1.WorkoutSection': $3.WorkoutSection$json,
-  '.heft.v1.SectionItem': $3.SectionItem$json,
-  '.heft.v1.TargetSet': $3.TargetSet$json,
+  '.heft.v1.Workout': $4.Workout$json,
+  '.heft.v1.WorkoutSection': $4.WorkoutSection$json,
+  '.heft.v1.SectionItem': $4.SectionItem$json,
+  '.heft.v1.TargetSet': $4.TargetSet$json,
 };
 
 /// Descriptor for `ProgramService`. Decode as a `google.protobuf.ServiceDescriptorProto`.

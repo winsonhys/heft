@@ -2,9 +2,11 @@ package testutil
 
 import (
 	"context"
+	"fmt"
 	"testing"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -30,11 +32,13 @@ type TestExercise struct {
 	Description  *string
 }
 
-// DefaultTestUser returns a default test user configuration
+// DefaultTestUser returns a default test user configuration with a unique email
 func DefaultTestUser() TestUser {
 	displayName := "Test User"
+	// Generate unique email to avoid conflicts across tests
+	uniqueID := uuid.New().String()[:8]
 	return TestUser{
-		Email:            "test@example.com",
+		Email:            fmt.Sprintf("test-%s@example.com", uniqueID),
 		PasswordHash:     "$2a$10$abcdefghijklmnopqrstuv",
 		DisplayName:      &displayName,
 		UsePounds:        false,

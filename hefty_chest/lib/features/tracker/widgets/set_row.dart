@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 
 import '../../../shared/theme/app_colors.dart';
 import '../../../gen/session.pb.dart';
 
 /// Individual set row with editable inputs
-class SetRow extends StatefulWidget {
+class SetRow extends HookWidget {
   final SessionSet set;
   final bool isTimeBased;
   final Function(String setId, double? weight, int? reps, int? timeSeconds) onComplete;
@@ -16,47 +17,6 @@ class SetRow extends StatefulWidget {
     this.isTimeBased = false,
     required this.onComplete,
   });
-
-  @override
-  State<SetRow> createState() => _SetRowState();
-}
-
-class _SetRowState extends State<SetRow> {
-  late TextEditingController _weightController;
-  late TextEditingController _repsController;
-  late TextEditingController _timeController;
-
-  @override
-  void initState() {
-    super.initState();
-    _weightController = TextEditingController(
-      text: widget.set.weightKg > 0 ? widget.set.weightKg.toStringAsFixed(0) : '',
-    );
-    _repsController = TextEditingController(
-      text: widget.set.reps > 0 ? widget.set.reps.toString() : '',
-    );
-    _timeController = TextEditingController(
-      text: widget.set.timeSeconds > 0 ? _formatTime(widget.set.timeSeconds) : '',
-    );
-  }
-
-  @override
-  void didUpdateWidget(SetRow oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (oldWidget.set.id != widget.set.id) {
-      _weightController.text = widget.set.weightKg > 0 ? widget.set.weightKg.toStringAsFixed(0) : '';
-      _repsController.text = widget.set.reps > 0 ? widget.set.reps.toString() : '';
-      _timeController.text = widget.set.timeSeconds > 0 ? _formatTime(widget.set.timeSeconds) : '';
-    }
-  }
-
-  @override
-  void dispose() {
-    _weightController.dispose();
-    _repsController.dispose();
-    _timeController.dispose();
-    super.dispose();
-  }
 
   String _formatTime(int seconds) {
     final mins = seconds ~/ 60;
@@ -78,36 +38,54 @@ class _SetRowState extends State<SetRow> {
   }
 
   String _formatPR() {
-    if (widget.isTimeBased) {
-      if (widget.set.targetTimeSeconds > 0) {
-        return _formatTime(widget.set.targetTimeSeconds);
+    if (isTimeBased) {
+      if (set.targetTimeSeconds > 0) {
+        return _formatTime(set.targetTimeSeconds);
       }
       return '-';
     }
-    final weight = widget.set.targetWeightKg > 0 ? widget.set.targetWeightKg.toStringAsFixed(0) : '-';
-    final reps = widget.set.targetReps > 0 ? widget.set.targetReps.toString() : '-';
-    if (widget.set.isBodyweight) {
+    final weight = set.targetWeightKg > 0 ? set.targetWeightKg.toStringAsFixed(0) : '-';
+    final reps = set.targetReps > 0 ? set.targetReps.toString() : '-';
+    if (set.isBodyweight) {
       return 'BW x $reps';
     }
     return '$weight x $reps';
   }
 
-  void _handleComplete() {
-    final weight = double.tryParse(_weightController.text);
-    final reps = int.tryParse(_repsController.text);
-    final time = _parseTime(_timeController.text);
-
-    widget.onComplete(
-      widget.set.id,
-      widget.isTimeBased ? null : weight,
-      widget.isTimeBased ? null : reps,
-      widget.isTimeBased ? time : null,
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
-    final isCompleted = widget.set.isCompleted;
+    final weightController = useTextEditingController(
+      text: set.weightKg > 0 ? set.weightKg.toStringAsFixed(0) : '',
+    );
+    final repsController = useTextEditingController(
+      text: set.reps > 0 ? set.reps.toString() : '',
+    );
+    final timeController = useTextEditingController(
+      text: set.timeSeconds > 0 ? _formatTime(set.timeSeconds) : '',
+    );
+
+    // Sync controllers when set.id changes (replaces didUpdateWidget)
+    useEffect(() {
+      weightController.text = set.weightKg > 0 ? set.weightKg.toStringAsFixed(0) : '';
+      repsController.text = set.reps > 0 ? set.reps.toString() : '';
+      timeController.text = set.timeSeconds > 0 ? _formatTime(set.timeSeconds) : '';
+      return null;
+    }, [set.id]);
+
+    void handleComplete() {
+      final weight = double.tryParse(weightController.text);
+      final reps = int.tryParse(repsController.text);
+      final time = _parseTime(timeController.text);
+
+      onComplete(
+        set.id,
+        isTimeBased ? null : weight,
+        isTimeBased ? null : reps,
+        isTimeBased ? time : null,
+      );
+    }
+
+    final isCompleted = set.isCompleted;
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 10),
@@ -121,7 +99,7 @@ class _SetRowState extends State<SetRow> {
           SizedBox(
             width: 36,
             child: Text(
-              widget.set.setNumber.toString(),
+              set.setNumber.toString(),
               style: TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.w500,
@@ -144,12 +122,12 @@ class _SetRowState extends State<SetRow> {
           ),
           const SizedBox(width: 6),
           // Weight or Time input
-          if (widget.isTimeBased)
+          if (isTimeBased)
             // Time-based: single wide input
             Expanded(
               flex: 2,
               child: _buildInput(
-                controller: _timeController,
+                controller: timeController,
                 placeholder: '0:00',
                 isCompleted: isCompleted,
               ),
@@ -159,7 +137,7 @@ class _SetRowState extends State<SetRow> {
             SizedBox(
               width: 52,
               child: _buildInput(
-                controller: _weightController,
+                controller: weightController,
                 placeholder: '-',
                 isCompleted: isCompleted,
               ),
@@ -169,7 +147,7 @@ class _SetRowState extends State<SetRow> {
             SizedBox(
               width: 52,
               child: _buildInput(
-                controller: _repsController,
+                controller: repsController,
                 placeholder: '-',
                 isCompleted: isCompleted,
               ),
@@ -180,7 +158,7 @@ class _SetRowState extends State<SetRow> {
           SizedBox(
             width: 32,
             child: GestureDetector(
-              onTap: isCompleted ? null : _handleComplete,
+              onTap: isCompleted ? null : handleComplete,
               child: Container(
                 width: 24,
                 height: 24,

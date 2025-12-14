@@ -1,43 +1,35 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../core/client.dart';
-import '../../../core/config.dart';
+
+part 'profile_providers.g.dart';
 
 /// Provider for user profile
-final userProfileProvider = FutureProvider<User>((ref) async {
-  final request = GetProfileRequest()
-    ..userId = AppConfig.hardcodedUserId;
+@riverpod
+Future<User> userProfile(Ref ref) async {
+  final request = GetProfileRequest();
 
   final response = await userClient.getProfile(request);
   return response.user;
-});
+}
 
 /// Provider for profile stats (from dashboard stats)
-final profileStatsProvider = FutureProvider<DashboardStats>((ref) async {
-  final request = GetDashboardStatsRequest()
-    ..userId = AppConfig.hardcodedUserId;
+@riverpod
+Future<DashboardStats> profileStats(Ref ref) async {
+  final request = GetDashboardStatsRequest();
 
   final response = await progressClient.getDashboardStats(request);
   return response.stats;
-});
+}
 
 /// Notifier for user settings
-class UserSettingsNotifier extends Notifier<AsyncValue<User>> {
+@riverpod
+class UserSettings extends _$UserSettings {
   @override
-  AsyncValue<User> build() {
-    _loadUser();
-    return const AsyncValue.loading();
-  }
-
-  Future<void> _loadUser() async {
-    try {
-      final request = GetProfileRequest()
-        ..userId = AppConfig.hardcodedUserId;
-      final response = await userClient.getProfile(request);
-      state = AsyncValue.data(response.user);
-    } catch (e, st) {
-      state = AsyncValue.error(e, st);
-    }
+  FutureOr<User> build() async {
+    final request = GetProfileRequest();
+    final response = await userClient.getProfile(request);
+    return response.user;
   }
 
   Future<void> updateSettings({
@@ -47,9 +39,9 @@ class UserSettingsNotifier extends Notifier<AsyncValue<User>> {
     final currentUser = state.value;
     if (currentUser == null) return;
 
+    state = const AsyncValue.loading();
     try {
-      final request = UpdateSettingsRequest()
-        ..userId = AppConfig.hardcodedUserId;
+      final request = UpdateSettingsRequest();
 
       if (usePounds != null) {
         request.usePounds = usePounds;
@@ -64,12 +56,7 @@ class UserSettingsNotifier extends Notifier<AsyncValue<User>> {
       // Invalidate the profile provider so it refreshes
       ref.invalidate(userProfileProvider);
     } catch (e, st) {
-      // Revert to current state on error
       state = AsyncValue.error(e, st);
     }
   }
 }
-
-final userSettingsProvider =
-    NotifierProvider<UserSettingsNotifier, AsyncValue<User>>(
-        UserSettingsNotifier.new);

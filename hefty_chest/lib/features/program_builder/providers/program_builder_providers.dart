@@ -1,7 +1,8 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../core/client.dart';
-import '../../../core/config.dart';
+
+part 'program_builder_providers.g.dart';
 
 /// State for the program builder
 class ProgramBuilderState {
@@ -80,7 +81,8 @@ class DayAssignment {
 }
 
 /// Program builder state notifier
-class ProgramBuilderNotifier extends Notifier<ProgramBuilderState> {
+@riverpod
+class ProgramBuilder extends _$ProgramBuilder {
   @override
   ProgramBuilderState build() => const ProgramBuilderState();
 
@@ -91,9 +93,7 @@ class ProgramBuilderNotifier extends Notifier<ProgramBuilderState> {
   Future<void> loadProgram(String programId) async {
     state = state.copyWith(isLoading: true);
     try {
-      final request = GetProgramRequest()
-        ..id = programId
-        ..userId = AppConfig.hardcodedUserId;
+      final request = GetProgramRequest()..id = programId;
 
       final response = await programClient.getProgram(request);
       final program = response.program;
@@ -217,7 +217,6 @@ class ProgramBuilderNotifier extends Notifier<ProgramBuilderState> {
         // Update existing program
         final request = UpdateProgramRequest()
           ..id = state.id!
-          ..userId = AppConfig.hardcodedUserId
           ..name = state.name
           ..durationWeeks = state.durationWeeks
           ..durationDays = state.durationDays
@@ -227,7 +226,6 @@ class ProgramBuilderNotifier extends Notifier<ProgramBuilderState> {
       } else {
         // Create new program
         final request = CreateProgramRequest()
-          ..userId = AppConfig.hardcodedUserId
           ..name = state.name
           ..durationWeeks = state.durationWeeks
           ..durationDays = state.durationDays
@@ -245,13 +243,9 @@ class ProgramBuilderNotifier extends Notifier<ProgramBuilderState> {
   }
 }
 
-/// Provider for the program builder
-final programBuilderProvider =
-    NotifierProvider<ProgramBuilderNotifier, ProgramBuilderState>(
-        ProgramBuilderNotifier.new);
-
 /// Notifier for current week being viewed
-class CurrentWeekNotifier extends Notifier<int> {
+@riverpod
+class CurrentWeek extends _$CurrentWeek {
   @override
   int build() => 1;
 
@@ -266,15 +260,11 @@ class CurrentWeekNotifier extends Notifier<int> {
   void reset() => state = 1;
 }
 
-/// Current week being viewed
-final currentWeekProvider =
-    NotifierProvider<CurrentWeekNotifier, int>(CurrentWeekNotifier.new);
-
 /// Provider for workouts available in the program
-final workoutsForProgramProvider =
-    FutureProvider<List<WorkoutSummary>>((ref) async {
-  final request = ListWorkoutsRequest()..userId = AppConfig.hardcodedUserId;
+@riverpod
+Future<List<WorkoutSummary>> workoutsForProgram(Ref ref) async {
+  final request = ListWorkoutsRequest();
 
   final response = await workoutClient.listWorkouts(request);
   return response.workouts;
-});
+}

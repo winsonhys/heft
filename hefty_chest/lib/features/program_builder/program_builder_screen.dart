@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:go_router/go_router.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 import '../../shared/theme/app_colors.dart';
 import 'providers/program_builder_providers.dart';
@@ -11,63 +12,72 @@ import 'widgets/day_card.dart';
 import 'widgets/workout_assignment_modal.dart';
 
 /// Program builder screen for creating training programs
-class ProgramBuilderScreen extends ConsumerStatefulWidget {
+class ProgramBuilderScreen extends HookConsumerWidget {
   final String? programId;
 
   const ProgramBuilderScreen({super.key, this.programId});
 
   @override
-  ConsumerState<ProgramBuilderScreen> createState() =>
-      _ProgramBuilderScreenState();
-}
-
-class _ProgramBuilderScreenState extends ConsumerState<ProgramBuilderScreen> {
-  late TextEditingController _nameController;
-  bool _isLoading = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _nameController = TextEditingController();
-    _initProgram();
-  }
-
-  Future<void> _initProgram() async {
-    if (widget.programId != null) {
-      setState(() => _isLoading = true);
-      await ref
-          .read(programBuilderProvider.notifier)
-          .loadProgram(widget.programId!);
-      final state = ref.read(programBuilderProvider);
-      _nameController.text = state.name;
-      setState(() => _isLoading = false);
-    }
-  }
-
-  @override
-  void dispose() {
-    _nameController.dispose();
-    super.dispose();
-  }
-
-  Future<void> _saveProgram() async {
-    final notifier = ref.read(programBuilderProvider.notifier);
-    notifier.updateName(_nameController.text);
-
-    setState(() => _isLoading = true);
-    final success = await notifier.saveProgram();
-    setState(() => _isLoading = false);
-
-    if (success && mounted) {
-      context.pop();
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final nameController = useTextEditingController();
+    final isLoading = useState(false);
     final state = ref.watch(programBuilderProvider);
     final currentWeek = ref.watch(currentWeekProvider);
-    final isEditing = widget.programId != null;
+    final isEditing = programId != null;
+
+    // Initialize program on mount
+    useEffect(() {
+      Future<void> initProgram() async {
+        if (programId != null) {
+          isLoading.value = true;
+          await ref.read(programBuilderProvider.notifier).loadProgram(programId!);
+          final loadedState = ref.read(programBuilderProvider);
+          nameController.text = loadedState.name;
+          isLoading.value = false;
+        }
+      }
+      initProgram();
+      return null;
+    }, [programId]);
+
+    Future<void> saveProgram() async {
+      final notifier = ref.read(programBuilderProvider.notifier);
+      notifier.updateName(nameController.text);
+
+      isLoading.value = true;
+      final success = await notifier.saveProgram();
+      isLoading.value = false;
+
+      if (success && context.mounted) {
+        context.pop();
+      }
+    }
+
+    void showWorkoutAssignment(int dayNumber) {
+      showModalBottomSheet(
+        context: context,
+        isScrollControlled: true,
+        backgroundColor: Colors.transparent,
+        builder: (context) => WorkoutAssignmentModal(
+          dayNumber: dayNumber,
+          currentAssignment: ref.read(programBuilderProvider).dayAssignments[dayNumber],
+          onAssignWorkout: (workoutId, workoutName) {
+            ref
+                .read(programBuilderProvider.notifier)
+                .assignWorkout(dayNumber, workoutId, workoutName);
+            Navigator.pop(context);
+          },
+          onAssignRest: () {
+            ref.read(programBuilderProvider.notifier).assignRest(dayNumber);
+            Navigator.pop(context);
+          },
+          onClear: () {
+            ref.read(programBuilderProvider.notifier).clearDay(dayNumber);
+            Navigator.pop(context);
+          },
+        ),
+      );
+    }
 
     // Calculate days for current week
     final startDay = (currentWeek - 1) * 7 + 1;
@@ -83,11 +93,11 @@ class _ProgramBuilderScreenState extends ConsumerState<ProgramBuilderScreen> {
         child: Column(
           children: [
             // Header
-            _buildHeader(isEditing),
+            _buildHeader(context, isEditing, saveProgram),
 
             // Content
             Expanded(
-              child: _isLoading
+              child: isLoading.value
                   ? const Center(
                       child: CircularProgressIndicator(
                         color: AppColors.accentBlue,
@@ -100,7 +110,7 @@ class _ProgramBuilderScreenState extends ConsumerState<ProgramBuilderScreen> {
                         children: [
                           // Program Name Input
                           TextField(
-                            controller: _nameController,
+                            controller: nameController,
                             style: const TextStyle(
                               fontSize: 20,
                               fontWeight: FontWeight.w600,
@@ -188,7 +198,7 @@ class _ProgramBuilderScreenState extends ConsumerState<ProgramBuilderScreen> {
                                 dayNumber: dayNumber,
                                 assignment: assignment,
                                 onTap: () {
-                                  _showWorkoutAssignment(context, dayNumber);
+                                  showWorkoutAssignment(dayNumber);
                                 },
                               );
                             }).toList(),
@@ -232,7 +242,7 @@ class _ProgramBuilderScreenState extends ConsumerState<ProgramBuilderScreen> {
     );
   }
 
-  Widget _buildHeader(bool isEditing) {
+  Widget _buildHeader(BuildContext context, bool isEditing, VoidCallback onSave) {
     return Container(
       padding: const EdgeInsets.all(12),
       child: Row(
@@ -258,7 +268,7 @@ class _ProgramBuilderScreenState extends ConsumerState<ProgramBuilderScreen> {
             ),
           ),
           GestureDetector(
-            onTap: _saveProgram,
+            onTap: onSave,
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               decoration: BoxDecoration(
@@ -298,32 +308,6 @@ class _ProgramBuilderScreenState extends ConsumerState<ProgramBuilderScreen> {
             ),
           ),
         ),
-      ),
-    );
-  }
-
-  void _showWorkoutAssignment(BuildContext context, int dayNumber) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) => WorkoutAssignmentModal(
-        dayNumber: dayNumber,
-        currentAssignment: ref.read(programBuilderProvider).dayAssignments[dayNumber],
-        onAssignWorkout: (workoutId, workoutName) {
-          ref
-              .read(programBuilderProvider.notifier)
-              .assignWorkout(dayNumber, workoutId, workoutName);
-          Navigator.pop(context);
-        },
-        onAssignRest: () {
-          ref.read(programBuilderProvider.notifier).assignRest(dayNumber);
-          Navigator.pop(context);
-        },
-        onClear: () {
-          ref.read(programBuilderProvider.notifier).clearDay(dayNumber);
-          Navigator.pop(context);
-        },
       ),
     );
   }

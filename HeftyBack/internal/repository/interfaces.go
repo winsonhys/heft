@@ -67,6 +67,12 @@ type ProgressRepositoryInterface interface {
 	GetStreak(ctx context.Context, userID string) (int, int, *time.Time, error)
 }
 
+// AuthRepositoryInterface defines the contract for auth data access
+type AuthRepositoryInterface interface {
+	GetByEmail(ctx context.Context, email string) (*User, error)
+	Create(ctx context.Context, email string) (*User, error)
+}
+
 // Compile-time interface compliance checks
 var _ UserRepositoryInterface = (*UserRepository)(nil)
 var _ ExerciseRepositoryInterface = (*ExerciseRepository)(nil)
@@ -74,3 +80,4 @@ var _ SessionRepositoryInterface = (*SessionRepository)(nil)
 var _ WorkoutRepositoryInterface = (*WorkoutRepository)(nil)
 var _ ProgramRepositoryInterface = (*ProgramRepository)(nil)
 var _ ProgressRepositoryInterface = (*ProgressRepository)(nil)
+var _ AuthRepositoryInterface = (*AuthRepository)(nil)

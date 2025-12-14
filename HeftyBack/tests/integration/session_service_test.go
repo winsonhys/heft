@@ -26,9 +26,11 @@ func TestSessionService_Integration_StartSession(t *testing.T) {
 	t.Run("start empty session", func(t *testing.T) {
 		ctx := context.Background()
 
-		resp, err := ts.SessionClient.StartSession(ctx, connect.NewRequest(&heftv1.StartSessionRequest{
+		req := connect.NewRequest(&heftv1.StartSessionRequest{
 			UserId: userID,
-		}))
+		})
+		req.Header().Set("Authorization", ts.AuthHeader(userID))
+		resp, err := ts.SessionClient.StartSession(ctx, req)
 
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
@@ -51,10 +53,12 @@ func TestSessionService_Integration_StartSession(t *testing.T) {
 		ctx := context.Background()
 		sessionName := "Morning Workout"
 
-		resp, err := ts.SessionClient.StartSession(ctx, connect.NewRequest(&heftv1.StartSessionRequest{
+		req := connect.NewRequest(&heftv1.StartSessionRequest{
 			UserId: userID,
 			Name:   &sessionName,
-		}))
+		})
+		req.Header().Set("Authorization", ts.AuthHeader(userID))
+		resp, err := ts.SessionClient.StartSession(ctx, req)
 
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
@@ -82,9 +86,11 @@ func TestSessionService_Integration_GetSession(t *testing.T) {
 		ctx := context.Background()
 
 		// Start a session first
-		startResp, err := ts.SessionClient.StartSession(ctx, connect.NewRequest(&heftv1.StartSessionRequest{
+		startReq := connect.NewRequest(&heftv1.StartSessionRequest{
 			UserId: userID,
-		}))
+		})
+		startReq.Header().Set("Authorization", ts.AuthHeader(userID))
+		startResp, err := ts.SessionClient.StartSession(ctx, startReq)
 		if err != nil {
 			t.Fatalf("failed to start session: %v", err)
 		}
@@ -92,10 +98,12 @@ func TestSessionService_Integration_GetSession(t *testing.T) {
 		sessionID := startResp.Msg.Session.Id
 
 		// Get the session
-		getResp, err := ts.SessionClient.GetSession(ctx, connect.NewRequest(&heftv1.GetSessionRequest{
+		getReq := connect.NewRequest(&heftv1.GetSessionRequest{
 			Id:     sessionID,
 			UserId: userID,
-		}))
+		})
+		getReq.Header().Set("Authorization", ts.AuthHeader(userID))
+		getResp, err := ts.SessionClient.GetSession(ctx, getReq)
 
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
@@ -109,10 +117,12 @@ func TestSessionService_Integration_GetSession(t *testing.T) {
 	t.Run("get non-existent session returns not found", func(t *testing.T) {
 		ctx := context.Background()
 
-		_, err := ts.SessionClient.GetSession(ctx, connect.NewRequest(&heftv1.GetSessionRequest{
+		req := connect.NewRequest(&heftv1.GetSessionRequest{
 			Id:     "00000000-0000-0000-0000-000000000000",
 			UserId: userID,
-		}))
+		})
+		req.Header().Set("Authorization", ts.AuthHeader(userID))
+		_, err := ts.SessionClient.GetSession(ctx, req)
 
 		if err == nil {
 			t.Fatal("expected error for non-existent session")
@@ -146,22 +156,26 @@ func TestSessionService_Integration_ListSessions(t *testing.T) {
 
 		// Create a few sessions
 		for i := 0; i < 3; i++ {
-			_, err := ts.SessionClient.StartSession(ctx, connect.NewRequest(&heftv1.StartSessionRequest{
+			startReq := connect.NewRequest(&heftv1.StartSessionRequest{
 				UserId: userID,
-			}))
+			})
+			startReq.Header().Set("Authorization", ts.AuthHeader(userID))
+			_, err := ts.SessionClient.StartSession(ctx, startReq)
 			if err != nil {
 				t.Fatalf("failed to start session %d: %v", i, err)
 			}
 		}
 
 		// List sessions
-		resp, err := ts.SessionClient.ListSessions(ctx, connect.NewRequest(&heftv1.ListSessionsRequest{
+		listReq := connect.NewRequest(&heftv1.ListSessionsRequest{
 			UserId: userID,
 			Pagination: &heftv1.PaginationRequest{
 				Page:     1,
 				PageSize: 10,
 			},
-		}))
+		})
+		listReq.Header().Set("Authorization", ts.AuthHeader(userID))
+		resp, err := ts.SessionClient.ListSessions(ctx, listReq)
 
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
@@ -186,12 +200,14 @@ func TestSessionService_Integration_AddExerciseAndCompleteSets(t *testing.T) {
 	userID := testutil.SeedTestUser(t, pool, testUser)
 
 	// Get an exercise ID
-	exercisesResp, err := ts.ExerciseClient.ListExercises(context.Background(), connect.NewRequest(&heftv1.ListExercisesRequest{
+	exercisesReq := connect.NewRequest(&heftv1.ListExercisesRequest{
 		Pagination: &heftv1.PaginationRequest{
 			Page:     1,
 			PageSize: 1,
 		},
-	}))
+	})
+	exercisesReq.Header().Set("Authorization", ts.AuthHeader(userID))
+	exercisesResp, err := ts.ExerciseClient.ListExercises(context.Background(), exercisesReq)
 	if err != nil {
 		t.Fatalf("failed to list exercises: %v", err)
 	}
@@ -204,21 +220,25 @@ func TestSessionService_Integration_AddExerciseAndCompleteSets(t *testing.T) {
 		ctx := context.Background()
 
 		// Start a session
-		startResp, err := ts.SessionClient.StartSession(ctx, connect.NewRequest(&heftv1.StartSessionRequest{
+		startReq := connect.NewRequest(&heftv1.StartSessionRequest{
 			UserId: userID,
-		}))
+		})
+		startReq.Header().Set("Authorization", ts.AuthHeader(userID))
+		startResp, err := ts.SessionClient.StartSession(ctx, startReq)
 		if err != nil {
 			t.Fatalf("failed to start session: %v", err)
 		}
 		sessionID := startResp.Msg.Session.Id
 
 		// Add an exercise with 1 set
-		addExResp, err := ts.SessionClient.AddExercise(ctx, connect.NewRequest(&heftv1.AddExerciseRequest{
+		addExReq := connect.NewRequest(&heftv1.AddExerciseRequest{
 			SessionId:  sessionID,
 			UserId:     userID,
 			ExerciseId: exerciseID,
 			NumSets:    1,
-		}))
+		})
+		addExReq.Header().Set("Authorization", ts.AuthHeader(userID))
+		addExResp, err := ts.SessionClient.AddExercise(ctx, addExReq)
 		if err != nil {
 			t.Fatalf("failed to add exercise: %v", err)
 		}
@@ -236,12 +256,14 @@ func TestSessionService_Integration_AddExerciseAndCompleteSets(t *testing.T) {
 		// Complete the set
 		weight := 100.0
 		reps := int32(10)
-		completeResp, err := ts.SessionClient.CompleteSet(ctx, connect.NewRequest(&heftv1.CompleteSetRequest{
+		completeReq := connect.NewRequest(&heftv1.CompleteSetRequest{
 			SessionSetId: setID,
 			UserId:       userID,
 			WeightKg:     &weight,
 			Reps:         &reps,
-		}))
+		})
+		completeReq.Header().Set("Authorization", ts.AuthHeader(userID))
+		completeResp, err := ts.SessionClient.CompleteSet(ctx, completeReq)
 		if err != nil {
 			t.Fatalf("failed to complete set: %v", err)
 		}
@@ -276,19 +298,23 @@ func TestSessionService_Integration_FinishSession(t *testing.T) {
 		ctx := context.Background()
 
 		// Start a session
-		startResp, err := ts.SessionClient.StartSession(ctx, connect.NewRequest(&heftv1.StartSessionRequest{
+		startReq := connect.NewRequest(&heftv1.StartSessionRequest{
 			UserId: userID,
-		}))
+		})
+		startReq.Header().Set("Authorization", ts.AuthHeader(userID))
+		startResp, err := ts.SessionClient.StartSession(ctx, startReq)
 		if err != nil {
 			t.Fatalf("failed to start session: %v", err)
 		}
 		sessionID := startResp.Msg.Session.Id
 
 		// Finish the session
-		finishResp, err := ts.SessionClient.FinishSession(ctx, connect.NewRequest(&heftv1.FinishSessionRequest{
+		finishReq := connect.NewRequest(&heftv1.FinishSessionRequest{
 			Id:     sessionID,
 			UserId: userID,
-		}))
+		})
+		finishReq.Header().Set("Authorization", ts.AuthHeader(userID))
+		finishResp, err := ts.SessionClient.FinishSession(ctx, finishReq)
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}
@@ -306,9 +332,11 @@ func TestSessionService_Integration_FinishSession(t *testing.T) {
 		ctx := context.Background()
 
 		// Start a session
-		startResp, err := ts.SessionClient.StartSession(ctx, connect.NewRequest(&heftv1.StartSessionRequest{
+		startReq := connect.NewRequest(&heftv1.StartSessionRequest{
 			UserId: userID,
-		}))
+		})
+		startReq.Header().Set("Authorization", ts.AuthHeader(userID))
+		startResp, err := ts.SessionClient.StartSession(ctx, startReq)
 		if err != nil {
 			t.Fatalf("failed to start session: %v", err)
 		}
@@ -316,11 +344,13 @@ func TestSessionService_Integration_FinishSession(t *testing.T) {
 
 		// Finish the session with notes
 		notes := "Great workout today!"
-		finishResp, err := ts.SessionClient.FinishSession(ctx, connect.NewRequest(&heftv1.FinishSessionRequest{
+		finishReq := connect.NewRequest(&heftv1.FinishSessionRequest{
 			Id:     sessionID,
 			UserId: userID,
 			Notes:  &notes,
-		}))
+		})
+		finishReq.Header().Set("Authorization", ts.AuthHeader(userID))
+		finishResp, err := ts.SessionClient.FinishSession(ctx, finishReq)
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}
@@ -347,28 +377,34 @@ func TestSessionService_Integration_AbandonSession(t *testing.T) {
 		ctx := context.Background()
 
 		// Start a session
-		startResp, err := ts.SessionClient.StartSession(ctx, connect.NewRequest(&heftv1.StartSessionRequest{
+		startReq := connect.NewRequest(&heftv1.StartSessionRequest{
 			UserId: userID,
-		}))
+		})
+		startReq.Header().Set("Authorization", ts.AuthHeader(userID))
+		startResp, err := ts.SessionClient.StartSession(ctx, startReq)
 		if err != nil {
 			t.Fatalf("failed to start session: %v", err)
 		}
 		sessionID := startResp.Msg.Session.Id
 
 		// Abandon the session
-		_, err = ts.SessionClient.AbandonSession(ctx, connect.NewRequest(&heftv1.AbandonSessionRequest{
+		abandonReq := connect.NewRequest(&heftv1.AbandonSessionRequest{
 			Id:     sessionID,
 			UserId: userID,
-		}))
+		})
+		abandonReq.Header().Set("Authorization", ts.AuthHeader(userID))
+		_, err = ts.SessionClient.AbandonSession(ctx, abandonReq)
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}
 
 		// Verify session is abandoned by getting it
-		getResp, err := ts.SessionClient.GetSession(ctx, connect.NewRequest(&heftv1.GetSessionRequest{
+		getReq := connect.NewRequest(&heftv1.GetSessionRequest{
 			Id:     sessionID,
 			UserId: userID,
-		}))
+		})
+		getReq.Header().Set("Authorization", ts.AuthHeader(userID))
+		getResp, err := ts.SessionClient.GetSession(ctx, getReq)
 		if err != nil {
 			t.Fatalf("failed to get session: %v", err)
 		}

@@ -14,6 +14,7 @@ import (
 
 	heftv1 "github.com/heftyback/gen/heft/v1"
 	"github.com/heftyback/gen/heft/v1/heftv1connect"
+	"github.com/heftyback/internal/auth"
 	"github.com/heftyback/internal/handlers"
 	"github.com/heftyback/internal/repository"
 	"github.com/heftyback/internal/testutil"
@@ -36,6 +37,8 @@ func setupProgramTest(t *testing.T, mockProgramRepo *testutil.MockProgramReposit
 func TestProgramHandler_ListPrograms(t *testing.T) {
 	tests := []struct {
 		name         string
+		userID       string
+		withAuth     bool
 		request      *heftv1.ListProgramsRequest
 		setupMock    func(*testutil.MockProgramRepository, *testutil.MockWorkoutRepository)
 		wantErr      bool
@@ -43,9 +46,10 @@ func TestProgramHandler_ListPrograms(t *testing.T) {
 		validateResp func(*testing.T, *heftv1.ListProgramsResponse)
 	}{
 		{
-			name: "success - returns programs with pagination",
+			name:     "success - returns programs with pagination",
+			userID:   "user-123",
+			withAuth: true,
 			request: &heftv1.ListProgramsRequest{
-				UserId: "user-123",
 				Pagination: &heftv1.PaginationRequest{
 					Page:     1,
 					PageSize: 10,
@@ -85,10 +89,10 @@ func TestProgramHandler_ListPrograms(t *testing.T) {
 			},
 		},
 		{
-			name: "success - empty list",
-			request: &heftv1.ListProgramsRequest{
-				UserId: "user-123",
-			},
+			name:     "success - empty list",
+			userID:   "user-123",
+			withAuth: true,
+			request:  &heftv1.ListProgramsRequest{},
 			setupMock: func(mp *testutil.MockProgramRepository, mw *testutil.MockWorkoutRepository) {
 				mp.ListFunc = func(ctx context.Context, userID string, includeArchived bool, limit, offset int) ([]*repository.Program, int, error) {
 					return []*repository.Program{}, 0, nil
@@ -100,9 +104,10 @@ func TestProgramHandler_ListPrograms(t *testing.T) {
 			},
 		},
 		{
-			name: "success - includes archived",
+			name:     "success - includes archived",
+			userID:   "user-123",
+			withAuth: true,
 			request: &heftv1.ListProgramsRequest{
-				UserId:          "user-123",
 				IncludeArchived: ptrBool(true),
 			},
 			setupMock: func(mp *testutil.MockProgramRepository, mw *testutil.MockWorkoutRepository) {
@@ -126,19 +131,19 @@ func TestProgramHandler_ListPrograms(t *testing.T) {
 			},
 		},
 		{
-			name: "error - missing user_id",
-			request: &heftv1.ListProgramsRequest{
-				UserId: "",
-			},
+			name:      "error - not authenticated",
+			userID:    "",
+			withAuth:  false,
+			request:   &heftv1.ListProgramsRequest{},
 			setupMock: func(mp *testutil.MockProgramRepository, mw *testutil.MockWorkoutRepository) {},
 			wantErr:   true,
-			wantCode:  connect.CodeInvalidArgument,
+			wantCode:  connect.CodeUnauthenticated,
 		},
 		{
-			name: "error - database error",
-			request: &heftv1.ListProgramsRequest{
-				UserId: "user-123",
-			},
+			name:     "error - database error",
+			userID:   "user-123",
+			withAuth: true,
+			request:  &heftv1.ListProgramsRequest{},
 			setupMock: func(mp *testutil.MockProgramRepository, mw *testutil.MockWorkoutRepository) {
 				mp.ListFunc = func(ctx context.Context, userID string, includeArchived bool, limit, offset int) ([]*repository.Program, int, error) {
 					return nil, 0, errors.New("database error")
@@ -156,7 +161,13 @@ func TestProgramHandler_ListPrograms(t *testing.T) {
 			tt.setupMock(mockProgramRepo, mockWorkoutRepo)
 
 			client := setupProgramTest(t, mockProgramRepo, mockWorkoutRepo)
-			resp, err := client.ListPrograms(context.Background(), connect.NewRequest(tt.request))
+
+			ctx := context.Background()
+			if tt.withAuth {
+				ctx = auth.ContextWithUserID(ctx, tt.userID)
+			}
+
+			resp, err := client.ListPrograms(ctx, connect.NewRequest(tt.request))
 
 			if tt.wantErr {
 				require.Error(t, err)
@@ -175,6 +186,8 @@ func TestProgramHandler_ListPrograms(t *testing.T) {
 func TestProgramHandler_GetProgram(t *testing.T) {
 	tests := []struct {
 		name         string
+		userID       string
+		withAuth     bool
 		request      *heftv1.GetProgramRequest
 		setupMock    func(*testutil.MockProgramRepository, *testutil.MockWorkoutRepository)
 		wantErr      bool
@@ -182,10 +195,11 @@ func TestProgramHandler_GetProgram(t *testing.T) {
 		validateResp func(*testing.T, *heftv1.GetProgramResponse)
 	}{
 		{
-			name: "success - returns program with days",
+			name:     "success - returns program with days",
+			userID:   "user-123",
+			withAuth: true,
 			request: &heftv1.GetProgramRequest{
-				Id:     "program-123",
-				UserId: "user-123",
+				Id: "program-123",
 			},
 			setupMock: func(mp *testutil.MockProgramRepository, mw *testutil.MockWorkoutRepository) {
 				mp.GetByIDFunc = func(ctx context.Context, id, userID string) (*repository.Program, error) {
@@ -226,10 +240,11 @@ func TestProgramHandler_GetProgram(t *testing.T) {
 			},
 		},
 		{
-			name: "error - program not found",
+			name:     "error - program not found",
+			userID:   "user-123",
+			withAuth: true,
 			request: &heftv1.GetProgramRequest{
-				Id:     "nonexistent",
-				UserId: "user-123",
+				Id: "nonexistent",
 			},
 			setupMock: func(mp *testutil.MockProgramRepository, mw *testutil.MockWorkoutRepository) {
 				mp.GetByIDFunc = func(ctx context.Context, id, userID string) (*repository.Program, error) {
@@ -240,24 +255,24 @@ func TestProgramHandler_GetProgram(t *testing.T) {
 			wantCode: connect.CodeNotFound,
 		},
 		{
-			name: "error - missing id",
+			name:     "error - missing id",
+			userID:   "user-123",
+			withAuth: true,
 			request: &heftv1.GetProgramRequest{
-				Id:     "",
-				UserId: "user-123",
+				Id: "",
 			},
 			setupMock: func(mp *testutil.MockProgramRepository, mw *testutil.MockWorkoutRepository) {},
 			wantErr:   true,
 			wantCode:  connect.CodeInvalidArgument,
 		},
 		{
-			name: "error - missing user_id",
-			request: &heftv1.GetProgramRequest{
-				Id:     "program-123",
-				UserId: "",
-			},
+			name:      "error - not authenticated",
+			userID:    "",
+			withAuth:  false,
+			request:   &heftv1.GetProgramRequest{Id: "program-123"},
 			setupMock: func(mp *testutil.MockProgramRepository, mw *testutil.MockWorkoutRepository) {},
 			wantErr:   true,
-			wantCode:  connect.CodeInvalidArgument,
+			wantCode:  connect.CodeUnauthenticated,
 		},
 	}
 
@@ -268,7 +283,13 @@ func TestProgramHandler_GetProgram(t *testing.T) {
 			tt.setupMock(mockProgramRepo, mockWorkoutRepo)
 
 			client := setupProgramTest(t, mockProgramRepo, mockWorkoutRepo)
-			resp, err := client.GetProgram(context.Background(), connect.NewRequest(tt.request))
+
+			ctx := context.Background()
+			if tt.withAuth {
+				ctx = auth.ContextWithUserID(ctx, tt.userID)
+			}
+
+			resp, err := client.GetProgram(ctx, connect.NewRequest(tt.request))
 
 			if tt.wantErr {
 				require.Error(t, err)
@@ -287,6 +308,8 @@ func TestProgramHandler_GetProgram(t *testing.T) {
 func TestProgramHandler_CreateProgram(t *testing.T) {
 	tests := []struct {
 		name         string
+		userID       string
+		withAuth     bool
 		request      *heftv1.CreateProgramRequest
 		setupMock    func(*testutil.MockProgramRepository, *testutil.MockWorkoutRepository)
 		wantErr      bool
@@ -294,9 +317,10 @@ func TestProgramHandler_CreateProgram(t *testing.T) {
 		validateResp func(*testing.T, *heftv1.CreateProgramResponse)
 	}{
 		{
-			name: "success - creates basic program",
+			name:     "success - creates basic program",
+			userID:   "user-123",
+			withAuth: true,
 			request: &heftv1.CreateProgramRequest{
-				UserId:        "user-123",
 				Name:          "New Program",
 				Description:   ptrString("A test program"),
 				DurationWeeks: 4,
@@ -332,9 +356,10 @@ func TestProgramHandler_CreateProgram(t *testing.T) {
 			},
 		},
 		{
-			name: "success - creates program with days",
+			name:     "success - creates program with days",
+			userID:   "user-123",
+			withAuth: true,
 			request: &heftv1.CreateProgramRequest{
-				UserId:        "user-123",
 				Name:          "Weekly Program",
 				DurationWeeks: 1,
 				Days: []*heftv1.CreateProgramDay{
@@ -391,30 +416,33 @@ func TestProgramHandler_CreateProgram(t *testing.T) {
 			},
 		},
 		{
-			name: "error - missing user_id",
+			name:     "error - not authenticated",
+			userID:   "",
+			withAuth: false,
 			request: &heftv1.CreateProgramRequest{
-				UserId: "",
-				Name:   "Test",
+				Name: "Test",
+			},
+			setupMock: func(mp *testutil.MockProgramRepository, mw *testutil.MockWorkoutRepository) {},
+			wantErr:   true,
+			wantCode:  connect.CodeUnauthenticated,
+		},
+		{
+			name:     "error - missing name",
+			userID:   "user-123",
+			withAuth: true,
+			request: &heftv1.CreateProgramRequest{
+				Name: "",
 			},
 			setupMock: func(mp *testutil.MockProgramRepository, mw *testutil.MockWorkoutRepository) {},
 			wantErr:   true,
 			wantCode:  connect.CodeInvalidArgument,
 		},
 		{
-			name: "error - missing name",
+			name:     "error - database error on create",
+			userID:   "user-123",
+			withAuth: true,
 			request: &heftv1.CreateProgramRequest{
-				UserId: "user-123",
-				Name:   "",
-			},
-			setupMock: func(mp *testutil.MockProgramRepository, mw *testutil.MockWorkoutRepository) {},
-			wantErr:   true,
-			wantCode:  connect.CodeInvalidArgument,
-		},
-		{
-			name: "error - database error on create",
-			request: &heftv1.CreateProgramRequest{
-				UserId: "user-123",
-				Name:   "Test",
+				Name: "Test",
 			},
 			setupMock: func(mp *testutil.MockProgramRepository, mw *testutil.MockWorkoutRepository) {
 				mp.CreateFunc = func(ctx context.Context, userID, name string, description *string, durationWeeks, durationDays int) (*repository.Program, error) {
@@ -433,7 +461,13 @@ func TestProgramHandler_CreateProgram(t *testing.T) {
 			tt.setupMock(mockProgramRepo, mockWorkoutRepo)
 
 			client := setupProgramTest(t, mockProgramRepo, mockWorkoutRepo)
-			resp, err := client.CreateProgram(context.Background(), connect.NewRequest(tt.request))
+
+			ctx := context.Background()
+			if tt.withAuth {
+				ctx = auth.ContextWithUserID(ctx, tt.userID)
+			}
+
+			resp, err := client.CreateProgram(ctx, connect.NewRequest(tt.request))
 
 			if tt.wantErr {
 				require.Error(t, err)
@@ -452,6 +486,8 @@ func TestProgramHandler_CreateProgram(t *testing.T) {
 func TestProgramHandler_DeleteProgram(t *testing.T) {
 	tests := []struct {
 		name         string
+		userID       string
+		withAuth     bool
 		request      *heftv1.DeleteProgramRequest
 		setupMock    func(*testutil.MockProgramRepository, *testutil.MockWorkoutRepository)
 		wantErr      bool
@@ -459,10 +495,11 @@ func TestProgramHandler_DeleteProgram(t *testing.T) {
 		validateResp func(*testing.T, *heftv1.DeleteProgramResponse)
 	}{
 		{
-			name: "success - deletes program",
+			name:     "success - deletes program",
+			userID:   "user-123",
+			withAuth: true,
 			request: &heftv1.DeleteProgramRequest{
-				Id:     "program-123",
-				UserId: "user-123",
+				Id: "program-123",
 			},
 			setupMock: func(mp *testutil.MockProgramRepository, mw *testutil.MockWorkoutRepository) {
 				mp.DeleteFunc = func(ctx context.Context, id, userID string) error {
@@ -474,30 +511,31 @@ func TestProgramHandler_DeleteProgram(t *testing.T) {
 			},
 		},
 		{
-			name: "error - missing id",
+			name:     "error - missing id",
+			userID:   "user-123",
+			withAuth: true,
 			request: &heftv1.DeleteProgramRequest{
-				Id:     "",
-				UserId: "user-123",
+				Id: "",
 			},
 			setupMock: func(mp *testutil.MockProgramRepository, mw *testutil.MockWorkoutRepository) {},
 			wantErr:   true,
 			wantCode:  connect.CodeInvalidArgument,
 		},
 		{
-			name: "error - missing user_id",
-			request: &heftv1.DeleteProgramRequest{
-				Id:     "program-123",
-				UserId: "",
-			},
+			name:      "error - not authenticated",
+			userID:    "",
+			withAuth:  false,
+			request:   &heftv1.DeleteProgramRequest{Id: "program-123"},
 			setupMock: func(mp *testutil.MockProgramRepository, mw *testutil.MockWorkoutRepository) {},
 			wantErr:   true,
-			wantCode:  connect.CodeInvalidArgument,
+			wantCode:  connect.CodeUnauthenticated,
 		},
 		{
-			name: "error - database error",
+			name:     "error - database error",
+			userID:   "user-123",
+			withAuth: true,
 			request: &heftv1.DeleteProgramRequest{
-				Id:     "program-123",
-				UserId: "user-123",
+				Id: "program-123",
 			},
 			setupMock: func(mp *testutil.MockProgramRepository, mw *testutil.MockWorkoutRepository) {
 				mp.DeleteFunc = func(ctx context.Context, id, userID string) error {
@@ -516,7 +554,13 @@ func TestProgramHandler_DeleteProgram(t *testing.T) {
 			tt.setupMock(mockProgramRepo, mockWorkoutRepo)
 
 			client := setupProgramTest(t, mockProgramRepo, mockWorkoutRepo)
-			resp, err := client.DeleteProgram(context.Background(), connect.NewRequest(tt.request))
+
+			ctx := context.Background()
+			if tt.withAuth {
+				ctx = auth.ContextWithUserID(ctx, tt.userID)
+			}
+
+			resp, err := client.DeleteProgram(ctx, connect.NewRequest(tt.request))
 
 			if tt.wantErr {
 				require.Error(t, err)
@@ -535,6 +579,8 @@ func TestProgramHandler_DeleteProgram(t *testing.T) {
 func TestProgramHandler_SetActiveProgram(t *testing.T) {
 	tests := []struct {
 		name         string
+		userID       string
+		withAuth     bool
 		request      *heftv1.SetActiveProgramRequest
 		setupMock    func(*testutil.MockProgramRepository, *testutil.MockWorkoutRepository)
 		wantErr      bool
@@ -542,10 +588,11 @@ func TestProgramHandler_SetActiveProgram(t *testing.T) {
 		validateResp func(*testing.T, *heftv1.SetActiveProgramResponse)
 	}{
 		{
-			name: "success - sets program as active",
+			name:     "success - sets program as active",
+			userID:   "user-123",
+			withAuth: true,
 			request: &heftv1.SetActiveProgramRequest{
-				Id:     "program-123",
-				UserId: "user-123",
+				Id: "program-123",
 			},
 			setupMock: func(mp *testutil.MockProgramRepository, mw *testutil.MockWorkoutRepository) {
 				mp.SetActiveFunc = func(ctx context.Context, id, userID string) (*repository.Program, error) {
@@ -573,30 +620,31 @@ func TestProgramHandler_SetActiveProgram(t *testing.T) {
 			},
 		},
 		{
-			name: "error - missing id",
+			name:     "error - missing id",
+			userID:   "user-123",
+			withAuth: true,
 			request: &heftv1.SetActiveProgramRequest{
-				Id:     "",
-				UserId: "user-123",
+				Id: "",
 			},
 			setupMock: func(mp *testutil.MockProgramRepository, mw *testutil.MockWorkoutRepository) {},
 			wantErr:   true,
 			wantCode:  connect.CodeInvalidArgument,
 		},
 		{
-			name: "error - missing user_id",
-			request: &heftv1.SetActiveProgramRequest{
-				Id:     "program-123",
-				UserId: "",
-			},
+			name:      "error - not authenticated",
+			userID:    "",
+			withAuth:  false,
+			request:   &heftv1.SetActiveProgramRequest{Id: "program-123"},
 			setupMock: func(mp *testutil.MockProgramRepository, mw *testutil.MockWorkoutRepository) {},
 			wantErr:   true,
-			wantCode:  connect.CodeInvalidArgument,
+			wantCode:  connect.CodeUnauthenticated,
 		},
 		{
-			name: "error - database error",
+			name:     "error - database error",
+			userID:   "user-123",
+			withAuth: true,
 			request: &heftv1.SetActiveProgramRequest{
-				Id:     "program-123",
-				UserId: "user-123",
+				Id: "program-123",
 			},
 			setupMock: func(mp *testutil.MockProgramRepository, mw *testutil.MockWorkoutRepository) {
 				mp.SetActiveFunc = func(ctx context.Context, id, userID string) (*repository.Program, error) {
@@ -615,7 +663,13 @@ func TestProgramHandler_SetActiveProgram(t *testing.T) {
 			tt.setupMock(mockProgramRepo, mockWorkoutRepo)
 
 			client := setupProgramTest(t, mockProgramRepo, mockWorkoutRepo)
-			resp, err := client.SetActiveProgram(context.Background(), connect.NewRequest(tt.request))
+
+			ctx := context.Background()
+			if tt.withAuth {
+				ctx = auth.ContextWithUserID(ctx, tt.userID)
+			}
+
+			resp, err := client.SetActiveProgram(ctx, connect.NewRequest(tt.request))
 
 			if tt.wantErr {
 				require.Error(t, err)
@@ -634,6 +688,8 @@ func TestProgramHandler_SetActiveProgram(t *testing.T) {
 func TestProgramHandler_GetTodayWorkout(t *testing.T) {
 	tests := []struct {
 		name         string
+		userID       string
+		withAuth     bool
 		request      *heftv1.GetTodayWorkoutRequest
 		setupMock    func(*testutil.MockProgramRepository, *testutil.MockWorkoutRepository)
 		wantErr      bool
@@ -641,10 +697,10 @@ func TestProgramHandler_GetTodayWorkout(t *testing.T) {
 		validateResp func(*testing.T, *heftv1.GetTodayWorkoutResponse)
 	}{
 		{
-			name: "success - has workout today",
-			request: &heftv1.GetTodayWorkoutRequest{
-				UserId: "user-123",
-			},
+			name:     "success - has workout today",
+			userID:   "user-123",
+			withAuth: true,
+			request:  &heftv1.GetTodayWorkoutRequest{},
 			setupMock: func(mp *testutil.MockProgramRepository, mw *testutil.MockWorkoutRepository) {
 				workoutID := "workout-1"
 				mp.GetActiveProgramFunc = func(ctx context.Context, userID string) (*repository.Program, error) {
@@ -683,10 +739,10 @@ func TestProgramHandler_GetTodayWorkout(t *testing.T) {
 			},
 		},
 		{
-			name: "success - rest day",
-			request: &heftv1.GetTodayWorkoutRequest{
-				UserId: "user-123",
-			},
+			name:     "success - rest day",
+			userID:   "user-123",
+			withAuth: true,
+			request:  &heftv1.GetTodayWorkoutRequest{},
 			setupMock: func(mp *testutil.MockProgramRepository, mw *testutil.MockWorkoutRepository) {
 				mp.GetActiveProgramFunc = func(ctx context.Context, userID string) (*repository.Program, error) {
 					return &repository.Program{
@@ -712,10 +768,10 @@ func TestProgramHandler_GetTodayWorkout(t *testing.T) {
 			},
 		},
 		{
-			name: "success - no active program",
-			request: &heftv1.GetTodayWorkoutRequest{
-				UserId: "user-123",
-			},
+			name:     "success - no active program",
+			userID:   "user-123",
+			withAuth: true,
+			request:  &heftv1.GetTodayWorkoutRequest{},
 			setupMock: func(mp *testutil.MockProgramRepository, mw *testutil.MockWorkoutRepository) {
 				mp.GetActiveProgramFunc = func(ctx context.Context, userID string) (*repository.Program, error) {
 					return nil, nil
@@ -726,19 +782,19 @@ func TestProgramHandler_GetTodayWorkout(t *testing.T) {
 			},
 		},
 		{
-			name: "error - missing user_id",
-			request: &heftv1.GetTodayWorkoutRequest{
-				UserId: "",
-			},
+			name:      "error - not authenticated",
+			userID:    "",
+			withAuth:  false,
+			request:   &heftv1.GetTodayWorkoutRequest{},
 			setupMock: func(mp *testutil.MockProgramRepository, mw *testutil.MockWorkoutRepository) {},
 			wantErr:   true,
-			wantCode:  connect.CodeInvalidArgument,
+			wantCode:  connect.CodeUnauthenticated,
 		},
 		{
-			name: "error - database error",
-			request: &heftv1.GetTodayWorkoutRequest{
-				UserId: "user-123",
-			},
+			name:     "error - database error",
+			userID:   "user-123",
+			withAuth: true,
+			request:  &heftv1.GetTodayWorkoutRequest{},
 			setupMock: func(mp *testutil.MockProgramRepository, mw *testutil.MockWorkoutRepository) {
 				mp.GetActiveProgramFunc = func(ctx context.Context, userID string) (*repository.Program, error) {
 					return nil, errors.New("database error")
@@ -756,7 +812,13 @@ func TestProgramHandler_GetTodayWorkout(t *testing.T) {
 			tt.setupMock(mockProgramRepo, mockWorkoutRepo)
 
 			client := setupProgramTest(t, mockProgramRepo, mockWorkoutRepo)
-			resp, err := client.GetTodayWorkout(context.Background(), connect.NewRequest(tt.request))
+
+			ctx := context.Background()
+			if tt.withAuth {
+				ctx = auth.ContextWithUserID(ctx, tt.userID)
+			}
+
+			resp, err := client.GetTodayWorkout(ctx, connect.NewRequest(tt.request))
 
 			if tt.wantErr {
 				require.Error(t, err)
@@ -775,6 +837,8 @@ func TestProgramHandler_GetTodayWorkout(t *testing.T) {
 func TestProgramHandler_UpdateProgram(t *testing.T) {
 	tests := []struct {
 		name         string
+		userID       string
+		withAuth     bool
 		request      *heftv1.UpdateProgramRequest
 		setupMock    func(*testutil.MockProgramRepository, *testutil.MockWorkoutRepository)
 		wantErr      bool
@@ -782,10 +846,11 @@ func TestProgramHandler_UpdateProgram(t *testing.T) {
 		validateResp func(*testing.T, *heftv1.UpdateProgramResponse)
 	}{
 		{
-			name: "success - returns existing program",
+			name:     "success - returns existing program",
+			userID:   "user-123",
+			withAuth: true,
 			request: &heftv1.UpdateProgramRequest{
-				Id:     "program-123",
-				UserId: "user-123",
+				Id: "program-123",
 			},
 			setupMock: func(mp *testutil.MockProgramRepository, mw *testutil.MockWorkoutRepository) {
 				mp.GetByIDFunc = func(ctx context.Context, id, userID string) (*repository.Program, error) {
@@ -804,10 +869,11 @@ func TestProgramHandler_UpdateProgram(t *testing.T) {
 			},
 		},
 		{
-			name: "error - program not found",
+			name:     "error - program not found",
+			userID:   "user-123",
+			withAuth: true,
 			request: &heftv1.UpdateProgramRequest{
-				Id:     "nonexistent",
-				UserId: "user-123",
+				Id: "nonexistent",
 			},
 			setupMock: func(mp *testutil.MockProgramRepository, mw *testutil.MockWorkoutRepository) {
 				mp.GetByIDFunc = func(ctx context.Context, id, userID string) (*repository.Program, error) {
@@ -818,24 +884,24 @@ func TestProgramHandler_UpdateProgram(t *testing.T) {
 			wantCode: connect.CodeNotFound,
 		},
 		{
-			name: "error - missing id",
+			name:     "error - missing id",
+			userID:   "user-123",
+			withAuth: true,
 			request: &heftv1.UpdateProgramRequest{
-				Id:     "",
-				UserId: "user-123",
+				Id: "",
 			},
 			setupMock: func(mp *testutil.MockProgramRepository, mw *testutil.MockWorkoutRepository) {},
 			wantErr:   true,
 			wantCode:  connect.CodeInvalidArgument,
 		},
 		{
-			name: "error - missing user_id",
-			request: &heftv1.UpdateProgramRequest{
-				Id:     "program-123",
-				UserId: "",
-			},
+			name:      "error - not authenticated",
+			userID:    "",
+			withAuth:  false,
+			request:   &heftv1.UpdateProgramRequest{Id: "program-123"},
 			setupMock: func(mp *testutil.MockProgramRepository, mw *testutil.MockWorkoutRepository) {},
 			wantErr:   true,
-			wantCode:  connect.CodeInvalidArgument,
+			wantCode:  connect.CodeUnauthenticated,
 		},
 	}
 
@@ -846,7 +912,13 @@ func TestProgramHandler_UpdateProgram(t *testing.T) {
 			tt.setupMock(mockProgramRepo, mockWorkoutRepo)
 
 			client := setupProgramTest(t, mockProgramRepo, mockWorkoutRepo)
-			resp, err := client.UpdateProgram(context.Background(), connect.NewRequest(tt.request))
+
+			ctx := context.Background()
+			if tt.withAuth {
+				ctx = auth.ContextWithUserID(ctx, tt.userID)
+			}
+
+			resp, err := client.UpdateProgram(ctx, connect.NewRequest(tt.request))
 
 			if tt.wantErr {
 				require.Error(t, err)

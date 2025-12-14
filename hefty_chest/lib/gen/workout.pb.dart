@@ -14,9 +14,9 @@ import 'dart:core' as $core;
 
 import 'package:protobuf/protobuf.dart' as $pb;
 
-import 'common.pb.dart' as $1;
-import 'common.pbenum.dart' as $1;
-import 'google/protobuf/timestamp.pb.dart' as $0;
+import 'common.pb.dart' as $2;
+import 'common.pbenum.dart' as $2;
+import 'google/protobuf/timestamp.pb.dart' as $1;
 
 /// Workout template (summary)
 class WorkoutSummary extends $pb.GeneratedMessage {
@@ -29,8 +29,8 @@ class WorkoutSummary extends $pb.GeneratedMessage {
     $core.int? totalSets,
     $core.int? estimatedDurationMinutes,
     $core.bool? isArchived,
-    $0.Timestamp? createdAt,
-    $0.Timestamp? updatedAt,
+    $1.Timestamp? createdAt,
+    $1.Timestamp? updatedAt,
   }) {
     final $result = create();
     if (id != null) {
@@ -78,8 +78,8 @@ class WorkoutSummary extends $pb.GeneratedMessage {
     ..a<$core.int>(6, _omitFieldNames ? '' : 'totalSets', $pb.PbFieldType.O3)
     ..a<$core.int>(7, _omitFieldNames ? '' : 'estimatedDurationMinutes', $pb.PbFieldType.O3)
     ..aOB(8, _omitFieldNames ? '' : 'isArchived')
-    ..aOM<$0.Timestamp>(9, _omitFieldNames ? '' : 'createdAt', subBuilder: $0.Timestamp.create)
-    ..aOM<$0.Timestamp>(10, _omitFieldNames ? '' : 'updatedAt', subBuilder: $0.Timestamp.create)
+    ..aOM<$1.Timestamp>(9, _omitFieldNames ? '' : 'createdAt', subBuilder: $1.Timestamp.create)
+    ..aOM<$1.Timestamp>(10, _omitFieldNames ? '' : 'updatedAt', subBuilder: $1.Timestamp.create)
     ..hasRequiredFields = false
   ;
 
@@ -177,26 +177,26 @@ class WorkoutSummary extends $pb.GeneratedMessage {
   void clearIsArchived() => clearField(8);
 
   @$pb.TagNumber(9)
-  $0.Timestamp get createdAt => $_getN(8);
+  $1.Timestamp get createdAt => $_getN(8);
   @$pb.TagNumber(9)
-  set createdAt($0.Timestamp v) { setField(9, v); }
+  set createdAt($1.Timestamp v) { setField(9, v); }
   @$pb.TagNumber(9)
   $core.bool hasCreatedAt() => $_has(8);
   @$pb.TagNumber(9)
   void clearCreatedAt() => clearField(9);
   @$pb.TagNumber(9)
-  $0.Timestamp ensureCreatedAt() => $_ensure(8);
+  $1.Timestamp ensureCreatedAt() => $_ensure(8);
 
   @$pb.TagNumber(10)
-  $0.Timestamp get updatedAt => $_getN(9);
+  $1.Timestamp get updatedAt => $_getN(9);
   @$pb.TagNumber(10)
-  set updatedAt($0.Timestamp v) { setField(10, v); }
+  set updatedAt($1.Timestamp v) { setField(10, v); }
   @$pb.TagNumber(10)
   $core.bool hasUpdatedAt() => $_has(9);
   @$pb.TagNumber(10)
   void clearUpdatedAt() => clearField(10);
   @$pb.TagNumber(10)
-  $0.Timestamp ensureUpdatedAt() => $_ensure(9);
+  $1.Timestamp ensureUpdatedAt() => $_ensure(9);
 }
 
 /// Workout template (full details)
@@ -211,8 +211,8 @@ class Workout extends $pb.GeneratedMessage {
     $core.int? estimatedDurationMinutes,
     $core.bool? isArchived,
     $core.Iterable<WorkoutSection>? sections,
-    $0.Timestamp? createdAt,
-    $0.Timestamp? updatedAt,
+    $1.Timestamp? createdAt,
+    $1.Timestamp? updatedAt,
   }) {
     final $result = create();
     if (id != null) {
@@ -264,8 +264,8 @@ class Workout extends $pb.GeneratedMessage {
     ..a<$core.int>(7, _omitFieldNames ? '' : 'estimatedDurationMinutes', $pb.PbFieldType.O3)
     ..aOB(8, _omitFieldNames ? '' : 'isArchived')
     ..pc<WorkoutSection>(9, _omitFieldNames ? '' : 'sections', $pb.PbFieldType.PM, subBuilder: WorkoutSection.create)
-    ..aOM<$0.Timestamp>(10, _omitFieldNames ? '' : 'createdAt', subBuilder: $0.Timestamp.create)
-    ..aOM<$0.Timestamp>(11, _omitFieldNames ? '' : 'updatedAt', subBuilder: $0.Timestamp.create)
+    ..aOM<$1.Timestamp>(10, _omitFieldNames ? '' : 'createdAt', subBuilder: $1.Timestamp.create)
+    ..aOM<$1.Timestamp>(11, _omitFieldNames ? '' : 'updatedAt', subBuilder: $1.Timestamp.create)
     ..hasRequiredFields = false
   ;
 
@@ -366,26 +366,26 @@ class Workout extends $pb.GeneratedMessage {
   $core.List<WorkoutSection> get sections => $_getList(8);
 
   @$pb.TagNumber(10)
-  $0.Timestamp get createdAt => $_getN(9);
+  $1.Timestamp get createdAt => $_getN(9);
   @$pb.TagNumber(10)
-  set createdAt($0.Timestamp v) { setField(10, v); }
+  set createdAt($1.Timestamp v) { setField(10, v); }
   @$pb.TagNumber(10)
   $core.bool hasCreatedAt() => $_has(9);
   @$pb.TagNumber(10)
   void clearCreatedAt() => clearField(10);
   @$pb.TagNumber(10)
-  $0.Timestamp ensureCreatedAt() => $_ensure(9);
+  $1.Timestamp ensureCreatedAt() => $_ensure(9);
 
   @$pb.TagNumber(11)
-  $0.Timestamp get updatedAt => $_getN(10);
+  $1.Timestamp get updatedAt => $_getN(10);
   @$pb.TagNumber(11)
-  set updatedAt($0.Timestamp v) { setField(11, v); }
+  set updatedAt($1.Timestamp v) { setField(11, v); }
   @$pb.TagNumber(11)
   $core.bool hasUpdatedAt() => $_has(10);
   @$pb.TagNumber(11)
   void clearUpdatedAt() => clearField(11);
   @$pb.TagNumber(11)
-  $0.Timestamp ensureUpdatedAt() => $_ensure(10);
+  $1.Timestamp ensureUpdatedAt() => $_ensure(10);
 }
 
 /// Workout section
@@ -508,11 +508,11 @@ class SectionItem extends $pb.GeneratedMessage {
   factory SectionItem({
     $core.String? id,
     $core.String? sectionId,
-    $1.SectionItemType? itemType,
+    $2.SectionItemType? itemType,
     $core.int? displayOrder,
     $core.String? exerciseId,
     $core.String? exerciseName,
-    $1.ExerciseType? exerciseType,
+    $2.ExerciseType? exerciseType,
     $core.Iterable<TargetSet>? targetSets,
     $core.int? restDurationSeconds,
   }) {
@@ -553,11 +553,11 @@ class SectionItem extends $pb.GeneratedMessage {
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'SectionItem', package: const $pb.PackageName(_omitMessageNames ? '' : 'heft.v1'), createEmptyInstance: create)
     ..aOS(1, _omitFieldNames ? '' : 'id')
     ..aOS(2, _omitFieldNames ? '' : 'sectionId')
-    ..e<$1.SectionItemType>(3, _omitFieldNames ? '' : 'itemType', $pb.PbFieldType.OE, defaultOrMaker: $1.SectionItemType.SECTION_ITEM_TYPE_UNSPECIFIED, valueOf: $1.SectionItemType.valueOf, enumValues: $1.SectionItemType.values)
+    ..e<$2.SectionItemType>(3, _omitFieldNames ? '' : 'itemType', $pb.PbFieldType.OE, defaultOrMaker: $2.SectionItemType.SECTION_ITEM_TYPE_UNSPECIFIED, valueOf: $2.SectionItemType.valueOf, enumValues: $2.SectionItemType.values)
     ..a<$core.int>(4, _omitFieldNames ? '' : 'displayOrder', $pb.PbFieldType.O3)
     ..aOS(5, _omitFieldNames ? '' : 'exerciseId')
     ..aOS(6, _omitFieldNames ? '' : 'exerciseName')
-    ..e<$1.ExerciseType>(7, _omitFieldNames ? '' : 'exerciseType', $pb.PbFieldType.OE, defaultOrMaker: $1.ExerciseType.EXERCISE_TYPE_UNSPECIFIED, valueOf: $1.ExerciseType.valueOf, enumValues: $1.ExerciseType.values)
+    ..e<$2.ExerciseType>(7, _omitFieldNames ? '' : 'exerciseType', $pb.PbFieldType.OE, defaultOrMaker: $2.ExerciseType.EXERCISE_TYPE_UNSPECIFIED, valueOf: $2.ExerciseType.valueOf, enumValues: $2.ExerciseType.values)
     ..pc<TargetSet>(8, _omitFieldNames ? '' : 'targetSets', $pb.PbFieldType.PM, subBuilder: TargetSet.create)
     ..a<$core.int>(9, _omitFieldNames ? '' : 'restDurationSeconds', $pb.PbFieldType.O3)
     ..hasRequiredFields = false
@@ -603,9 +603,9 @@ class SectionItem extends $pb.GeneratedMessage {
   void clearSectionId() => clearField(2);
 
   @$pb.TagNumber(3)
-  $1.SectionItemType get itemType => $_getN(2);
+  $2.SectionItemType get itemType => $_getN(2);
   @$pb.TagNumber(3)
-  set itemType($1.SectionItemType v) { setField(3, v); }
+  set itemType($2.SectionItemType v) { setField(3, v); }
   @$pb.TagNumber(3)
   $core.bool hasItemType() => $_has(2);
   @$pb.TagNumber(3)
@@ -640,9 +640,9 @@ class SectionItem extends $pb.GeneratedMessage {
   void clearExerciseName() => clearField(6);
 
   @$pb.TagNumber(7)
-  $1.ExerciseType get exerciseType => $_getN(6);
+  $2.ExerciseType get exerciseType => $_getN(6);
   @$pb.TagNumber(7)
-  set exerciseType($1.ExerciseType v) { setField(7, v); }
+  set exerciseType($2.ExerciseType v) { setField(7, v); }
   @$pb.TagNumber(7)
   $core.bool hasExerciseType() => $_has(6);
   @$pb.TagNumber(7)
@@ -830,7 +830,7 @@ class ListWorkoutsRequest extends $pb.GeneratedMessage {
   factory ListWorkoutsRequest({
     $core.String? userId,
     $core.bool? includeArchived,
-    $1.PaginationRequest? pagination,
+    $2.PaginationRequest? pagination,
   }) {
     final $result = create();
     if (userId != null) {
@@ -851,7 +851,7 @@ class ListWorkoutsRequest extends $pb.GeneratedMessage {
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'ListWorkoutsRequest', package: const $pb.PackageName(_omitMessageNames ? '' : 'heft.v1'), createEmptyInstance: create)
     ..aOS(1, _omitFieldNames ? '' : 'userId')
     ..aOB(2, _omitFieldNames ? '' : 'includeArchived')
-    ..aOM<$1.PaginationRequest>(3, _omitFieldNames ? '' : 'pagination', subBuilder: $1.PaginationRequest.create)
+    ..aOM<$2.PaginationRequest>(3, _omitFieldNames ? '' : 'pagination', subBuilder: $2.PaginationRequest.create)
     ..hasRequiredFields = false
   ;
 
@@ -895,21 +895,21 @@ class ListWorkoutsRequest extends $pb.GeneratedMessage {
   void clearIncludeArchived() => clearField(2);
 
   @$pb.TagNumber(3)
-  $1.PaginationRequest get pagination => $_getN(2);
+  $2.PaginationRequest get pagination => $_getN(2);
   @$pb.TagNumber(3)
-  set pagination($1.PaginationRequest v) { setField(3, v); }
+  set pagination($2.PaginationRequest v) { setField(3, v); }
   @$pb.TagNumber(3)
   $core.bool hasPagination() => $_has(2);
   @$pb.TagNumber(3)
   void clearPagination() => clearField(3);
   @$pb.TagNumber(3)
-  $1.PaginationRequest ensurePagination() => $_ensure(2);
+  $2.PaginationRequest ensurePagination() => $_ensure(2);
 }
 
 class ListWorkoutsResponse extends $pb.GeneratedMessage {
   factory ListWorkoutsResponse({
     $core.Iterable<WorkoutSummary>? workouts,
-    $1.PaginationResponse? pagination,
+    $2.PaginationResponse? pagination,
   }) {
     final $result = create();
     if (workouts != null) {
@@ -926,7 +926,7 @@ class ListWorkoutsResponse extends $pb.GeneratedMessage {
 
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'ListWorkoutsResponse', package: const $pb.PackageName(_omitMessageNames ? '' : 'heft.v1'), createEmptyInstance: create)
     ..pc<WorkoutSummary>(1, _omitFieldNames ? '' : 'workouts', $pb.PbFieldType.PM, subBuilder: WorkoutSummary.create)
-    ..aOM<$1.PaginationResponse>(2, _omitFieldNames ? '' : 'pagination', subBuilder: $1.PaginationResponse.create)
+    ..aOM<$2.PaginationResponse>(2, _omitFieldNames ? '' : 'pagination', subBuilder: $2.PaginationResponse.create)
     ..hasRequiredFields = false
   ;
 
@@ -955,15 +955,15 @@ class ListWorkoutsResponse extends $pb.GeneratedMessage {
   $core.List<WorkoutSummary> get workouts => $_getList(0);
 
   @$pb.TagNumber(2)
-  $1.PaginationResponse get pagination => $_getN(1);
+  $2.PaginationResponse get pagination => $_getN(1);
   @$pb.TagNumber(2)
-  set pagination($1.PaginationResponse v) { setField(2, v); }
+  set pagination($2.PaginationResponse v) { setField(2, v); }
   @$pb.TagNumber(2)
   $core.bool hasPagination() => $_has(1);
   @$pb.TagNumber(2)
   void clearPagination() => clearField(2);
   @$pb.TagNumber(2)
-  $1.PaginationResponse ensurePagination() => $_ensure(1);
+  $2.PaginationResponse ensurePagination() => $_ensure(1);
 }
 
 /// GetWorkout
@@ -1258,7 +1258,7 @@ class CreateWorkoutSection extends $pb.GeneratedMessage {
 
 class CreateSectionItem extends $pb.GeneratedMessage {
   factory CreateSectionItem({
-    $1.SectionItemType? itemType,
+    $2.SectionItemType? itemType,
     $core.int? displayOrder,
     $core.String? exerciseId,
     $core.int? restDurationSeconds,
@@ -1287,7 +1287,7 @@ class CreateSectionItem extends $pb.GeneratedMessage {
   factory CreateSectionItem.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
 
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'CreateSectionItem', package: const $pb.PackageName(_omitMessageNames ? '' : 'heft.v1'), createEmptyInstance: create)
-    ..e<$1.SectionItemType>(1, _omitFieldNames ? '' : 'itemType', $pb.PbFieldType.OE, defaultOrMaker: $1.SectionItemType.SECTION_ITEM_TYPE_UNSPECIFIED, valueOf: $1.SectionItemType.valueOf, enumValues: $1.SectionItemType.values)
+    ..e<$2.SectionItemType>(1, _omitFieldNames ? '' : 'itemType', $pb.PbFieldType.OE, defaultOrMaker: $2.SectionItemType.SECTION_ITEM_TYPE_UNSPECIFIED, valueOf: $2.SectionItemType.valueOf, enumValues: $2.SectionItemType.values)
     ..a<$core.int>(2, _omitFieldNames ? '' : 'displayOrder', $pb.PbFieldType.O3)
     ..aOS(3, _omitFieldNames ? '' : 'exerciseId')
     ..a<$core.int>(4, _omitFieldNames ? '' : 'restDurationSeconds', $pb.PbFieldType.O3)
@@ -1317,9 +1317,9 @@ class CreateSectionItem extends $pb.GeneratedMessage {
   static CreateSectionItem? _defaultInstance;
 
   @$pb.TagNumber(1)
-  $1.SectionItemType get itemType => $_getN(0);
+  $2.SectionItemType get itemType => $_getN(0);
   @$pb.TagNumber(1)
-  set itemType($1.SectionItemType v) { setField(1, v); }
+  set itemType($2.SectionItemType v) { setField(1, v); }
   @$pb.TagNumber(1)
   $core.bool hasItemType() => $_has(0);
   @$pb.TagNumber(1)

@@ -8,6 +8,7 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 
 	heftv1 "github.com/heftyback/gen/heft/v1"
+	"github.com/heftyback/internal/auth"
 	"github.com/heftyback/internal/repository"
 )
 
@@ -27,8 +28,9 @@ func NewProgramHandler(programRepo repository.ProgramRepositoryInterface, workou
 
 // ListPrograms lists programs for a user
 func (h *ProgramHandler) ListPrograms(ctx context.Context, req *connect.Request[heftv1.ListProgramsRequest]) (*connect.Response[heftv1.ListProgramsResponse], error) {
-	if req.Msg.UserId == "" {
-		return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("user_id is required"))
+	userID, ok := auth.UserIDFromContext(ctx)
+	if !ok {
+		return nil, connect.NewError(connect.CodeUnauthenticated, errors.New("not authenticated"))
 	}
 
 	includeArchived := false
@@ -48,7 +50,7 @@ func (h *ProgramHandler) ListPrograms(ctx context.Context, req *connect.Request[
 	}
 
 	offset := (page - 1) * pageSize
-	programs, totalCount, err := h.programRepo.List(ctx, req.Msg.UserId, includeArchived, int(pageSize), int(offset))
+	programs, totalCount, err := h.programRepo.List(ctx, userID, includeArchived, int(pageSize), int(offset))
 	if err != nil {
 		return nil, connect.NewError(connect.CodeInternal, err)
 	}
@@ -73,11 +75,15 @@ func (h *ProgramHandler) ListPrograms(ctx context.Context, req *connect.Request[
 
 // GetProgram retrieves a program with full details
 func (h *ProgramHandler) GetProgram(ctx context.Context, req *connect.Request[heftv1.GetProgramRequest]) (*connect.Response[heftv1.GetProgramResponse], error) {
-	if req.Msg.Id == "" || req.Msg.UserId == "" {
-		return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("id and user_id are required"))
+	userID, ok := auth.UserIDFromContext(ctx)
+	if !ok {
+		return nil, connect.NewError(connect.CodeUnauthenticated, errors.New("not authenticated"))
+	}
+	if req.Msg.Id == "" {
+		return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("id is required"))
 	}
 
-	program, err := h.programRepo.GetByID(ctx, req.Msg.Id, req.Msg.UserId)
+	program, err := h.programRepo.GetByID(ctx, req.Msg.Id, userID)
 	if err != nil {
 		return nil, connect.NewError(connect.CodeInternal, err)
 	}
@@ -92,8 +98,9 @@ func (h *ProgramHandler) GetProgram(ctx context.Context, req *connect.Request[he
 
 // CreateProgram creates a new program
 func (h *ProgramHandler) CreateProgram(ctx context.Context, req *connect.Request[heftv1.CreateProgramRequest]) (*connect.Response[heftv1.CreateProgramResponse], error) {
-	if req.Msg.UserId == "" {
-		return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("user_id is required"))
+	userID, ok := auth.UserIDFromContext(ctx)
+	if !ok {
+		return nil, connect.NewError(connect.CodeUnauthenticated, errors.New("not authenticated"))
 	}
 	if req.Msg.Name == "" {
 		return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("name is required"))
@@ -104,7 +111,7 @@ func (h *ProgramHandler) CreateProgram(ctx context.Context, req *connect.Request
 		description = req.Msg.Description
 	}
 
-	program, err := h.programRepo.Create(ctx, req.Msg.UserId, req.Msg.Name, description, int(req.Msg.DurationWeeks), int(req.Msg.DurationDays))
+	program, err := h.programRepo.Create(ctx, userID, req.Msg.Name, description, int(req.Msg.DurationWeeks), int(req.Msg.DurationDays))
 	if err != nil {
 		return nil, connect.NewError(connect.CodeInternal, err)
 	}
@@ -127,7 +134,7 @@ func (h *ProgramHandler) CreateProgram(ctx context.Context, req *connect.Request
 	}
 
 	// Reload with all details
-	program, err = h.programRepo.GetByID(ctx, program.ID, req.Msg.UserId)
+	program, err = h.programRepo.GetByID(ctx, program.ID, userID)
 	if err != nil {
 		return nil, connect.NewError(connect.CodeInternal, err)
 	}
@@ -139,11 +146,15 @@ func (h *ProgramHandler) CreateProgram(ctx context.Context, req *connect.Request
 
 // UpdateProgram updates a program
 func (h *ProgramHandler) UpdateProgram(ctx context.Context, req *connect.Request[heftv1.UpdateProgramRequest]) (*connect.Response[heftv1.UpdateProgramResponse], error) {
-	if req.Msg.Id == "" || req.Msg.UserId == "" {
-		return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("id and user_id are required"))
+	userID, ok := auth.UserIDFromContext(ctx)
+	if !ok {
+		return nil, connect.NewError(connect.CodeUnauthenticated, errors.New("not authenticated"))
+	}
+	if req.Msg.Id == "" {
+		return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("id is required"))
 	}
 
-	program, err := h.programRepo.GetByID(ctx, req.Msg.Id, req.Msg.UserId)
+	program, err := h.programRepo.GetByID(ctx, req.Msg.Id, userID)
 	if err != nil {
 		return nil, connect.NewError(connect.CodeInternal, err)
 	}
@@ -158,11 +169,15 @@ func (h *ProgramHandler) UpdateProgram(ctx context.Context, req *connect.Request
 
 // DeleteProgram deletes a program
 func (h *ProgramHandler) DeleteProgram(ctx context.Context, req *connect.Request[heftv1.DeleteProgramRequest]) (*connect.Response[heftv1.DeleteProgramResponse], error) {
-	if req.Msg.Id == "" || req.Msg.UserId == "" {
-		return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("id and user_id are required"))
+	userID, ok := auth.UserIDFromContext(ctx)
+	if !ok {
+		return nil, connect.NewError(connect.CodeUnauthenticated, errors.New("not authenticated"))
+	}
+	if req.Msg.Id == "" {
+		return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("id is required"))
 	}
 
-	err := h.programRepo.Delete(ctx, req.Msg.Id, req.Msg.UserId)
+	err := h.programRepo.Delete(ctx, req.Msg.Id, userID)
 	if err != nil {
 		return nil, connect.NewError(connect.CodeInternal, err)
 	}
@@ -174,17 +189,21 @@ func (h *ProgramHandler) DeleteProgram(ctx context.Context, req *connect.Request
 
 // SetActiveProgram sets a program as active
 func (h *ProgramHandler) SetActiveProgram(ctx context.Context, req *connect.Request[heftv1.SetActiveProgramRequest]) (*connect.Response[heftv1.SetActiveProgramResponse], error) {
-	if req.Msg.Id == "" || req.Msg.UserId == "" {
-		return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("id and user_id are required"))
+	userID, ok := auth.UserIDFromContext(ctx)
+	if !ok {
+		return nil, connect.NewError(connect.CodeUnauthenticated, errors.New("not authenticated"))
+	}
+	if req.Msg.Id == "" {
+		return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("id is required"))
 	}
 
-	program, err := h.programRepo.SetActive(ctx, req.Msg.Id, req.Msg.UserId)
+	program, err := h.programRepo.SetActive(ctx, req.Msg.Id, userID)
 	if err != nil {
 		return nil, connect.NewError(connect.CodeInternal, err)
 	}
 
 	// Reload with days
-	program, err = h.programRepo.GetByID(ctx, program.ID, req.Msg.UserId)
+	program, err = h.programRepo.GetByID(ctx, program.ID, userID)
 	if err != nil {
 		return nil, connect.NewError(connect.CodeInternal, err)
 	}
@@ -196,11 +215,12 @@ func (h *ProgramHandler) SetActiveProgram(ctx context.Context, req *connect.Requ
 
 // GetTodayWorkout gets today's workout based on active program
 func (h *ProgramHandler) GetTodayWorkout(ctx context.Context, req *connect.Request[heftv1.GetTodayWorkoutRequest]) (*connect.Response[heftv1.GetTodayWorkoutResponse], error) {
-	if req.Msg.UserId == "" {
-		return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("user_id is required"))
+	userID, ok := auth.UserIDFromContext(ctx)
+	if !ok {
+		return nil, connect.NewError(connect.CodeUnauthenticated, errors.New("not authenticated"))
 	}
 
-	program, err := h.programRepo.GetActiveProgram(ctx, req.Msg.UserId)
+	program, err := h.programRepo.GetActiveProgram(ctx, userID)
 	if err != nil {
 		return nil, connect.NewError(connect.CodeInternal, err)
 	}
@@ -244,7 +264,7 @@ func (h *ProgramHandler) GetTodayWorkout(ctx context.Context, req *connect.Reque
 	}
 
 	if todayDay.DayType == "workout" && todayDay.WorkoutTemplateID != nil {
-		workout, err := h.workoutRepo.GetByID(ctx, *todayDay.WorkoutTemplateID, req.Msg.UserId)
+		workout, err := h.workoutRepo.GetByID(ctx, *todayDay.WorkoutTemplateID, userID)
 		if err == nil && workout != nil {
 			response.HasWorkout = true
 			response.Workout = workoutToProto(workout)
