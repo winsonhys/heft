@@ -72,10 +72,12 @@ func main() {
 	mux := http.NewServeMux()
 
 	// Health check endpoint for Docker/k8s
-	mux.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "application/json")
+	healthHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodGet && r.Method != http.MethodHead {
+			w.WriteHeader(http.StatusOK)
+			return
+		}
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{"status":"ok"}`))
 	})
 
 	// Test reset endpoint - only available when TEST_MODE=true
@@ -155,9 +157,18 @@ func main() {
 
 	// Create server with h2c (HTTP/2 cleartext) support
 	addr := fmt.Sprintf(":%s", cfg.Port)
+	rootHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/health" {
+			healthHandler.ServeHTTP(w, r)
+			return
+		}
+		corsHandler.Handler(
+			h2c.NewHandler(mux, &http2.Server{}),
+		).ServeHTTP(w, r)
+	})
 	server := &http.Server{
 		Addr:         addr,
-		Handler:      h2c.NewHandler(corsHandler.Handler(mux), &http2.Server{}),
+		Handler:      rootHandler,
 		ReadTimeout:  30 * time.Second,
 		WriteTimeout: 30 * time.Second,
 		IdleTimeout:  120 * time.Second,
