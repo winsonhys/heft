@@ -35,11 +35,14 @@ class AuthScreen extends HookConsumerWidget {
 
       final success = await ref.read(authProvider.notifier).login(email);
 
-      isLoading.value = false;
+      // Check if widget is still mounted before updating state
+      if (!context.mounted) return;
 
-      if (success && context.mounted) {
+      if (success) {
+        // Navigate away - don't update state as widget will be disposed
         context.go('/');
       } else {
+        isLoading.value = false;
         errorMessage.value = ref.read(authProvider).error ?? 'Login failed';
       }
     }
