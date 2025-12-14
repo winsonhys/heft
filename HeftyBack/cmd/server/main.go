@@ -159,8 +159,6 @@ func main() {
 	// Explicitly bind to 0.0.0.0 to ensure Docker/Render networking works correctly
 	addr := fmt.Sprintf("0.0.0.0:%s", cfg.Port)
 	rootHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// Log every request for debugging deployment issues
-		log.Printf("Received request: %s %s", r.Method, r.URL.Path)
 
 		// Check for health path (handle both /health and /health/)
 		if r.URL.Path == "/" || r.URL.Path == "/health" || r.URL.Path == "/health/" {
