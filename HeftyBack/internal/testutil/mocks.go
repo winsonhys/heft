@@ -177,9 +177,11 @@ type MockWorkoutRepository struct {
 	GetByIDFunc           func(ctx context.Context, id, userID string) (*repository.WorkoutTemplate, error)
 	CreateFunc            func(ctx context.Context, userID, name string, description *string) (*repository.WorkoutTemplate, error)
 	DeleteFunc            func(ctx context.Context, id, userID string) error
+	UpdateWorkoutDetailsFunc func(ctx context.Context, id, name string, description *string, isArchived bool) (*repository.WorkoutTemplate, error)
+	DeleteSectionsFunc    func(ctx context.Context, workoutID string) error
 	CreateSectionFunc     func(ctx context.Context, workoutID, name string, displayOrder int, isSuperset bool) (*repository.WorkoutSection, error)
 	CreateSectionItemFunc func(ctx context.Context, sectionID, itemType string, displayOrder int, exerciseID *string, restDurationSeconds *int) (*repository.SectionItem, error)
-	CreateTargetSetFunc   func(ctx context.Context, sectionItemID string, setNumber int, targetWeightKg *float64, targetReps, targetTimeSeconds *int, targetDistanceM *float64, isBodyweight bool, notes *string) (*repository.ExerciseTargetSet, error)
+	CreateTargetSetFunc   func(ctx context.Context, sectionItemID string, setNumber int, targetWeightKg *float64, targetReps, targetTimeSeconds *int, targetDistanceM *float64, isBodyweight bool, notes *string, restDurationSeconds *int) (*repository.ExerciseTargetSet, error)
 }
 
 func (m *MockWorkoutRepository) List(ctx context.Context, userID string, includeArchived bool, limit, offset int) ([]*repository.WorkoutTemplate, int, error) {
@@ -210,6 +212,20 @@ func (m *MockWorkoutRepository) Delete(ctx context.Context, id, userID string) e
 	return nil
 }
 
+func (m *MockWorkoutRepository) UpdateWorkoutDetails(ctx context.Context, id, name string, description *string, isArchived bool) (*repository.WorkoutTemplate, error) {
+	if m.UpdateWorkoutDetailsFunc != nil {
+		return m.UpdateWorkoutDetailsFunc(ctx, id, name, description, isArchived)
+	}
+	return nil, nil
+}
+
+func (m *MockWorkoutRepository) DeleteSections(ctx context.Context, workoutID string) error {
+	if m.DeleteSectionsFunc != nil {
+		return m.DeleteSectionsFunc(ctx, workoutID)
+	}
+	return nil
+}
+
 func (m *MockWorkoutRepository) CreateSection(ctx context.Context, workoutID, name string, displayOrder int, isSuperset bool) (*repository.WorkoutSection, error) {
 	if m.CreateSectionFunc != nil {
 		return m.CreateSectionFunc(ctx, workoutID, name, displayOrder, isSuperset)
@@ -224,9 +240,9 @@ func (m *MockWorkoutRepository) CreateSectionItem(ctx context.Context, sectionID
 	return nil, nil
 }
 
-func (m *MockWorkoutRepository) CreateTargetSet(ctx context.Context, sectionItemID string, setNumber int, targetWeightKg *float64, targetReps, targetTimeSeconds *int, targetDistanceM *float64, isBodyweight bool, notes *string) (*repository.ExerciseTargetSet, error) {
+func (m *MockWorkoutRepository) CreateTargetSet(ctx context.Context, sectionItemID string, setNumber int, targetWeightKg *float64, targetReps, targetTimeSeconds *int, targetDistanceM *float64, isBodyweight bool, notes *string, restDurationSeconds *int) (*repository.ExerciseTargetSet, error) {
 	if m.CreateTargetSetFunc != nil {
-		return m.CreateTargetSetFunc(ctx, sectionItemID, setNumber, targetWeightKg, targetReps, targetTimeSeconds, targetDistanceM, isBodyweight, notes)
+		return m.CreateTargetSetFunc(ctx, sectionItemID, setNumber, targetWeightKg, targetReps, targetTimeSeconds, targetDistanceM, isBodyweight, notes, restDurationSeconds)
 	}
 	return nil, nil
 }

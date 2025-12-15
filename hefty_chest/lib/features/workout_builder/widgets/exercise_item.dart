@@ -110,6 +110,15 @@ class ExerciseItem extends ConsumerWidget {
                   ),
                 ),
               ],
+              const SizedBox(width: 8),
+              const SizedBox(
+                width: 80,
+                child: Text(
+                  'Rest',
+                  style: TextStyle(fontSize: 11, color: AppColors.textMuted),
+                  textAlign: TextAlign.center,
+                ),
+              ),
               const SizedBox(width: 32),
             ],
           ),

@@ -174,6 +174,7 @@ func TestWorkoutService_Integration_CreateWorkout(t *testing.T) {
 									SetNumber:      2,
 									TargetReps:     &targetReps,
 									TargetWeightKg: &targetWeight,
+									RestDurationSeconds: func() *int32 { v := int32(60); return &v }(),
 								},
 							},
 						},
@@ -393,7 +394,7 @@ func TestWorkoutService_Integration_DuplicateWorkout(t *testing.T) {
 							TargetSets: []*heftv1.CreateTargetSet{
 								{SetNumber: 1, TargetReps: &targetReps},
 								{SetNumber: 2, TargetReps: &targetReps},
-								{SetNumber: 3, TargetReps: &targetReps},
+								{SetNumber: 3, TargetReps: &targetReps, RestDurationSeconds: func() *int32 { v := int32(45); return &v }()},
 							},
 						},
 					},
@@ -437,6 +438,19 @@ func TestWorkoutService_Integration_DuplicateWorkout(t *testing.T) {
 			if len(dupResp.Msg.Workout.Sections[0].Items[0].TargetSets) != 3 {
 				t.Errorf("expected 3 target sets in duplicate, got %d", len(dupResp.Msg.Workout.Sections[0].Items[0].TargetSets))
 			}
+			// Check if rest timer was copied (Set 3)
+			sets := dupResp.Msg.Workout.Sections[0].Items[0].TargetSets
+			foundRest := false
+			for _, s := range sets {
+				if s.SetNumber == 3 {
+					if s.RestDurationSeconds != nil && *s.RestDurationSeconds == 45 {
+						foundRest = true
+					}
+				}
+			}
+			if !foundRest {
+				t.Error("expected set 3 to have rest duration 45 in duplicated workout")
+			}
 		}
 	})
 
@@ -472,6 +486,131 @@ func TestWorkoutService_Integration_DuplicateWorkout(t *testing.T) {
 
 		if dupResp.Msg.Workout.Name != customName {
 			t.Errorf("expected name '%s', got '%s'", customName, dupResp.Msg.Workout.Name)
+		}
+	})
+}
+
+// TestWorkoutService_Integration_UpdateWorkout verifies the UpdateWorkout functionality
+func TestWorkoutService_Integration_UpdateWorkout(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping integration test in short mode")
+	}
+
+	pool := testutil.NewTestPool(t)
+	ts := testutil.NewTestServer(t, pool)
+
+	// Create a test user first
+	testUser := testutil.DefaultTestUser()
+	userID := testutil.SeedTestUser(t, pool, testUser)
+
+	// Get an exercise ID
+	exercisesReq := connect.NewRequest(&heftv1.ListExercisesRequest{
+		Pagination: &heftv1.PaginationRequest{Page: 1, PageSize: 1},
+	})
+	exercisesReq.Header().Set("Authorization", ts.AuthHeader(userID))
+	exercisesResp, err := ts.ExerciseClient.ListExercises(context.Background(), exercisesReq)
+	if err != nil {
+		t.Fatalf("failed to list exercises: %v", err)
+	}
+	if len(exercisesResp.Msg.Exercises) == 0 {
+		t.Fatal("no exercises found")
+	}
+	exerciseID := exercisesResp.Msg.Exercises[0].Id
+
+	t.Run("update workout details and sections", func(t *testing.T) {
+		ctx := context.Background()
+
+		// 1. Create initial workout
+		targetReps := int32(10)
+		createReq := connect.NewRequest(&heftv1.CreateWorkoutRequest{
+			UserId: userID,
+			Name:   "Original Workout",
+			Sections: []*heftv1.CreateWorkoutSection{
+				{
+					Name:         "Section 1",
+					DisplayOrder: 1,
+					Items: []*heftv1.CreateSectionItem{
+						{
+							ItemType:     heftv1.SectionItemType_SECTION_ITEM_TYPE_EXERCISE,
+							DisplayOrder: 1,
+							ExerciseId:   &exerciseID,
+							TargetSets: []*heftv1.CreateTargetSet{
+								{SetNumber: 1, TargetReps: &targetReps},
+							},
+						},
+					},
+				},
+			},
+		})
+		createReq.Header().Set("Authorization", ts.AuthHeader(userID))
+		createResp, err := ts.WorkoutClient.CreateWorkout(ctx, createReq)
+		if err != nil {
+			t.Fatalf("failed to create workout: %v", err)
+		}
+		workoutID := createResp.Msg.Workout.Id
+
+		// 2. Update workout
+		newName := "Updated Workout"
+		newDesc := "Updated description"
+		restDuration := int32(90)
+		updateReq := connect.NewRequest(&heftv1.UpdateWorkoutRequest{
+			Id:          workoutID,
+			Name:        &newName,
+			Description: &newDesc,
+			UserId:      userID,
+			Sections: []*heftv1.CreateWorkoutSection{
+				{
+					Name:         "Updated Section",
+					DisplayOrder: 1,
+					Items: []*heftv1.CreateSectionItem{
+						{
+							ItemType:     heftv1.SectionItemType_SECTION_ITEM_TYPE_EXERCISE,
+							DisplayOrder: 1,
+							ExerciseId:   &exerciseID,
+							TargetSets: []*heftv1.CreateTargetSet{
+								{
+									SetNumber:           1,
+									TargetReps:          &targetReps,
+									RestDurationSeconds: &restDuration, // Check rest timer persistence
+								},
+							},
+						},
+					},
+				},
+			},
+		})
+		updateReq.Header().Set("Authorization", ts.AuthHeader(userID))
+		updateResp, err := ts.WorkoutClient.UpdateWorkout(ctx, updateReq)
+		if err != nil {
+			t.Fatalf("failed to update workout: %v", err)
+		}
+
+		// 3. Verify updates
+		if updateResp.Msg.Workout.Name != newName {
+			t.Errorf("expected name '%s', got '%s'", newName, updateResp.Msg.Workout.Name)
+		}
+		if updateResp.Msg.Workout.Description != *updateReq.Msg.Description {
+			t.Errorf("expected description '%s', got '%s'", *updateReq.Msg.Description, updateResp.Msg.Workout.Description)
+		}
+
+		if len(updateResp.Msg.Workout.Sections) != 1 {
+			t.Fatalf("expected 1 section, got %d", len(updateResp.Msg.Workout.Sections))
+		}
+		section := updateResp.Msg.Workout.Sections[0]
+		if section.Name != "Updated Section" {
+			t.Errorf("expected section name 'Updated Section', got '%s'", section.Name)
+		}
+
+		if len(section.Items) != 1 {
+			t.Fatalf("expected 1 item, got %d", len(section.Items))
+		}
+		item := section.Items[0]
+		if len(item.TargetSets) != 1 {
+			t.Fatalf("expected 1 set, got %d", len(item.TargetSets))
+		}
+		set := item.TargetSets[0]
+		if set.RestDurationSeconds == nil || *set.RestDurationSeconds != restDuration {
+			t.Errorf("expected rest duration %d, got %v", restDuration, set.RestDurationSeconds)
 		}
 	})
 }

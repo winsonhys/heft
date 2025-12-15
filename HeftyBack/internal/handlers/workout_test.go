@@ -445,7 +445,7 @@ func TestWorkoutHandler_CreateWorkout(t *testing.T) {
 						ExerciseID:   exerciseID,
 					}, nil
 				}
-				m.CreateTargetSetFunc = func(ctx context.Context, sectionItemID string, setNumber int, targetWeightKg *float64, targetReps, targetTimeSeconds *int, targetDistanceM *float64, isBodyweight bool, notes *string) (*repository.ExerciseTargetSet, error) {
+				m.CreateTargetSetFunc = func(ctx context.Context, sectionItemID string, setNumber int, targetWeightKg *float64, targetReps, targetTimeSeconds *int, targetDistanceM *float64, isBodyweight bool, notes *string, restDurationSeconds *int) (*repository.ExerciseTargetSet, error) {
 					return &repository.ExerciseTargetSet{
 						ID:            "set-1",
 						SectionItemID: sectionItemID,
@@ -869,6 +869,17 @@ func TestWorkoutHandler_UpdateWorkout(t *testing.T) {
 				Id: "workout-123",
 			},
 			setupMock: func(m *testutil.MockWorkoutRepository) {
+				m.UpdateWorkoutDetailsFunc = func(ctx context.Context, id, name string, description *string, isArchived bool) (*repository.WorkoutTemplate, error) {
+					return &repository.WorkoutTemplate{
+						ID:          id,
+						UserID:      "user-123",
+						Name:        name,
+						Description: description,
+						IsArchived:  isArchived,
+						CreatedAt:   time.Now(),
+						UpdatedAt:   time.Now(),
+					}, nil
+				}
 				m.GetByIDFunc = func(ctx context.Context, id, userID string) (*repository.WorkoutTemplate, error) {
 					return &repository.WorkoutTemplate{
 						ID:        id,

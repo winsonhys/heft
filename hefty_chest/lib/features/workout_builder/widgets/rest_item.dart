@@ -18,15 +18,35 @@ class RestItem extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final controller = useTextEditingController(
-      text: item.restDurationSeconds.toString(),
+    // Helpers for time formatting
+    String formatMin(int seconds) =>
+        seconds > 0 ? (seconds ~/ 60).toString() : '';
+    String formatSec(int seconds) =>
+        seconds > 0 ? (seconds % 60).toString().padLeft(2, '0') : '';
+
+    final minController = useTextEditingController(
+      text: formatMin(item.restDurationSeconds),
+    );
+    final secController = useTextEditingController(
+      text: formatSec(item.restDurationSeconds),
     );
 
-    // Sync controller when item changes (replaces didUpdateWidget)
+    // Sync controllers when item changes
     useEffect(() {
-      controller.text = item.restDurationSeconds.toString();
+      minController.text = formatMin(item.restDurationSeconds);
+      secController.text = formatSec(item.restDurationSeconds);
       return null;
     }, [item.restDurationSeconds]);
+
+    void updateDuration() {
+      final min = int.tryParse(minController.text) ?? 0;
+      final sec = int.tryParse(secController.text) ?? 0;
+      ref.read(workoutBuilderProvider.notifier).updateRestDuration(
+            sectionId,
+            item.id,
+            min * 60 + sec,
+          );
+    }
 
     return Padding(
       padding: const EdgeInsets.all(12),
@@ -57,46 +77,70 @@ class RestItem extends HookConsumerWidget {
             ),
           ),
           const SizedBox(width: 12),
-          // Duration input
+          // Duration inputs
           SizedBox(
-            width: 60,
-            child: TextField(
-              controller: controller,
-              keyboardType: TextInputType.number,
-              textAlign: TextAlign.center,
-              style: const TextStyle(
-                fontSize: 14,
-                color: AppColors.textPrimary,
-              ),
-              decoration: InputDecoration(
-                isDense: true,
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 8,
-                  vertical: 8,
+            width: 80,
+            child: Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: minController,
+                    keyboardType: TextInputType.number,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      color: AppColors.textPrimary,
+                    ),
+                    decoration: InputDecoration(
+                      isDense: true,
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 4,
+                        vertical: 8,
+                      ),
+                      hintText: 'm',
+                      hintStyle: TextStyle(color: AppColors.textMuted),
+                      filled: true,
+                      fillColor: AppColors.bgPrimary,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(6),
+                        borderSide: BorderSide.none,
+                      ),
+                    ),
+                    onChanged: (_) => updateDuration(),
+                  ),
                 ),
-                filled: true,
-                fillColor: AppColors.bgPrimary,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(6),
-                  borderSide: BorderSide.none,
+                const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 4),
+                  child: Text(':', style: TextStyle(color: AppColors.textMuted)),
                 ),
-              ),
-              onChanged: (value) {
-                final seconds = int.tryParse(value) ?? 0;
-                ref.read(workoutBuilderProvider.notifier).updateRestDuration(
-                      sectionId,
-                      item.id,
-                      seconds,
-                    );
-              },
-            ),
-          ),
-          const SizedBox(width: 8),
-          Text(
-            'sec',
-            style: TextStyle(
-              fontSize: 13,
-              color: AppColors.textMuted,
+                Expanded(
+                  child: TextField(
+                    controller: secController,
+                    keyboardType: TextInputType.number,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      color: AppColors.textPrimary,
+                    ),
+                    decoration: InputDecoration(
+                      isDense: true,
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 4,
+                        vertical: 8,
+                      ),
+                      hintText: 's',
+                      hintStyle: TextStyle(color: AppColors.textMuted),
+                      filled: true,
+                      fillColor: AppColors.bgPrimary,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(6),
+                        borderSide: BorderSide.none,
+                      ),
+                    ),
+                    onChanged: (_) => updateDuration(),
+                  ),
+                ),
+              ],
             ),
           ),
           const Spacer(),
@@ -109,7 +153,7 @@ class RestItem extends HookConsumerWidget {
                   );
             },
             child: Icon(
-              Icons.close,
+              Icons.remove_circle_outline, // Changed icon to match set row delete
               size: 18,
               color: AppColors.textMuted,
             ),

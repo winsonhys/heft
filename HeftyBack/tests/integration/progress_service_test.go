@@ -451,7 +451,9 @@ func TestProgressService_Integration_GetExerciseProgress(t *testing.T) {
 			t.Fatalf("unexpected error: %v", err)
 		}
 
+
 		// Should have at least 1 session now
+		// Implementation for exercise_history population is now added
 		if resp.Msg.Progress.TotalSessions < 1 {
 			t.Errorf("expected at least 1 session, got %d", resp.Msg.Progress.TotalSessions)
 		}

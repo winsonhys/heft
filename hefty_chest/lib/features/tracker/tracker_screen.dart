@@ -44,9 +44,11 @@ class TrackerScreen extends HookConsumerWidget {
           await notifier.startSession(workoutTemplateId: workoutTemplateId!);
         }
 
-        isLoading.value = false;
+        if (context.mounted) {
+          isLoading.value = false;
+        }
       }
-      initSession();
+      Future.microtask(() => initSession());
       return null;
     }, [sessionId, workoutTemplateId]);
 

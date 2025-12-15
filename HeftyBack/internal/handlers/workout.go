@@ -141,7 +141,7 @@ func (h *WorkoutHandler) CreateWorkout(ctx context.Context, req *connect.Request
 			// Create target sets
 			for _, ts := range item.TargetSets {
 				var targetWeight *float64
-				var targetReps, targetTime *int
+				var targetReps, targetTime, targetRest *int
 				var targetDistance *float64
 				if ts.TargetWeightKg != nil {
 					targetWeight = ts.TargetWeightKg
@@ -161,8 +161,12 @@ func (h *WorkoutHandler) CreateWorkout(ctx context.Context, req *connect.Request
 				if ts.Notes != nil {
 					notes = ts.Notes
 				}
+				if ts.RestDurationSeconds != nil {
+					v := int(*ts.RestDurationSeconds)
+					targetRest = &v
+				}
 
-				_, err := h.repo.CreateTargetSet(ctx, sectionItem.ID, int(ts.SetNumber), targetWeight, targetReps, targetTime, targetDistance, ts.IsBodyweight, notes)
+				_, err := h.repo.CreateTargetSet(ctx, sectionItem.ID, int(ts.SetNumber), targetWeight, targetReps, targetTime, targetDistance, ts.IsBodyweight, notes, targetRest)
 				if err != nil {
 					return nil, connect.NewError(connect.CodeInternal, err)
 				}
@@ -191,14 +195,109 @@ func (h *WorkoutHandler) UpdateWorkout(ctx context.Context, req *connect.Request
 		return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("id is required"))
 	}
 
-	// For now, just return the existing workout
-	// Full update would require deleting and recreating sections
-	workout, err := h.repo.GetByID(ctx, req.Msg.Id, userID)
+	// Verify ownership and existence
+	existing, err := h.repo.GetByID(ctx, req.Msg.Id, userID)
 	if err != nil {
 		return nil, connect.NewError(connect.CodeInternal, err)
 	}
-	if workout == nil {
+	if existing == nil {
 		return nil, connect.NewError(connect.CodeNotFound, errors.New("workout not found"))
+	}
+
+	// Prepare fields for update
+	name := existing.Name
+	if req.Msg.Name != nil {
+		name = *req.Msg.Name
+	}
+	description := existing.Description
+	if req.Msg.Description != nil {
+		description = req.Msg.Description
+	}
+	isArchived := existing.IsArchived
+	if req.Msg.IsArchived != nil {
+		isArchived = *req.Msg.IsArchived
+	}
+
+	// Update top-level details
+	workout, err := h.repo.UpdateWorkoutDetails(ctx, req.Msg.Id, name, description, isArchived)
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInternal, err)
+	}
+
+	// If sections are provided, we do a full replacement
+	if len(req.Msg.Sections) > 0 {
+		// Delete existing sections
+		err = h.repo.DeleteSections(ctx, workout.ID)
+		if err != nil {
+			return nil, connect.NewError(connect.CodeInternal, err)
+		}
+
+		// Recreate sections
+		for _, s := range req.Msg.Sections {
+			section, err := h.repo.CreateSection(ctx, workout.ID, s.Name, int(s.DisplayOrder), s.IsSuperset)
+			if err != nil {
+				return nil, connect.NewError(connect.CodeInternal, err)
+			}
+
+			// Create items in section
+			for _, item := range s.Items {
+				itemType := sectionItemTypeToString(item.ItemType)
+				var exerciseID *string
+				var restDuration *int
+				if item.ExerciseId != nil {
+					exerciseID = item.ExerciseId
+				}
+				if item.RestDurationSeconds != nil {
+					v := int(*item.RestDurationSeconds)
+					restDuration = &v
+				}
+
+				sectionItem, err := h.repo.CreateSectionItem(ctx, section.ID, itemType, int(item.DisplayOrder), exerciseID, restDuration)
+				if err != nil {
+					return nil, connect.NewError(connect.CodeInternal, err)
+				}
+
+				// Create target sets
+				for _, ts := range item.TargetSets {
+					var targetWeight *float64
+					var targetReps, targetTime, targetRest *int
+					var targetDistance *float64
+					if ts.TargetWeightKg != nil {
+						targetWeight = ts.TargetWeightKg
+					}
+					if ts.TargetReps != nil {
+						v := int(*ts.TargetReps)
+						targetReps = &v
+					}
+					if ts.TargetTimeSeconds != nil {
+						v := int(*ts.TargetTimeSeconds)
+						targetTime = &v
+					}
+					if ts.TargetDistanceM != nil {
+						targetDistance = ts.TargetDistanceM
+					}
+					var notes *string
+					if ts.Notes != nil {
+						notes = ts.Notes
+					}
+					if ts.RestDurationSeconds != nil {
+						v := int(*ts.RestDurationSeconds)
+						targetRest = &v
+					}
+
+					_, err := h.repo.CreateTargetSet(ctx, sectionItem.ID, int(ts.SetNumber), targetWeight, targetReps, targetTime, targetDistance, ts.IsBodyweight, notes, targetRest)
+					if err != nil {
+						return nil, connect.NewError(connect.CodeInternal, err)
+					}
+				}
+			}
+		}
+	}
+
+	// Reload workout with all details
+	workout, err = h.repo.GetByID(ctx, workout.ID, userID)
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInternal, err)
 	}
 
 	return connect.NewResponse(&heftv1.UpdateWorkoutResponse{
@@ -271,14 +370,17 @@ func (h *WorkoutHandler) DuplicateWorkout(ctx context.Context, req *connect.Requ
 			}
 
 			for _, ts := range item.TargetSets {
-				var targetReps, targetTime *int
+				var targetReps, targetTime, targetRest *int
 				if ts.TargetReps != nil {
 					targetReps = ts.TargetReps
 				}
 				if ts.TargetTimeSeconds != nil {
 					targetTime = ts.TargetTimeSeconds
 				}
-				_, err := h.repo.CreateTargetSet(ctx, sectionItem.ID, ts.SetNumber, ts.TargetWeightKg, targetReps, targetTime, ts.TargetDistanceM, ts.IsBodyweight, ts.Notes)
+				if ts.RestDurationSeconds != nil {
+					targetRest = ts.RestDurationSeconds
+				}
+				_, err := h.repo.CreateTargetSet(ctx, sectionItem.ID, ts.SetNumber, ts.TargetWeightKg, targetReps, targetTime, ts.TargetDistanceM, ts.IsBodyweight, ts.Notes, targetRest)
 				if err != nil {
 					return nil, connect.NewError(connect.CodeInternal, err)
 				}
@@ -416,6 +518,10 @@ func targetSetToProto(ts *repository.ExerciseTargetSet) *heftv1.TargetSet {
 	}
 	if ts.Notes != nil {
 		set.Notes = *ts.Notes
+	}
+	if ts.RestDurationSeconds != nil {
+		v := int32(*ts.RestDurationSeconds)
+		set.RestDurationSeconds = &v
 	}
 	return set
 }

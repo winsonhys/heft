@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:hefty_chest/core/client.dart';
 
 /// Setup utilities for integration tests.
@@ -41,6 +42,9 @@ class IntegrationTestSetup {
   static Future<void> waitForBackend({
     Duration timeout = const Duration(seconds: 30),
   }) async {
+    // Enable real network requests
+    HttpOverrides.global = null;
+
     final client = HttpClient();
     final stopwatch = Stopwatch()..start();
 
@@ -76,6 +80,31 @@ class IntegrationTestSetup {
 
     // Set the global token provider for the auth interceptor
     setTokenProvider(() => _authToken);
+
+    // Also persist to SharedPreferences so the app wrapper picks it up
+    // This supports both finding the token in the provider AND in the app
+    // When running in flutter_tester, we need to mock initial values
+    SharedPreferences.setMockInitialValues({
+      'auth_token': _authToken!,
+      'user_id': _testUserId!,
+    });
+  }
+
+  /// Restore the test token provider.
+  ///
+  /// The app widget overwrites the token provider in initState.
+  /// Call this in setUp() to ensure tests have access to the valid test token
+  /// when using TestData helpers outside the widget tree.
+  static void restoreTokenProvider() {
+    if (_authToken != null) {
+      setTokenProvider(() => _authToken);
+      
+      // Restore SharedPreferences mock values as they are cleared between tests
+      SharedPreferences.setMockInitialValues({
+        'auth_token': _authToken!,
+        'user_id': _testUserId!,
+      });
+    }
   }
 
   /// Clear authentication state.
@@ -85,6 +114,7 @@ class IntegrationTestSetup {
     _authToken = null;
     _testUserId = null;
     setTokenProvider(() => null);
+    SharedPreferences.setMockInitialValues({});
   }
 
   /// Reset test database to clean state.

@@ -50,16 +50,17 @@ type SectionItem struct {
 
 // ExerciseTargetSet represents a target set for an exercise
 type ExerciseTargetSet struct {
-	ID                 string
-	SectionItemID      string
-	SetNumber          int
-	TargetWeightKg     *float64
-	TargetReps         *int
-	TargetTimeSeconds  *int
-	TargetDistanceM    *float64
-	IsBodyweight       bool
-	Notes              *string
-	CreatedAt          time.Time
+	ID                  string
+	SectionItemID       string
+	SetNumber           int
+	TargetWeightKg      *float64
+	TargetReps          *int
+	TargetTimeSeconds   *int
+	TargetDistanceM     *float64
+	IsBodyweight        bool
+	Notes               *string
+	RestDurationSeconds *int
+	CreatedAt           time.Time
 }
 
 // WorkoutRepository handles workout template data access
@@ -240,7 +241,7 @@ func (r *WorkoutRepository) loadSectionItems(ctx context.Context, sectionID stri
 func (r *WorkoutRepository) loadTargetSets(ctx context.Context, sectionItemID string) ([]*ExerciseTargetSet, error) {
 	query := `
 		SELECT id, section_item_id, set_number, target_weight_kg, target_reps,
-		       target_time_seconds, target_distance_m, is_bodyweight, notes, created_at
+		       target_time_seconds, target_distance_m, is_bodyweight, notes, rest_duration_seconds, created_at
 		FROM exercise_target_sets
 		WHERE section_item_id = $1
 		ORDER BY set_number
@@ -257,7 +258,7 @@ func (r *WorkoutRepository) loadTargetSets(ctx context.Context, sectionItemID st
 		var s ExerciseTargetSet
 		err := rows.Scan(
 			&s.ID, &s.SectionItemID, &s.SetNumber, &s.TargetWeightKg, &s.TargetReps,
-			&s.TargetTimeSeconds, &s.TargetDistanceM, &s.IsBodyweight, &s.Notes, &s.CreatedAt,
+			&s.TargetTimeSeconds, &s.TargetDistanceM, &s.IsBodyweight, &s.Notes, &s.RestDurationSeconds, &s.CreatedAt,
 		)
 		if err != nil {
 			return nil, err
@@ -335,20 +336,49 @@ func (r *WorkoutRepository) CreateSectionItem(ctx context.Context, sectionID, it
 }
 
 // CreateTargetSet creates a new target set for an exercise item
-func (r *WorkoutRepository) CreateTargetSet(ctx context.Context, sectionItemID string, setNumber int, targetWeightKg *float64, targetReps, targetTimeSeconds *int, targetDistanceM *float64, isBodyweight bool, notes *string) (*ExerciseTargetSet, error) {
+func (r *WorkoutRepository) CreateTargetSet(ctx context.Context, sectionItemID string, setNumber int, targetWeightKg *float64, targetReps, targetTimeSeconds *int, targetDistanceM *float64, isBodyweight bool, notes *string, restDurationSeconds *int) (*ExerciseTargetSet, error) {
 	query := `
-		INSERT INTO exercise_target_sets (section_item_id, set_number, target_weight_kg, target_reps, target_time_seconds, target_distance_m, is_bodyweight, notes)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-		RETURNING id, section_item_id, set_number, target_weight_kg, target_reps, target_time_seconds, target_distance_m, is_bodyweight, notes, created_at
+		INSERT INTO exercise_target_sets (section_item_id, set_number, target_weight_kg, target_reps, target_time_seconds, target_distance_m, is_bodyweight, notes, rest_duration_seconds)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+		RETURNING id, section_item_id, set_number, target_weight_kg, target_reps, target_time_seconds, target_distance_m, is_bodyweight, notes, rest_duration_seconds, created_at
 	`
 
 	var s ExerciseTargetSet
-	err := r.pool.QueryRow(ctx, query, sectionItemID, setNumber, targetWeightKg, targetReps, targetTimeSeconds, targetDistanceM, isBodyweight, notes).Scan(
-		&s.ID, &s.SectionItemID, &s.SetNumber, &s.TargetWeightKg, &s.TargetReps, &s.TargetTimeSeconds, &s.TargetDistanceM, &s.IsBodyweight, &s.Notes, &s.CreatedAt,
+	err := r.pool.QueryRow(ctx, query, sectionItemID, setNumber, targetWeightKg, targetReps, targetTimeSeconds, targetDistanceM, isBodyweight, notes, restDurationSeconds).Scan(
+		&s.ID, &s.SectionItemID, &s.SetNumber, &s.TargetWeightKg, &s.TargetReps, &s.TargetTimeSeconds, &s.TargetDistanceM, &s.IsBodyweight, &s.Notes, &s.RestDurationSeconds, &s.CreatedAt,
 	)
 	if err != nil {
 		return nil, err
 	}
 
 	return &s, nil
+}
+
+// DeleteSections deletes all sections (and cascading items/sets) for a workout
+func (r *WorkoutRepository) DeleteSections(ctx context.Context, workoutID string) error {
+	query := `DELETE FROM workout_sections WHERE workout_template_id = $1`
+	_, err := r.pool.Exec(ctx, query, workoutID)
+	return err
+}
+
+// UpdateWorkoutDetails updates the top-level details of a workout template
+func (r *WorkoutRepository) UpdateWorkoutDetails(ctx context.Context, id, name string, description *string, isArchived bool) (*WorkoutTemplate, error) {
+	query := `
+		UPDATE workout_templates
+		SET name = $2, description = $3, is_archived = $4, updated_at = CURRENT_TIMESTAMP
+		WHERE id = $1
+		RETURNING id, user_id, name, description, total_exercises, total_sets,
+		          estimated_duration_minutes, is_archived, created_at, updated_at
+	`
+
+	var w WorkoutTemplate
+	err := r.pool.QueryRow(ctx, query, id, name, description, isArchived).Scan(
+		&w.ID, &w.UserID, &w.Name, &w.Description, &w.TotalExercises, &w.TotalSets,
+		&w.EstimatedDurationMinutes, &w.IsArchived, &w.CreatedAt, &w.UpdatedAt,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	return &w, nil
 }

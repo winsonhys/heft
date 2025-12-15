@@ -121,6 +121,7 @@ class BuilderSet {
   final int targetReps;
   final int targetTimeSeconds;
   final bool isBodyweight;
+  final int? restDurationSeconds;
 
   const BuilderSet({
     required this.id,
@@ -129,6 +130,7 @@ class BuilderSet {
     this.targetReps = 10,
     this.targetTimeSeconds = 0,
     this.isBodyweight = false,
+    this.restDurationSeconds,
   });
 
   BuilderSet copyWith({
@@ -138,6 +140,7 @@ class BuilderSet {
     int? targetReps,
     int? targetTimeSeconds,
     bool? isBodyweight,
+    int? restDurationSeconds,
   }) {
     return BuilderSet(
       id: id ?? this.id,
@@ -146,6 +149,7 @@ class BuilderSet {
       targetReps: targetReps ?? this.targetReps,
       targetTimeSeconds: targetTimeSeconds ?? this.targetTimeSeconds,
       isBodyweight: isBodyweight ?? this.isBodyweight,
+      restDurationSeconds: restDurationSeconds ?? this.restDurationSeconds,
     );
   }
 }
@@ -192,6 +196,7 @@ class WorkoutBuilder extends _$WorkoutBuilder {
                         targetReps: s.targetReps,
                         targetTimeSeconds: s.targetTimeSeconds,
                         isBodyweight: s.isBodyweight,
+                        restDurationSeconds: s.restDurationSeconds,
                       ))
                   .toList(),
             );
@@ -379,6 +384,7 @@ class WorkoutBuilder extends _$WorkoutBuilder {
     int? reps,
     int? time,
     bool? bodyweight,
+    int? rest,
   }) {
     state = state.copyWith(
       sections: state.sections.map((s) {
@@ -394,6 +400,7 @@ class WorkoutBuilder extends _$WorkoutBuilder {
                         targetReps: reps ?? set.targetReps,
                         targetTimeSeconds: time ?? set.targetTimeSeconds,
                         isBodyweight: bodyweight ?? set.isBodyweight,
+                        restDurationSeconds: rest ?? set.restDurationSeconds,
                       );
                     }
                     return set;
@@ -444,7 +451,8 @@ class WorkoutBuilder extends _$WorkoutBuilder {
                 ..targetWeightKg = set.targetWeightKg
                 ..targetReps = set.targetReps
                 ..targetTimeSeconds = set.targetTimeSeconds
-                ..isBodyweight = set.isBodyweight);
+                ..isBodyweight = set.isBodyweight
+                ..restDurationSeconds = set.restDurationSeconds ?? 0);
             }
           }
 

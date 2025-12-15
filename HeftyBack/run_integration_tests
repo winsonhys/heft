@@ -1,0 +1,48 @@
+#!/bin/bash
+set -e
+
+# Function to handle errors
+handle_error() {
+    echo "An error occurred. Cleaning up..."
+    if [ -d "../hefty_chest" ]; then
+         (cd ../hefty_chest && docker-compose -f docker-compose.test.yml down)
+    fi
+    docker-compose down
+    exit 1
+}
+
+trap 'handle_error' ERR
+
+echo "========================================"
+echo "RUNNING BACKEND INTEGRATION TESTS"
+echo "========================================"
+
+# Ensure clean start for backend tests
+docker-compose down
+docker-compose up -d --wait
+
+# Run backend tests
+make test-integration
+
+# Successful backend tests, clean up backend test DB to free port 5433
+docker-compose down
+
+echo ""
+echo "========================================"
+echo "RUNNING FRONTEND INTEGRATION TESTS"
+echo "========================================"
+
+cd ../hefty_chest
+
+# Ensure clean start for frontend tests
+docker-compose -f docker-compose.test.yml down
+docker-compose -f docker-compose.test.yml up -d --wait
+
+# Run frontend integration tests
+flutter test -j 1 test/integration
+
+# Cleanup
+docker-compose -f docker-compose.test.yml down
+
+echo ""
+echo "ALL INTEGRATION TESTS PASSED"

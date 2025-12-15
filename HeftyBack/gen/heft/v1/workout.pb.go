@@ -462,18 +462,19 @@ func (x *SectionItem) GetRestDurationSeconds() int32 {
 
 // Target set for exercise
 type TargetSet struct {
-	state             protoimpl.MessageState `protogen:"open.v1"`
-	Id                string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	SectionItemId     string                 `protobuf:"bytes,2,opt,name=section_item_id,json=sectionItemId,proto3" json:"section_item_id,omitempty"`
-	SetNumber         int32                  `protobuf:"varint,3,opt,name=set_number,json=setNumber,proto3" json:"set_number,omitempty"`
-	TargetWeightKg    *float64               `protobuf:"fixed64,4,opt,name=target_weight_kg,json=targetWeightKg,proto3,oneof" json:"target_weight_kg,omitempty"`
-	TargetReps        *int32                 `protobuf:"varint,5,opt,name=target_reps,json=targetReps,proto3,oneof" json:"target_reps,omitempty"`
-	TargetTimeSeconds *int32                 `protobuf:"varint,6,opt,name=target_time_seconds,json=targetTimeSeconds,proto3,oneof" json:"target_time_seconds,omitempty"`
-	TargetDistanceM   *float64               `protobuf:"fixed64,7,opt,name=target_distance_m,json=targetDistanceM,proto3,oneof" json:"target_distance_m,omitempty"`
-	IsBodyweight      bool                   `protobuf:"varint,8,opt,name=is_bodyweight,json=isBodyweight,proto3" json:"is_bodyweight,omitempty"`
-	Notes             string                 `protobuf:"bytes,9,opt,name=notes,proto3" json:"notes,omitempty"`
-	unknownFields     protoimpl.UnknownFields
-	sizeCache         protoimpl.SizeCache
+	state               protoimpl.MessageState `protogen:"open.v1"`
+	Id                  string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	SectionItemId       string                 `protobuf:"bytes,2,opt,name=section_item_id,json=sectionItemId,proto3" json:"section_item_id,omitempty"`
+	SetNumber           int32                  `protobuf:"varint,3,opt,name=set_number,json=setNumber,proto3" json:"set_number,omitempty"`
+	TargetWeightKg      *float64               `protobuf:"fixed64,4,opt,name=target_weight_kg,json=targetWeightKg,proto3,oneof" json:"target_weight_kg,omitempty"`
+	TargetReps          *int32                 `protobuf:"varint,5,opt,name=target_reps,json=targetReps,proto3,oneof" json:"target_reps,omitempty"`
+	TargetTimeSeconds   *int32                 `protobuf:"varint,6,opt,name=target_time_seconds,json=targetTimeSeconds,proto3,oneof" json:"target_time_seconds,omitempty"`
+	TargetDistanceM     *float64               `protobuf:"fixed64,7,opt,name=target_distance_m,json=targetDistanceM,proto3,oneof" json:"target_distance_m,omitempty"`
+	IsBodyweight        bool                   `protobuf:"varint,8,opt,name=is_bodyweight,json=isBodyweight,proto3" json:"is_bodyweight,omitempty"`
+	Notes               string                 `protobuf:"bytes,9,opt,name=notes,proto3" json:"notes,omitempty"`
+	RestDurationSeconds *int32                 `protobuf:"varint,10,opt,name=rest_duration_seconds,json=restDurationSeconds,proto3,oneof" json:"rest_duration_seconds,omitempty"`
+	unknownFields       protoimpl.UnknownFields
+	sizeCache           protoimpl.SizeCache
 }
 
 func (x *TargetSet) Reset() {
@@ -567,6 +568,13 @@ func (x *TargetSet) GetNotes() string {
 		return x.Notes
 	}
 	return ""
+}
+
+func (x *TargetSet) GetRestDurationSeconds() int32 {
+	if x != nil && x.RestDurationSeconds != nil {
+		return *x.RestDurationSeconds
+	}
+	return 0
 }
 
 // ListWorkouts
@@ -993,16 +1001,17 @@ func (x *CreateSectionItem) GetTargetSets() []*CreateTargetSet {
 }
 
 type CreateTargetSet struct {
-	state             protoimpl.MessageState `protogen:"open.v1"`
-	SetNumber         int32                  `protobuf:"varint,1,opt,name=set_number,json=setNumber,proto3" json:"set_number,omitempty"`
-	TargetWeightKg    *float64               `protobuf:"fixed64,2,opt,name=target_weight_kg,json=targetWeightKg,proto3,oneof" json:"target_weight_kg,omitempty"`
-	TargetReps        *int32                 `protobuf:"varint,3,opt,name=target_reps,json=targetReps,proto3,oneof" json:"target_reps,omitempty"`
-	TargetTimeSeconds *int32                 `protobuf:"varint,4,opt,name=target_time_seconds,json=targetTimeSeconds,proto3,oneof" json:"target_time_seconds,omitempty"`
-	TargetDistanceM   *float64               `protobuf:"fixed64,5,opt,name=target_distance_m,json=targetDistanceM,proto3,oneof" json:"target_distance_m,omitempty"`
-	IsBodyweight      bool                   `protobuf:"varint,6,opt,name=is_bodyweight,json=isBodyweight,proto3" json:"is_bodyweight,omitempty"`
-	Notes             *string                `protobuf:"bytes,7,opt,name=notes,proto3,oneof" json:"notes,omitempty"`
-	unknownFields     protoimpl.UnknownFields
-	sizeCache         protoimpl.SizeCache
+	state               protoimpl.MessageState `protogen:"open.v1"`
+	SetNumber           int32                  `protobuf:"varint,1,opt,name=set_number,json=setNumber,proto3" json:"set_number,omitempty"`
+	TargetWeightKg      *float64               `protobuf:"fixed64,2,opt,name=target_weight_kg,json=targetWeightKg,proto3,oneof" json:"target_weight_kg,omitempty"`
+	TargetReps          *int32                 `protobuf:"varint,3,opt,name=target_reps,json=targetReps,proto3,oneof" json:"target_reps,omitempty"`
+	TargetTimeSeconds   *int32                 `protobuf:"varint,4,opt,name=target_time_seconds,json=targetTimeSeconds,proto3,oneof" json:"target_time_seconds,omitempty"`
+	TargetDistanceM     *float64               `protobuf:"fixed64,5,opt,name=target_distance_m,json=targetDistanceM,proto3,oneof" json:"target_distance_m,omitempty"`
+	IsBodyweight        bool                   `protobuf:"varint,6,opt,name=is_bodyweight,json=isBodyweight,proto3" json:"is_bodyweight,omitempty"`
+	Notes               *string                `protobuf:"bytes,7,opt,name=notes,proto3,oneof" json:"notes,omitempty"`
+	RestDurationSeconds *int32                 `protobuf:"varint,8,opt,name=rest_duration_seconds,json=restDurationSeconds,proto3,oneof" json:"rest_duration_seconds,omitempty"`
+	unknownFields       protoimpl.UnknownFields
+	sizeCache           protoimpl.SizeCache
 }
 
 func (x *CreateTargetSet) Reset() {
@@ -1082,6 +1091,13 @@ func (x *CreateTargetSet) GetNotes() string {
 		return *x.Notes
 	}
 	return ""
+}
+
+func (x *CreateTargetSet) GetRestDurationSeconds() int32 {
+	if x != nil && x.RestDurationSeconds != nil {
+		return *x.RestDurationSeconds
+	}
+	return 0
 }
 
 type CreateWorkoutResponse struct {
@@ -1518,7 +1534,7 @@ const file_heft_v1_workout_proto_rawDesc = "" +
 	"\rexercise_type\x18\a \x01(\x0e2\x15.heft.v1.ExerciseTypeR\fexerciseType\x123\n" +
 	"\vtarget_sets\x18\b \x03(\v2\x12.heft.v1.TargetSetR\n" +
 	"targetSets\x122\n" +
-	"\x15rest_duration_seconds\x18\t \x01(\x05R\x13restDurationSeconds\"\xab\x03\n" +
+	"\x15rest_duration_seconds\x18\t \x01(\x05R\x13restDurationSeconds\"\xfe\x03\n" +
 	"\tTargetSet\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12&\n" +
 	"\x0fsection_item_id\x18\x02 \x01(\tR\rsectionItemId\x12\x1d\n" +
@@ -1530,11 +1546,14 @@ const file_heft_v1_workout_proto_rawDesc = "" +
 	"\x13target_time_seconds\x18\x06 \x01(\x05H\x02R\x11targetTimeSeconds\x88\x01\x01\x12/\n" +
 	"\x11target_distance_m\x18\a \x01(\x01H\x03R\x0ftargetDistanceM\x88\x01\x01\x12#\n" +
 	"\ris_bodyweight\x18\b \x01(\bR\fisBodyweight\x12\x14\n" +
-	"\x05notes\x18\t \x01(\tR\x05notesB\x13\n" +
+	"\x05notes\x18\t \x01(\tR\x05notes\x127\n" +
+	"\x15rest_duration_seconds\x18\n" +
+	" \x01(\x05H\x04R\x13restDurationSeconds\x88\x01\x01B\x13\n" +
 	"\x11_target_weight_kgB\x0e\n" +
 	"\f_target_repsB\x16\n" +
 	"\x14_target_time_secondsB\x14\n" +
-	"\x12_target_distance_m\"\xaf\x01\n" +
+	"\x12_target_distance_mB\x18\n" +
+	"\x16_rest_duration_seconds\"\xaf\x01\n" +
 	"\x13ListWorkoutsRequest\x12\x17\n" +
 	"\auser_id\x18\x01 \x01(\tR\x06userId\x12.\n" +
 	"\x10include_archived\x18\x02 \x01(\bH\x00R\x0fincludeArchived\x88\x01\x01\x12:\n" +
@@ -1573,7 +1592,7 @@ const file_heft_v1_workout_proto_rawDesc = "" +
 	"\vtarget_sets\x18\x05 \x03(\v2\x18.heft.v1.CreateTargetSetR\n" +
 	"targetSetsB\x0e\n" +
 	"\f_exercise_idB\x18\n" +
-	"\x16_rest_duration_seconds\"\x88\x03\n" +
+	"\x16_rest_duration_seconds\"\xdb\x03\n" +
 	"\x0fCreateTargetSet\x12\x1d\n" +
 	"\n" +
 	"set_number\x18\x01 \x01(\x05R\tsetNumber\x12-\n" +
@@ -1583,12 +1602,14 @@ const file_heft_v1_workout_proto_rawDesc = "" +
 	"\x13target_time_seconds\x18\x04 \x01(\x05H\x02R\x11targetTimeSeconds\x88\x01\x01\x12/\n" +
 	"\x11target_distance_m\x18\x05 \x01(\x01H\x03R\x0ftargetDistanceM\x88\x01\x01\x12#\n" +
 	"\ris_bodyweight\x18\x06 \x01(\bR\fisBodyweight\x12\x19\n" +
-	"\x05notes\x18\a \x01(\tH\x04R\x05notes\x88\x01\x01B\x13\n" +
+	"\x05notes\x18\a \x01(\tH\x04R\x05notes\x88\x01\x01\x127\n" +
+	"\x15rest_duration_seconds\x18\b \x01(\x05H\x05R\x13restDurationSeconds\x88\x01\x01B\x13\n" +
 	"\x11_target_weight_kgB\x0e\n" +
 	"\f_target_repsB\x16\n" +
 	"\x14_target_time_secondsB\x14\n" +
 	"\x12_target_distance_mB\b\n" +
-	"\x06_notes\"C\n" +
+	"\x06_notesB\x18\n" +
+	"\x16_rest_duration_seconds\"C\n" +
 	"\x15CreateWorkoutResponse\x12*\n" +
 	"\aworkout\x18\x01 \x01(\v2\x10.heft.v1.WorkoutR\aworkout\"\x89\x02\n" +
 	"\x14UpdateWorkoutRequest\x12\x0e\n" +

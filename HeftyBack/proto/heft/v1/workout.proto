@@ -93,6 +93,7 @@ message TargetSet {
   optional double target_distance_m = 7;
   bool is_bodyweight = 8;
   string notes = 9;
+  optional int32 rest_duration_seconds = 10;
 }
 
 // ListWorkouts
@@ -148,6 +149,7 @@ message CreateTargetSet {
   optional double target_distance_m = 5;
   bool is_bodyweight = 6;
   optional string notes = 7;
+  optional int32 rest_duration_seconds = 8;
 }
 
 message CreateWorkoutResponse {

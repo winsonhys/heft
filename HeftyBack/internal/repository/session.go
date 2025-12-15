@@ -293,6 +293,14 @@ func (r *SessionRepository) CompleteSet(ctx context.Context, setID string, weigh
 
 // FinishSession marks a session as completed
 func (r *SessionRepository) FinishSession(ctx context.Context, id, userID string, notes *string) (*WorkoutSession, error) {
+	// Start a transaction as we're doing multiple operations
+	tx, err := r.pool.Begin(ctx)
+	if err != nil {
+		return nil, err
+	}
+	defer tx.Rollback(ctx)
+
+	// Update session status
 	query := `
 		UPDATE workout_sessions
 		SET status = 'completed',
@@ -307,7 +315,7 @@ func (r *SessionRepository) FinishSession(ctx context.Context, id, userID string
 	`
 
 	var s WorkoutSession
-	err := r.pool.QueryRow(ctx, query, id, userID, notes).Scan(
+	err = tx.QueryRow(ctx, query, id, userID, notes).Scan(
 		&s.ID, &s.UserID, &s.WorkoutTemplateID, &s.ProgramID, &s.ProgramDayNumber, &s.Name,
 		&s.Status, &s.StartedAt, &s.CompletedAt, &s.DurationSeconds, &s.TotalSets, &s.CompletedSets,
 		&s.Notes, &s.CreatedAt, &s.UpdatedAt,
@@ -316,7 +324,138 @@ func (r *SessionRepository) FinishSession(ctx context.Context, id, userID string
 		return nil, err
 	}
 
+	// Calculate and save exercise history
+	// This aggregates stats for each exercise in the session and saves to exercise_history table
+	err = r.calculateAndSaveStats(ctx, tx, id, userID, s.StartedAt)
+	if err != nil {
+		// Log error but don't fail session completion if stats fail?
+		// Ideally we should fail to ensure data consistency
+		return nil, err
+	}
+
+	if err := tx.Commit(ctx); err != nil {
+		return nil, err
+	}
+
 	return &s, nil
+}
+
+func (r *SessionRepository) calculateAndSaveStats(ctx context.Context, tx pgx.Tx, sessionID, userID string, sessionDate time.Time) error {
+	// 1. Get all sets for this session that are completed
+	query := `
+		SELECT se.exercise_id, ss.weight_kg, ss.reps, ss.time_seconds, ss.distance_m
+		FROM session_sets ss
+		JOIN session_exercises se ON ss.session_exercise_id = se.id
+		WHERE se.session_id = $1 AND ss.is_completed = TRUE
+	`
+
+	rows, err := tx.Query(ctx, query, sessionID)
+	if err != nil {
+		return err
+	}
+	defer rows.Close()
+
+	// 2. Aggregate stats per exercise
+	type exStats struct {
+		ExerciseID    string
+		BestWeight    float64
+		BestReps      int
+		BestTime      int
+		TotalSets     int
+		TotalReps     int
+		TotalVolume   float64
+	}
+
+	statsMap := make(map[string]*exStats)
+
+	for rows.Next() {
+		var (
+			exID      string
+			weight    *float64
+			reps      *int
+			timeSec   *int
+			distance  *float64
+		)
+		if err := rows.Scan(&exID, &weight, &reps, &timeSec, &distance); err != nil {
+			return err
+		}
+
+		stats, exists := statsMap[exID]
+		if !exists {
+			stats = &exStats{ExerciseID: exID}
+			statsMap[exID] = stats
+		}
+
+		stats.TotalSets++
+
+		// Calculate volume (Weight * Reps) for weight exercises
+		w := 0.0
+		if weight != nil {
+			w = *weight
+		}
+		r := 0
+		if reps != nil {
+			r = *reps
+		}
+
+		if weight != nil && reps != nil {
+			stats.TotalVolume += w * float64(r)
+			stats.TotalReps += r
+		}
+
+		// Update bests
+		if w > stats.BestWeight {
+			stats.BestWeight = w
+			// If identical weight, could check reps, but basic max weight is primary
+		}
+		if r > stats.BestReps {
+			stats.BestReps = r
+		}
+		if timeSec != nil && *timeSec > stats.BestTime {
+			stats.BestTime = *timeSec
+		}
+	}
+	if err := rows.Err(); err != nil {
+		return err
+	}
+
+	// 3. Insert into exercise_history
+	insertQuery := `
+		INSERT INTO exercise_history (
+			user_id, exercise_id, session_id, session_date,
+			best_weight_kg, best_reps, best_time_seconds,
+			total_sets, total_reps, total_volume_kg, created_at
+		) VALUES (
+			$1, $2, $3, $4,
+			NULLIF($5, 0.0), NULLIF($6, 0), NULLIF($7, 0),
+			$8, NULLIF($9, 0), NULLIF($10, 0.0), CURRENT_TIMESTAMP
+		)
+		ON CONFLICT (session_id, exercise_id) DO UPDATE SET
+			best_weight_kg = EXCLUDED.best_weight_kg,
+			best_reps = EXCLUDED.best_reps,
+			best_time_seconds = EXCLUDED.best_time_seconds,
+			total_sets = EXCLUDED.total_sets,
+			total_reps = EXCLUDED.total_reps,
+			total_volume_kg = EXCLUDED.total_volume_kg
+	`
+
+	// Note: Schema in 00001_initial_schema.sql doesn't show updated_at for exercise_history,
+	// checking if it exists. Based on view, it has created_at.
+	// We'll skip updated_at in ON UPDATE for now unless schema check reveals it.
+	// Actually ON CONFLICT DO UPDATE is good to have if we ever re-process a session.
+
+	for _, stats := range statsMap {
+		_, err := tx.Exec(ctx, insertQuery,
+			userID, stats.ExerciseID, sessionID, sessionDate,
+			stats.BestWeight, stats.BestReps, stats.BestTime,
+			stats.TotalSets, stats.TotalReps, stats.TotalVolume,
+		)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 // AbandonSession marks a session as abandoned

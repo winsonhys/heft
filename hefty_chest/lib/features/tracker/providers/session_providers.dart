@@ -24,6 +24,7 @@ class ActiveSession extends _$ActiveSession {
       state = AsyncValue.data(response.session);
       return response.session;
     } catch (e, st) {
+      if (e.toString().contains('disposed') || e.toString().contains('UnmountedRefException')) return null;
       state = AsyncValue.error(e, st);
       return null;
     }
@@ -40,6 +41,7 @@ class ActiveSession extends _$ActiveSession {
       state = AsyncValue.data(response.session);
       return response.session;
     } catch (e, st) {
+      if (e.toString().contains('disposed') || e.toString().contains('UnmountedRefException')) return null;
       state = AsyncValue.error(e, st);
       return null;
     }
@@ -134,6 +136,7 @@ class ActiveSession extends _$ActiveSession {
       ref.invalidate(dashboardStatsProvider);
       ref.invalidate(hasActiveSessionProvider);
     } catch (e, st) {
+      if (e.toString().contains('disposed') || e.toString().contains('UnmountedRefException')) return;
       state = AsyncValue.error(e, st);
     }
   }
@@ -152,6 +155,7 @@ class ActiveSession extends _$ActiveSession {
       // Invalidate active session check
       ref.invalidate(hasActiveSessionProvider);
     } catch (e, st) {
+      if (e.toString().contains('disposed') || e.toString().contains('UnmountedRefException')) return;
       state = AsyncValue.error(e, st);
     }
   }

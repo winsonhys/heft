@@ -42,9 +42,11 @@ type WorkoutRepositoryInterface interface {
 	GetByID(ctx context.Context, id, userID string) (*WorkoutTemplate, error)
 	Create(ctx context.Context, userID, name string, description *string) (*WorkoutTemplate, error)
 	Delete(ctx context.Context, id, userID string) error
+	UpdateWorkoutDetails(ctx context.Context, id, name string, description *string, isArchived bool) (*WorkoutTemplate, error)
+	DeleteSections(ctx context.Context, workoutID string) error
 	CreateSection(ctx context.Context, workoutID, name string, displayOrder int, isSuperset bool) (*WorkoutSection, error)
 	CreateSectionItem(ctx context.Context, sectionID, itemType string, displayOrder int, exerciseID *string, restDurationSeconds *int) (*SectionItem, error)
-	CreateTargetSet(ctx context.Context, sectionItemID string, setNumber int, targetWeightKg *float64, targetReps, targetTimeSeconds *int, targetDistanceM *float64, isBodyweight bool, notes *string) (*ExerciseTargetSet, error)
+	CreateTargetSet(ctx context.Context, sectionItemID string, setNumber int, targetWeightKg *float64, targetReps, targetTimeSeconds *int, targetDistanceM *float64, isBodyweight bool, notes *string, restDurationSeconds *int) (*ExerciseTargetSet, error)
 }
 
 // ProgramRepositoryInterface defines the contract for program data access
