@@ -3,6 +3,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 import '../../../shared/theme/app_colors.dart';
+import '../../../shared/widgets/duration_picker.dart';
 import '../../../core/client.dart';
 import '../providers/workout_builder_providers.dart';
 
@@ -43,12 +44,6 @@ class SetRowEditor extends HookConsumerWidget {
       text: formatSec(set.targetTimeSeconds),
     );
 
-    final restMinController = useTextEditingController(
-      text: formatMin(set.restDurationSeconds ?? 0),
-    );
-    final restSecController = useTextEditingController(
-      text: formatSec(set.restDurationSeconds ?? 0),
-    );
 
     void updateValues({double? weight, int? reps, int? time, int? rest}) {
       ref.read(workoutBuilderProvider.notifier).updateSetValues(
@@ -66,12 +61,6 @@ class SetRowEditor extends HookConsumerWidget {
       final min = int.tryParse(timeMinController.text) ?? 0;
       final sec = int.tryParse(timeSecController.text) ?? 0;
       updateValues(time: min * 60 + sec);
-    }
-
-    void onRestChanged() {
-      final min = int.tryParse(restMinController.text) ?? 0;
-      final sec = int.tryParse(restSecController.text) ?? 0;
-      updateValues(rest: min * 60 + sec);
     }
 
     final isWeight = exerciseType == ExerciseType.EXERCISE_TYPE_WEIGHT_REPS;
@@ -150,33 +139,11 @@ class SetRowEditor extends HookConsumerWidget {
           ],
           
           const SizedBox(width: 8),
-          
-          // Rest Timer Input
-          SizedBox(
-            width: 80,
-            child: Row(
-              children: [
-                const Icon(Icons.timer_outlined, size: 16, color: AppColors.textMuted),
-                const SizedBox(width: 4),
-                 Expanded(
-                  child: _InputField(
-                    controller: restMinController,
-                    onChanged: (_) => onRestChanged(),
-                    placeholder: 'm',
-                    textSize: 12,
-                  ),
-                ),
-                Text(':', style: TextStyle(color: AppColors.textMuted, fontSize: 12)),
-                Expanded(
-                  child: _InputField(
-                    controller: restSecController,
-                    onChanged: (_) => onRestChanged(),
-                    placeholder: 's',
-                    textSize: 12,
-                  ),
-                ),
-              ],
-            ),
+
+          // Rest Timer Picker
+          DurationPickerTrigger(
+            duration: Duration(seconds: set.restDurationSeconds ?? 0),
+            onChanged: (duration) => updateValues(rest: duration.inSeconds),
           ),
 
           // Delete set button

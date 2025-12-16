@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:shadcn_flutter/shadcn_flutter.dart' as shadcn;
 import 'app_colors.dart';
 
 /// Build the Material theme data
@@ -117,45 +116,5 @@ ThemeData buildMaterialTheme() {
       color: AppColors.textSecondary,
       size: 24,
     ),
-  );
-}
-
-/// Shadcn color scheme configuration for the app
-shadcn.ColorScheme buildShadcnColorScheme() {
-  return shadcn.ColorScheme(
-    brightness: shadcn.Brightness.dark,
-    background: AppColors.bgPrimary,
-    foreground: AppColors.textPrimary,
-    card: AppColors.bgCard,
-    cardForeground: AppColors.textPrimary,
-    popover: AppColors.bgCard,
-    popoverForeground: AppColors.textPrimary,
-    primary: AppColors.accentBlue,
-    primaryForeground: const Color(0xFFFFFFFF),
-    secondary: AppColors.bgCardInner,
-    secondaryForeground: AppColors.textSecondary,
-    muted: AppColors.bgCardInner,
-    mutedForeground: AppColors.textMuted,
-    accent: AppColors.accentBlue,
-    accentForeground: const Color(0xFFFFFFFF),
-    destructive: AppColors.accentRed,
-    destructiveForeground: const Color(0xFFFFFFFF),
-    border: AppColors.borderColor,
-    input: AppColors.bgCardInner,
-    ring: AppColors.accentBlue,
-    chart1: AppColors.accentBlue,
-    chart2: AppColors.accentGreen,
-    chart3: AppColors.accentOrange,
-    chart4: AppColors.accentRed,
-    chart5: AppColors.textSecondary,
-    // Sidebar colors (required)
-    sidebar: AppColors.bgSecondary,
-    sidebarForeground: AppColors.textPrimary,
-    sidebarPrimary: AppColors.accentBlue,
-    sidebarPrimaryForeground: const Color(0xFFFFFFFF),
-    sidebarAccent: AppColors.bgCard,
-    sidebarAccentForeground: AppColors.textPrimary,
-    sidebarBorder: AppColors.borderColor,
-    sidebarRing: AppColors.accentBlue,
   );
 }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:forui/forui.dart';
 
 import '../../shared/theme/app_colors.dart';
 import '../../shared/widgets/bottom_nav_bar.dart';
@@ -47,13 +48,14 @@ class HomeScreen extends ConsumerWidget {
           style: const TextStyle(color: AppColors.textSecondary),
         ),
         actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
+          FButton(
+            style: FButtonStyle.ghost(),
+            onPress: () => Navigator.pop(context, false),
             child: const Text('Cancel'),
           ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            style: TextButton.styleFrom(foregroundColor: AppColors.accentRed),
+          FButton(
+            style: FButtonStyle.destructive(),
+            onPress: () => Navigator.pop(context, true),
             child: const Text('Delete'),
           ),
         ],
@@ -150,9 +152,7 @@ class HomeScreen extends ConsumerWidget {
                   );
                 },
                 loading: () => const Center(
-                  child: CircularProgressIndicator(
-                    color: AppColors.accentBlue,
-                  ),
+                  child: FProgress(),
                 ),
                 error: (error, _) => Center(
                   child: Column(
@@ -172,12 +172,10 @@ class HomeScreen extends ConsumerWidget {
                         ),
                       ),
                       const SizedBox(height: 8),
-                      TextButton(
-                        onPressed: () => ref.invalidate(workoutListProvider),
-                        child: Text(
-                          'Retry',
-                          style: TextStyle(color: AppColors.accentBlue),
-                        ),
+                      FButton(
+                        style: FButtonStyle.ghost(),
+                        onPress: () => ref.invalidate(workoutListProvider),
+                        child: const Text('Retry'),
                       ),
                     ],
                   ),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:forui/forui.dart';
 
 import '../../shared/theme/app_colors.dart';
 import '../../shared/widgets/bottom_nav_bar.dart';
@@ -105,9 +106,7 @@ class ProfileScreen extends ConsumerWidget {
                   ),
                 ),
                 loading: () => const Center(
-                  child: CircularProgressIndicator(
-                    color: AppColors.accentBlue,
-                  ),
+                  child: FProgress(),
                 ),
                 error: (error, _) => Center(
                   child: Column(
@@ -127,12 +126,10 @@ class ProfileScreen extends ConsumerWidget {
                         ),
                       ),
                       const SizedBox(height: 8),
-                      TextButton(
-                        onPressed: () => ref.invalidate(userProfileProvider),
-                        child: const Text(
-                          'Retry',
-                          style: TextStyle(color: AppColors.accentBlue),
-                        ),
+                      FButton(
+                        style: FButtonStyle.ghost(),
+                        onPress: () => ref.invalidate(userProfileProvider),
+                        child: const Text('Retry'),
                       ),
                     ],
                   ),

@@ -23,7 +23,7 @@ class ExerciseItem extends ConsumerWidget {
     final isTime = item.exerciseType == ExerciseType.EXERCISE_TYPE_TIME;
 
     return Padding(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.only(top: 12, right: 12, bottom: 12),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

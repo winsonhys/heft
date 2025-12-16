@@ -330,6 +330,66 @@ class WorkoutBuilder extends _$WorkoutBuilder {
     );
   }
 
+  void reorderItems(String sectionId, int oldIndex, int newIndex) {
+    state = state.copyWith(
+      sections: state.sections.map((s) {
+        if (s.id == sectionId) {
+          final items = List<BuilderItem>.from(s.items);
+          if (oldIndex < newIndex) newIndex -= 1;
+          final item = items.removeAt(oldIndex);
+          items.insert(newIndex, item);
+          return s.copyWith(items: items);
+        }
+        return s;
+      }).toList(),
+    );
+  }
+
+  /// Move an item from one section to another (or within the same section)
+  void moveItem({
+    required String itemId,
+    required String fromSectionId,
+    required String toSectionId,
+    required int targetIndex,
+  }) {
+    // Find the item in the source section
+    final fromSectionIndex =
+        state.sections.indexWhere((s) => s.id == fromSectionId);
+    if (fromSectionIndex == -1) return;
+
+    final fromSection = state.sections[fromSectionIndex];
+    final itemIndex = fromSection.items.indexWhere((i) => i.id == itemId);
+    if (itemIndex == -1) return;
+
+    final item = fromSection.items[itemIndex];
+
+    // Create new sections list
+    final newSections = state.sections.map((section) {
+      if (section.id == fromSectionId && section.id == toSectionId) {
+        // Same section - reorder within
+        final items = List<BuilderItem>.from(section.items);
+        items.removeAt(itemIndex);
+        final adjustedTarget =
+            targetIndex > itemIndex ? targetIndex - 1 : targetIndex;
+        items.insert(adjustedTarget.clamp(0, items.length), item);
+        return section.copyWith(items: items);
+      } else if (section.id == fromSectionId) {
+        // Remove from source
+        return section.copyWith(
+          items: section.items.where((i) => i.id != itemId).toList(),
+        );
+      } else if (section.id == toSectionId) {
+        // Add to target
+        final items = List<BuilderItem>.from(section.items);
+        items.insert(targetIndex.clamp(0, items.length), item);
+        return section.copyWith(items: items);
+      }
+      return section;
+    }).toList();
+
+    state = state.copyWith(sections: newSections);
+  }
+
   void addSet(String sectionId, String itemId) {
     state = state.copyWith(
       sections: state.sections.map((s) {

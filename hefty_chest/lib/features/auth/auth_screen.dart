@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:forui/forui.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
@@ -84,89 +85,32 @@ class AuthScreen extends HookConsumerWidget {
               const SizedBox(height: 48),
 
               // Email field
-              TextField(
+              FTextField.email(
                 controller: emailController,
-                keyboardType: TextInputType.emailAddress,
-                autocorrect: false,
-                style: const TextStyle(color: AppColors.textPrimary),
-                decoration: InputDecoration(
-                  labelText: 'Email',
-                  labelStyle: const TextStyle(color: AppColors.textSecondary),
-                  hintText: 'you@example.com',
-                  hintStyle: const TextStyle(color: AppColors.textMuted),
-                  filled: true,
-                  fillColor: AppColors.bgCard,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: AppColors.borderColor),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: AppColors.borderColor),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: AppColors.accentBlue),
-                  ),
-                  prefixIcon:
-                      const Icon(Icons.email, color: AppColors.textSecondary),
-                ),
-                onSubmitted: (_) => handleLogin(),
+                hint: 'you@example.com',
+                label: const Text('Email'),
+                description: errorMessage.value != null
+                    ? null
+                    : const Text(
+                        'No password needed - just enter your email to get started'),
+                error: errorMessage.value != null
+                    ? Text(errorMessage.value!)
+                    : null,
+                onSubmit: (_) => handleLogin(),
               ),
-
-              // Error message
-              if (errorMessage.value != null) ...[
-                const SizedBox(height: 12),
-                Text(
-                  errorMessage.value!,
-                  style: const TextStyle(
-                    color: AppColors.accentRed,
-                    fontSize: 14,
-                  ),
-                ),
-              ],
 
               const SizedBox(height: 24),
 
               // Login button
-              SizedBox(
-                height: 50,
-                child: ElevatedButton(
-                  onPressed: isLoading.value ? null : handleLogin,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.accentBlue,
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    disabledBackgroundColor:
-                        AppColors.accentBlue.withValues(alpha: 0.5),
-                  ),
-                  child: isLoading.value
-                      ? const SizedBox(
-                          width: 24,
-                          height: 24,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: Colors.white,
-                          ),
-                        )
-                      : const Text(
-                          'Continue',
-                          style: TextStyle(
-                              fontSize: 16, fontWeight: FontWeight.w600),
-                        ),
-                ),
-              ),
-
-              const SizedBox(height: 16),
-              const Text(
-                'No password needed - just enter your email to get started',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 12,
-                  color: AppColors.textMuted,
-                ),
+              FButton(
+                onPress: isLoading.value ? null : handleLogin,
+                child: isLoading.value
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: FProgress(),
+                      )
+                    : const Text('Continue'),
               ),
             ],
           ),

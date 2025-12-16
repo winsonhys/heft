@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:forui/forui.dart';
 import 'package:go_router/go_router.dart';
-import 'package:shadcn_flutter/shadcn_flutter.dart' as shadcn;
 
 import '../core/client.dart';
 import '../features/auth/providers/auth_providers.dart';
@@ -53,11 +53,12 @@ class _HeftyChestAppState extends ConsumerState<HeftyChestApp> {
     // Refresh router when auth state changes
     _router.refresh();
 
-    return shadcn.ShadcnApp.router(
+    return MaterialApp.router(
       title: 'Heft',
-      theme: shadcn.ThemeData(
-        colorScheme: buildShadcnColorScheme(),
-        radius: 0.5,
+      theme: buildMaterialTheme(),
+      builder: (context, child) => FTheme(
+        data: FThemes.zinc.dark,
+        child: child!,
       ),
       routerConfig: _router,
       debugShowCheckedModeBanner: false,

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:forui/forui.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
@@ -70,18 +71,13 @@ class TrackerScreen extends HookConsumerWidget {
             style: TextStyle(color: AppColors.textSecondary),
           ),
           actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context, false),
-              child: const Text(
-                'Cancel',
-                style: TextStyle(color: AppColors.textSecondary),
-              ),
+            FButton(
+              style: FButtonStyle.ghost(),
+              onPress: () => Navigator.pop(context, false),
+              child: const Text('Cancel'),
             ),
-            ElevatedButton(
-              onPressed: () => Navigator.pop(context, true),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.accentGreen,
-              ),
+            FButton(
+              onPress: () => Navigator.pop(context, true),
               child: const Text('Finish'),
             ),
           ],
@@ -110,9 +106,7 @@ class TrackerScreen extends HookConsumerWidget {
                 Expanded(
                   child: isLoading.value
                       ? const Center(
-                          child: CircularProgressIndicator(
-                            color: AppColors.accentBlue,
-                          ),
+                          child: FProgress(),
                         )
                       : sessionAsync.when(
                           data: (session) {
@@ -122,9 +116,7 @@ class TrackerScreen extends HookConsumerWidget {
                             return _buildSessionContent(context, ref, session);
                           },
                           loading: () => const Center(
-                            child: CircularProgressIndicator(
-                              color: AppColors.accentBlue,
-                            ),
+                            child: FProgress(),
                           ),
                           error: (error, _) => Center(
                             child: Column(
@@ -144,15 +136,13 @@ class TrackerScreen extends HookConsumerWidget {
                                   ),
                                 ),
                                 const SizedBox(height: 8),
-                                TextButton(
-                                  onPressed: () {
+                                FButton(
+                                  style: FButtonStyle.ghost(),
+                                  onPress: () {
                                     isLoading.value = true;
                                     // Re-trigger init
                                   },
-                                  child: const Text(
-                                    'Retry',
-                                    style: TextStyle(color: AppColors.accentBlue),
-                                  ),
+                                  child: const Text('Retry'),
                                 ),
                               ],
                             ),
@@ -245,12 +235,10 @@ class TrackerScreen extends HookConsumerWidget {
             ),
           ),
           const SizedBox(height: 8),
-          TextButton(
-            onPressed: () => context.go('/'),
-            child: const Text(
-              'Go back home',
-              style: TextStyle(color: AppColors.accentBlue),
-            ),
+          FButton(
+            style: FButtonStyle.ghost(),
+            onPress: () => context.go('/'),
+            child: const Text('Go back home'),
           ),
         ],
       ),

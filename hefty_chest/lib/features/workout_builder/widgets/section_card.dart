@@ -3,6 +3,8 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 
 import '../../../shared/theme/app_colors.dart';
 import '../providers/workout_builder_providers.dart';
+import 'draggable_builder_item.dart';
+import 'drop_zone.dart';
 import 'exercise_item.dart';
 import 'rest_item.dart';
 
@@ -14,6 +16,10 @@ class SectionCard extends HookWidget {
   final VoidCallback onAddExercise;
   final VoidCallback onAddRest;
   final ValueChanged<String> onSectionNameChanged;
+  final void Function(DragData dragData, int targetIndex) onItemDropped;
+  final VoidCallback? onDragStarted;
+  final VoidCallback? onDragEnd;
+  final bool isDragging;
 
   const SectionCard({
     super.key,
@@ -23,6 +29,10 @@ class SectionCard extends HookWidget {
     required this.onAddExercise,
     required this.onAddRest,
     required this.onSectionNameChanged,
+    required this.onItemDropped,
+    this.onDragStarted,
+    this.onDragEnd,
+    this.isDragging = false,
   });
 
   @override
@@ -152,29 +162,40 @@ class SectionCard extends HookWidget {
               ],
             ),
           ),
-          // Items
-          if (section.items.isNotEmpty)
-            ListView.separated(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: section.items.length,
-              separatorBuilder: (context, index) => Divider(
-                height: 1,
-                color: AppColors.borderColor,
-              ),
-              itemBuilder: (context, index) {
-                final item = section.items[index];
-                if (item.isRest) {
-                  return RestItem(
-                    item: item,
-                    sectionId: section.id,
-                  );
-                }
-                return ExerciseItem(
-                  item: item,
+          // Items with drag-drop support
+          if (section.items.isEmpty && isDragging)
+            EmptySectionDropZone(
+              sectionId: section.id,
+              isDragging: isDragging,
+              onAccept: (dragData) => onItemDropped(dragData, 0),
+            )
+          else if (section.items.isNotEmpty)
+            Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Drop zone at the top
+                ItemDropZone(
                   sectionId: section.id,
-                );
-              },
+                  targetIndex: 0,
+                  isDragging: isDragging,
+                  onAccept: (dragData) => onItemDropped(dragData, 0),
+                ),
+                // Items with drop zones between them
+                ...section.items.asMap().entries.expand((entry) {
+                  final index = entry.key;
+                  final item = entry.value;
+                  return [
+                    _buildDraggableItem(context, item, index),
+                    // Drop zone after each item
+                    ItemDropZone(
+                      sectionId: section.id,
+                      targetIndex: index + 1,
+                      isDragging: isDragging,
+                      onAccept: (dragData) => onItemDropped(dragData, index + 1),
+                    ),
+                  ];
+                }),
+              ],
             ),
           // Add buttons
           Padding(
@@ -201,6 +222,56 @@ class SectionCard extends HookWidget {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildDraggableItem(BuildContext context, BuilderItem item, int index) {
+    final itemWidget = Row(
+      children: [
+        // Drag handle
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
+          child: Icon(
+            Icons.drag_handle,
+            color: AppColors.textMuted,
+            size: 20,
+          ),
+        ),
+        Expanded(
+          child: item.isRest
+              ? RestItem(
+                  item: item,
+                  sectionId: section.id,
+                )
+              : ExerciseItem(
+                  item: item,
+                  sectionId: section.id,
+                ),
+        ),
+      ],
+    );
+
+    return Column(
+      key: ValueKey(item.id),
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        DraggableBuilderItem(
+          item: item,
+          sectionId: section.id,
+          index: index,
+          onDragStarted: onDragStarted,
+          onDragEnd: onDragEnd,
+          child: Container(
+            color: AppColors.bgCard,
+            child: itemWidget,
+          ),
+        ),
+        if (index < section.items.length - 1 && !isDragging)
+          Divider(
+            height: 1,
+            color: AppColors.borderColor,
+          ),
+      ],
     );
   }
 }

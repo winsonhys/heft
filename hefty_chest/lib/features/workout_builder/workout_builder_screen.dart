@@ -5,6 +5,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 import '../../shared/theme/app_colors.dart';
 import 'providers/workout_builder_providers.dart';
+import 'widgets/draggable_builder_item.dart';
 import 'widgets/section_card.dart';
 import 'widgets/exercise_search_modal.dart';
 
@@ -18,6 +19,7 @@ class WorkoutBuilderScreen extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final nameController = useTextEditingController();
     final isLoading = useState(false);
+    final isDragging = useState(false);
     final state = ref.watch(workoutBuilderProvider);
     final isEditing = workoutId != null;
 
@@ -121,6 +123,7 @@ class WorkoutBuilderScreen extends HookConsumerWidget {
                             return SectionCard(
                               key: ValueKey(section.id),
                               section: section,
+                              isDragging: isDragging.value,
                               onToggleSuperset: () {
                                 ref
                                     .read(workoutBuilderProvider.notifier)
@@ -143,6 +146,22 @@ class WorkoutBuilderScreen extends HookConsumerWidget {
                                 ref
                                     .read(workoutBuilderProvider.notifier)
                                     .updateSectionName(section.id, name);
+                              },
+                              onDragStarted: () {
+                                isDragging.value = true;
+                              },
+                              onDragEnd: () {
+                                isDragging.value = false;
+                              },
+                              onItemDropped: (DragData dragData, int targetIndex) {
+                                ref
+                                    .read(workoutBuilderProvider.notifier)
+                                    .moveItem(
+                                      itemId: dragData.item.id,
+                                      fromSectionId: dragData.fromSectionId,
+                                      toSectionId: section.id,
+                                      targetIndex: targetIndex,
+                                    );
                               },
                             );
                           }),
