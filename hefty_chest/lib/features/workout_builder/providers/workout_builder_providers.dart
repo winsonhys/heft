@@ -122,6 +122,7 @@ class BuilderSet {
   final int targetTimeSeconds;
   final bool isBodyweight;
   final int? restDurationSeconds;
+  final bool isEdited; // Tracks if user has modified this set
 
   const BuilderSet({
     required this.id,
@@ -131,6 +132,7 @@ class BuilderSet {
     this.targetTimeSeconds = 0,
     this.isBodyweight = false,
     this.restDurationSeconds,
+    this.isEdited = false,
   });
 
   BuilderSet copyWith({
@@ -141,6 +143,7 @@ class BuilderSet {
     int? targetTimeSeconds,
     bool? isBodyweight,
     int? restDurationSeconds,
+    bool? isEdited,
   }) {
     return BuilderSet(
       id: id ?? this.id,
@@ -150,6 +153,7 @@ class BuilderSet {
       targetTimeSeconds: targetTimeSeconds ?? this.targetTimeSeconds,
       isBodyweight: isBodyweight ?? this.isBodyweight,
       restDurationSeconds: restDurationSeconds ?? this.restDurationSeconds,
+      isEdited: isEdited ?? this.isEdited,
     );
   }
 }
@@ -397,9 +401,17 @@ class WorkoutBuilder extends _$WorkoutBuilder {
           return s.copyWith(
             items: s.items.map((i) {
               if (i.id == itemId) {
+                // Copy values from first set if it exists
+                final firstSet = i.sets.isNotEmpty ? i.sets.first : null;
                 final newSet = BuilderSet(
                   id: _uuid.v4(),
                   setNumber: i.sets.length + 1,
+                  targetWeightKg: firstSet?.targetWeightKg ?? 0,
+                  targetReps: firstSet?.targetReps ?? 10,
+                  targetTimeSeconds: firstSet?.targetTimeSeconds ?? 0,
+                  isBodyweight: firstSet?.isBodyweight ?? false,
+                  restDurationSeconds: firstSet?.restDurationSeconds,
+                  isEdited: false, // Linked to first set until edited
                 );
                 return i.copyWith(sets: [...i.sets, newSet]);
               }
@@ -452,15 +464,47 @@ class WorkoutBuilder extends _$WorkoutBuilder {
           return s.copyWith(
             items: s.items.map((i) {
               if (i.id == itemId) {
+                // Find the set being edited
+                final editedSetIndex = i.sets.indexWhere((set) => set.id == setId);
+                if (editedSetIndex == -1) return i;
+
+                final isEditingFirstSet = editedSetIndex == 0;
+
                 return i.copyWith(
-                  sets: i.sets.map((set) {
-                    if (set.id == setId) {
+                  sets: i.sets.asMap().entries.map((entry) {
+                    final idx = entry.key;
+                    final set = entry.value;
+
+                    if (isEditingFirstSet) {
+                      // Editing first set: mark it as edited and update all unedited (linked) sets
+                      if (idx == 0) {
+                        return set.copyWith(
+                          targetWeightKg: weight ?? set.targetWeightKg,
+                          targetReps: reps ?? set.targetReps,
+                          targetTimeSeconds: time ?? set.targetTimeSeconds,
+                          isBodyweight: bodyweight ?? set.isBodyweight,
+                          restDurationSeconds: rest ?? set.restDurationSeconds,
+                          isEdited: true,
+                        );
+                      } else if (!set.isEdited) {
+                        // Update linked sets (don't mark them as edited)
+                        return set.copyWith(
+                          targetWeightKg: weight ?? set.targetWeightKg,
+                          targetReps: reps ?? set.targetReps,
+                          targetTimeSeconds: time ?? set.targetTimeSeconds,
+                          isBodyweight: bodyweight ?? set.isBodyweight,
+                          restDurationSeconds: rest ?? set.restDurationSeconds,
+                        );
+                      }
+                    } else if (set.id == setId) {
+                      // Editing non-first set: mark as edited and update
                       return set.copyWith(
                         targetWeightKg: weight ?? set.targetWeightKg,
                         targetReps: reps ?? set.targetReps,
                         targetTimeSeconds: time ?? set.targetTimeSeconds,
                         isBodyweight: bodyweight ?? set.isBodyweight,
                         restDurationSeconds: rest ?? set.restDurationSeconds,
+                        isEdited: true,
                       );
                     }
                     return set;

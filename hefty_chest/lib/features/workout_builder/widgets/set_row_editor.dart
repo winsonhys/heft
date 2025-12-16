@@ -44,6 +44,34 @@ class SetRowEditor extends HookConsumerWidget {
       text: formatSec(set.targetTimeSeconds),
     );
 
+    // Sync controllers when set values change externally (e.g., linked sets)
+    useEffect(() {
+      final newWeight = set.targetWeightKg > 0 ? set.targetWeightKg.toString() : '';
+      if (weightController.text != newWeight) {
+        weightController.text = newWeight;
+      }
+      return null;
+    }, [set.targetWeightKg]);
+
+    useEffect(() {
+      final newReps = set.targetReps > 0 ? set.targetReps.toString() : '';
+      if (repsController.text != newReps) {
+        repsController.text = newReps;
+      }
+      return null;
+    }, [set.targetReps]);
+
+    useEffect(() {
+      final newMin = formatMin(set.targetTimeSeconds);
+      final newSec = formatSec(set.targetTimeSeconds);
+      if (timeMinController.text != newMin) {
+        timeMinController.text = newMin;
+      }
+      if (timeSecController.text != newSec) {
+        timeSecController.text = newSec;
+      }
+      return null;
+    }, [set.targetTimeSeconds]);
 
     void updateValues({double? weight, int? reps, int? time, int? rest}) {
       ref.read(workoutBuilderProvider.notifier).updateSetValues(
@@ -90,6 +118,7 @@ class SetRowEditor extends HookConsumerWidget {
                 controller: weightController,
                 onChanged: (v) => updateValues(weight: double.tryParse(v)),
                 placeholder: 'kg',
+                isEdited: set.isEdited,
               ),
             ),
             const SizedBox(width: 8),
@@ -99,6 +128,7 @@ class SetRowEditor extends HookConsumerWidget {
                 controller: repsController,
                 onChanged: (v) => updateValues(reps: int.tryParse(v)),
                 placeholder: 'reps',
+                isEdited: set.isEdited,
               ),
             ),
           ] else if (isTime) ...[
@@ -111,6 +141,7 @@ class SetRowEditor extends HookConsumerWidget {
                       controller: timeMinController,
                       onChanged: (_) => onTimeChanged(),
                       placeholder: 'm',
+                      isEdited: set.isEdited,
                     ),
                   ),
                   const Padding(
@@ -122,6 +153,7 @@ class SetRowEditor extends HookConsumerWidget {
                       controller: timeSecController,
                       onChanged: (_) => onTimeChanged(),
                       placeholder: 's',
+                      isEdited: set.isEdited,
                     ),
                   ),
                 ],
@@ -134,6 +166,7 @@ class SetRowEditor extends HookConsumerWidget {
                 controller: repsController,
                 onChanged: (v) => updateValues(reps: int.tryParse(v)),
                 placeholder: 'reps',
+                isEdited: set.isEdited,
               ),
             ),
           ],
@@ -144,6 +177,7 @@ class SetRowEditor extends HookConsumerWidget {
           DurationPickerTrigger(
             duration: Duration(seconds: set.restDurationSeconds ?? 0),
             onChanged: (duration) => updateValues(rest: duration.inSeconds),
+            isEdited: set.isEdited,
           ),
 
           // Delete set button
@@ -170,28 +204,61 @@ class SetRowEditor extends HookConsumerWidget {
   }
 }
 
-class _InputField extends StatelessWidget {
+class _InputField extends StatefulWidget {
   final TextEditingController controller;
   final Function(String) onChanged;
   final String placeholder;
-  final double textSize;
+  final bool isEdited;
 
   const _InputField({
     required this.controller,
     required this.onChanged,
     required this.placeholder,
-    this.textSize = 14,
+    this.isEdited = true,
   });
+
+  @override
+  State<_InputField> createState() => _InputFieldState();
+}
+
+class _InputFieldState extends State<_InputField> {
+  late FocusNode _focusNode;
+
+  @override
+  void initState() {
+    super.initState();
+    _focusNode = FocusNode();
+    _focusNode.addListener(_onFocusChange);
+  }
+
+  @override
+  void dispose() {
+    _focusNode.removeListener(_onFocusChange);
+    _focusNode.dispose();
+    super.dispose();
+  }
+
+  void _onFocusChange() {
+    if (_focusNode.hasFocus) {
+      // Select all text when focused
+      widget.controller.selection = TextSelection(
+        baseOffset: 0,
+        extentOffset: widget.controller.text.length,
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return TextField(
-      controller: controller,
+      controller: widget.controller,
+      focusNode: _focusNode,
       keyboardType: const TextInputType.numberWithOptions(decimal: true),
       textAlign: TextAlign.center,
       style: TextStyle(
-        fontSize: textSize,
-        color: AppColors.textPrimary,
+        fontSize: 14,
+        // Show muted color for unedited (linked) values
+        color: widget.isEdited ? AppColors.textPrimary : AppColors.textMuted,
       ),
       decoration: InputDecoration(
         isDense: true,
@@ -199,8 +266,8 @@ class _InputField extends StatelessWidget {
           horizontal: 4,
           vertical: 8,
         ),
-        hintText: placeholder,
-        hintStyle: TextStyle(color: AppColors.textMuted, fontSize: textSize),
+        hintText: widget.placeholder,
+        hintStyle: const TextStyle(color: AppColors.textMuted, fontSize: 14),
         filled: true,
         fillColor: AppColors.bgPrimary,
         border: OutlineInputBorder(
@@ -208,7 +275,7 @@ class _InputField extends StatelessWidget {
           borderSide: BorderSide.none,
         ),
       ),
-      onChanged: onChanged,
+      onChanged: widget.onChanged,
     );
   }
 }

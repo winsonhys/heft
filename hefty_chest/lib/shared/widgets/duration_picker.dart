@@ -8,11 +8,13 @@ import '../theme/app_colors.dart';
 class DurationPickerTrigger extends StatelessWidget {
   final Duration duration;
   final ValueChanged<Duration> onChanged;
+  final bool isEdited;
 
   const DurationPickerTrigger({
     super.key,
     required this.duration,
     required this.onChanged,
+    this.isEdited = true,
   });
 
   String _formatDuration() {
@@ -42,10 +44,10 @@ class DurationPickerTrigger extends StatelessWidget {
           children: [
             Text(
               _formatDuration(),
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.w500,
-                color: AppColors.textPrimary,
+                color: isEdited ? AppColors.textPrimary : AppColors.textMuted,
               ),
             ),
             const SizedBox(width: 4),
