@@ -1,21 +1,36 @@
-version: "3.6"
 services:
+  # Development server
+  server:
+    build: .
+    ports:
+      - "8080:8080"
+    environment:
+      - DATABASE_URL=postgresql://postgres:password@pgtestdb:5432/postgres?sslmode=disable
+      - PORT=8080
+    depends_on:
+      pgtestdb:
+        condition: service_healthy
+    restart: unless-stopped
+
+  # PostgreSQL for testing and local development
   pgtestdb:
     image: postgres:15
     environment:
       POSTGRES_PASSWORD: password
     restart: unless-stopped
     volumes:
-      # Uses a tmpfs volume to make tests extremely fast. The data in test
-      # databases is not persisted across restarts, nor does it need to be.
       - type: tmpfs
         target: /var/lib/postgresql/data/
     command:
       - "postgres"
-      - "-c" # turn off fsync for speed
+      - "-c"
       - "fsync=off"
-      - "-c" # log everything for debugging
+      - "-c"
       - "log_statement=all"
     ports:
-      # Entirely up to you what port you want to use while testing.
       - "5433:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 2s
+      timeout: 5s
+      retries: 5

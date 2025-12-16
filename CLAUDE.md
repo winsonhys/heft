@@ -26,8 +26,8 @@ This is a fitness platform that allows users to create workout templates, follow
 ┌─────────────────────────────▼───────────────────────────────┐
 │                    HeftyBack (Go)                            │
 │  ┌─────────────────────────────────────────────────────┐    │
-│  │              Connect-RPC Services (6)                │    │
-│  │  User │ Exercise │ Workout │ Program │ Session │ Progress │
+│  │              Connect-RPC Services (7)                │    │
+│  │  Auth │ User │ Exercise │ Workout │ Program │ Session │ Progress │
 │  └──────────────────────────┬──────────────────────────┘    │
 │                             │                                │
 │  ┌──────────────────────────▼──────────────────────────┐    │
@@ -151,10 +151,11 @@ heft/
 
 ## Services Overview
 
-The backend exposes 6 RPC services:
+The backend exposes 7 RPC services:
 
 | Service | Purpose | Key Operations |
 |---------|---------|----------------|
+| AuthService | Authentication | Register, Login, RefreshToken, Logout |
 | UserService | User management | GetProfile, UpdateSettings, LogWeight |
 | ExerciseService | Exercise library | ListExercises, SearchExercises, CreateExercise |
 | WorkoutService | Workout templates | CreateWorkout, AddSection, AddTargetSet |
@@ -167,11 +168,14 @@ The backend exposes 6 RPC services:
 ### Backend Tests
 ```bash
 cd HeftyBack
+docker compose up -d   # Start test PostgreSQL on port 5433
 make test              # All tests
 make test-unit         # Unit tests only (fast, no DB)
-make test-integration  # Integration tests (needs Docker PostgreSQL)
+make test-integration  # Integration tests (uses pgtestdb for isolated DBs)
 make test-coverage     # Generate coverage report
 ```
+
+Integration tests use **pgtestdb** with **goosemigrator** to create isolated test databases per test. The `TestServer` provides clients for all 7 services with JWT auth support.
 
 ### Frontend Tests
 ```bash
@@ -222,7 +226,7 @@ make migrate-status                      # Check status
 
 ## Current Status (MVP)
 
-- Authentication: Hardcoded user ID (no auth system yet)
+- Authentication: JWT-based auth via AuthService (Register, Login, RefreshToken)
 - Environment: Local development only
 - CI/CD: Not configured
 - Proto sync: Manual (files duplicated, not shared)

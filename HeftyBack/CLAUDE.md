@@ -18,13 +18,19 @@
 HeftyBack/
 ├── cmd/
 │   └── server/
-│       └── main.go              # Entry point (132 lines)
+│       └── main.go              # Entry point
 ├── internal/
+│   ├── auth/                    # JWT authentication
+│   │   ├── jwt.go               # JWT token generation/validation
+│   │   ├── jwt_test.go
+│   │   └── context.go           # Auth context helpers
 │   ├── config/
 │   │   └── config.go            # Environment configuration
 │   ├── db/
 │   │   └── db.go                # Database connection pool
-│   ├── handlers/                # Service implementations (~6,320 lines)
+│   ├── handlers/                # Service implementations
+│   │   ├── auth.go              # AuthService handler
+│   │   ├── auth_test.go
 │   │   ├── user.go              # UserService handler
 │   │   ├── user_test.go
 │   │   ├── exercise.go          # ExerciseService handler
@@ -37,8 +43,9 @@ HeftyBack/
 │   │   ├── session_test.go
 │   │   ├── progress.go          # ProgressService handler
 │   │   └── progress_test.go
-│   ├── repository/              # Data access layer (~1,758 lines)
+│   ├── repository/              # Data access layer
 │   │   ├── interfaces.go        # Repository interfaces
+│   │   ├── auth.go
 │   │   ├── user.go
 │   │   ├── exercise.go
 │   │   ├── workout.go
@@ -46,15 +53,18 @@ HeftyBack/
 │   │   ├── session.go
 │   │   └── progress.go
 │   ├── middleware/
-│   │   └── middleware.go        # HTTP middleware
+│   │   ├── logging.go           # Request logging
+│   │   ├── auth.go              # JWT auth interceptor
+│   │   └── auth_test.go
 │   └── testutil/                # Test utilities
 │       ├── mocks.go             # Mock implementations
-│       ├── testdb.go            # Test database setup
-│       ├── testserver.go        # Test HTTP server
+│       ├── testdb.go            # Test database setup (pgtestdb)
+│       ├── testserver.go        # Test HTTP server with all clients
 │       └── fixtures.go          # Test data fixtures
 ├── proto/
 │   └── heft/v1/                 # Protocol Buffer definitions
 │       ├── common.proto
+│       ├── auth.proto
 │       ├── user.proto
 │       ├── exercise.proto
 │       ├── workout.proto
@@ -68,8 +78,15 @@ HeftyBack/
 ├── migrations/
 │   └── 00001_initial_schema.sql # Database schema
 ├── tests/
-│   └── integration/             # Integration tests
-├── docker-compose.yml           # Test PostgreSQL
+│   └── integration/             # Integration tests (all 7 services)
+│       ├── auth_service_test.go
+│       ├── user_service_test.go
+│       ├── exercise_service_test.go
+│       ├── workout_service_test.go
+│       ├── program_service_test.go
+│       ├── session_service_test.go
+│       └── progress_service_test.go
+├── docker-compose.yml           # Test PostgreSQL (port 5433)
 ├── Makefile                     # Build commands
 ├── buf.yaml                     # Buf configuration
 ├── buf.gen.yaml                 # Buf code generation
@@ -143,6 +160,12 @@ mux.Handle(heftv1connect.NewExerciseServiceHandler(exerciseHandler))
 ```
 
 ## Services
+
+### AuthService
+- `Register(email, password)` → New user with JWT token
+- `Login(email, password)` → JWT token pair (access + refresh)
+- `RefreshToken(refresh_token)` → New access token
+- `Logout(refresh_token)` → Success
 
 ### UserService
 - `GetProfile(user_id)` → User profile data
@@ -281,33 +304,70 @@ Run: `make test-unit`
 
 ### Integration Tests
 
-Located in `tests/integration/`. Uses real database:
+Located in `tests/integration/`. Uses **pgtestdb** for isolated test databases with automatic cleanup.
+
+**Test Infrastructure:**
+- `pgtestdb` + `goosemigrator` - Creates fresh isolated database per test
+- `TestServer` - HTTP test server with all 7 service clients
+- JWT auth support via `AuthHeader(userID)` helper
+- Fixtures for seeding test data
+
+**Pattern:**
 
 ```go
-func TestUserIntegration(t *testing.T) {
+func TestUserService_Integration_GetProfile(t *testing.T) {
     if testing.Short() {
-        t.Skip("skipping integration test")
+        t.Skip("skipping integration test in short mode")
     }
 
     pool := testutil.NewTestPool(t)       // Fresh isolated database
     ts := testutil.NewTestServer(t, pool) // HTTP server with all services
 
-    // Seed test data
-    userID := testutil.SeedTestUser(t, pool, testutil.TestUser{
-        Email:       "test@example.com",
-        DisplayName: "Test User",
+    // Seed test data with unique email
+    testUser := testutil.DefaultTestUser()
+    userID := testutil.SeedTestUser(t, pool, testUser)
+
+    t.Run("get existing user profile", func(t *testing.T) {
+        ctx := context.Background()
+
+        req := connect.NewRequest(&heftv1.GetProfileRequest{})
+        req.Header().Set("Authorization", ts.AuthHeader(userID))  // JWT auth
+
+        resp, err := ts.UserClient.GetProfile(ctx, req)
+
+        if err != nil {
+            t.Fatalf("unexpected error: %v", err)
+        }
+        if resp.Msg.User.Id != userID {
+            t.Errorf("expected user ID %s, got %s", userID, resp.Msg.User.Id)
+        }
     })
 
-    // Test via real HTTP
-    resp, err := ts.UserClient.GetProfile(context.Background(),
-        connect.NewRequest(&heftv1.GetProfileRequest{UserId: userID}))
+    t.Run("unauthenticated request returns error", func(t *testing.T) {
+        ctx := context.Background()
+        req := connect.NewRequest(&heftv1.GetProfileRequest{})
+        // No auth header
 
-    require.NoError(t, err)
-    assert.Equal(t, "Test User", resp.Msg.Profile.DisplayName)
+        _, err := ts.UserClient.GetProfile(ctx, req)
+
+        var connectErr *connect.Error
+        if errors.As(err, &connectErr) && connectErr.Code() != connect.CodeUnauthenticated {
+            t.Errorf("expected Unauthenticated error, got %v", connectErr.Code())
+        }
+    })
 }
 ```
 
-Run: `docker compose up -d && make test-integration`
+**TestServer clients available:**
+- `ts.AuthClient` - AuthService
+- `ts.UserClient` - UserService
+- `ts.ExerciseClient` - ExerciseService
+- `ts.WorkoutClient` - WorkoutService
+- `ts.ProgramClient` - ProgramService
+- `ts.SessionClient` - SessionService
+- `ts.ProgressClient` - ProgressService
+
+**Run:** `docker compose up -d && make test-integration`
 
 ### Mock Pattern
 

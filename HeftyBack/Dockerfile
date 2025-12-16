@@ -22,7 +22,7 @@ RUN go install github.com/pressly/goose/v3/cmd/goose@latest
 FROM alpine:latest
 
 # Install runtime dependencies
-RUN apk add --no-cache ca-certificates wget bash
+RUN apk add --no-cache ca-certificates
 
 WORKDIR /app
 
@@ -31,12 +31,7 @@ COPY --from=builder /app/server .
 COPY --from=builder /app/migrations ./migrations
 COPY --from=builder /go/bin/goose /usr/local/bin/goose
 
-# Copy startup script
-COPY docker-entrypoint.sh /app/docker-entrypoint.sh
-RUN chmod +x /app/docker-entrypoint.sh
-
-# Expose port
 EXPOSE 8080
 
-# Run the entrypoint script
-ENTRYPOINT ["/app/docker-entrypoint.sh"]
+# Run migrations then start server
+CMD goose -dir ./migrations postgres "$DATABASE_URL" up && ./server
