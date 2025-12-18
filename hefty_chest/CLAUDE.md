@@ -8,7 +8,7 @@
 | Language | Dart |
 | State Management | Riverpod 3.0 + Flutter Hooks |
 | Routing | go_router with code generation |
-| UI Components | shadcn_flutter |
+| UI Components | forui (FButton, FTextField, FProgress, etc.) |
 | API Client | Connect-RPC |
 | Charts | fl_chart |
 
@@ -72,6 +72,8 @@ hefty_chest/
 │   │   ├── theme/
 │   │   │   └── app_colors.dart      # Color palette
 │   │   └── widgets/                 # Reusable widgets
+│   │       ├── floating_session_widget.dart  # Active session overlay
+│   │       └── bottom_nav_bar.dart  # Bottom navigation
 │   └── gen/                         # Generated proto code
 │       ├── *.pb.dart               # Message types
 │       ├── *.pbenum.dart           # Enums
@@ -86,6 +88,9 @@ hefty_chest/
 │   └── progress.proto
 ├── test/
 │   ├── widget_test.dart
+│   ├── widgets/                      # Widget unit tests
+│   │   ├── floating_session_widget_test.dart
+│   │   └── workout_builder_screen_test.dart
 │   ├── test_utils/
 │   │   ├── test_setup.dart          # Integration test setup & auth
 │   │   └── test_data.dart           # Test data helpers
@@ -521,33 +526,86 @@ Container(
 )
 ```
 
-### shadcn_flutter Components
+### forui Components
+
+forui provides a consistent design system for the app. Set up the theme in app.dart:
 
 ```dart
-import 'package:shadcn_flutter/shadcn_flutter.dart';
+import 'package:forui/forui.dart';
 
-// Buttons
-PrimaryButton(
-  onPressed: () {},
-  child: Text('Start Workout'),
-)
-
-// Cards
-Card(
-  child: Column(
-    children: [
-      CardHeader(title: Text('My Workout')),
-      CardContent(child: ...),
-    ],
+// Theme setup in app.dart
+MaterialApp.router(
+  builder: (context, child) => FTheme(
+    data: FThemes.zinc.dark,  // Dark theme
+    child: child!,
   ),
-)
-
-// Inputs
-TextField(
-  placeholder: Text('Enter workout name'),
-  onChanged: (value) => ref.read(workoutBuilderProvider.notifier).updateName(value),
+  routerConfig: _router,
 )
 ```
+
+**Button Styles:**
+```dart
+// Primary button (default)
+FButton(
+  onPress: () => startWorkout(),
+  child: const Text('Start Workout'),
+)
+
+// Ghost button (transparent background)
+FButton(
+  style: FButtonStyle.ghost(),
+  onPress: () => Navigator.pop(context),
+  child: const Text('Cancel'),
+)
+
+// Destructive button (red, for delete actions)
+FButton(
+  style: FButtonStyle.destructive(),
+  onPress: () => deleteWorkout(),
+  child: const Text('Delete'),
+)
+```
+
+**Text Fields:**
+```dart
+// Email input with validation
+FTextField.email(
+  controller: emailController,
+  label: const Text('Email'),
+  hint: 'Enter your email',
+)
+
+// Standard text field
+FTextField(
+  controller: nameController,
+  label: const Text('Workout Name'),
+)
+```
+
+**Progress Indicator:**
+```dart
+// Loading spinner
+FProgress()
+
+// Usage in async data
+workoutsAsync.when(
+  loading: () => const Center(child: FProgress()),
+  error: (error, _) => Text('Error: $error'),
+  data: (workouts) => ListView.builder(...),
+)
+```
+
+**Common forui Widgets:**
+
+| Widget | Purpose | Example Usage |
+|--------|---------|---------------|
+| `FButton` | Primary actions | Start workout, Submit form |
+| `FButton.ghost()` | Secondary actions | Cancel, Back |
+| `FButton.destructive()` | Dangerous actions | Delete, Remove |
+| `FTextField` | Text input | Names, descriptions |
+| `FTextField.email()` | Email input | Login, registration |
+| `FProgress` | Loading indicator | Async operations |
+| `FTheme` | Theme provider | App-wide theming |
 
 ## Commands
 

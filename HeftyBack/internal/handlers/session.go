@@ -34,6 +34,16 @@ func (h *SessionHandler) StartSession(ctx context.Context, req *connect.Request[
 		return nil, connect.NewError(connect.CodeUnauthenticated, errors.New("not authenticated"))
 	}
 
+	// Check if user already has an in-progress session
+	inProgressStatus := "in_progress"
+	existingSessions, _, err := h.sessionRepo.List(ctx, userID, &inProgressStatus, nil, nil, 1, 0)
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInternal, errors.New("failed to check existing sessions"))
+	}
+	if len(existingSessions) > 0 {
+		return nil, connect.NewError(connect.CodeAlreadyExists, errors.New("user already has an active session"))
+	}
+
 	var workoutTemplateID, programID, name *string
 	var programDayNumber *int
 	if req.Msg.WorkoutTemplateId != nil {
@@ -53,7 +63,7 @@ func (h *SessionHandler) StartSession(ctx context.Context, req *connect.Request[
 	// Create session
 	session, err := h.sessionRepo.Create(ctx, userID, workoutTemplateID, programID, programDayNumber, name)
 	if err != nil {
-		return nil, connect.NewError(connect.CodeInternal, err)
+		return nil, handleDBError(err)
 	}
 
 	// If based on template, populate exercises from template
@@ -66,7 +76,7 @@ func (h *SessionHandler) StartSession(ctx context.Context, req *connect.Request[
 					if item.ItemType == "exercise" && item.ExerciseID != nil {
 						exercise, err := h.sessionRepo.AddExercise(ctx, session.ID, *item.ExerciseID, displayOrder, &section.Name)
 						if err != nil {
-							return nil, connect.NewError(connect.CodeInternal, err)
+							return nil, handleDBError(err)
 						}
 
 						// Add sets from template
@@ -80,7 +90,7 @@ func (h *SessionHandler) StartSession(ctx context.Context, req *connect.Request[
 							}
 							_, err := h.sessionRepo.AddSet(ctx, exercise.ID, ts.SetNumber, ts.TargetWeightKg, targetReps, targetTime, ts.IsBodyweight)
 							if err != nil {
-								return nil, connect.NewError(connect.CodeInternal, err)
+								return nil, handleDBError(err)
 							}
 						}
 						displayOrder++
@@ -93,7 +103,7 @@ func (h *SessionHandler) StartSession(ctx context.Context, req *connect.Request[
 	// Reload session with all details
 	session, err = h.sessionRepo.GetByID(ctx, session.ID, userID)
 	if err != nil {
-		return nil, connect.NewError(connect.CodeInternal, err)
+		return nil, handleDBError(err)
 	}
 
 	return connect.NewResponse(&heftv1.StartSessionResponse{
@@ -113,7 +123,7 @@ func (h *SessionHandler) GetSession(ctx context.Context, req *connect.Request[he
 
 	session, err := h.sessionRepo.GetByID(ctx, req.Msg.Id, userID)
 	if err != nil {
-		return nil, connect.NewError(connect.CodeInternal, err)
+		return nil, handleDBError(err)
 	}
 	if session == nil {
 		return nil, connect.NewError(connect.CodeNotFound, errors.New("session not found"))
@@ -124,98 +134,80 @@ func (h *SessionHandler) GetSession(ctx context.Context, req *connect.Request[he
 	}), nil
 }
 
-// CompleteSet marks a set as completed
-func (h *SessionHandler) CompleteSet(ctx context.Context, req *connect.Request[heftv1.CompleteSetRequest]) (*connect.Response[heftv1.CompleteSetResponse], error) {
-	_, ok := auth.UserIDFromContext(ctx)
+// SyncSession syncs the full session state from the client
+func (h *SessionHandler) SyncSession(ctx context.Context, req *connect.Request[heftv1.SyncSessionRequest]) (*connect.Response[heftv1.SyncSessionResponse], error) {
+	userID, ok := auth.UserIDFromContext(ctx)
 	if !ok {
 		return nil, connect.NewError(connect.CodeUnauthenticated, errors.New("not authenticated"))
 	}
-	if req.Msg.SessionSetId == "" {
-		return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("session_set_id is required"))
+	if req.Msg.SessionId == "" {
+		return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("session_id is required"))
 	}
 
-	var weightKg, distanceM, rpe *float64
-	var reps, timeSeconds *int
-	var notes *string
-
-	if req.Msg.WeightKg != nil {
-		weightKg = req.Msg.WeightKg
-	}
-	if req.Msg.Reps != nil {
-		v := int(*req.Msg.Reps)
-		reps = &v
-	}
-	if req.Msg.TimeSeconds != nil {
-		v := int(*req.Msg.TimeSeconds)
-		timeSeconds = &v
-	}
-	if req.Msg.DistanceM != nil {
-		distanceM = req.Msg.DistanceM
-	}
-	if req.Msg.Rpe != nil {
-		rpe = req.Msg.Rpe
-	}
-	if req.Msg.Notes != nil {
-		notes = req.Msg.Notes
-	}
-
-	set, err := h.sessionRepo.CompleteSet(ctx, req.Msg.SessionSetId, weightKg, reps, timeSeconds, distanceM, rpe, notes)
+	// Verify session belongs to user
+	session, err := h.sessionRepo.GetByID(ctx, req.Msg.SessionId, userID)
 	if err != nil {
-		return nil, connect.NewError(connect.CodeInternal, err)
+		return nil, handleDBError(err)
+	}
+	if session == nil {
+		return nil, connect.NewError(connect.CodeNotFound, errors.New("session not found"))
 	}
 
-	// TODO: Check for personal record
-	isPR := false
+	// Convert proto sets to repository input
+	sets := make([]repository.SyncSetInput, len(req.Msg.Sets))
+	for i, s := range req.Msg.Sets {
+		var weightKg, distanceM, rpe *float64
+		var reps, timeSeconds *int
+		var notes *string
 
-	return connect.NewResponse(&heftv1.CompleteSetResponse{
-		Set:              sessionSetToProto(set),
-		IsPersonalRecord: isPR,
-	}), nil
-}
+		if s.WeightKg != nil {
+			weightKg = s.WeightKg
+		}
+		if s.Reps != nil {
+			v := int(*s.Reps)
+			reps = &v
+		}
+		if s.TimeSeconds != nil {
+			v := int(*s.TimeSeconds)
+			timeSeconds = &v
+		}
+		if s.DistanceM != nil {
+			distanceM = s.DistanceM
+		}
+		if s.Rpe != nil {
+			rpe = s.Rpe
+		}
+		if s.Notes != nil {
+			notes = s.Notes
+		}
 
-// UpdateSet updates set values
-func (h *SessionHandler) UpdateSet(ctx context.Context, req *connect.Request[heftv1.UpdateSetRequest]) (*connect.Response[heftv1.UpdateSetResponse], error) {
-	_, ok := auth.UserIDFromContext(ctx)
-	if !ok {
-		return nil, connect.NewError(connect.CodeUnauthenticated, errors.New("not authenticated"))
-	}
-	if req.Msg.SessionSetId == "" {
-		return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("session_set_id is required"))
-	}
-
-	// For now, use CompleteSet logic
-	var weightKg, distanceM, rpe *float64
-	var reps, timeSeconds *int
-	var notes *string
-
-	if req.Msg.WeightKg != nil {
-		weightKg = req.Msg.WeightKg
-	}
-	if req.Msg.Reps != nil {
-		v := int(*req.Msg.Reps)
-		reps = &v
-	}
-	if req.Msg.TimeSeconds != nil {
-		v := int(*req.Msg.TimeSeconds)
-		timeSeconds = &v
-	}
-	if req.Msg.DistanceM != nil {
-		distanceM = req.Msg.DistanceM
-	}
-	if req.Msg.Rpe != nil {
-		rpe = req.Msg.Rpe
-	}
-	if req.Msg.Notes != nil {
-		notes = req.Msg.Notes
+		sets[i] = repository.SyncSetInput{
+			SetID:       s.SetId,
+			WeightKg:    weightKg,
+			Reps:        reps,
+			TimeSeconds: timeSeconds,
+			DistanceM:   distanceM,
+			IsCompleted: s.IsCompleted,
+			RPE:         rpe,
+			Notes:       notes,
+		}
 	}
 
-	set, err := h.sessionRepo.CompleteSet(ctx, req.Msg.SessionSetId, weightKg, reps, timeSeconds, distanceM, rpe, notes)
+	// Perform sync
+	err = h.sessionRepo.SyncSets(ctx, req.Msg.SessionId, sets)
 	if err != nil {
-		return nil, connect.NewError(connect.CodeInternal, err)
+		return nil, handleDBError(err)
 	}
 
-	return connect.NewResponse(&heftv1.UpdateSetResponse{
-		Set: sessionSetToProto(set),
+	// Reload full session
+	session, err = h.sessionRepo.GetByID(ctx, req.Msg.SessionId, userID)
+	if err != nil {
+		return nil, handleDBError(err)
+	}
+
+	return connect.NewResponse(&heftv1.SyncSessionResponse{
+		Session: sessionToProto(session),
+		Success: true,
 	}), nil
 }
 
@@ -236,7 +228,7 @@ func (h *SessionHandler) AddExercise(ctx context.Context, req *connect.Request[h
 
 	exercise, err := h.sessionRepo.AddExercise(ctx, req.Msg.SessionId, req.Msg.ExerciseId, int(req.Msg.DisplayOrder), sectionName)
 	if err != nil {
-		return nil, connect.NewError(connect.CodeInternal, err)
+		return nil, handleDBError(err)
 	}
 
 	// Add sets
@@ -247,14 +239,14 @@ func (h *SessionHandler) AddExercise(ctx context.Context, req *connect.Request[h
 	for i := 1; i <= numSets; i++ {
 		_, err := h.sessionRepo.AddSet(ctx, exercise.ID, i, nil, nil, nil, false)
 		if err != nil {
-			return nil, connect.NewError(connect.CodeInternal, err)
+			return nil, handleDBError(err)
 		}
 	}
 
 	// Reload exercise with sets
 	session, err := h.sessionRepo.GetByID(ctx, req.Msg.SessionId, userID)
 	if err != nil {
-		return nil, connect.NewError(connect.CodeInternal, err)
+		return nil, handleDBError(err)
 	}
 
 	var reloadedExercise *repository.SessionExercise
@@ -291,13 +283,13 @@ func (h *SessionHandler) FinishSession(ctx context.Context, req *connect.Request
 
 	session, err := h.sessionRepo.FinishSession(ctx, req.Msg.Id, userID, notes)
 	if err != nil {
-		return nil, connect.NewError(connect.CodeInternal, err)
+		return nil, handleDBError(err)
 	}
 
 	// Reload with all details
 	session, err = h.sessionRepo.GetByID(ctx, session.ID, userID)
 	if err != nil {
-		return nil, connect.NewError(connect.CodeInternal, err)
+		return nil, handleDBError(err)
 	}
 
 	return connect.NewResponse(&heftv1.FinishSessionResponse{
@@ -317,7 +309,7 @@ func (h *SessionHandler) AbandonSession(ctx context.Context, req *connect.Reques
 
 	err := h.sessionRepo.AbandonSession(ctx, req.Msg.Id, userID)
 	if err != nil {
-		return nil, connect.NewError(connect.CodeInternal, err)
+		return nil, handleDBError(err)
 	}
 
 	return connect.NewResponse(&heftv1.AbandonSessionResponse{
@@ -366,7 +358,7 @@ func (h *SessionHandler) ListSessions(ctx context.Context, req *connect.Request[
 	offset := (page - 1) * pageSize
 	sessions, totalCount, err := h.sessionRepo.List(ctx, userID, status, startDate, endDate, int(pageSize), int(offset))
 	if err != nil {
-		return nil, connect.NewError(connect.CodeInternal, err)
+		return nil, handleDBError(err)
 	}
 
 	protoSessions := make([]*heftv1.SessionSummary, len(sessions))

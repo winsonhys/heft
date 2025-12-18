@@ -29,6 +29,7 @@ HeftyBack/
 │   ├── db/
 │   │   └── db.go                # Database connection pool
 │   ├── handlers/                # Service implementations
+│   │   ├── errors.go            # Error handling helpers (handleDBError)
 │   │   ├── auth.go              # AuthService handler
 │   │   ├── auth_test.go
 │   │   ├── user.go              # UserService handler
@@ -86,7 +87,7 @@ HeftyBack/
 │       ├── program_service_test.go
 │       ├── session_service_test.go
 │       └── progress_service_test.go
-├── docker-compose.yml           # Test PostgreSQL (port 5433)
+├── docker-compose.yml           # PostgreSQL with persistent volume (port 5433)
 ├── Makefile                     # Build commands
 ├── buf.yaml                     # Buf configuration
 ├── buf.gen.yaml                 # Buf code generation
@@ -401,10 +402,11 @@ func (m *MockUserRepository) GetProfile(ctx context.Context, userID string) (*re
 - `exercises` - id, name, category_id, exercise_type, is_system, created_by, description
 
 **Workout Templates:**
-- `workout_templates` - id, user_id, name, description, total_exercises, total_sets, estimated_duration
+- `workout_templates` - id, user_id, name, description, is_archived
+  - Note: `total_exercises`, `total_sets`, `estimated_duration_minutes` are computed dynamically via subqueries (not stored)
 - `workout_sections` - workout_template_id, name, display_order, is_superset
 - `section_items` - section_id, item_type (exercise|rest), exercise_id, rest_duration, display_order
-- `exercise_target_sets` - section_item_id, set_number, target_weight, target_reps, target_time, target_distance
+- `exercise_target_sets` - section_item_id, set_number, target_weight, target_reps, target_time, target_distance, rest_duration_seconds
 
 **Training Programs:**
 - `programs` - id, user_id, name, duration_weeks, is_active, is_archived
@@ -465,17 +467,30 @@ func (r *UserRepository) GetProfile(ctx context.Context, userID string) (*UserPr
 
 ### Error Handling Pattern
 
+All handlers use `handleDBError()` from `internal/handlers/errors.go` for database errors:
+
 ```go
+// errors.go - converts DB errors to appropriate Connect errors
+func handleDBError(err error) error {
+    if isUserFKViolation(err) {
+        // Returns 403 for user FK violations (user doesn't exist in DB)
+        // This allows the frontend to redirect to auth screen
+        return connect.NewError(connect.CodePermissionDenied, errors.New("user not found"))
+    }
+    return connect.NewError(connect.CodeInternal, err)
+}
+
+// Handler usage
 func (h *UserHandler) GetProfile(ctx context.Context, req *connect.Request[heftv1.GetProfileRequest]) (*connect.Response[heftv1.GetProfileResponse], error) {
     // Validation
     if req.Msg.UserId == "" {
         return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("user_id is required"))
     }
 
-    // Repository call
+    // Repository call - use handleDBError for DB errors
     profile, err := h.repo.GetProfile(ctx, req.Msg.UserId)
     if err != nil {
-        return nil, connect.NewError(connect.CodeInternal, err)
+        return nil, handleDBError(err)  // Returns 403 if user FK violation
     }
     if profile == nil {
         return nil, connect.NewError(connect.CodeNotFound, errors.New("user not found"))
@@ -487,6 +502,13 @@ func (h *UserHandler) GetProfile(ctx context.Context, req *connect.Request[heftv
     }), nil
 }
 ```
+
+**Error Code Mapping:**
+- `CodeUnauthenticated` (401) - Missing or invalid auth token
+- `CodePermissionDenied` (403) - User doesn't exist in DB (FK violation)
+- `CodeInvalidArgument` (400) - Missing required fields
+- `CodeNotFound` (404) - Resource not found
+- `CodeInternal` (500) - Other database errors
 
 ### User Scoping Pattern
 

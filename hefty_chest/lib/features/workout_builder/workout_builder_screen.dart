@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:forui/forui.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
@@ -25,16 +26,15 @@ class WorkoutBuilderScreen extends HookConsumerWidget {
 
     // Initialize workout on mount
     useEffect(() {
-      Future<void> initWorkout() async {
-        if (workoutId != null) {
-          isLoading.value = true;
+      if (workoutId != null) {
+        // Defer to avoid modifying provider during build
+        Future.microtask(() async {
+          
           await ref.read(workoutBuilderProvider.notifier).loadWorkout(workoutId!);
           final loadedState = ref.read(workoutBuilderProvider);
           nameController.text = loadedState.name;
-          isLoading.value = false;
-        }
+        });
       }
-      initWorkout();
       return null;
     }, [workoutId]);
 
@@ -79,9 +79,7 @@ class WorkoutBuilderScreen extends HookConsumerWidget {
             Expanded(
               child: isLoading.value
                   ? const Center(
-                      child: CircularProgressIndicator(
-                        color: AppColors.accentBlue,
-                      ),
+                      child: FProgress(),
                     )
                   : SingleChildScrollView(
                       padding: const EdgeInsets.all(20),
@@ -89,27 +87,10 @@ class WorkoutBuilderScreen extends HookConsumerWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           // Workout Name Input
-                          TextField(
+                          FTextField(
                             controller: nameController,
-                            style: const TextStyle(
-                              fontSize: 20,
-                              fontWeight: FontWeight.w600,
-                              color: AppColors.textPrimary,
-                            ),
-                            decoration: InputDecoration(
-                              hintText: 'Workout Name',
-                              hintStyle: TextStyle(
-                                color: AppColors.textMuted,
-                              ),
-                              filled: true,
-                              fillColor: AppColors.bgCard,
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
-                                borderSide: BorderSide.none,
-                              ),
-                              contentPadding: const EdgeInsets.all(16),
-                            ),
-                            onChanged: (value) {
+                            hint: 'Workout Name',
+                            onChange: (value) {
                               ref
                                   .read(workoutBuilderProvider.notifier)
                                   .updateName(value);

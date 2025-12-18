@@ -13,11 +13,8 @@ service SessionService {
   // Get session details
   rpc GetSession(GetSessionRequest) returns (GetSessionResponse);
 
-  // Mark a set as completed
-  rpc CompleteSet(CompleteSetRequest) returns (CompleteSetResponse);
-
-  // Update set values
-  rpc UpdateSet(UpdateSetRequest) returns (UpdateSetResponse);
+  // Sync full session state (periodic sync from client)
+  rpc SyncSession(SyncSessionRequest) returns (SyncSessionResponse);
 
   // Add an exercise to the session
   rpc AddExercise(AddExerciseRequest) returns (AddExerciseResponse);
@@ -127,38 +124,26 @@ message GetSessionResponse {
   Session session = 1;
 }
 
-// CompleteSet
-message CompleteSetRequest {
-  string session_set_id = 1;
-  string user_id = 2;
-  optional double weight_kg = 3;
-  optional int32 reps = 4;
-  optional int32 time_seconds = 5;
-  optional double distance_m = 6;
+// SyncSession - Periodic full session state sync
+message SyncSessionRequest {
+  string session_id = 1;
+  repeated SyncSetData sets = 2;
+}
+
+message SyncSetData {
+  string set_id = 1;
+  optional double weight_kg = 2;
+  optional int32 reps = 3;
+  optional int32 time_seconds = 4;
+  optional double distance_m = 5;
+  bool is_completed = 6;
   optional double rpe = 7;
   optional string notes = 8;
 }
 
-message CompleteSetResponse {
-  SessionSet set = 1;
-  bool is_personal_record = 2;
-}
-
-// UpdateSet
-message UpdateSetRequest {
-  string session_set_id = 1;
-  string user_id = 2;
-  optional double weight_kg = 3;
-  optional int32 reps = 4;
-  optional int32 time_seconds = 5;
-  optional double distance_m = 6;
-  optional bool is_completed = 7;
-  optional double rpe = 8;
-  optional string notes = 9;
-}
-
-message UpdateSetResponse {
-  SessionSet set = 1;
+message SyncSessionResponse {
+  Session session = 1;
+  bool success = 2;
 }
 
 // AddExercise

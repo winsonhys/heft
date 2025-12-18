@@ -5,6 +5,7 @@ import 'package:forui/forui.dart';
 import '../../shared/theme/app_colors.dart';
 import '../../shared/widgets/bottom_nav_bar.dart';
 import '../../app/router.dart';
+import '../tracker/providers/session_providers.dart';
 import 'providers/home_providers.dart';
 import 'widgets/quick_stats_row.dart';
 import 'widgets/workout_card.dart';
@@ -30,22 +31,43 @@ class HomeScreen extends ConsumerWidget {
     }
   }
 
+  Future<void> _startWorkout(
+    BuildContext context,
+    WidgetRef ref,
+    String workoutId,
+  ) async {
+    // Check if there's already an active session
+    final activeSession = await ref.read(hasActiveSessionProvider.future);
+    if (activeSession != null) {
+      if (context.mounted) {
+        showFToast(
+          context: context,
+          title: const Text('Please finish your current workout first'),
+          icon: const Icon(Icons.warning_amber_rounded),
+        );
+      }
+      return;
+    }
+
+    if (context.mounted) {
+      context.goNewSession(workoutId: workoutId);
+    }
+  }
+
   Future<void> _confirmDelete(
     BuildContext context,
     WidgetRef ref,
     dynamic workout,
   ) async {
-    final confirmed = await showDialog<bool>(
+    final confirmed = await showFDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: AppColors.bgCard,
-        title: const Text(
-          'Delete Workout',
-          style: TextStyle(color: AppColors.textPrimary),
-        ),
-        content: Text(
+      builder: (context, style, animation) => FDialog(
+        style: style,
+        animation: animation,
+        direction: Axis.horizontal,
+        title: const Text('Delete Workout'),
+        body: Text(
           'Are you sure you want to delete "${workout.name}"? This action cannot be undone.',
-          style: const TextStyle(color: AppColors.textSecondary),
         ),
         actions: [
           FButton(
@@ -68,11 +90,10 @@ class HomeScreen extends ConsumerWidget {
         ref.invalidate(workoutListProvider);
       } catch (e) {
         if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Failed to delete workout: $e'),
-              backgroundColor: AppColors.accentRed,
-            ),
+          showFToast(
+            context: context,
+            title: Text('Failed to delete workout: $e'),
+            icon: const Icon(Icons.error_outline),
           );
         }
       }
@@ -144,7 +165,7 @@ class HomeScreen extends ConsumerWidget {
                       final workout = workouts[index];
                       return WorkoutCard(
                         workout: workout,
-                        onStart: () => context.goNewSession(workoutId: workout.id),
+                        onStart: () => _startWorkout(context, ref, workout.id),
                         onEdit: () => context.goEditWorkout(workoutId: workout.id),
                         onDelete: () => _confirmDelete(context, ref, workout),
                       );

@@ -74,6 +74,12 @@ This is a fitness platform that allows users to create workout templates, follow
 ### Backend Setup
 ```bash
 cd HeftyBack
+docker compose up -d              # Start server + PostgreSQL (migrations auto-run)
+# Server runs on :8080, PostgreSQL on :5433
+```
+
+For manual setup (without Docker):
+```bash
 cp .env.example .env              # Configure DATABASE_URL and Supabase keys
 make deps                         # Install Go dependencies
 make generate                     # Generate proto code
@@ -91,8 +97,8 @@ flutter run                       # Run app (connects to localhost:8080)
 
 ### Run Everything
 ```bash
-# Terminal 1 - Backend
-cd HeftyBack && make run
+# Terminal 1 - Backend (Docker)
+cd HeftyBack && docker compose up -d
 
 # Terminal 2 - Frontend
 cd hefty_chest && flutter run
@@ -108,7 +114,9 @@ Proto files define the API contract. When modifying:
 4. Update providers/UI in frontend
 
 ### Backend Development
-- `make run` - Run server (restart manually for changes)
+- `docker compose up -d` - Start server with PostgreSQL (persistent volume)
+- `docker compose down && docker compose build --no-cache && docker compose up -d` - Rebuild after code changes
+- `make run` - Run server directly (needs external DB)
 - `make test` - Run all tests
 - `make test-unit` - Fast unit tests (no database)
 - `make test-integration` - Full integration tests (needs Docker)

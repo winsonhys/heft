@@ -48,7 +48,7 @@ func (h *WorkoutHandler) ListWorkouts(ctx context.Context, req *connect.Request[
 	offset := (page - 1) * pageSize
 	workouts, totalCount, err := h.repo.List(ctx, userID, includeArchived, int(pageSize), int(offset))
 	if err != nil {
-		return nil, connect.NewError(connect.CodeInternal, err)
+		return nil, handleDBError(err)
 	}
 
 	protoWorkouts := make([]*heftv1.WorkoutSummary, len(workouts))
@@ -81,7 +81,7 @@ func (h *WorkoutHandler) GetWorkout(ctx context.Context, req *connect.Request[he
 
 	workout, err := h.repo.GetByID(ctx, req.Msg.Id, userID)
 	if err != nil {
-		return nil, connect.NewError(connect.CodeInternal, err)
+		return nil, handleDBError(err)
 	}
 	if workout == nil {
 		return nil, connect.NewError(connect.CodeNotFound, errors.New("workout not found"))
@@ -110,14 +110,14 @@ func (h *WorkoutHandler) CreateWorkout(ctx context.Context, req *connect.Request
 	// Create workout template
 	workout, err := h.repo.Create(ctx, userID, req.Msg.Name, description)
 	if err != nil {
-		return nil, connect.NewError(connect.CodeInternal, err)
+		return nil, handleDBError(err)
 	}
 
 	// Create sections if provided
 	for _, s := range req.Msg.Sections {
 		section, err := h.repo.CreateSection(ctx, workout.ID, s.Name, int(s.DisplayOrder), s.IsSuperset)
 		if err != nil {
-			return nil, connect.NewError(connect.CodeInternal, err)
+			return nil, handleDBError(err)
 		}
 
 		// Create items in section
@@ -135,7 +135,7 @@ func (h *WorkoutHandler) CreateWorkout(ctx context.Context, req *connect.Request
 
 			sectionItem, err := h.repo.CreateSectionItem(ctx, section.ID, itemType, int(item.DisplayOrder), exerciseID, restDuration)
 			if err != nil {
-				return nil, connect.NewError(connect.CodeInternal, err)
+				return nil, handleDBError(err)
 			}
 
 			// Create target sets
@@ -168,16 +168,16 @@ func (h *WorkoutHandler) CreateWorkout(ctx context.Context, req *connect.Request
 
 				_, err := h.repo.CreateTargetSet(ctx, sectionItem.ID, int(ts.SetNumber), targetWeight, targetReps, targetTime, targetDistance, ts.IsBodyweight, notes, targetRest)
 				if err != nil {
-					return nil, connect.NewError(connect.CodeInternal, err)
+					return nil, handleDBError(err)
 				}
 			}
 		}
 	}
 
-	// Reload workout with all details
+	// Reload workout with all details (counts are computed dynamically)
 	workout, err = h.repo.GetByID(ctx, workout.ID, userID)
 	if err != nil {
-		return nil, connect.NewError(connect.CodeInternal, err)
+		return nil, handleDBError(err)
 	}
 
 	return connect.NewResponse(&heftv1.CreateWorkoutResponse{
@@ -198,7 +198,7 @@ func (h *WorkoutHandler) UpdateWorkout(ctx context.Context, req *connect.Request
 	// Verify ownership and existence
 	existing, err := h.repo.GetByID(ctx, req.Msg.Id, userID)
 	if err != nil {
-		return nil, connect.NewError(connect.CodeInternal, err)
+		return nil, handleDBError(err)
 	}
 	if existing == nil {
 		return nil, connect.NewError(connect.CodeNotFound, errors.New("workout not found"))
@@ -221,7 +221,7 @@ func (h *WorkoutHandler) UpdateWorkout(ctx context.Context, req *connect.Request
 	// Update top-level details
 	workout, err := h.repo.UpdateWorkoutDetails(ctx, req.Msg.Id, name, description, isArchived)
 	if err != nil {
-		return nil, connect.NewError(connect.CodeInternal, err)
+		return nil, handleDBError(err)
 	}
 
 	// If sections are provided, we do a full replacement
@@ -229,14 +229,14 @@ func (h *WorkoutHandler) UpdateWorkout(ctx context.Context, req *connect.Request
 		// Delete existing sections
 		err = h.repo.DeleteSections(ctx, workout.ID)
 		if err != nil {
-			return nil, connect.NewError(connect.CodeInternal, err)
+			return nil, handleDBError(err)
 		}
 
 		// Recreate sections
 		for _, s := range req.Msg.Sections {
 			section, err := h.repo.CreateSection(ctx, workout.ID, s.Name, int(s.DisplayOrder), s.IsSuperset)
 			if err != nil {
-				return nil, connect.NewError(connect.CodeInternal, err)
+				return nil, handleDBError(err)
 			}
 
 			// Create items in section
@@ -254,7 +254,7 @@ func (h *WorkoutHandler) UpdateWorkout(ctx context.Context, req *connect.Request
 
 				sectionItem, err := h.repo.CreateSectionItem(ctx, section.ID, itemType, int(item.DisplayOrder), exerciseID, restDuration)
 				if err != nil {
-					return nil, connect.NewError(connect.CodeInternal, err)
+					return nil, handleDBError(err)
 				}
 
 				// Create target sets
@@ -287,17 +287,18 @@ func (h *WorkoutHandler) UpdateWorkout(ctx context.Context, req *connect.Request
 
 					_, err := h.repo.CreateTargetSet(ctx, sectionItem.ID, int(ts.SetNumber), targetWeight, targetReps, targetTime, targetDistance, ts.IsBodyweight, notes, targetRest)
 					if err != nil {
-						return nil, connect.NewError(connect.CodeInternal, err)
+						return nil, handleDBError(err)
 					}
 				}
 			}
 		}
+
 	}
 
-	// Reload workout with all details
+	// Reload workout with all details (counts are computed dynamically)
 	workout, err = h.repo.GetByID(ctx, workout.ID, userID)
 	if err != nil {
-		return nil, connect.NewError(connect.CodeInternal, err)
+		return nil, handleDBError(err)
 	}
 
 	return connect.NewResponse(&heftv1.UpdateWorkoutResponse{
@@ -317,7 +318,7 @@ func (h *WorkoutHandler) DeleteWorkout(ctx context.Context, req *connect.Request
 
 	err := h.repo.Delete(ctx, req.Msg.Id, userID)
 	if err != nil {
-		return nil, connect.NewError(connect.CodeInternal, err)
+		return nil, handleDBError(err)
 	}
 
 	return connect.NewResponse(&heftv1.DeleteWorkoutResponse{
@@ -338,7 +339,7 @@ func (h *WorkoutHandler) DuplicateWorkout(ctx context.Context, req *connect.Requ
 	// Get original workout
 	original, err := h.repo.GetByID(ctx, req.Msg.Id, userID)
 	if err != nil {
-		return nil, connect.NewError(connect.CodeInternal, err)
+		return nil, handleDBError(err)
 	}
 	if original == nil {
 		return nil, connect.NewError(connect.CodeNotFound, errors.New("workout not found"))
@@ -353,20 +354,20 @@ func (h *WorkoutHandler) DuplicateWorkout(ctx context.Context, req *connect.Requ
 	// Create duplicate
 	duplicate, err := h.repo.Create(ctx, userID, newName, original.Description)
 	if err != nil {
-		return nil, connect.NewError(connect.CodeInternal, err)
+		return nil, handleDBError(err)
 	}
 
 	// Copy sections
 	for _, s := range original.Sections {
 		section, err := h.repo.CreateSection(ctx, duplicate.ID, s.Name, s.DisplayOrder, s.IsSuperset)
 		if err != nil {
-			return nil, connect.NewError(connect.CodeInternal, err)
+			return nil, handleDBError(err)
 		}
 
 		for _, item := range s.Items {
 			sectionItem, err := h.repo.CreateSectionItem(ctx, section.ID, item.ItemType, item.DisplayOrder, item.ExerciseID, item.RestDurationSeconds)
 			if err != nil {
-				return nil, connect.NewError(connect.CodeInternal, err)
+				return nil, handleDBError(err)
 			}
 
 			for _, ts := range item.TargetSets {
@@ -382,7 +383,7 @@ func (h *WorkoutHandler) DuplicateWorkout(ctx context.Context, req *connect.Requ
 				}
 				_, err := h.repo.CreateTargetSet(ctx, sectionItem.ID, ts.SetNumber, ts.TargetWeightKg, targetReps, targetTime, ts.TargetDistanceM, ts.IsBodyweight, ts.Notes, targetRest)
 				if err != nil {
-					return nil, connect.NewError(connect.CodeInternal, err)
+					return nil, handleDBError(err)
 				}
 			}
 		}
@@ -391,7 +392,7 @@ func (h *WorkoutHandler) DuplicateWorkout(ctx context.Context, req *connect.Requ
 	// Reload with all details
 	duplicate, err = h.repo.GetByID(ctx, duplicate.ID, userID)
 	if err != nil {
-		return nil, connect.NewError(connect.CodeInternal, err)
+		return nil, handleDBError(err)
 	}
 
 	return connect.NewResponse(&heftv1.DuplicateWorkoutResponse{

@@ -200,7 +200,7 @@ class WorkoutBuilder extends _$WorkoutBuilder {
                         targetReps: s.targetReps,
                         targetTimeSeconds: s.targetTimeSeconds,
                         isBodyweight: s.isBodyweight,
-                        restDurationSeconds: s.restDurationSeconds,
+                        isEdited: true, // Loaded values are already user-set
                       ))
                   .toList(),
             );
@@ -555,8 +555,7 @@ class WorkoutBuilder extends _$WorkoutBuilder {
                 ..targetWeightKg = set.targetWeightKg
                 ..targetReps = set.targetReps
                 ..targetTimeSeconds = set.targetTimeSeconds
-                ..isBodyweight = set.isBodyweight
-                ..restDurationSeconds = set.restDurationSeconds ?? 0);
+                ..isBodyweight = set.isBodyweight);
             }
           }
 

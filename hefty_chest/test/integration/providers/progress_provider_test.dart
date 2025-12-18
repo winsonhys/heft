@@ -175,24 +175,29 @@ void main() {
         workoutTemplateId: workoutId,
       );
 
-      // Get session and complete sets
+      // Get session and complete sets via sync API
       final sessionResponse = await sessionClient.getSession(
         GetSessionRequest()
           ..id = sessionId
           ..userId = TestData.testUserId,
       );
 
+      final syncSets = <SyncSetData>[];
       for (final exercise in sessionResponse.session.exercises) {
         for (final set in exercise.sets) {
-          await sessionClient.completeSet(
-            CompleteSetRequest()
-              ..sessionSetId = set.id
-              ..userId = TestData.testUserId
-              ..weightKg = 50.0
-              ..reps = 10,
-          );
+          syncSets.add(SyncSetData()
+            ..setId = set.id
+            ..weightKg = 50.0
+            ..reps = 10
+            ..isCompleted = true);
         }
       }
+
+      await sessionClient.syncSession(
+        SyncSessionRequest()
+          ..sessionId = sessionId
+          ..sets.addAll(syncSets),
+      );
 
       // Finish session
       await sessionClient.finishSession(

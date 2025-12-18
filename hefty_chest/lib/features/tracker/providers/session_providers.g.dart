@@ -8,15 +8,15 @@ part of 'session_providers.dart';
 
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
-/// Active session notifier
+/// Active session notifier with periodic sync
 
 @ProviderFor(ActiveSession)
 const activeSessionProvider = ActiveSessionProvider._();
 
-/// Active session notifier
+/// Active session notifier with periodic sync
 final class ActiveSessionProvider
     extends $NotifierProvider<ActiveSession, AsyncValue<Session?>> {
-  /// Active session notifier
+  /// Active session notifier with periodic sync
   const ActiveSessionProvider._()
     : super(
         from: null,
@@ -44,9 +44,9 @@ final class ActiveSessionProvider
   }
 }
 
-String _$activeSessionHash() => r'637ad69e39215d33fb1b7ae91b1bb874196b59f3';
+String _$activeSessionHash() => r'53ab75bb6ce8aa8c0852ae69cdd6b5a6c5ef18f4';
 
-/// Active session notifier
+/// Active session notifier with periodic sync
 
 abstract class _$ActiveSession extends $Notifier<AsyncValue<Session?>> {
   AsyncValue<Session?> build();
@@ -67,18 +67,18 @@ abstract class _$ActiveSession extends $Notifier<AsyncValue<Session?>> {
   }
 }
 
-/// Provider for checking if there's an in-progress session
+/// Provider for checking if there's an in-progress session (with backup recovery)
 
 @ProviderFor(hasActiveSession)
 const hasActiveSessionProvider = HasActiveSessionProvider._();
 
-/// Provider for checking if there's an in-progress session
+/// Provider for checking if there's an in-progress session (with backup recovery)
 
 final class HasActiveSessionProvider
     extends
         $FunctionalProvider<AsyncValue<Session?>, Session?, FutureOr<Session?>>
     with $FutureModifier<Session?>, $FutureProvider<Session?> {
-  /// Provider for checking if there's an in-progress session
+  /// Provider for checking if there's an in-progress session (with backup recovery)
   const HasActiveSessionProvider._()
     : super(
         from: null,
@@ -104,4 +104,4 @@ final class HasActiveSessionProvider
   }
 }
 
-String _$hasActiveSessionHash() => r'ad6ed86a99be9566d1e69e3c61f537b2b8cfd7d3';
+String _$hasActiveSessionHash() => r'f8d08eb2c122c7e8a2add8f495c6bb244bbb1f09';

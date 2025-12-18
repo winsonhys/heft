@@ -27,20 +27,12 @@ abstract final class SessionService {
     session.GetSessionResponse.new,
   );
 
-  /// Mark a set as completed
-  static const completeSet = connect.Spec(
-    '/$name/CompleteSet',
+  /// Sync full session state (periodic sync from client)
+  static const syncSession = connect.Spec(
+    '/$name/SyncSession',
     connect.StreamType.unary,
-    session.CompleteSetRequest.new,
-    session.CompleteSetResponse.new,
-  );
-
-  /// Update set values
-  static const updateSet = connect.Spec(
-    '/$name/UpdateSet',
-    connect.StreamType.unary,
-    session.UpdateSetRequest.new,
-    session.UpdateSetResponse.new,
+    session.SyncSessionRequest.new,
+    session.SyncSessionResponse.new,
   );
 
   /// Add an exercise to the session

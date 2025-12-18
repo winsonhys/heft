@@ -243,18 +243,20 @@ void main() {
         final workoutId = await TestData.createWorkoutWithExercise(name: name);
         final sessionId = await TestData.startSession(workoutTemplateId: workoutId);
 
-        // Complete one set via API
+        // Complete one set via sync API
         final sessionResponse = await sessionClient.getSession(
           GetSessionRequest()..id = sessionId..userId = TestData.testUserId,
         );
         final setId = sessionResponse.session.exercises.first.sets.first.id;
 
-        await sessionClient.completeSet(
-          CompleteSetRequest()
-            ..sessionSetId = setId
-            ..userId = TestData.testUserId
-            ..weightKg = 50.0
-            ..reps = 10,
+        await sessionClient.syncSession(
+          SyncSessionRequest()
+            ..sessionId = sessionId
+            ..sets.add(SyncSetData()
+              ..setId = setId
+              ..weightKg = 50.0
+              ..reps = 10
+              ..isCompleted = true),
         );
 
         await tester.pumpWidget(
@@ -299,17 +301,22 @@ void main() {
           GetSessionRequest()..id = sessionId..userId = TestData.testUserId,
         );
 
+        final syncSets = <SyncSetData>[];
         for (final exercise in sessionResponse.session.exercises) {
           for (final set in exercise.sets) {
-            await sessionClient.completeSet(
-              CompleteSetRequest()
-                ..sessionSetId = set.id
-                ..userId = TestData.testUserId
-                ..weightKg = 50.0
-                ..reps = 10,
-            );
+            syncSets.add(SyncSetData()
+              ..setId = set.id
+              ..weightKg = 50.0
+              ..reps = 10
+              ..isCompleted = true);
           }
         }
+
+        await sessionClient.syncSession(
+          SyncSessionRequest()
+            ..sessionId = sessionId
+            ..sets.addAll(syncSets),
+        );
 
         await sessionClient.finishSession(
           FinishSessionRequest()..id = sessionId..userId = TestData.testUserId,

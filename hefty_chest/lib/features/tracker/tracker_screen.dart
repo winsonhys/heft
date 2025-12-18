@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 import '../../shared/theme/app_colors.dart';
+import '../../shared/widgets/floating_session_widget.dart';
 import '../../gen/session.pb.dart';
 import 'providers/session_providers.dart';
 import 'widgets/progress_header.dart';
@@ -32,6 +33,12 @@ class TrackerScreen extends HookConsumerWidget {
 
     final sessionAsync = ref.watch(activeSessionProvider);
 
+    // Hide floating widget when on tracker screen, show when leaving
+    useEffect(() {
+      ref.read(floatingWidgetVisibleProvider.notifier).hide();
+      return () => ref.read(floatingWidgetVisibleProvider.notifier).show();
+    }, []);
+
     // Initialize session on mount
     useEffect(() {
       Future<void> initSession() async {
@@ -58,18 +65,14 @@ class TrackerScreen extends HookConsumerWidget {
     }
 
     Future<void> finishWorkout() async {
-      final confirm = await showDialog<bool>(
+      final confirm = await showFDialog<bool>(
         context: context,
-        builder: (context) => AlertDialog(
-          backgroundColor: AppColors.bgCard,
-          title: const Text(
-            'Finish Workout?',
-            style: TextStyle(color: AppColors.textPrimary),
-          ),
-          content: const Text(
-            'Are you sure you want to finish this workout?',
-            style: TextStyle(color: AppColors.textSecondary),
-          ),
+        builder: (context, style, animation) => FDialog(
+          style: style,
+          animation: animation,
+          direction: Axis.horizontal,
+          title: const Text('Finish Workout?'),
+          body: const Text('Are you sure you want to finish this workout?'),
           actions: [
             FButton(
               style: FButtonStyle.ghost(),
@@ -311,8 +314,6 @@ class TrackerScreen extends HookConsumerWidget {
                           return ExerciseCard(
                             exercise: exercise,
                             onSetCompleted: (setId, weight, reps, timeSeconds) async {
-                              final scaffoldMessenger =
-                                  ScaffoldMessenger.of(context);
                               final isPR = await ref
                                   .read(activeSessionProvider.notifier)
                                   .completeSet(
@@ -320,13 +321,13 @@ class TrackerScreen extends HookConsumerWidget {
                                     weightKg: weight,
                                     reps: reps,
                                     timeSeconds: timeSeconds,
+                                    toggle: true,
                                   );
                               if (isPR && context.mounted) {
-                                scaffoldMessenger.showSnackBar(
-                                  const SnackBar(
-                                    content: Text('New Personal Record! 🎉'),
-                                    backgroundColor: AppColors.accentGreen,
-                                  ),
+                                showFToast(
+                                  context: context,
+                                  title: const Text('New Personal Record!'),
+                                  icon: const Icon(Icons.emoji_events),
                                 );
                               }
                             },
@@ -339,8 +340,6 @@ class TrackerScreen extends HookConsumerWidget {
                       return ExerciseCard(
                         exercise: exercise,
                         onSetCompleted: (setId, weight, reps, timeSeconds) async {
-                          final scaffoldMessenger =
-                              ScaffoldMessenger.of(context);
                           final isPR = await ref
                               .read(activeSessionProvider.notifier)
                               .completeSet(
@@ -348,13 +347,13 @@ class TrackerScreen extends HookConsumerWidget {
                                 weightKg: weight,
                                 reps: reps,
                                 timeSeconds: timeSeconds,
+                                toggle: true,
                               );
                           if (isPR && context.mounted) {
-                            scaffoldMessenger.showSnackBar(
-                              const SnackBar(
-                                content: Text('New Personal Record! 🎉'),
-                                backgroundColor: AppColors.accentGreen,
-                              ),
+                            showFToast(
+                              context: context,
+                              title: const Text('New Personal Record!'),
+                              icon: const Icon(Icons.emoji_events),
                             );
                           }
                         },

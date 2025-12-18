@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:forui/forui.dart';
 import 'package:hefty_chest/app/app.dart';
 import 'package:hefty_chest/features/auth/providers/auth_providers.dart';
 
@@ -25,20 +26,20 @@ void main() {
 
   group('Workout Flow E2E', () {
     testWidgets('displays home screen with app title', (tester) async {
-      await tester.runAsync(() async {
-        await tester.pumpWidget(
-          ProviderScope(
-            overrides: [
-              authProvider.overrideWith(MockAuth.new),
-            ],
-            child: const HeftyChestApp(),
-          ),
-        );
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            authProvider.overrideWith(MockAuth.new),
+          ],
+          child: const HeftyChestApp(),
+        ),
+      );
 
-        // Wait for initial load
+      // Wait for initial load - use runAsync only for delays, not pumpWidget
+      await tester.runAsync(() async {
         await Future.delayed(const Duration(seconds: 3));
-        await tester.pump();
       });
+      await tester.pump();
 
       // Verify app title is displayed
       expect(find.text('Heft'), findsOneWidget);
@@ -115,7 +116,7 @@ void main() {
         await tester.pump();
       });
       
-      expect(find.byType(CircularProgressIndicator), findsOneWidget);
+      expect(find.byType(FProgress), findsOneWidget);
 
       await tester.runAsync(() async {
         // Then settle

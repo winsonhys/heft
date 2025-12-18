@@ -52,7 +52,7 @@ func (h *ProgramHandler) ListPrograms(ctx context.Context, req *connect.Request[
 	offset := (page - 1) * pageSize
 	programs, totalCount, err := h.programRepo.List(ctx, userID, includeArchived, int(pageSize), int(offset))
 	if err != nil {
-		return nil, connect.NewError(connect.CodeInternal, err)
+		return nil, handleDBError(err)
 	}
 
 	protoPrograms := make([]*heftv1.ProgramSummary, len(programs))
@@ -85,7 +85,7 @@ func (h *ProgramHandler) GetProgram(ctx context.Context, req *connect.Request[he
 
 	program, err := h.programRepo.GetByID(ctx, req.Msg.Id, userID)
 	if err != nil {
-		return nil, connect.NewError(connect.CodeInternal, err)
+		return nil, handleDBError(err)
 	}
 	if program == nil {
 		return nil, connect.NewError(connect.CodeNotFound, errors.New("program not found"))
@@ -113,7 +113,7 @@ func (h *ProgramHandler) CreateProgram(ctx context.Context, req *connect.Request
 
 	program, err := h.programRepo.Create(ctx, userID, req.Msg.Name, description, int(req.Msg.DurationWeeks), int(req.Msg.DurationDays))
 	if err != nil {
-		return nil, connect.NewError(connect.CodeInternal, err)
+		return nil, handleDBError(err)
 	}
 
 	// Create days if provided
@@ -129,14 +129,14 @@ func (h *ProgramHandler) CreateProgram(ctx context.Context, req *connect.Request
 
 		_, err := h.programRepo.CreateDay(ctx, program.ID, int(d.DayNumber), dayType, workoutTemplateID, customName)
 		if err != nil {
-			return nil, connect.NewError(connect.CodeInternal, err)
+			return nil, handleDBError(err)
 		}
 	}
 
 	// Reload with all details
 	program, err = h.programRepo.GetByID(ctx, program.ID, userID)
 	if err != nil {
-		return nil, connect.NewError(connect.CodeInternal, err)
+		return nil, handleDBError(err)
 	}
 
 	return connect.NewResponse(&heftv1.CreateProgramResponse{
@@ -156,7 +156,7 @@ func (h *ProgramHandler) UpdateProgram(ctx context.Context, req *connect.Request
 
 	program, err := h.programRepo.GetByID(ctx, req.Msg.Id, userID)
 	if err != nil {
-		return nil, connect.NewError(connect.CodeInternal, err)
+		return nil, handleDBError(err)
 	}
 	if program == nil {
 		return nil, connect.NewError(connect.CodeNotFound, errors.New("program not found"))
@@ -179,7 +179,7 @@ func (h *ProgramHandler) DeleteProgram(ctx context.Context, req *connect.Request
 
 	err := h.programRepo.Delete(ctx, req.Msg.Id, userID)
 	if err != nil {
-		return nil, connect.NewError(connect.CodeInternal, err)
+		return nil, handleDBError(err)
 	}
 
 	return connect.NewResponse(&heftv1.DeleteProgramResponse{
@@ -199,13 +199,13 @@ func (h *ProgramHandler) SetActiveProgram(ctx context.Context, req *connect.Requ
 
 	program, err := h.programRepo.SetActive(ctx, req.Msg.Id, userID)
 	if err != nil {
-		return nil, connect.NewError(connect.CodeInternal, err)
+		return nil, handleDBError(err)
 	}
 
 	// Reload with days
 	program, err = h.programRepo.GetByID(ctx, program.ID, userID)
 	if err != nil {
-		return nil, connect.NewError(connect.CodeInternal, err)
+		return nil, handleDBError(err)
 	}
 
 	return connect.NewResponse(&heftv1.SetActiveProgramResponse{
@@ -222,7 +222,7 @@ func (h *ProgramHandler) GetTodayWorkout(ctx context.Context, req *connect.Reque
 
 	program, err := h.programRepo.GetActiveProgram(ctx, userID)
 	if err != nil {
-		return nil, connect.NewError(connect.CodeInternal, err)
+		return nil, handleDBError(err)
 	}
 
 	if program == nil {

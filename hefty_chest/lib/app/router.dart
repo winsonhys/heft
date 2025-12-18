@@ -219,11 +219,11 @@ extension NavigationExtension on BuildContext {
 
   /// Start a new workout session
   void goNewSession({required String workoutId}) =>
-      NewSessionRoute(workoutId: workoutId).go(this);
+      NewSessionRoute(workoutId: workoutId).push(this);
 
   /// Resume an existing workout session
   void goResumeSession({required String sessionId}) =>
-      ResumeSessionRoute(sessionId: sessionId).go(this);
+      ResumeSessionRoute(sessionId: sessionId).push(this);
 
   /// Navigate to workout builder (create new)
   void goWorkoutBuilder() => const WorkoutBuilderRoute().push(this);

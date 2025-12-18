@@ -674,7 +674,6 @@ class TargetSet extends $pb.GeneratedMessage {
     $core.double? targetDistanceM,
     $core.bool? isBodyweight,
     $core.String? notes,
-    $core.int? restDurationSeconds,
   }) {
     final $result = create();
     if (id != null) {
@@ -704,9 +703,6 @@ class TargetSet extends $pb.GeneratedMessage {
     if (notes != null) {
       $result.notes = notes;
     }
-    if (restDurationSeconds != null) {
-      $result.restDurationSeconds = restDurationSeconds;
-    }
     return $result;
   }
   TargetSet._() : super();
@@ -723,7 +719,6 @@ class TargetSet extends $pb.GeneratedMessage {
     ..a<$core.double>(7, _omitFieldNames ? '' : 'targetDistanceM', $pb.PbFieldType.OD)
     ..aOB(8, _omitFieldNames ? '' : 'isBodyweight')
     ..aOS(9, _omitFieldNames ? '' : 'notes')
-    ..a<$core.int>(10, _omitFieldNames ? '' : 'restDurationSeconds', $pb.PbFieldType.O3)
     ..hasRequiredFields = false
   ;
 
@@ -828,15 +823,6 @@ class TargetSet extends $pb.GeneratedMessage {
   $core.bool hasNotes() => $_has(8);
   @$pb.TagNumber(9)
   void clearNotes() => clearField(9);
-
-  @$pb.TagNumber(10)
-  $core.int get restDurationSeconds => $_getIZ(9);
-  @$pb.TagNumber(10)
-  set restDurationSeconds($core.int v) { $_setSignedInt32(9, v); }
-  @$pb.TagNumber(10)
-  $core.bool hasRestDurationSeconds() => $_has(9);
-  @$pb.TagNumber(10)
-  void clearRestDurationSeconds() => clearField(10);
 }
 
 /// ListWorkouts
@@ -1379,7 +1365,6 @@ class CreateTargetSet extends $pb.GeneratedMessage {
     $core.double? targetDistanceM,
     $core.bool? isBodyweight,
     $core.String? notes,
-    $core.int? restDurationSeconds,
   }) {
     final $result = create();
     if (setNumber != null) {
@@ -1403,9 +1388,6 @@ class CreateTargetSet extends $pb.GeneratedMessage {
     if (notes != null) {
       $result.notes = notes;
     }
-    if (restDurationSeconds != null) {
-      $result.restDurationSeconds = restDurationSeconds;
-    }
     return $result;
   }
   CreateTargetSet._() : super();
@@ -1420,7 +1402,6 @@ class CreateTargetSet extends $pb.GeneratedMessage {
     ..a<$core.double>(5, _omitFieldNames ? '' : 'targetDistanceM', $pb.PbFieldType.OD)
     ..aOB(6, _omitFieldNames ? '' : 'isBodyweight')
     ..aOS(7, _omitFieldNames ? '' : 'notes')
-    ..a<$core.int>(10, _omitFieldNames ? '' : 'restDurationSeconds', $pb.PbFieldType.O3)
     ..hasRequiredFields = false
   ;
 
@@ -1507,15 +1488,6 @@ class CreateTargetSet extends $pb.GeneratedMessage {
   $core.bool hasNotes() => $_has(6);
   @$pb.TagNumber(7)
   void clearNotes() => clearField(7);
-
-  @$pb.TagNumber(10)
-  $core.int get restDurationSeconds => $_getIZ(7);
-  @$pb.TagNumber(10)
-  set restDurationSeconds($core.int v) { $_setSignedInt32(7, v); }
-  @$pb.TagNumber(10)
-  $core.bool hasRestDurationSeconds() => $_has(7);
-  @$pb.TagNumber(10)
-  void clearRestDurationSeconds() => clearField(10);
 }
 
 class CreateWorkoutResponse extends $pb.GeneratedMessage {

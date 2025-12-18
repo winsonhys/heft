@@ -24,13 +24,25 @@ type ExerciseRepositoryInterface interface {
 	Search(ctx context.Context, query string, userID *string, limit int) ([]*Exercise, error)
 }
 
+// SyncSetInput represents input data for syncing a set
+type SyncSetInput struct {
+	SetID       string
+	WeightKg    *float64
+	Reps        *int
+	TimeSeconds *int
+	DistanceM   *float64
+	IsCompleted bool
+	RPE         *float64
+	Notes       *string
+}
+
 // SessionRepositoryInterface defines the contract for session data access
 type SessionRepositoryInterface interface {
 	Create(ctx context.Context, userID string, workoutTemplateID, programID *string, programDayNumber *int, name *string) (*WorkoutSession, error)
 	GetByID(ctx context.Context, id, userID string) (*WorkoutSession, error)
 	AddExercise(ctx context.Context, sessionID, exerciseID string, displayOrder int, sectionName *string) (*SessionExercise, error)
 	AddSet(ctx context.Context, sessionExerciseID string, setNumber int, targetWeightKg *float64, targetReps, targetTimeSeconds *int, isBodyweight bool) (*SessionSet, error)
-	CompleteSet(ctx context.Context, setID string, weightKg *float64, reps, timeSeconds *int, distanceM, rpe *float64, notes *string) (*SessionSet, error)
+	SyncSets(ctx context.Context, sessionID string, sets []SyncSetInput) error
 	FinishSession(ctx context.Context, id, userID string, notes *string) (*WorkoutSession, error)
 	AbandonSession(ctx context.Context, id, userID string) error
 	List(ctx context.Context, userID string, status *string, startDate, endDate *time.Time, limit, offset int) ([]*WorkoutSession, int, error)

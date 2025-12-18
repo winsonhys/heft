@@ -259,36 +259,62 @@ func (r *SessionRepository) AddSet(ctx context.Context, sessionExerciseID string
 	return &s, nil
 }
 
-// CompleteSet marks a set as completed with actual values
-func (r *SessionRepository) CompleteSet(ctx context.Context, setID string, weightKg *float64, reps, timeSeconds *int, distanceM, rpe *float64, notes *string) (*SessionSet, error) {
-	query := `
-		UPDATE session_sets
-		SET weight_kg = COALESCE($2, weight_kg),
-		    reps = COALESCE($3, reps),
-		    time_seconds = COALESCE($4, time_seconds),
-		    distance_m = COALESCE($5, distance_m),
-		    rpe = COALESCE($6, rpe),
-		    notes = COALESCE($7, notes),
-		    is_completed = TRUE,
-		    completed_at = CURRENT_TIMESTAMP,
-		    updated_at = CURRENT_TIMESTAMP
-		WHERE id = $1
-		RETURNING id, session_exercise_id, set_number, weight_kg, reps, time_seconds, distance_m,
-		          is_bodyweight, is_completed, completed_at, target_weight_kg, target_reps,
-		          target_time_seconds, rpe, notes, created_at, updated_at
-	`
-
-	var s SessionSet
-	err := r.pool.QueryRow(ctx, query, setID, weightKg, reps, timeSeconds, distanceM, rpe, notes).Scan(
-		&s.ID, &s.SessionExerciseID, &s.SetNumber, &s.WeightKg, &s.Reps, &s.TimeSeconds, &s.DistanceM,
-		&s.IsBodyweight, &s.IsCompleted, &s.CompletedAt, &s.TargetWeightKg, &s.TargetReps,
-		&s.TargetTimeSeconds, &s.RPE, &s.Notes, &s.CreatedAt, &s.UpdatedAt,
-	)
-	if err != nil {
-		return nil, err
+// SyncSets batch updates all sets in a session with their current state
+func (r *SessionRepository) SyncSets(ctx context.Context, sessionID string, sets []SyncSetInput) error {
+	if len(sets) == 0 {
+		return nil
 	}
 
-	return &s, nil
+	tx, err := r.pool.Begin(ctx)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback(ctx)
+
+	// Update each set
+	for _, set := range sets {
+		query := `
+			UPDATE session_sets
+			SET weight_kg = COALESCE($2, weight_kg),
+			    reps = COALESCE($3, reps),
+			    time_seconds = COALESCE($4, time_seconds),
+			    distance_m = COALESCE($5, distance_m),
+			    is_completed = $6,
+			    completed_at = CASE
+			        WHEN $6 AND NOT is_completed THEN CURRENT_TIMESTAMP
+			        WHEN NOT $6 THEN NULL
+			        ELSE completed_at
+			    END,
+			    rpe = COALESCE($7, rpe),
+			    notes = COALESCE($8, notes),
+			    updated_at = CURRENT_TIMESTAMP
+			WHERE id = $1
+		`
+		_, err := tx.Exec(ctx, query,
+			set.SetID, set.WeightKg, set.Reps, set.TimeSeconds,
+			set.DistanceM, set.IsCompleted, set.RPE, set.Notes)
+		if err != nil {
+			return err
+		}
+	}
+
+	// Update session completed_sets count
+	updateCountQuery := `
+		UPDATE workout_sessions ws
+		SET completed_sets = (
+			SELECT COUNT(*) FROM session_sets ss
+			JOIN session_exercises se ON ss.session_exercise_id = se.id
+			WHERE se.session_id = ws.id AND ss.is_completed = true
+		),
+		updated_at = CURRENT_TIMESTAMP
+		WHERE id = $1
+	`
+	_, err = tx.Exec(ctx, updateCountQuery, sessionID)
+	if err != nil {
+		return err
+	}
+
+	return tx.Commit(ctx)
 }
 
 // FinishSession marks a session as completed

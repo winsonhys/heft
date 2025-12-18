@@ -45,34 +45,16 @@ extension type SessionServiceClient (connect.Transport _transport) {
     );
   }
 
-  /// Mark a set as completed
-  Future<session.CompleteSetResponse> completeSet(
-    session.CompleteSetRequest input, {
+  /// Sync full session state (periodic sync from client)
+  Future<session.SyncSessionResponse> syncSession(
+    session.SyncSessionRequest input, {
     connect.Headers? headers,
     connect.AbortSignal? signal,
     Function(connect.Headers)? onHeader,
     Function(connect.Headers)? onTrailer,
   }) {
     return connect.Client(_transport).unary(
-      specs.SessionService.completeSet,
-      input,
-      signal: signal,
-      headers: headers,
-      onHeader: onHeader,
-      onTrailer: onTrailer,
-    );
-  }
-
-  /// Update set values
-  Future<session.UpdateSetResponse> updateSet(
-    session.UpdateSetRequest input, {
-    connect.Headers? headers,
-    connect.AbortSignal? signal,
-    Function(connect.Headers)? onHeader,
-    Function(connect.Headers)? onTrailer,
-  }) {
-    return connect.Client(_transport).unary(
-      specs.SessionService.updateSet,
+      specs.SessionService.syncSession,
       input,
       signal: signal,
       headers: headers,

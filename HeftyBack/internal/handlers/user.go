@@ -32,7 +32,7 @@ func (h *UserHandler) GetProfile(ctx context.Context, req *connect.Request[heftv
 
 	user, err := h.repo.GetByID(ctx, userID)
 	if err != nil {
-		return nil, connect.NewError(connect.CodeInternal, err)
+		return nil, handleDBError(err)
 	}
 	if user == nil {
 		return nil, connect.NewError(connect.CodeNotFound, errors.New("user not found"))
@@ -60,7 +60,7 @@ func (h *UserHandler) UpdateProfile(ctx context.Context, req *connect.Request[he
 
 	user, err := h.repo.UpdateProfile(ctx, userID, displayName, avatarURL)
 	if err != nil {
-		return nil, connect.NewError(connect.CodeInternal, err)
+		return nil, handleDBError(err)
 	}
 
 	return connect.NewResponse(&heftv1.UpdateProfileResponse{
@@ -87,7 +87,7 @@ func (h *UserHandler) UpdateSettings(ctx context.Context, req *connect.Request[h
 
 	user, err := h.repo.UpdateSettings(ctx, userID, usePounds, restTimerSeconds)
 	if err != nil {
-		return nil, connect.NewError(connect.CodeInternal, err)
+		return nil, handleDBError(err)
 	}
 
 	return connect.NewResponse(&heftv1.UpdateSettingsResponse{
@@ -117,7 +117,7 @@ func (h *UserHandler) LogWeight(ctx context.Context, req *connect.Request[heftv1
 
 	log, err := h.repo.LogWeight(ctx, userID, req.Msg.WeightKg, loggedDate, notes)
 	if err != nil {
-		return nil, connect.NewError(connect.CodeInternal, err)
+		return nil, handleDBError(err)
 	}
 
 	return connect.NewResponse(&heftv1.LogWeightResponse{
@@ -153,7 +153,7 @@ func (h *UserHandler) GetWeightHistory(ctx context.Context, req *connect.Request
 
 	logs, err := h.repo.GetWeightHistory(ctx, userID, startDate, endDate, limit)
 	if err != nil {
-		return nil, connect.NewError(connect.CodeInternal, err)
+		return nil, handleDBError(err)
 	}
 
 	protoLogs := make([]*heftv1.WeightLog, len(logs))
@@ -178,7 +178,7 @@ func (h *UserHandler) DeleteWeightLog(ctx context.Context, req *connect.Request[
 
 	err := h.repo.DeleteWeightLog(ctx, req.Msg.Id, userID)
 	if err != nil {
-		return nil, connect.NewError(connect.CodeInternal, err)
+		return nil, handleDBError(err)
 	}
 
 	return connect.NewResponse(&heftv1.DeleteWeightLogResponse{

@@ -34,7 +34,7 @@ func (h *ProgressHandler) GetDashboardStats(ctx context.Context, req *connect.Re
 
 	stats, err := h.repo.GetDashboardStats(ctx, userID)
 	if err != nil {
-		return nil, connect.NewError(connect.CodeInternal, err)
+		return nil, handleDBError(err)
 	}
 
 	return connect.NewResponse(&heftv1.GetDashboardStatsResponse{
@@ -57,7 +57,7 @@ func (h *ProgressHandler) GetWeeklyActivity(ctx context.Context, req *connect.Re
 
 	days, err := h.repo.GetWeeklyActivity(ctx, userID, nil)
 	if err != nil {
-		return nil, connect.NewError(connect.CodeInternal, err)
+		return nil, handleDBError(err)
 	}
 
 	protoDays := make([]*heftv1.WeeklyActivityDay, len(days))
@@ -97,7 +97,7 @@ func (h *ProgressHandler) GetPersonalRecords(ctx context.Context, req *connect.R
 
 	records, err := h.repo.GetPersonalRecords(ctx, userID, limit, exerciseID)
 	if err != nil {
-		return nil, connect.NewError(connect.CodeInternal, err)
+		return nil, handleDBError(err)
 	}
 
 	protoRecords := make([]*heftv1.PersonalRecord, len(records))
@@ -149,13 +149,13 @@ func (h *ProgressHandler) GetExerciseProgress(ctx context.Context, req *connect.
 
 	points, err := h.repo.GetExerciseProgress(ctx, userID, req.Msg.ExerciseId, limit)
 	if err != nil {
-		return nil, connect.NewError(connect.CodeInternal, err)
+		return nil, handleDBError(err)
 	}
 
 	// Get exercise info
 	exercise, err := h.exerciseRepo.GetByID(ctx, req.Msg.ExerciseId)
 	if err != nil {
-		return nil, connect.NewError(connect.CodeInternal, err)
+		return nil, handleDBError(err)
 	}
 
 	summary := &heftv1.ExerciseProgressSummary{
@@ -236,7 +236,7 @@ func (h *ProgressHandler) GetStreak(ctx context.Context, req *connect.Request[he
 
 	currentStreak, longestStreak, lastWorkout, err := h.repo.GetStreak(ctx, userID)
 	if err != nil {
-		return nil, connect.NewError(connect.CodeInternal, err)
+		return nil, handleDBError(err)
 	}
 
 	response := &heftv1.GetStreakResponse{

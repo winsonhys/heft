@@ -37,6 +37,10 @@ func TestSessionHandler_StartSession(t *testing.T) {
 			request:  &heftv1.StartSessionRequest{},
 			mockSetup: func(sr *testutil.MockSessionRepository, wr *testutil.MockWorkoutRepository) {
 				now := time.Now()
+				// No existing in-progress sessions
+				sr.ListFunc = func(ctx context.Context, userID string, status *string, startDate, endDate *time.Time, limit, offset int) ([]*repository.WorkoutSession, int, error) {
+					return []*repository.WorkoutSession{}, 0, nil
+				}
 				sr.CreateFunc = func(ctx context.Context, userID string, workoutTemplateID, programID *string, programDayNumber *int, name *string) (*repository.WorkoutSession, error) {
 					return &repository.WorkoutSession{
 						ID:        "session-123",
@@ -73,6 +77,28 @@ func TestSessionHandler_StartSession(t *testing.T) {
 			},
 		},
 		{
+			name:     "error - user already has active session",
+			userID:   "user-123",
+			withAuth: true,
+			request:  &heftv1.StartSessionRequest{},
+			mockSetup: func(sr *testutil.MockSessionRepository, wr *testutil.MockWorkoutRepository) {
+				now := time.Now()
+				// Return existing in-progress session
+				sr.ListFunc = func(ctx context.Context, userID string, status *string, startDate, endDate *time.Time, limit, offset int) ([]*repository.WorkoutSession, int, error) {
+					return []*repository.WorkoutSession{
+						{
+							ID:        "existing-session",
+							UserID:    userID,
+							Status:    "in_progress",
+							StartedAt: now,
+						},
+					}, 1, nil
+				}
+			},
+			wantErr:     true,
+			wantErrCode: connect.CodeAlreadyExists,
+		},
+		{
 			name:        "error - not authenticated",
 			userID:      "",
 			withAuth:    false,
@@ -82,11 +108,15 @@ func TestSessionHandler_StartSession(t *testing.T) {
 			wantErrCode: connect.CodeUnauthenticated,
 		},
 		{
-			name:     "error - database error",
+			name:     "error - database error on create",
 			userID:   "user-123",
 			withAuth: true,
 			request:  &heftv1.StartSessionRequest{},
 			mockSetup: func(sr *testutil.MockSessionRepository, wr *testutil.MockWorkoutRepository) {
+				// No existing sessions
+				sr.ListFunc = func(ctx context.Context, userID string, status *string, startDate, endDate *time.Time, limit, offset int) ([]*repository.WorkoutSession, int, error) {
+					return []*repository.WorkoutSession{}, 0, nil
+				}
 				sr.CreateFunc = func(ctx context.Context, userID string, workoutTemplateID, programID *string, programDayNumber *int, name *string) (*repository.WorkoutSession, error) {
 					return nil, errors.New("database error")
 				}
@@ -599,7 +629,7 @@ func TestSessionHandler_ListSessions(t *testing.T) {
 	}
 }
 
-func TestSessionHandler_CompleteSet(t *testing.T) {
+func TestSessionHandler_SyncSession(t *testing.T) {
 	if testing.Short() {
 		t.Skip("skipping unit test in short mode")
 	}
@@ -608,53 +638,85 @@ func TestSessionHandler_CompleteSet(t *testing.T) {
 		name          string
 		userID        string
 		withAuth      bool
-		request       *heftv1.CompleteSetRequest
+		request       *heftv1.SyncSessionRequest
 		mockSetup     func(*testutil.MockSessionRepository)
 		wantErr       bool
 		wantErrCode   connect.Code
-		checkResponse func(*testing.T, *heftv1.CompleteSetResponse)
+		checkResponse func(*testing.T, *heftv1.SyncSessionResponse)
 	}{
 		{
-			name:     "success - complete set with weight and reps",
+			name:     "success - sync session with sets",
 			userID:   "user-123",
 			withAuth: true,
-			request: &heftv1.CompleteSetRequest{
-				SessionSetId: "set-123",
-				WeightKg:     ptrFloat64(100.0),
-				Reps:         ptrInt32(10),
+			request: &heftv1.SyncSessionRequest{
+				SessionId: "session-123",
+				Sets: []*heftv1.SyncSetData{
+					{
+						SetId:       "set-1",
+						WeightKg:    ptrFloat64(100.0),
+						Reps:        ptrInt32(10),
+						IsCompleted: true,
+					},
+					{
+						SetId:       "set-2",
+						WeightKg:    ptrFloat64(105.0),
+						Reps:        ptrInt32(8),
+						IsCompleted: true,
+					},
+				},
 			},
 			mockSetup: func(sr *testutil.MockSessionRepository) {
-				sr.CompleteSetFunc = func(ctx context.Context, setID string, weightKg *float64, reps, timeSeconds *int, distanceM, rpe *float64, notes *string) (*repository.SessionSet, error) {
-					w := 100.0
-					r := 10
-					return &repository.SessionSet{
-						ID:          setID,
-						SetNumber:   1,
-						WeightKg:    &w,
-						Reps:        &r,
-						IsCompleted: true,
+				now := time.Now()
+				sr.GetByIDFunc = func(ctx context.Context, id, userID string) (*repository.WorkoutSession, error) {
+					w1, w2 := 100.0, 105.0
+					r1, r2 := 10, 8
+					return &repository.WorkoutSession{
+						ID:            id,
+						UserID:        userID,
+						Status:        "in_progress",
+						StartedAt:     now,
+						CompletedSets: 2,
+						TotalSets:     3,
+						CreatedAt:     now,
+						UpdatedAt:     now,
+						Exercises: []*repository.SessionExercise{
+							{
+								ID:           "se-1",
+								SessionID:    id,
+								ExerciseName: "Bench Press",
+								ExerciseType: "weight_reps",
+								Sets: []*repository.SessionSet{
+									{ID: "set-1", SetNumber: 1, WeightKg: &w1, Reps: &r1, IsCompleted: true},
+									{ID: "set-2", SetNumber: 2, WeightKg: &w2, Reps: &r2, IsCompleted: true},
+									{ID: "set-3", SetNumber: 3, IsCompleted: false},
+								},
+							},
+						},
 					}, nil
 				}
+				sr.SyncSetsFunc = func(ctx context.Context, sessionID string, sets []repository.SyncSetInput) error {
+					return nil
+				}
 			},
-			checkResponse: func(t *testing.T, resp *heftv1.CompleteSetResponse) {
-				if resp.Set == nil {
-					t.Error("expected set in response")
+			checkResponse: func(t *testing.T, resp *heftv1.SyncSessionResponse) {
+				if !resp.Success {
+					t.Error("expected success to be true")
+				}
+				if resp.Session == nil {
+					t.Error("expected session in response")
 					return
 				}
-				if !resp.Set.IsCompleted {
-					t.Error("expected set to be completed")
-				}
-				if resp.Set.WeightKg == nil || *resp.Set.WeightKg != 100.0 {
-					t.Errorf("expected weight 100.0, got %v", resp.Set.WeightKg)
+				if resp.Session.CompletedSets != 2 {
+					t.Errorf("expected 2 completed sets, got %d", resp.Session.CompletedSets)
 				}
 			},
 		},
 		{
-			name:     "error - missing session_set_id",
+			name:     "error - missing session_id",
 			userID:   "user-123",
 			withAuth: true,
-			request: &heftv1.CompleteSetRequest{
-				SessionSetId: "",
+			request: &heftv1.SyncSessionRequest{
+				SessionId: "",
 			},
 			mockSetup:   func(sr *testutil.MockSessionRepository) {},
 			wantErr:     true,
@@ -664,12 +726,27 @@ func TestSessionHandler_CompleteSet(t *testing.T) {
 			name:     "error - not authenticated",
 			userID:   "",
 			withAuth: false,
-			request: &heftv1.CompleteSetRequest{
-				SessionSetId: "set-123",
+			request: &heftv1.SyncSessionRequest{
+				SessionId: "session-123",
 			},
 			mockSetup:   func(sr *testutil.MockSessionRepository) {},
 			wantErr:     true,
 			wantErrCode: connect.CodeUnauthenticated,
+		},
+		{
+			name:     "error - session not found",
+			userID:   "user-123",
+			withAuth: true,
+			request: &heftv1.SyncSessionRequest{
+				SessionId: "nonexistent",
+			},
+			mockSetup: func(sr *testutil.MockSessionRepository) {
+				sr.GetByIDFunc = func(ctx context.Context, id, userID string) (*repository.WorkoutSession, error) {
+					return nil, nil
+				}
+			},
+			wantErr:     true,
+			wantErrCode: connect.CodeNotFound,
 		},
 	}
 
@@ -686,7 +763,7 @@ func TestSessionHandler_CompleteSet(t *testing.T) {
 				ctx = auth.ContextWithUserID(ctx, tt.userID)
 			}
 
-			resp, err := handler.CompleteSet(ctx, connect.NewRequest(tt.request))
+			resp, err := handler.SyncSession(ctx, connect.NewRequest(tt.request))
 
 			if tt.wantErr {
 				if err == nil {

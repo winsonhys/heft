@@ -70,7 +70,7 @@ void main() {
       await TestData.deleteWorkoutSafe(workoutId);
     });
 
-    test('completes a set', () async {
+    test('syncs session with completed sets', () async {
       // Create workout and start session
       final workoutId = await TestData.createWorkoutWithExercise();
       final sessionId = await TestData.startSession(
@@ -85,25 +85,29 @@ void main() {
       final getResponse = await sessionClient.getSession(getRequest);
       final firstSet = getResponse.session.exercises.first.sets.first;
 
-      // Complete the set
-      final completeRequest = CompleteSetRequest()
-        ..sessionSetId = firstSet.id
-        ..userId = TestData.testUserId
-        ..weightKg = 50.0
-        ..reps = 10;
+      // Sync the session with the set completed
+      final syncRequest = SyncSessionRequest()
+        ..sessionId = sessionId
+        ..sets.add(SyncSetData()
+          ..setId = firstSet.id
+          ..weightKg = 50.0
+          ..reps = 10
+          ..isCompleted = true);
 
-      final completeResponse = await sessionClient.completeSet(completeRequest);
+      final syncResponse = await sessionClient.syncSession(syncRequest);
 
-      expect(completeResponse.set.isCompleted, isTrue);
-      expect(completeResponse.set.weightKg, equals(50.0));
-      expect(completeResponse.set.reps, equals(10));
+      expect(syncResponse.success, isTrue);
+      final updatedSet = syncResponse.session.exercises.first.sets.first;
+      expect(updatedSet.isCompleted, isTrue);
+      expect(updatedSet.weightKg, equals(50.0));
+      expect(updatedSet.reps, equals(10));
 
       // Clean up
       await TestData.abandonSession(sessionId);
       await TestData.deleteWorkoutSafe(workoutId);
     });
 
-    test('updates a set without completing', () async {
+    test('syncs session without completing sets', () async {
       // Create workout and start session
       final workoutId = await TestData.createWorkoutWithExercise();
       final sessionId = await TestData.startSession(
@@ -118,17 +122,22 @@ void main() {
       final getResponse = await sessionClient.getSession(getRequest);
       final firstSet = getResponse.session.exercises.first.sets.first;
 
-      // Update the set
-      final updateRequest = UpdateSetRequest()
-        ..sessionSetId = firstSet.id
-        ..userId = TestData.testUserId
-        ..weightKg = 55.0
-        ..reps = 8;
+      // Sync the session with updated values but not completed
+      final syncRequest = SyncSessionRequest()
+        ..sessionId = sessionId
+        ..sets.add(SyncSetData()
+          ..setId = firstSet.id
+          ..weightKg = 55.0
+          ..reps = 8
+          ..isCompleted = false);
 
-      final updateResponse = await sessionClient.updateSet(updateRequest);
+      final syncResponse = await sessionClient.syncSession(syncRequest);
 
-      expect(updateResponse.set.weightKg, equals(55.0));
-      expect(updateResponse.set.reps, equals(8));
+      expect(syncResponse.success, isTrue);
+      final updatedSet = syncResponse.session.exercises.first.sets.first;
+      expect(updatedSet.weightKg, equals(55.0));
+      expect(updatedSet.reps, equals(8));
+      expect(updatedSet.isCompleted, isFalse);
 
       // Clean up - use deleteWorkoutSafe as abandoned sessions still reference workout
       await TestData.abandonSession(sessionId);
@@ -247,7 +256,7 @@ void main() {
       await TestData.deleteWorkoutSafe(workoutId);
     });
 
-    test('complete set via API', () async {
+    test('syncs set completion via API', () async {
       // Create workout and start session
       final workoutId = await TestData.createWorkoutWithExercise();
       final sessionId = await TestData.startSession(
@@ -260,18 +269,22 @@ void main() {
       );
       final setId = sessionResponse.session.exercises.first.sets.first.id;
 
-      // Complete set via API
-      final completeResponse = await sessionClient.completeSet(
-        CompleteSetRequest()
-          ..sessionSetId = setId
-          ..userId = TestData.testUserId
+      // Complete set via sync API
+      final syncRequest = SyncSessionRequest()
+        ..sessionId = sessionId
+        ..sets.add(SyncSetData()
+          ..setId = setId
           ..weightKg = 100.0
-          ..reps = 5,
-      );
+          ..reps = 5
+          ..isCompleted = true);
 
-      expect(completeResponse.set.isCompleted, isTrue);
-      expect(completeResponse.set.weightKg, equals(100.0));
-      expect(completeResponse.isPersonalRecord, isA<bool>());
+      final syncResponse = await sessionClient.syncSession(syncRequest);
+
+      expect(syncResponse.success, isTrue);
+      final updatedSet = syncResponse.session.exercises.first.sets.first;
+      expect(updatedSet.isCompleted, isTrue);
+      expect(updatedSet.weightKg, equals(100.0));
+      expect(updatedSet.reps, equals(5));
 
       // Clean up
       await TestData.abandonSession(sessionId);
@@ -298,6 +311,63 @@ void main() {
       await TestData.deleteWorkoutSafe(workoutId);
     });
 
+    test('hasActiveSessionProvider returns null after finishing session', () async {
+      // Create workout and start session
+      final workoutId = await TestData.createWorkoutWithExercise();
+      final sessionId = await TestData.startSession(
+        workoutTemplateId: workoutId,
+      );
+
+      // Verify session is active
+      final activeSessionBefore = await container.read(
+        hasActiveSessionProvider.future,
+      );
+      expect(activeSessionBefore, isNotNull);
+      expect(activeSessionBefore!.id, equals(sessionId));
+
+      // Finish the session
+      await sessionClient.finishSession(
+        FinishSessionRequest()..id = sessionId,
+      );
+
+      // Refresh and verify no active session
+      final activeSessionAfter = await container.refresh(
+        hasActiveSessionProvider.future,
+      );
+      expect(activeSessionAfter, isNull);
+
+      // Note: Cannot delete workout as completed session references it
+    });
+
+    test('hasActiveSessionProvider returns null after abandoning session', () async {
+      // Create workout and start session
+      final workoutId = await TestData.createWorkoutWithExercise();
+      final sessionId = await TestData.startSession(
+        workoutTemplateId: workoutId,
+      );
+
+      // Verify session is active
+      final activeSessionBefore = await container.read(
+        hasActiveSessionProvider.future,
+      );
+      expect(activeSessionBefore, isNotNull);
+      expect(activeSessionBefore!.id, equals(sessionId));
+
+      // Abandon the session
+      await sessionClient.abandonSession(
+        AbandonSessionRequest()..id = sessionId,
+      );
+
+      // Refresh and verify no active session
+      final activeSessionAfter = await container.refresh(
+        hasActiveSessionProvider.future,
+      );
+      expect(activeSessionAfter, isNull);
+
+      // Clean up
+      await TestData.deleteWorkoutSafe(workoutId);
+    });
+
     test('full session workflow', () async {
       // Create workout
       final workoutId = await TestData.createWorkoutWithExercise(
@@ -312,18 +382,24 @@ void main() {
       final session = startResponse.session;
       expect(session.id, isNotEmpty);
 
-      // 2. Complete all sets
+      // 2. Complete all sets via sync API
+      final syncSets = <SyncSetData>[];
       for (final exercise in session.exercises) {
         for (final set in exercise.sets) {
-          await sessionClient.completeSet(
-            CompleteSetRequest()
-              ..sessionSetId = set.id
-              ..userId = TestData.testUserId
-              ..weightKg = 60.0
-              ..reps = 10,
-          );
+          syncSets.add(SyncSetData()
+            ..setId = set.id
+            ..weightKg = 60.0
+            ..reps = 10
+            ..isCompleted = true);
         }
       }
+
+      final syncResponse = await sessionClient.syncSession(
+        SyncSessionRequest()
+          ..sessionId = session.id
+          ..sets.addAll(syncSets),
+      );
+      expect(syncResponse.success, isTrue);
 
       // 3. Finish session
       final finishResponse = await sessionClient.finishSession(

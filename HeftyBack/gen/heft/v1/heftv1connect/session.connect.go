@@ -39,12 +39,9 @@ const (
 	// SessionServiceGetSessionProcedure is the fully-qualified name of the SessionService's GetSession
 	// RPC.
 	SessionServiceGetSessionProcedure = "/heft.v1.SessionService/GetSession"
-	// SessionServiceCompleteSetProcedure is the fully-qualified name of the SessionService's
-	// CompleteSet RPC.
-	SessionServiceCompleteSetProcedure = "/heft.v1.SessionService/CompleteSet"
-	// SessionServiceUpdateSetProcedure is the fully-qualified name of the SessionService's UpdateSet
-	// RPC.
-	SessionServiceUpdateSetProcedure = "/heft.v1.SessionService/UpdateSet"
+	// SessionServiceSyncSessionProcedure is the fully-qualified name of the SessionService's
+	// SyncSession RPC.
+	SessionServiceSyncSessionProcedure = "/heft.v1.SessionService/SyncSession"
 	// SessionServiceAddExerciseProcedure is the fully-qualified name of the SessionService's
 	// AddExercise RPC.
 	SessionServiceAddExerciseProcedure = "/heft.v1.SessionService/AddExercise"
@@ -65,10 +62,8 @@ type SessionServiceClient interface {
 	StartSession(context.Context, *connect.Request[v1.StartSessionRequest]) (*connect.Response[v1.StartSessionResponse], error)
 	// Get session details
 	GetSession(context.Context, *connect.Request[v1.GetSessionRequest]) (*connect.Response[v1.GetSessionResponse], error)
-	// Mark a set as completed
-	CompleteSet(context.Context, *connect.Request[v1.CompleteSetRequest]) (*connect.Response[v1.CompleteSetResponse], error)
-	// Update set values
-	UpdateSet(context.Context, *connect.Request[v1.UpdateSetRequest]) (*connect.Response[v1.UpdateSetResponse], error)
+	// Sync full session state (periodic sync from client)
+	SyncSession(context.Context, *connect.Request[v1.SyncSessionRequest]) (*connect.Response[v1.SyncSessionResponse], error)
 	// Add an exercise to the session
 	AddExercise(context.Context, *connect.Request[v1.AddExerciseRequest]) (*connect.Response[v1.AddExerciseResponse], error)
 	// Finish the workout session
@@ -102,16 +97,10 @@ func NewSessionServiceClient(httpClient connect.HTTPClient, baseURL string, opts
 			connect.WithSchema(sessionServiceMethods.ByName("GetSession")),
 			connect.WithClientOptions(opts...),
 		),
-		completeSet: connect.NewClient[v1.CompleteSetRequest, v1.CompleteSetResponse](
+		syncSession: connect.NewClient[v1.SyncSessionRequest, v1.SyncSessionResponse](
 			httpClient,
-			baseURL+SessionServiceCompleteSetProcedure,
-			connect.WithSchema(sessionServiceMethods.ByName("CompleteSet")),
-			connect.WithClientOptions(opts...),
-		),
-		updateSet: connect.NewClient[v1.UpdateSetRequest, v1.UpdateSetResponse](
-			httpClient,
-			baseURL+SessionServiceUpdateSetProcedure,
-			connect.WithSchema(sessionServiceMethods.ByName("UpdateSet")),
+			baseURL+SessionServiceSyncSessionProcedure,
+			connect.WithSchema(sessionServiceMethods.ByName("SyncSession")),
 			connect.WithClientOptions(opts...),
 		),
 		addExercise: connect.NewClient[v1.AddExerciseRequest, v1.AddExerciseResponse](
@@ -145,8 +134,7 @@ func NewSessionServiceClient(httpClient connect.HTTPClient, baseURL string, opts
 type sessionServiceClient struct {
 	startSession   *connect.Client[v1.StartSessionRequest, v1.StartSessionResponse]
 	getSession     *connect.Client[v1.GetSessionRequest, v1.GetSessionResponse]
-	completeSet    *connect.Client[v1.CompleteSetRequest, v1.CompleteSetResponse]
-	updateSet      *connect.Client[v1.UpdateSetRequest, v1.UpdateSetResponse]
+	syncSession    *connect.Client[v1.SyncSessionRequest, v1.SyncSessionResponse]
 	addExercise    *connect.Client[v1.AddExerciseRequest, v1.AddExerciseResponse]
 	finishSession  *connect.Client[v1.FinishSessionRequest, v1.FinishSessionResponse]
 	abandonSession *connect.Client[v1.AbandonSessionRequest, v1.AbandonSessionResponse]
@@ -163,14 +151,9 @@ func (c *sessionServiceClient) GetSession(ctx context.Context, req *connect.Requ
 	return c.getSession.CallUnary(ctx, req)
 }
 
-// CompleteSet calls heft.v1.SessionService.CompleteSet.
-func (c *sessionServiceClient) CompleteSet(ctx context.Context, req *connect.Request[v1.CompleteSetRequest]) (*connect.Response[v1.CompleteSetResponse], error) {
-	return c.completeSet.CallUnary(ctx, req)
-}
-
-// UpdateSet calls heft.v1.SessionService.UpdateSet.
-func (c *sessionServiceClient) UpdateSet(ctx context.Context, req *connect.Request[v1.UpdateSetRequest]) (*connect.Response[v1.UpdateSetResponse], error) {
-	return c.updateSet.CallUnary(ctx, req)
+// SyncSession calls heft.v1.SessionService.SyncSession.
+func (c *sessionServiceClient) SyncSession(ctx context.Context, req *connect.Request[v1.SyncSessionRequest]) (*connect.Response[v1.SyncSessionResponse], error) {
+	return c.syncSession.CallUnary(ctx, req)
 }
 
 // AddExercise calls heft.v1.SessionService.AddExercise.
@@ -199,10 +182,8 @@ type SessionServiceHandler interface {
 	StartSession(context.Context, *connect.Request[v1.StartSessionRequest]) (*connect.Response[v1.StartSessionResponse], error)
 	// Get session details
 	GetSession(context.Context, *connect.Request[v1.GetSessionRequest]) (*connect.Response[v1.GetSessionResponse], error)
-	// Mark a set as completed
-	CompleteSet(context.Context, *connect.Request[v1.CompleteSetRequest]) (*connect.Response[v1.CompleteSetResponse], error)
-	// Update set values
-	UpdateSet(context.Context, *connect.Request[v1.UpdateSetRequest]) (*connect.Response[v1.UpdateSetResponse], error)
+	// Sync full session state (periodic sync from client)
+	SyncSession(context.Context, *connect.Request[v1.SyncSessionRequest]) (*connect.Response[v1.SyncSessionResponse], error)
 	// Add an exercise to the session
 	AddExercise(context.Context, *connect.Request[v1.AddExerciseRequest]) (*connect.Response[v1.AddExerciseResponse], error)
 	// Finish the workout session
@@ -232,16 +213,10 @@ func NewSessionServiceHandler(svc SessionServiceHandler, opts ...connect.Handler
 		connect.WithSchema(sessionServiceMethods.ByName("GetSession")),
 		connect.WithHandlerOptions(opts...),
 	)
-	sessionServiceCompleteSetHandler := connect.NewUnaryHandler(
-		SessionServiceCompleteSetProcedure,
-		svc.CompleteSet,
-		connect.WithSchema(sessionServiceMethods.ByName("CompleteSet")),
-		connect.WithHandlerOptions(opts...),
-	)
-	sessionServiceUpdateSetHandler := connect.NewUnaryHandler(
-		SessionServiceUpdateSetProcedure,
-		svc.UpdateSet,
-		connect.WithSchema(sessionServiceMethods.ByName("UpdateSet")),
+	sessionServiceSyncSessionHandler := connect.NewUnaryHandler(
+		SessionServiceSyncSessionProcedure,
+		svc.SyncSession,
+		connect.WithSchema(sessionServiceMethods.ByName("SyncSession")),
 		connect.WithHandlerOptions(opts...),
 	)
 	sessionServiceAddExerciseHandler := connect.NewUnaryHandler(
@@ -274,10 +249,8 @@ func NewSessionServiceHandler(svc SessionServiceHandler, opts ...connect.Handler
 			sessionServiceStartSessionHandler.ServeHTTP(w, r)
 		case SessionServiceGetSessionProcedure:
 			sessionServiceGetSessionHandler.ServeHTTP(w, r)
-		case SessionServiceCompleteSetProcedure:
-			sessionServiceCompleteSetHandler.ServeHTTP(w, r)
-		case SessionServiceUpdateSetProcedure:
-			sessionServiceUpdateSetHandler.ServeHTTP(w, r)
+		case SessionServiceSyncSessionProcedure:
+			sessionServiceSyncSessionHandler.ServeHTTP(w, r)
 		case SessionServiceAddExerciseProcedure:
 			sessionServiceAddExerciseHandler.ServeHTTP(w, r)
 		case SessionServiceFinishSessionProcedure:
@@ -303,12 +276,8 @@ func (UnimplementedSessionServiceHandler) GetSession(context.Context, *connect.R
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("heft.v1.SessionService.GetSession is not implemented"))
 }
 
-func (UnimplementedSessionServiceHandler) CompleteSet(context.Context, *connect.Request[v1.CompleteSetRequest]) (*connect.Response[v1.CompleteSetResponse], error) {
-	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("heft.v1.SessionService.CompleteSet is not implemented"))
-}
-
-func (UnimplementedSessionServiceHandler) UpdateSet(context.Context, *connect.Request[v1.UpdateSetRequest]) (*connect.Response[v1.UpdateSetResponse], error) {
-	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("heft.v1.SessionService.UpdateSet is not implemented"))
+func (UnimplementedSessionServiceHandler) SyncSession(context.Context, *connect.Request[v1.SyncSessionRequest]) (*connect.Response[v1.SyncSessionResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("heft.v1.SessionService.SyncSession is not implemented"))
 }
 
 func (UnimplementedSessionServiceHandler) AddExercise(context.Context, *connect.Request[v1.AddExerciseRequest]) (*connect.Response[v1.AddExerciseResponse], error) {

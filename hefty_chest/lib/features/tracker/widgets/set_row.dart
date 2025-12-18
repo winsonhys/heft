@@ -154,11 +154,11 @@ class SetRow extends HookWidget {
             ),
           ],
           const SizedBox(width: 6),
-          // Complete button
+          // Complete button (toggle)
           SizedBox(
             width: 32,
             child: GestureDetector(
-              onTap: isCompleted ? null : handleComplete,
+              onTap: handleComplete,
               child: Container(
                 width: 24,
                 height: 24,

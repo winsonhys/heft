@@ -55,7 +55,7 @@ func (h *ExerciseHandler) ListExercises(ctx context.Context, req *connect.Reques
 	offset := (page - 1) * pageSize
 	exercises, totalCount, err := h.repo.ListExercises(ctx, categoryID, exerciseType, systemOnly, userID, int(pageSize), int(offset))
 	if err != nil {
-		return nil, connect.NewError(connect.CodeInternal, err)
+		return nil, handleDBError(err)
 	}
 
 	protoExercises := make([]*heftv1.Exercise, len(exercises))
@@ -84,7 +84,7 @@ func (h *ExerciseHandler) GetExercise(ctx context.Context, req *connect.Request[
 
 	exercise, err := h.repo.GetByID(ctx, req.Msg.Id)
 	if err != nil {
-		return nil, connect.NewError(connect.CodeInternal, err)
+		return nil, handleDBError(err)
 	}
 	if exercise == nil {
 		return nil, connect.NewError(connect.CodeNotFound, errors.New("exercise not found"))
@@ -120,7 +120,7 @@ func (h *ExerciseHandler) CreateExercise(ctx context.Context, req *connect.Reque
 
 	exercise, err := h.repo.Create(ctx, userID, req.Msg.Name, req.Msg.CategoryId, exerciseType, description)
 	if err != nil {
-		return nil, connect.NewError(connect.CodeInternal, err)
+		return nil, handleDBError(err)
 	}
 
 	return connect.NewResponse(&heftv1.CreateExerciseResponse{
@@ -132,7 +132,7 @@ func (h *ExerciseHandler) CreateExercise(ctx context.Context, req *connect.Reque
 func (h *ExerciseHandler) ListCategories(ctx context.Context, req *connect.Request[heftv1.ListCategoriesRequest]) (*connect.Response[heftv1.ListCategoriesResponse], error) {
 	categories, err := h.repo.ListCategories(ctx)
 	if err != nil {
-		return nil, connect.NewError(connect.CodeInternal, err)
+		return nil, handleDBError(err)
 	}
 
 	protoCategories := make([]*heftv1.ExerciseCategory, len(categories))
@@ -167,7 +167,7 @@ func (h *ExerciseHandler) SearchExercises(ctx context.Context, req *connect.Requ
 
 	exercises, err := h.repo.Search(ctx, req.Msg.Query, userID, limit)
 	if err != nil {
-		return nil, connect.NewError(connect.CodeInternal, err)
+		return nil, handleDBError(err)
 	}
 
 	protoExercises := make([]*heftv1.Exercise, len(exercises))

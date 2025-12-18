@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:forui/forui.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
@@ -99,9 +100,7 @@ class ProgramBuilderScreen extends HookConsumerWidget {
             Expanded(
               child: isLoading.value
                   ? const Center(
-                      child: CircularProgressIndicator(
-                        color: AppColors.accentBlue,
-                      ),
+                      child: FProgress(),
                     )
                   : SingleChildScrollView(
                       padding: const EdgeInsets.all(20),
@@ -109,27 +108,10 @@ class ProgramBuilderScreen extends HookConsumerWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           // Program Name Input
-                          TextField(
+                          FTextField(
                             controller: nameController,
-                            style: const TextStyle(
-                              fontSize: 20,
-                              fontWeight: FontWeight.w600,
-                              color: AppColors.textPrimary,
-                            ),
-                            decoration: InputDecoration(
-                              hintText: 'Program Name',
-                              hintStyle: TextStyle(
-                                color: AppColors.textMuted,
-                              ),
-                              filled: true,
-                              fillColor: AppColors.bgCard,
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
-                                borderSide: BorderSide.none,
-                              ),
-                              contentPadding: const EdgeInsets.all(16),
-                            ),
-                            onChanged: (value) {
+                            hint: 'Program Name',
+                            onChange: (value) {
                               ref
                                   .read(programBuilderProvider.notifier)
                                   .updateName(value);

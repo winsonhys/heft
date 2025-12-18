@@ -23,8 +23,7 @@ export 'session.pb.dart';
 abstract class SessionServiceBase extends $pb.GeneratedService {
   $async.Future<$7.StartSessionResponse> startSession($pb.ServerContext ctx, $7.StartSessionRequest request);
   $async.Future<$7.GetSessionResponse> getSession($pb.ServerContext ctx, $7.GetSessionRequest request);
-  $async.Future<$7.CompleteSetResponse> completeSet($pb.ServerContext ctx, $7.CompleteSetRequest request);
-  $async.Future<$7.UpdateSetResponse> updateSet($pb.ServerContext ctx, $7.UpdateSetRequest request);
+  $async.Future<$7.SyncSessionResponse> syncSession($pb.ServerContext ctx, $7.SyncSessionRequest request);
   $async.Future<$7.AddExerciseResponse> addExercise($pb.ServerContext ctx, $7.AddExerciseRequest request);
   $async.Future<$7.FinishSessionResponse> finishSession($pb.ServerContext ctx, $7.FinishSessionRequest request);
   $async.Future<$7.AbandonSessionResponse> abandonSession($pb.ServerContext ctx, $7.AbandonSessionRequest request);
@@ -34,8 +33,7 @@ abstract class SessionServiceBase extends $pb.GeneratedService {
     switch (methodName) {
       case 'StartSession': return $7.StartSessionRequest();
       case 'GetSession': return $7.GetSessionRequest();
-      case 'CompleteSet': return $7.CompleteSetRequest();
-      case 'UpdateSet': return $7.UpdateSetRequest();
+      case 'SyncSession': return $7.SyncSessionRequest();
       case 'AddExercise': return $7.AddExerciseRequest();
       case 'FinishSession': return $7.FinishSessionRequest();
       case 'AbandonSession': return $7.AbandonSessionRequest();
@@ -48,8 +46,7 @@ abstract class SessionServiceBase extends $pb.GeneratedService {
     switch (methodName) {
       case 'StartSession': return this.startSession(ctx, request as $7.StartSessionRequest);
       case 'GetSession': return this.getSession(ctx, request as $7.GetSessionRequest);
-      case 'CompleteSet': return this.completeSet(ctx, request as $7.CompleteSetRequest);
-      case 'UpdateSet': return this.updateSet(ctx, request as $7.UpdateSetRequest);
+      case 'SyncSession': return this.syncSession(ctx, request as $7.SyncSessionRequest);
       case 'AddExercise': return this.addExercise(ctx, request as $7.AddExerciseRequest);
       case 'FinishSession': return this.finishSession(ctx, request as $7.FinishSessionRequest);
       case 'AbandonSession': return this.abandonSession(ctx, request as $7.AbandonSessionRequest);

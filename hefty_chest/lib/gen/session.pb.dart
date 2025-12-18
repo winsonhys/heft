@@ -1146,58 +1146,28 @@ class GetSessionResponse extends $pb.GeneratedMessage {
   Session ensureSession() => $_ensure(0);
 }
 
-/// CompleteSet
-class CompleteSetRequest extends $pb.GeneratedMessage {
-  factory CompleteSetRequest({
-    $core.String? sessionSetId,
-    $core.String? userId,
-    $core.double? weightKg,
-    $core.int? reps,
-    $core.int? timeSeconds,
-    $core.double? distanceM,
-    $core.double? rpe,
-    $core.String? notes,
+/// SyncSession - Periodic full session state sync
+class SyncSessionRequest extends $pb.GeneratedMessage {
+  factory SyncSessionRequest({
+    $core.String? sessionId,
+    $core.Iterable<SyncSetData>? sets,
   }) {
     final $result = create();
-    if (sessionSetId != null) {
-      $result.sessionSetId = sessionSetId;
+    if (sessionId != null) {
+      $result.sessionId = sessionId;
     }
-    if (userId != null) {
-      $result.userId = userId;
-    }
-    if (weightKg != null) {
-      $result.weightKg = weightKg;
-    }
-    if (reps != null) {
-      $result.reps = reps;
-    }
-    if (timeSeconds != null) {
-      $result.timeSeconds = timeSeconds;
-    }
-    if (distanceM != null) {
-      $result.distanceM = distanceM;
-    }
-    if (rpe != null) {
-      $result.rpe = rpe;
-    }
-    if (notes != null) {
-      $result.notes = notes;
+    if (sets != null) {
+      $result.sets.addAll(sets);
     }
     return $result;
   }
-  CompleteSetRequest._() : super();
-  factory CompleteSetRequest.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
-  factory CompleteSetRequest.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
+  SyncSessionRequest._() : super();
+  factory SyncSessionRequest.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
+  factory SyncSessionRequest.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'CompleteSetRequest', package: const $pb.PackageName(_omitMessageNames ? '' : 'heft.v1'), createEmptyInstance: create)
-    ..aOS(1, _omitFieldNames ? '' : 'sessionSetId')
-    ..aOS(2, _omitFieldNames ? '' : 'userId')
-    ..a<$core.double>(3, _omitFieldNames ? '' : 'weightKg', $pb.PbFieldType.OD)
-    ..a<$core.int>(4, _omitFieldNames ? '' : 'reps', $pb.PbFieldType.O3)
-    ..a<$core.int>(5, _omitFieldNames ? '' : 'timeSeconds', $pb.PbFieldType.O3)
-    ..a<$core.double>(6, _omitFieldNames ? '' : 'distanceM', $pb.PbFieldType.OD)
-    ..a<$core.double>(7, _omitFieldNames ? '' : 'rpe', $pb.PbFieldType.OD)
-    ..aOS(8, _omitFieldNames ? '' : 'notes')
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'SyncSessionRequest', package: const $pb.PackageName(_omitMessageNames ? '' : 'heft.v1'), createEmptyInstance: create)
+    ..aOS(1, _omitFieldNames ? '' : 'sessionId')
+    ..pc<SyncSetData>(2, _omitFieldNames ? '' : 'sets', $pb.PbFieldType.PM, subBuilder: SyncSetData.create)
     ..hasRequiredFields = false
   ;
 
@@ -1205,167 +1175,39 @@ class CompleteSetRequest extends $pb.GeneratedMessage {
   'Using this can add significant overhead to your binary. '
   'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
   'Will be removed in next major version')
-  CompleteSetRequest clone() => CompleteSetRequest()..mergeFromMessage(this);
+  SyncSessionRequest clone() => SyncSessionRequest()..mergeFromMessage(this);
   @$core.Deprecated(
   'Using this can add significant overhead to your binary. '
   'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
   'Will be removed in next major version')
-  CompleteSetRequest copyWith(void Function(CompleteSetRequest) updates) => super.copyWith((message) => updates(message as CompleteSetRequest)) as CompleteSetRequest;
+  SyncSessionRequest copyWith(void Function(SyncSessionRequest) updates) => super.copyWith((message) => updates(message as SyncSessionRequest)) as SyncSessionRequest;
 
   $pb.BuilderInfo get info_ => _i;
 
   @$core.pragma('dart2js:noInline')
-  static CompleteSetRequest create() => CompleteSetRequest._();
-  CompleteSetRequest createEmptyInstance() => create();
-  static $pb.PbList<CompleteSetRequest> createRepeated() => $pb.PbList<CompleteSetRequest>();
+  static SyncSessionRequest create() => SyncSessionRequest._();
+  SyncSessionRequest createEmptyInstance() => create();
+  static $pb.PbList<SyncSessionRequest> createRepeated() => $pb.PbList<SyncSessionRequest>();
   @$core.pragma('dart2js:noInline')
-  static CompleteSetRequest getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<CompleteSetRequest>(create);
-  static CompleteSetRequest? _defaultInstance;
+  static SyncSessionRequest getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<SyncSessionRequest>(create);
+  static SyncSessionRequest? _defaultInstance;
 
   @$pb.TagNumber(1)
-  $core.String get sessionSetId => $_getSZ(0);
+  $core.String get sessionId => $_getSZ(0);
   @$pb.TagNumber(1)
-  set sessionSetId($core.String v) { $_setString(0, v); }
+  set sessionId($core.String v) { $_setString(0, v); }
   @$pb.TagNumber(1)
-  $core.bool hasSessionSetId() => $_has(0);
+  $core.bool hasSessionId() => $_has(0);
   @$pb.TagNumber(1)
-  void clearSessionSetId() => clearField(1);
+  void clearSessionId() => clearField(1);
 
   @$pb.TagNumber(2)
-  $core.String get userId => $_getSZ(1);
-  @$pb.TagNumber(2)
-  set userId($core.String v) { $_setString(1, v); }
-  @$pb.TagNumber(2)
-  $core.bool hasUserId() => $_has(1);
-  @$pb.TagNumber(2)
-  void clearUserId() => clearField(2);
-
-  @$pb.TagNumber(3)
-  $core.double get weightKg => $_getN(2);
-  @$pb.TagNumber(3)
-  set weightKg($core.double v) { $_setDouble(2, v); }
-  @$pb.TagNumber(3)
-  $core.bool hasWeightKg() => $_has(2);
-  @$pb.TagNumber(3)
-  void clearWeightKg() => clearField(3);
-
-  @$pb.TagNumber(4)
-  $core.int get reps => $_getIZ(3);
-  @$pb.TagNumber(4)
-  set reps($core.int v) { $_setSignedInt32(3, v); }
-  @$pb.TagNumber(4)
-  $core.bool hasReps() => $_has(3);
-  @$pb.TagNumber(4)
-  void clearReps() => clearField(4);
-
-  @$pb.TagNumber(5)
-  $core.int get timeSeconds => $_getIZ(4);
-  @$pb.TagNumber(5)
-  set timeSeconds($core.int v) { $_setSignedInt32(4, v); }
-  @$pb.TagNumber(5)
-  $core.bool hasTimeSeconds() => $_has(4);
-  @$pb.TagNumber(5)
-  void clearTimeSeconds() => clearField(5);
-
-  @$pb.TagNumber(6)
-  $core.double get distanceM => $_getN(5);
-  @$pb.TagNumber(6)
-  set distanceM($core.double v) { $_setDouble(5, v); }
-  @$pb.TagNumber(6)
-  $core.bool hasDistanceM() => $_has(5);
-  @$pb.TagNumber(6)
-  void clearDistanceM() => clearField(6);
-
-  @$pb.TagNumber(7)
-  $core.double get rpe => $_getN(6);
-  @$pb.TagNumber(7)
-  set rpe($core.double v) { $_setDouble(6, v); }
-  @$pb.TagNumber(7)
-  $core.bool hasRpe() => $_has(6);
-  @$pb.TagNumber(7)
-  void clearRpe() => clearField(7);
-
-  @$pb.TagNumber(8)
-  $core.String get notes => $_getSZ(7);
-  @$pb.TagNumber(8)
-  set notes($core.String v) { $_setString(7, v); }
-  @$pb.TagNumber(8)
-  $core.bool hasNotes() => $_has(7);
-  @$pb.TagNumber(8)
-  void clearNotes() => clearField(8);
+  $core.List<SyncSetData> get sets => $_getList(1);
 }
 
-class CompleteSetResponse extends $pb.GeneratedMessage {
-  factory CompleteSetResponse({
-    SessionSet? set,
-    $core.bool? isPersonalRecord,
-  }) {
-    final $result = create();
-    if (set != null) {
-      $result.set = set;
-    }
-    if (isPersonalRecord != null) {
-      $result.isPersonalRecord = isPersonalRecord;
-    }
-    return $result;
-  }
-  CompleteSetResponse._() : super();
-  factory CompleteSetResponse.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
-  factory CompleteSetResponse.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
-
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'CompleteSetResponse', package: const $pb.PackageName(_omitMessageNames ? '' : 'heft.v1'), createEmptyInstance: create)
-    ..aOM<SessionSet>(1, _omitFieldNames ? '' : 'set', subBuilder: SessionSet.create)
-    ..aOB(2, _omitFieldNames ? '' : 'isPersonalRecord')
-    ..hasRequiredFields = false
-  ;
-
-  @$core.Deprecated(
-  'Using this can add significant overhead to your binary. '
-  'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
-  'Will be removed in next major version')
-  CompleteSetResponse clone() => CompleteSetResponse()..mergeFromMessage(this);
-  @$core.Deprecated(
-  'Using this can add significant overhead to your binary. '
-  'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
-  'Will be removed in next major version')
-  CompleteSetResponse copyWith(void Function(CompleteSetResponse) updates) => super.copyWith((message) => updates(message as CompleteSetResponse)) as CompleteSetResponse;
-
-  $pb.BuilderInfo get info_ => _i;
-
-  @$core.pragma('dart2js:noInline')
-  static CompleteSetResponse create() => CompleteSetResponse._();
-  CompleteSetResponse createEmptyInstance() => create();
-  static $pb.PbList<CompleteSetResponse> createRepeated() => $pb.PbList<CompleteSetResponse>();
-  @$core.pragma('dart2js:noInline')
-  static CompleteSetResponse getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<CompleteSetResponse>(create);
-  static CompleteSetResponse? _defaultInstance;
-
-  @$pb.TagNumber(1)
-  SessionSet get set => $_getN(0);
-  @$pb.TagNumber(1)
-  set set(SessionSet v) { setField(1, v); }
-  @$pb.TagNumber(1)
-  $core.bool hasSet() => $_has(0);
-  @$pb.TagNumber(1)
-  void clearSet() => clearField(1);
-  @$pb.TagNumber(1)
-  SessionSet ensureSet() => $_ensure(0);
-
-  @$pb.TagNumber(2)
-  $core.bool get isPersonalRecord => $_getBF(1);
-  @$pb.TagNumber(2)
-  set isPersonalRecord($core.bool v) { $_setBool(1, v); }
-  @$pb.TagNumber(2)
-  $core.bool hasIsPersonalRecord() => $_has(1);
-  @$pb.TagNumber(2)
-  void clearIsPersonalRecord() => clearField(2);
-}
-
-/// UpdateSet
-class UpdateSetRequest extends $pb.GeneratedMessage {
-  factory UpdateSetRequest({
-    $core.String? sessionSetId,
-    $core.String? userId,
+class SyncSetData extends $pb.GeneratedMessage {
+  factory SyncSetData({
+    $core.String? setId,
     $core.double? weightKg,
     $core.int? reps,
     $core.int? timeSeconds,
@@ -1375,11 +1217,8 @@ class UpdateSetRequest extends $pb.GeneratedMessage {
     $core.String? notes,
   }) {
     final $result = create();
-    if (sessionSetId != null) {
-      $result.sessionSetId = sessionSetId;
-    }
-    if (userId != null) {
-      $result.userId = userId;
+    if (setId != null) {
+      $result.setId = setId;
     }
     if (weightKg != null) {
       $result.weightKg = weightKg;
@@ -1404,20 +1243,19 @@ class UpdateSetRequest extends $pb.GeneratedMessage {
     }
     return $result;
   }
-  UpdateSetRequest._() : super();
-  factory UpdateSetRequest.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
-  factory UpdateSetRequest.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
+  SyncSetData._() : super();
+  factory SyncSetData.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
+  factory SyncSetData.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'UpdateSetRequest', package: const $pb.PackageName(_omitMessageNames ? '' : 'heft.v1'), createEmptyInstance: create)
-    ..aOS(1, _omitFieldNames ? '' : 'sessionSetId')
-    ..aOS(2, _omitFieldNames ? '' : 'userId')
-    ..a<$core.double>(3, _omitFieldNames ? '' : 'weightKg', $pb.PbFieldType.OD)
-    ..a<$core.int>(4, _omitFieldNames ? '' : 'reps', $pb.PbFieldType.O3)
-    ..a<$core.int>(5, _omitFieldNames ? '' : 'timeSeconds', $pb.PbFieldType.O3)
-    ..a<$core.double>(6, _omitFieldNames ? '' : 'distanceM', $pb.PbFieldType.OD)
-    ..aOB(7, _omitFieldNames ? '' : 'isCompleted')
-    ..a<$core.double>(8, _omitFieldNames ? '' : 'rpe', $pb.PbFieldType.OD)
-    ..aOS(9, _omitFieldNames ? '' : 'notes')
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'SyncSetData', package: const $pb.PackageName(_omitMessageNames ? '' : 'heft.v1'), createEmptyInstance: create)
+    ..aOS(1, _omitFieldNames ? '' : 'setId')
+    ..a<$core.double>(2, _omitFieldNames ? '' : 'weightKg', $pb.PbFieldType.OD)
+    ..a<$core.int>(3, _omitFieldNames ? '' : 'reps', $pb.PbFieldType.O3)
+    ..a<$core.int>(4, _omitFieldNames ? '' : 'timeSeconds', $pb.PbFieldType.O3)
+    ..a<$core.double>(5, _omitFieldNames ? '' : 'distanceM', $pb.PbFieldType.OD)
+    ..aOB(6, _omitFieldNames ? '' : 'isCompleted')
+    ..a<$core.double>(7, _omitFieldNames ? '' : 'rpe', $pb.PbFieldType.OD)
+    ..aOS(8, _omitFieldNames ? '' : 'notes')
     ..hasRequiredFields = false
   ;
 
@@ -1425,121 +1263,117 @@ class UpdateSetRequest extends $pb.GeneratedMessage {
   'Using this can add significant overhead to your binary. '
   'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
   'Will be removed in next major version')
-  UpdateSetRequest clone() => UpdateSetRequest()..mergeFromMessage(this);
+  SyncSetData clone() => SyncSetData()..mergeFromMessage(this);
   @$core.Deprecated(
   'Using this can add significant overhead to your binary. '
   'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
   'Will be removed in next major version')
-  UpdateSetRequest copyWith(void Function(UpdateSetRequest) updates) => super.copyWith((message) => updates(message as UpdateSetRequest)) as UpdateSetRequest;
+  SyncSetData copyWith(void Function(SyncSetData) updates) => super.copyWith((message) => updates(message as SyncSetData)) as SyncSetData;
 
   $pb.BuilderInfo get info_ => _i;
 
   @$core.pragma('dart2js:noInline')
-  static UpdateSetRequest create() => UpdateSetRequest._();
-  UpdateSetRequest createEmptyInstance() => create();
-  static $pb.PbList<UpdateSetRequest> createRepeated() => $pb.PbList<UpdateSetRequest>();
+  static SyncSetData create() => SyncSetData._();
+  SyncSetData createEmptyInstance() => create();
+  static $pb.PbList<SyncSetData> createRepeated() => $pb.PbList<SyncSetData>();
   @$core.pragma('dart2js:noInline')
-  static UpdateSetRequest getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<UpdateSetRequest>(create);
-  static UpdateSetRequest? _defaultInstance;
+  static SyncSetData getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<SyncSetData>(create);
+  static SyncSetData? _defaultInstance;
 
   @$pb.TagNumber(1)
-  $core.String get sessionSetId => $_getSZ(0);
+  $core.String get setId => $_getSZ(0);
   @$pb.TagNumber(1)
-  set sessionSetId($core.String v) { $_setString(0, v); }
+  set setId($core.String v) { $_setString(0, v); }
   @$pb.TagNumber(1)
-  $core.bool hasSessionSetId() => $_has(0);
+  $core.bool hasSetId() => $_has(0);
   @$pb.TagNumber(1)
-  void clearSessionSetId() => clearField(1);
+  void clearSetId() => clearField(1);
 
   @$pb.TagNumber(2)
-  $core.String get userId => $_getSZ(1);
+  $core.double get weightKg => $_getN(1);
   @$pb.TagNumber(2)
-  set userId($core.String v) { $_setString(1, v); }
+  set weightKg($core.double v) { $_setDouble(1, v); }
   @$pb.TagNumber(2)
-  $core.bool hasUserId() => $_has(1);
+  $core.bool hasWeightKg() => $_has(1);
   @$pb.TagNumber(2)
-  void clearUserId() => clearField(2);
+  void clearWeightKg() => clearField(2);
 
   @$pb.TagNumber(3)
-  $core.double get weightKg => $_getN(2);
+  $core.int get reps => $_getIZ(2);
   @$pb.TagNumber(3)
-  set weightKg($core.double v) { $_setDouble(2, v); }
+  set reps($core.int v) { $_setSignedInt32(2, v); }
   @$pb.TagNumber(3)
-  $core.bool hasWeightKg() => $_has(2);
+  $core.bool hasReps() => $_has(2);
   @$pb.TagNumber(3)
-  void clearWeightKg() => clearField(3);
+  void clearReps() => clearField(3);
 
   @$pb.TagNumber(4)
-  $core.int get reps => $_getIZ(3);
+  $core.int get timeSeconds => $_getIZ(3);
   @$pb.TagNumber(4)
-  set reps($core.int v) { $_setSignedInt32(3, v); }
+  set timeSeconds($core.int v) { $_setSignedInt32(3, v); }
   @$pb.TagNumber(4)
-  $core.bool hasReps() => $_has(3);
+  $core.bool hasTimeSeconds() => $_has(3);
   @$pb.TagNumber(4)
-  void clearReps() => clearField(4);
+  void clearTimeSeconds() => clearField(4);
 
   @$pb.TagNumber(5)
-  $core.int get timeSeconds => $_getIZ(4);
+  $core.double get distanceM => $_getN(4);
   @$pb.TagNumber(5)
-  set timeSeconds($core.int v) { $_setSignedInt32(4, v); }
+  set distanceM($core.double v) { $_setDouble(4, v); }
   @$pb.TagNumber(5)
-  $core.bool hasTimeSeconds() => $_has(4);
+  $core.bool hasDistanceM() => $_has(4);
   @$pb.TagNumber(5)
-  void clearTimeSeconds() => clearField(5);
+  void clearDistanceM() => clearField(5);
 
   @$pb.TagNumber(6)
-  $core.double get distanceM => $_getN(5);
+  $core.bool get isCompleted => $_getBF(5);
   @$pb.TagNumber(6)
-  set distanceM($core.double v) { $_setDouble(5, v); }
+  set isCompleted($core.bool v) { $_setBool(5, v); }
   @$pb.TagNumber(6)
-  $core.bool hasDistanceM() => $_has(5);
+  $core.bool hasIsCompleted() => $_has(5);
   @$pb.TagNumber(6)
-  void clearDistanceM() => clearField(6);
+  void clearIsCompleted() => clearField(6);
 
   @$pb.TagNumber(7)
-  $core.bool get isCompleted => $_getBF(6);
+  $core.double get rpe => $_getN(6);
   @$pb.TagNumber(7)
-  set isCompleted($core.bool v) { $_setBool(6, v); }
+  set rpe($core.double v) { $_setDouble(6, v); }
   @$pb.TagNumber(7)
-  $core.bool hasIsCompleted() => $_has(6);
+  $core.bool hasRpe() => $_has(6);
   @$pb.TagNumber(7)
-  void clearIsCompleted() => clearField(7);
+  void clearRpe() => clearField(7);
 
   @$pb.TagNumber(8)
-  $core.double get rpe => $_getN(7);
+  $core.String get notes => $_getSZ(7);
   @$pb.TagNumber(8)
-  set rpe($core.double v) { $_setDouble(7, v); }
+  set notes($core.String v) { $_setString(7, v); }
   @$pb.TagNumber(8)
-  $core.bool hasRpe() => $_has(7);
+  $core.bool hasNotes() => $_has(7);
   @$pb.TagNumber(8)
-  void clearRpe() => clearField(8);
-
-  @$pb.TagNumber(9)
-  $core.String get notes => $_getSZ(8);
-  @$pb.TagNumber(9)
-  set notes($core.String v) { $_setString(8, v); }
-  @$pb.TagNumber(9)
-  $core.bool hasNotes() => $_has(8);
-  @$pb.TagNumber(9)
-  void clearNotes() => clearField(9);
+  void clearNotes() => clearField(8);
 }
 
-class UpdateSetResponse extends $pb.GeneratedMessage {
-  factory UpdateSetResponse({
-    SessionSet? set,
+class SyncSessionResponse extends $pb.GeneratedMessage {
+  factory SyncSessionResponse({
+    Session? session,
+    $core.bool? success,
   }) {
     final $result = create();
-    if (set != null) {
-      $result.set = set;
+    if (session != null) {
+      $result.session = session;
+    }
+    if (success != null) {
+      $result.success = success;
     }
     return $result;
   }
-  UpdateSetResponse._() : super();
-  factory UpdateSetResponse.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
-  factory UpdateSetResponse.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
+  SyncSessionResponse._() : super();
+  factory SyncSessionResponse.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
+  factory SyncSessionResponse.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'UpdateSetResponse', package: const $pb.PackageName(_omitMessageNames ? '' : 'heft.v1'), createEmptyInstance: create)
-    ..aOM<SessionSet>(1, _omitFieldNames ? '' : 'set', subBuilder: SessionSet.create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'SyncSessionResponse', package: const $pb.PackageName(_omitMessageNames ? '' : 'heft.v1'), createEmptyInstance: create)
+    ..aOM<Session>(1, _omitFieldNames ? '' : 'session', subBuilder: Session.create)
+    ..aOB(2, _omitFieldNames ? '' : 'success')
     ..hasRequiredFields = false
   ;
 
@@ -1547,33 +1381,42 @@ class UpdateSetResponse extends $pb.GeneratedMessage {
   'Using this can add significant overhead to your binary. '
   'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
   'Will be removed in next major version')
-  UpdateSetResponse clone() => UpdateSetResponse()..mergeFromMessage(this);
+  SyncSessionResponse clone() => SyncSessionResponse()..mergeFromMessage(this);
   @$core.Deprecated(
   'Using this can add significant overhead to your binary. '
   'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
   'Will be removed in next major version')
-  UpdateSetResponse copyWith(void Function(UpdateSetResponse) updates) => super.copyWith((message) => updates(message as UpdateSetResponse)) as UpdateSetResponse;
+  SyncSessionResponse copyWith(void Function(SyncSessionResponse) updates) => super.copyWith((message) => updates(message as SyncSessionResponse)) as SyncSessionResponse;
 
   $pb.BuilderInfo get info_ => _i;
 
   @$core.pragma('dart2js:noInline')
-  static UpdateSetResponse create() => UpdateSetResponse._();
-  UpdateSetResponse createEmptyInstance() => create();
-  static $pb.PbList<UpdateSetResponse> createRepeated() => $pb.PbList<UpdateSetResponse>();
+  static SyncSessionResponse create() => SyncSessionResponse._();
+  SyncSessionResponse createEmptyInstance() => create();
+  static $pb.PbList<SyncSessionResponse> createRepeated() => $pb.PbList<SyncSessionResponse>();
   @$core.pragma('dart2js:noInline')
-  static UpdateSetResponse getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<UpdateSetResponse>(create);
-  static UpdateSetResponse? _defaultInstance;
+  static SyncSessionResponse getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<SyncSessionResponse>(create);
+  static SyncSessionResponse? _defaultInstance;
 
   @$pb.TagNumber(1)
-  SessionSet get set => $_getN(0);
+  Session get session => $_getN(0);
   @$pb.TagNumber(1)
-  set set(SessionSet v) { setField(1, v); }
+  set session(Session v) { setField(1, v); }
   @$pb.TagNumber(1)
-  $core.bool hasSet() => $_has(0);
+  $core.bool hasSession() => $_has(0);
   @$pb.TagNumber(1)
-  void clearSet() => clearField(1);
+  void clearSession() => clearField(1);
   @$pb.TagNumber(1)
-  SessionSet ensureSet() => $_ensure(0);
+  Session ensureSession() => $_ensure(0);
+
+  @$pb.TagNumber(2)
+  $core.bool get success => $_getBF(1);
+  @$pb.TagNumber(2)
+  set success($core.bool v) { $_setBool(1, v); }
+  @$pb.TagNumber(2)
+  $core.bool hasSuccess() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearSuccess() => clearField(2);
 }
 
 /// AddExercise
@@ -2174,11 +2017,8 @@ class SessionServiceApi {
   $async.Future<GetSessionResponse> getSession($pb.ClientContext? ctx, GetSessionRequest request) =>
     _client.invoke<GetSessionResponse>(ctx, 'SessionService', 'GetSession', request, GetSessionResponse())
   ;
-  $async.Future<CompleteSetResponse> completeSet($pb.ClientContext? ctx, CompleteSetRequest request) =>
-    _client.invoke<CompleteSetResponse>(ctx, 'SessionService', 'CompleteSet', request, CompleteSetResponse())
-  ;
-  $async.Future<UpdateSetResponse> updateSet($pb.ClientContext? ctx, UpdateSetRequest request) =>
-    _client.invoke<UpdateSetResponse>(ctx, 'SessionService', 'UpdateSet', request, UpdateSetResponse())
+  $async.Future<SyncSessionResponse> syncSession($pb.ClientContext? ctx, SyncSessionRequest request) =>
+    _client.invoke<SyncSessionResponse>(ctx, 'SessionService', 'SyncSession', request, SyncSessionResponse())
   ;
   $async.Future<AddExerciseResponse> addExercise($pb.ClientContext? ctx, AddExerciseRequest request) =>
     _client.invoke<AddExerciseResponse>(ctx, 'SessionService', 'AddExercise', request, AddExerciseResponse())
