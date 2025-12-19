@@ -375,21 +375,12 @@ class UserSettings extends $pb.GeneratedMessage {
 
 /// GetProfile
 class GetProfileRequest extends $pb.GeneratedMessage {
-  factory GetProfileRequest({
-    $core.String? userId,
-  }) {
-    final $result = create();
-    if (userId != null) {
-      $result.userId = userId;
-    }
-    return $result;
-  }
+  factory GetProfileRequest() => create();
   GetProfileRequest._() : super();
   factory GetProfileRequest.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
   factory GetProfileRequest.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
 
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'GetProfileRequest', package: const $pb.PackageName(_omitMessageNames ? '' : 'heft.v1'), createEmptyInstance: create)
-    ..aOS(1, _omitFieldNames ? '' : 'userId')
     ..hasRequiredFields = false
   ;
 
@@ -413,15 +404,6 @@ class GetProfileRequest extends $pb.GeneratedMessage {
   @$core.pragma('dart2js:noInline')
   static GetProfileRequest getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<GetProfileRequest>(create);
   static GetProfileRequest? _defaultInstance;
-
-  @$pb.TagNumber(1)
-  $core.String get userId => $_getSZ(0);
-  @$pb.TagNumber(1)
-  set userId($core.String v) { $_setString(0, v); }
-  @$pb.TagNumber(1)
-  $core.bool hasUserId() => $_has(0);
-  @$pb.TagNumber(1)
-  void clearUserId() => clearField(1);
 }
 
 class GetProfileResponse extends $pb.GeneratedMessage {
@@ -479,14 +461,10 @@ class GetProfileResponse extends $pb.GeneratedMessage {
 /// UpdateProfile
 class UpdateProfileRequest extends $pb.GeneratedMessage {
   factory UpdateProfileRequest({
-    $core.String? userId,
     $core.String? displayName,
     $core.String? avatarUrl,
   }) {
     final $result = create();
-    if (userId != null) {
-      $result.userId = userId;
-    }
     if (displayName != null) {
       $result.displayName = displayName;
     }
@@ -500,9 +478,8 @@ class UpdateProfileRequest extends $pb.GeneratedMessage {
   factory UpdateProfileRequest.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
 
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'UpdateProfileRequest', package: const $pb.PackageName(_omitMessageNames ? '' : 'heft.v1'), createEmptyInstance: create)
-    ..aOS(1, _omitFieldNames ? '' : 'userId')
-    ..aOS(2, _omitFieldNames ? '' : 'displayName')
-    ..aOS(3, _omitFieldNames ? '' : 'avatarUrl')
+    ..aOS(1, _omitFieldNames ? '' : 'displayName')
+    ..aOS(2, _omitFieldNames ? '' : 'avatarUrl')
     ..hasRequiredFields = false
   ;
 
@@ -528,31 +505,22 @@ class UpdateProfileRequest extends $pb.GeneratedMessage {
   static UpdateProfileRequest? _defaultInstance;
 
   @$pb.TagNumber(1)
-  $core.String get userId => $_getSZ(0);
+  $core.String get displayName => $_getSZ(0);
   @$pb.TagNumber(1)
-  set userId($core.String v) { $_setString(0, v); }
+  set displayName($core.String v) { $_setString(0, v); }
   @$pb.TagNumber(1)
-  $core.bool hasUserId() => $_has(0);
+  $core.bool hasDisplayName() => $_has(0);
   @$pb.TagNumber(1)
-  void clearUserId() => clearField(1);
+  void clearDisplayName() => clearField(1);
 
   @$pb.TagNumber(2)
-  $core.String get displayName => $_getSZ(1);
+  $core.String get avatarUrl => $_getSZ(1);
   @$pb.TagNumber(2)
-  set displayName($core.String v) { $_setString(1, v); }
+  set avatarUrl($core.String v) { $_setString(1, v); }
   @$pb.TagNumber(2)
-  $core.bool hasDisplayName() => $_has(1);
+  $core.bool hasAvatarUrl() => $_has(1);
   @$pb.TagNumber(2)
-  void clearDisplayName() => clearField(2);
-
-  @$pb.TagNumber(3)
-  $core.String get avatarUrl => $_getSZ(2);
-  @$pb.TagNumber(3)
-  set avatarUrl($core.String v) { $_setString(2, v); }
-  @$pb.TagNumber(3)
-  $core.bool hasAvatarUrl() => $_has(2);
-  @$pb.TagNumber(3)
-  void clearAvatarUrl() => clearField(3);
+  void clearAvatarUrl() => clearField(2);
 }
 
 class UpdateProfileResponse extends $pb.GeneratedMessage {
@@ -610,14 +578,10 @@ class UpdateProfileResponse extends $pb.GeneratedMessage {
 /// UpdateSettings
 class UpdateSettingsRequest extends $pb.GeneratedMessage {
   factory UpdateSettingsRequest({
-    $core.String? userId,
     $core.bool? usePounds,
     $core.int? restTimerSeconds,
   }) {
     final $result = create();
-    if (userId != null) {
-      $result.userId = userId;
-    }
     if (usePounds != null) {
       $result.usePounds = usePounds;
     }
@@ -631,9 +595,8 @@ class UpdateSettingsRequest extends $pb.GeneratedMessage {
   factory UpdateSettingsRequest.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
 
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'UpdateSettingsRequest', package: const $pb.PackageName(_omitMessageNames ? '' : 'heft.v1'), createEmptyInstance: create)
-    ..aOS(1, _omitFieldNames ? '' : 'userId')
-    ..aOB(2, _omitFieldNames ? '' : 'usePounds')
-    ..a<$core.int>(3, _omitFieldNames ? '' : 'restTimerSeconds', $pb.PbFieldType.O3)
+    ..aOB(1, _omitFieldNames ? '' : 'usePounds')
+    ..a<$core.int>(2, _omitFieldNames ? '' : 'restTimerSeconds', $pb.PbFieldType.O3)
     ..hasRequiredFields = false
   ;
 
@@ -659,31 +622,22 @@ class UpdateSettingsRequest extends $pb.GeneratedMessage {
   static UpdateSettingsRequest? _defaultInstance;
 
   @$pb.TagNumber(1)
-  $core.String get userId => $_getSZ(0);
+  $core.bool get usePounds => $_getBF(0);
   @$pb.TagNumber(1)
-  set userId($core.String v) { $_setString(0, v); }
+  set usePounds($core.bool v) { $_setBool(0, v); }
   @$pb.TagNumber(1)
-  $core.bool hasUserId() => $_has(0);
+  $core.bool hasUsePounds() => $_has(0);
   @$pb.TagNumber(1)
-  void clearUserId() => clearField(1);
+  void clearUsePounds() => clearField(1);
 
   @$pb.TagNumber(2)
-  $core.bool get usePounds => $_getBF(1);
+  $core.int get restTimerSeconds => $_getIZ(1);
   @$pb.TagNumber(2)
-  set usePounds($core.bool v) { $_setBool(1, v); }
+  set restTimerSeconds($core.int v) { $_setSignedInt32(1, v); }
   @$pb.TagNumber(2)
-  $core.bool hasUsePounds() => $_has(1);
+  $core.bool hasRestTimerSeconds() => $_has(1);
   @$pb.TagNumber(2)
-  void clearUsePounds() => clearField(2);
-
-  @$pb.TagNumber(3)
-  $core.int get restTimerSeconds => $_getIZ(2);
-  @$pb.TagNumber(3)
-  set restTimerSeconds($core.int v) { $_setSignedInt32(2, v); }
-  @$pb.TagNumber(3)
-  $core.bool hasRestTimerSeconds() => $_has(2);
-  @$pb.TagNumber(3)
-  void clearRestTimerSeconds() => clearField(3);
+  void clearRestTimerSeconds() => clearField(2);
 }
 
 class UpdateSettingsResponse extends $pb.GeneratedMessage {
@@ -741,15 +695,11 @@ class UpdateSettingsResponse extends $pb.GeneratedMessage {
 /// LogWeight
 class LogWeightRequest extends $pb.GeneratedMessage {
   factory LogWeightRequest({
-    $core.String? userId,
     $core.double? weightKg,
     $core.String? loggedDate,
     $core.String? notes,
   }) {
     final $result = create();
-    if (userId != null) {
-      $result.userId = userId;
-    }
     if (weightKg != null) {
       $result.weightKg = weightKg;
     }
@@ -766,10 +716,9 @@ class LogWeightRequest extends $pb.GeneratedMessage {
   factory LogWeightRequest.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
 
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'LogWeightRequest', package: const $pb.PackageName(_omitMessageNames ? '' : 'heft.v1'), createEmptyInstance: create)
-    ..aOS(1, _omitFieldNames ? '' : 'userId')
-    ..a<$core.double>(2, _omitFieldNames ? '' : 'weightKg', $pb.PbFieldType.OD)
-    ..aOS(3, _omitFieldNames ? '' : 'loggedDate')
-    ..aOS(4, _omitFieldNames ? '' : 'notes')
+    ..a<$core.double>(1, _omitFieldNames ? '' : 'weightKg', $pb.PbFieldType.OD)
+    ..aOS(2, _omitFieldNames ? '' : 'loggedDate')
+    ..aOS(3, _omitFieldNames ? '' : 'notes')
     ..hasRequiredFields = false
   ;
 
@@ -795,40 +744,31 @@ class LogWeightRequest extends $pb.GeneratedMessage {
   static LogWeightRequest? _defaultInstance;
 
   @$pb.TagNumber(1)
-  $core.String get userId => $_getSZ(0);
+  $core.double get weightKg => $_getN(0);
   @$pb.TagNumber(1)
-  set userId($core.String v) { $_setString(0, v); }
+  set weightKg($core.double v) { $_setDouble(0, v); }
   @$pb.TagNumber(1)
-  $core.bool hasUserId() => $_has(0);
+  $core.bool hasWeightKg() => $_has(0);
   @$pb.TagNumber(1)
-  void clearUserId() => clearField(1);
+  void clearWeightKg() => clearField(1);
 
   @$pb.TagNumber(2)
-  $core.double get weightKg => $_getN(1);
+  $core.String get loggedDate => $_getSZ(1);
   @$pb.TagNumber(2)
-  set weightKg($core.double v) { $_setDouble(1, v); }
+  set loggedDate($core.String v) { $_setString(1, v); }
   @$pb.TagNumber(2)
-  $core.bool hasWeightKg() => $_has(1);
+  $core.bool hasLoggedDate() => $_has(1);
   @$pb.TagNumber(2)
-  void clearWeightKg() => clearField(2);
+  void clearLoggedDate() => clearField(2);
 
   @$pb.TagNumber(3)
-  $core.String get loggedDate => $_getSZ(2);
+  $core.String get notes => $_getSZ(2);
   @$pb.TagNumber(3)
-  set loggedDate($core.String v) { $_setString(2, v); }
+  set notes($core.String v) { $_setString(2, v); }
   @$pb.TagNumber(3)
-  $core.bool hasLoggedDate() => $_has(2);
+  $core.bool hasNotes() => $_has(2);
   @$pb.TagNumber(3)
-  void clearLoggedDate() => clearField(3);
-
-  @$pb.TagNumber(4)
-  $core.String get notes => $_getSZ(3);
-  @$pb.TagNumber(4)
-  set notes($core.String v) { $_setString(3, v); }
-  @$pb.TagNumber(4)
-  $core.bool hasNotes() => $_has(3);
-  @$pb.TagNumber(4)
-  void clearNotes() => clearField(4);
+  void clearNotes() => clearField(3);
 }
 
 class LogWeightResponse extends $pb.GeneratedMessage {
@@ -886,15 +826,11 @@ class LogWeightResponse extends $pb.GeneratedMessage {
 /// GetWeightHistory
 class GetWeightHistoryRequest extends $pb.GeneratedMessage {
   factory GetWeightHistoryRequest({
-    $core.String? userId,
     $core.String? startDate,
     $core.String? endDate,
     $core.int? limit,
   }) {
     final $result = create();
-    if (userId != null) {
-      $result.userId = userId;
-    }
     if (startDate != null) {
       $result.startDate = startDate;
     }
@@ -911,10 +847,9 @@ class GetWeightHistoryRequest extends $pb.GeneratedMessage {
   factory GetWeightHistoryRequest.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
 
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'GetWeightHistoryRequest', package: const $pb.PackageName(_omitMessageNames ? '' : 'heft.v1'), createEmptyInstance: create)
-    ..aOS(1, _omitFieldNames ? '' : 'userId')
-    ..aOS(2, _omitFieldNames ? '' : 'startDate')
-    ..aOS(3, _omitFieldNames ? '' : 'endDate')
-    ..a<$core.int>(4, _omitFieldNames ? '' : 'limit', $pb.PbFieldType.O3)
+    ..aOS(1, _omitFieldNames ? '' : 'startDate')
+    ..aOS(2, _omitFieldNames ? '' : 'endDate')
+    ..a<$core.int>(3, _omitFieldNames ? '' : 'limit', $pb.PbFieldType.O3)
     ..hasRequiredFields = false
   ;
 
@@ -940,40 +875,31 @@ class GetWeightHistoryRequest extends $pb.GeneratedMessage {
   static GetWeightHistoryRequest? _defaultInstance;
 
   @$pb.TagNumber(1)
-  $core.String get userId => $_getSZ(0);
+  $core.String get startDate => $_getSZ(0);
   @$pb.TagNumber(1)
-  set userId($core.String v) { $_setString(0, v); }
+  set startDate($core.String v) { $_setString(0, v); }
   @$pb.TagNumber(1)
-  $core.bool hasUserId() => $_has(0);
+  $core.bool hasStartDate() => $_has(0);
   @$pb.TagNumber(1)
-  void clearUserId() => clearField(1);
+  void clearStartDate() => clearField(1);
 
   @$pb.TagNumber(2)
-  $core.String get startDate => $_getSZ(1);
+  $core.String get endDate => $_getSZ(1);
   @$pb.TagNumber(2)
-  set startDate($core.String v) { $_setString(1, v); }
+  set endDate($core.String v) { $_setString(1, v); }
   @$pb.TagNumber(2)
-  $core.bool hasStartDate() => $_has(1);
+  $core.bool hasEndDate() => $_has(1);
   @$pb.TagNumber(2)
-  void clearStartDate() => clearField(2);
+  void clearEndDate() => clearField(2);
 
   @$pb.TagNumber(3)
-  $core.String get endDate => $_getSZ(2);
+  $core.int get limit => $_getIZ(2);
   @$pb.TagNumber(3)
-  set endDate($core.String v) { $_setString(2, v); }
+  set limit($core.int v) { $_setSignedInt32(2, v); }
   @$pb.TagNumber(3)
-  $core.bool hasEndDate() => $_has(2);
+  $core.bool hasLimit() => $_has(2);
   @$pb.TagNumber(3)
-  void clearEndDate() => clearField(3);
-
-  @$pb.TagNumber(4)
-  $core.int get limit => $_getIZ(3);
-  @$pb.TagNumber(4)
-  set limit($core.int v) { $_setSignedInt32(3, v); }
-  @$pb.TagNumber(4)
-  $core.bool hasLimit() => $_has(3);
-  @$pb.TagNumber(4)
-  void clearLimit() => clearField(4);
+  void clearLimit() => clearField(3);
 }
 
 class GetWeightHistoryResponse extends $pb.GeneratedMessage {
@@ -1024,14 +950,10 @@ class GetWeightHistoryResponse extends $pb.GeneratedMessage {
 class DeleteWeightLogRequest extends $pb.GeneratedMessage {
   factory DeleteWeightLogRequest({
     $core.String? id,
-    $core.String? userId,
   }) {
     final $result = create();
     if (id != null) {
       $result.id = id;
-    }
-    if (userId != null) {
-      $result.userId = userId;
     }
     return $result;
   }
@@ -1041,7 +963,6 @@ class DeleteWeightLogRequest extends $pb.GeneratedMessage {
 
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'DeleteWeightLogRequest', package: const $pb.PackageName(_omitMessageNames ? '' : 'heft.v1'), createEmptyInstance: create)
     ..aOS(1, _omitFieldNames ? '' : 'id')
-    ..aOS(2, _omitFieldNames ? '' : 'userId')
     ..hasRequiredFields = false
   ;
 
@@ -1074,15 +995,6 @@ class DeleteWeightLogRequest extends $pb.GeneratedMessage {
   $core.bool hasId() => $_has(0);
   @$pb.TagNumber(1)
   void clearId() => clearField(1);
-
-  @$pb.TagNumber(2)
-  $core.String get userId => $_getSZ(1);
-  @$pb.TagNumber(2)
-  set userId($core.String v) { $_setString(1, v); }
-  @$pb.TagNumber(2)
-  $core.bool hasUserId() => $_has(1);
-  @$pb.TagNumber(2)
-  void clearUserId() => clearField(2);
 }
 
 class DeleteWeightLogResponse extends $pb.GeneratedMessage {

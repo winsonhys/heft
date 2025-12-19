@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:forui/forui.dart';
 
 import '../../shared/theme/app_colors.dart';
 import '../../shared/widgets/bottom_nav_bar.dart';
@@ -35,146 +36,98 @@ class CalendarScreen extends ConsumerWidget {
     final currentMonth = ref.watch(currentMonthProvider);
     final calendarDataAsync = ref.watch(currentCalendarDataProvider);
 
-    return Scaffold(
-      backgroundColor: AppColors.bgPrimary,
-      body: SafeArea(
-        child: Column(
-          children: [
-            // Header
-            _buildHeader(),
-
-            // Content
-            Expanded(
-              child: SingleChildScrollView(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Month Navigation
-                    MonthHeader(
-                      month: currentMonth,
-                      onPrevious: () {
-                        ref.read(currentMonthProvider.notifier).previousMonth();
-                      },
-                      onNext: () {
-                        ref.read(currentMonthProvider.notifier).nextMonth();
-                      },
-                      onToday: () {
-                        ref.read(currentMonthProvider.notifier).goToToday();
-                      },
-                    ),
-
-                    // Calendar Grid
-                    calendarDataAsync.when(
-                      data: (data) => CalendarGrid(
-                        month: currentMonth,
-                        days: data.days,
-                        onDayTap: (date) {
-                          ref.read(selectedDayProvider.notifier).selectDay(date);
-                          _showDayDetail(context, ref, date);
-                        },
-                      ),
-                      loading: () => CalendarGrid(
-                        month: currentMonth,
-                        days: const [],
-                        isLoading: true,
-                        onDayTap: (_) {},
-                      ),
-                      error: (_, _) => CalendarGrid(
-                        month: currentMonth,
-                        days: const [],
-                        onDayTap: (_) {},
-                      ),
-                    ),
-
-                    const SizedBox(height: 24),
-
-                    // Upcoming Section
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 20),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text(
-                            'Upcoming',
-                            style: TextStyle(
-                              fontSize: 17,
-                              fontWeight: FontWeight.w600,
-                              color: AppColors.textPrimary,
-                            ),
-                          ),
-                          const SizedBox(height: 12),
-                          calendarDataAsync.when(
-                            data: (data) => UpcomingList(items: data.upcoming),
-                            loading: () =>
-                                const UpcomingList(items: [], isLoading: true),
-                            error: (_, _) => const UpcomingList(items: []),
-                          ),
-                        ],
-                      ),
-                    ),
-
-                    const SizedBox(height: 24),
-                  ],
-                ),
-              ),
-            ),
-          ],
+    return FScaffold(
+      header: FHeader.nested(
+        title: const Text(
+          'Calendar',
+          style: TextStyle(
+            fontSize: 22,
+            fontWeight: FontWeight.w700,
+            color: AppColors.textPrimary,
+          ),
         ),
+        suffixes: [
+          FHeaderAction(
+            icon: const Icon(Icons.add),
+            onPress: () => context.goProgramBuilder(),
+          ),
+        ],
       ),
-      bottomNavigationBar: BottomNavBar(
+      footer: BottomNavBar(
         selectedIndex: NavIndex.calendar,
         onTap: (index) => _handleNavTap(context, index),
       ),
-    );
-  }
-
-  Widget _buildHeader() {
-    return Container(
-      padding: const EdgeInsets.fromLTRB(20, 20, 20, 16),
-      decoration: const BoxDecoration(
-        border: Border(
-          bottom: BorderSide(color: AppColors.borderColor, width: 1),
-        ),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          const Text(
-            'Calendar',
-            style: TextStyle(
-              fontSize: 22,
-              fontWeight: FontWeight.w700,
-              color: AppColors.textPrimary,
+      child: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Month Navigation
+            MonthHeader(
+              month: currentMonth,
+              onPrevious: () {
+                ref.read(currentMonthProvider.notifier).previousMonth();
+              },
+              onNext: () {
+                ref.read(currentMonthProvider.notifier).nextMonth();
+              },
+              onToday: () {
+                ref.read(currentMonthProvider.notifier).goToToday();
+              },
             ),
-          ),
-          Builder(
-            builder: (context) => GestureDetector(
-              onTap: () => context.goProgramBuilder(),
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                decoration: BoxDecoration(
-                  color: AppColors.accentBlue,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: const Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Icons.add, size: 16, color: Colors.white),
-                    SizedBox(width: 4),
-                    Text(
-                      'Program',
-                      style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ],
-                ),
+
+            // Calendar Grid
+            calendarDataAsync.when(
+              data: (data) => CalendarGrid(
+                month: currentMonth,
+                days: data.days,
+                onDayTap: (date) {
+                  ref.read(selectedDayProvider.notifier).selectDay(date);
+                  _showDayDetail(context, ref, date);
+                },
+              ),
+              loading: () => CalendarGrid(
+                month: currentMonth,
+                days: const [],
+                isLoading: true,
+                onDayTap: (_) {},
+              ),
+              error: (_, _) => CalendarGrid(
+                month: currentMonth,
+                days: const [],
+                onDayTap: (_) {},
               ),
             ),
-          ),
-        ],
+
+            const SizedBox(height: 24),
+
+            // Upcoming Section
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Upcoming',
+                    style: TextStyle(
+                      fontSize: 17,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.textPrimary,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  calendarDataAsync.when(
+                    data: (data) => UpcomingList(items: data.upcoming),
+                    loading: () =>
+                        const UpcomingList(items: [], isLoading: true),
+                    error: (_, _) => const UpcomingList(items: []),
+                  ),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 24),
+          ],
+        ),
       ),
     );
   }

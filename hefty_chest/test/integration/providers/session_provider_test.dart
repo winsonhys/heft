@@ -30,7 +30,7 @@ void main() {
 
       // Start session
       final request = StartSessionRequest()
-        ..userId = TestData.testUserId
+        
         ..workoutTemplateId = workoutId;
 
       final response = await sessionClient.startSession(request);
@@ -57,7 +57,7 @@ void main() {
       // Get session
       final request = GetSessionRequest()
         ..id = sessionId
-        ..userId = TestData.testUserId;
+        ;
 
       final response = await sessionClient.getSession(request);
 
@@ -80,7 +80,7 @@ void main() {
       // Get session to find a set
       final getRequest = GetSessionRequest()
         ..id = sessionId
-        ..userId = TestData.testUserId;
+        ;
 
       final getResponse = await sessionClient.getSession(getRequest);
       final firstSet = getResponse.session.exercises.first.sets.first;
@@ -117,7 +117,7 @@ void main() {
       // Get session to find a set
       final getRequest = GetSessionRequest()
         ..id = sessionId
-        ..userId = TestData.testUserId;
+        ;
 
       final getResponse = await sessionClient.getSession(getRequest);
       final firstSet = getResponse.session.exercises.first.sets.first;
@@ -154,7 +154,7 @@ void main() {
       // Finish session
       final request = FinishSessionRequest()
         ..id = sessionId
-        ..userId = TestData.testUserId
+        
         ..notes = 'Great workout!';
 
       final response = await sessionClient.finishSession(request);
@@ -178,7 +178,7 @@ void main() {
       // Abandon session
       final request = AbandonSessionRequest()
         ..id = sessionId
-        ..userId = TestData.testUserId;
+        ;
 
       final response = await sessionClient.abandonSession(request);
 
@@ -199,11 +199,11 @@ void main() {
       await sessionClient.finishSession(
         FinishSessionRequest()
           ..id = sessionId
-          ..userId = TestData.testUserId,
+          ,
       );
 
       // List sessions
-      final request = ListSessionsRequest()..userId = TestData.testUserId;
+      final request = ListSessionsRequest();
 
       final response = await sessionClient.listSessions(request);
 
@@ -422,14 +422,14 @@ void main() {
 
       // Get another exercise to add
       final exercisesResponse = await exerciseClient.listExercises(
-        ListExercisesRequest()..userId = TestData.testUserId,
+        ListExercisesRequest(),
       );
       final newExerciseId = exercisesResponse.exercises[1].id;
 
       // Add exercise
       final request = AddExerciseRequest()
         ..sessionId = sessionId
-        ..userId = TestData.testUserId
+        
         ..exerciseId = newExerciseId
         ..displayOrder = 2
         ..numSets = 3;

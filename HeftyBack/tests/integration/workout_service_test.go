@@ -26,9 +26,7 @@ func TestWorkoutService_Integration_ListWorkouts(t *testing.T) {
 	t.Run("list empty workouts", func(t *testing.T) {
 		ctx := context.Background()
 
-		req := connect.NewRequest(&heftv1.ListWorkoutsRequest{
-			UserId: userID,
-		})
+		req := connect.NewRequest(&heftv1.ListWorkoutsRequest{})
 		req.Header().Set("Authorization", ts.AuthHeader(userID))
 		resp, err := ts.WorkoutClient.ListWorkouts(ctx, req)
 
@@ -47,7 +45,6 @@ func TestWorkoutService_Integration_ListWorkouts(t *testing.T) {
 
 		// Create a workout
 		createReq := connect.NewRequest(&heftv1.CreateWorkoutRequest{
-			UserId: userID,
 			Name:   "Test Workout",
 		})
 		createReq.Header().Set("Authorization", ts.AuthHeader(userID))
@@ -57,9 +54,7 @@ func TestWorkoutService_Integration_ListWorkouts(t *testing.T) {
 		}
 
 		// List workouts
-		listReq := connect.NewRequest(&heftv1.ListWorkoutsRequest{
-			UserId: userID,
-		})
+		listReq := connect.NewRequest(&heftv1.ListWorkoutsRequest{})
 		listReq.Header().Set("Authorization", ts.AuthHeader(userID))
 		resp, err := ts.WorkoutClient.ListWorkouts(ctx, listReq)
 
@@ -106,7 +101,6 @@ func TestWorkoutService_Integration_CreateWorkout(t *testing.T) {
 		ctx := context.Background()
 
 		req := connect.NewRequest(&heftv1.CreateWorkoutRequest{
-			UserId: userID,
 			Name:   "Push Day",
 		})
 		req.Header().Set("Authorization", ts.AuthHeader(userID))
@@ -130,7 +124,6 @@ func TestWorkoutService_Integration_CreateWorkout(t *testing.T) {
 		description := "A pushing focused workout"
 
 		req := connect.NewRequest(&heftv1.CreateWorkoutRequest{
-			UserId:      userID,
 			Name:        "Push Day v2",
 			Description: &description,
 		})
@@ -152,7 +145,6 @@ func TestWorkoutService_Integration_CreateWorkout(t *testing.T) {
 		targetWeight := float64(100)
 
 		req := connect.NewRequest(&heftv1.CreateWorkoutRequest{
-			UserId: userID,
 			Name:   "Full Workout Template",
 			Sections: []*heftv1.CreateWorkoutSection{
 				{
@@ -227,7 +219,6 @@ func TestWorkoutService_Integration_GetWorkout(t *testing.T) {
 
 		// Create a workout first
 		createReq := connect.NewRequest(&heftv1.CreateWorkoutRequest{
-			UserId: userID,
 			Name:   "Test Workout",
 		})
 		createReq.Header().Set("Authorization", ts.AuthHeader(userID))
@@ -240,8 +231,7 @@ func TestWorkoutService_Integration_GetWorkout(t *testing.T) {
 
 		// Get the workout
 		getReq := connect.NewRequest(&heftv1.GetWorkoutRequest{
-			Id:     workoutID,
-			UserId: userID,
+			Id: workoutID,
 		})
 		getReq.Header().Set("Authorization", ts.AuthHeader(userID))
 		getResp, err := ts.WorkoutClient.GetWorkout(ctx, getReq)
@@ -259,8 +249,7 @@ func TestWorkoutService_Integration_GetWorkout(t *testing.T) {
 		ctx := context.Background()
 
 		req := connect.NewRequest(&heftv1.GetWorkoutRequest{
-			Id:     "00000000-0000-0000-0000-000000000000",
-			UserId: userID,
+			Id: "00000000-0000-0000-0000-000000000000",
 		})
 		req.Header().Set("Authorization", ts.AuthHeader(userID))
 		_, err := ts.WorkoutClient.GetWorkout(ctx, req)
@@ -297,7 +286,6 @@ func TestWorkoutService_Integration_DeleteWorkout(t *testing.T) {
 
 		// Create a workout first
 		createReq := connect.NewRequest(&heftv1.CreateWorkoutRequest{
-			UserId: userID,
 			Name:   "To Be Deleted",
 		})
 		createReq.Header().Set("Authorization", ts.AuthHeader(userID))
@@ -310,8 +298,7 @@ func TestWorkoutService_Integration_DeleteWorkout(t *testing.T) {
 
 		// Delete the workout
 		deleteReq := connect.NewRequest(&heftv1.DeleteWorkoutRequest{
-			Id:     workoutID,
-			UserId: userID,
+			Id: workoutID,
 		})
 		deleteReq.Header().Set("Authorization", ts.AuthHeader(userID))
 		deleteResp, err := ts.WorkoutClient.DeleteWorkout(ctx, deleteReq)
@@ -326,8 +313,7 @@ func TestWorkoutService_Integration_DeleteWorkout(t *testing.T) {
 
 		// Verify workout is deleted
 		verifyReq := connect.NewRequest(&heftv1.GetWorkoutRequest{
-			Id:     workoutID,
-			UserId: userID,
+			Id: workoutID,
 		})
 		verifyReq.Header().Set("Authorization", ts.AuthHeader(userID))
 		_, err = ts.WorkoutClient.GetWorkout(ctx, verifyReq)
@@ -380,7 +366,6 @@ func TestWorkoutService_Integration_DuplicateWorkout(t *testing.T) {
 
 		// Create original workout with sections
 		createReq := connect.NewRequest(&heftv1.CreateWorkoutRequest{
-			UserId: userID,
 			Name:   "Original Workout",
 			Sections: []*heftv1.CreateWorkoutSection{
 				{
@@ -411,8 +396,7 @@ func TestWorkoutService_Integration_DuplicateWorkout(t *testing.T) {
 
 		// Duplicate the workout
 		dupReq := connect.NewRequest(&heftv1.DuplicateWorkoutRequest{
-			Id:     originalID,
-			UserId: userID,
+			Id: originalID,
 		})
 		dupReq.Header().Set("Authorization", ts.AuthHeader(userID))
 		dupResp, err := ts.WorkoutClient.DuplicateWorkout(ctx, dupReq)
@@ -459,7 +443,6 @@ func TestWorkoutService_Integration_DuplicateWorkout(t *testing.T) {
 
 		// Create original workout
 		createReq := connect.NewRequest(&heftv1.CreateWorkoutRequest{
-			UserId: userID,
 			Name:   "Template",
 		})
 		createReq.Header().Set("Authorization", ts.AuthHeader(userID))
@@ -474,7 +457,6 @@ func TestWorkoutService_Integration_DuplicateWorkout(t *testing.T) {
 		// Duplicate with custom name
 		dupReq := connect.NewRequest(&heftv1.DuplicateWorkoutRequest{
 			Id:      originalID,
-			UserId:  userID,
 			NewName: &customName,
 		})
 		dupReq.Header().Set("Authorization", ts.AuthHeader(userID))
@@ -523,7 +505,6 @@ func TestWorkoutService_Integration_UpdateWorkout(t *testing.T) {
 		// 1. Create initial workout
 		targetReps := int32(10)
 		createReq := connect.NewRequest(&heftv1.CreateWorkoutRequest{
-			UserId: userID,
 			Name:   "Original Workout",
 			Sections: []*heftv1.CreateWorkoutSection{
 				{
@@ -557,7 +538,6 @@ func TestWorkoutService_Integration_UpdateWorkout(t *testing.T) {
 			Id:          workoutID,
 			Name:        &newName,
 			Description: &newDesc,
-			UserId:      userID,
 			Sections: []*heftv1.CreateWorkoutSection{
 				{
 					Name:         "Updated Section",

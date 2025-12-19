@@ -103,11 +103,10 @@ message SessionSummary {
 
 // StartSession
 message StartSessionRequest {
-  string user_id = 1;
-  optional string workout_template_id = 2;
-  optional string program_id = 3;
-  optional int32 program_day_number = 4;
-  optional string name = 5;
+  optional string workout_template_id = 1;
+  optional string program_id = 2;
+  optional int32 program_day_number = 3;
+  optional string name = 4;
 }
 
 message StartSessionResponse {
@@ -117,7 +116,6 @@ message StartSessionResponse {
 // GetSession
 message GetSessionRequest {
   string id = 1;
-  string user_id = 2;
 }
 
 message GetSessionResponse {
@@ -149,11 +147,10 @@ message SyncSessionResponse {
 // AddExercise
 message AddExerciseRequest {
   string session_id = 1;
-  string user_id = 2;
-  string exercise_id = 3;
-  int32 display_order = 4;
-  optional string section_name = 5;
-  int32 num_sets = 6;
+  string exercise_id = 2;
+  int32 display_order = 3;
+  optional string section_name = 4;
+  int32 num_sets = 5;
 }
 
 message AddExerciseResponse {
@@ -163,8 +160,7 @@ message AddExerciseResponse {
 // FinishSession
 message FinishSessionRequest {
   string id = 1;
-  string user_id = 2;
-  optional string notes = 3;
+  optional string notes = 2;
 }
 
 message FinishSessionResponse {
@@ -174,7 +170,6 @@ message FinishSessionResponse {
 // AbandonSession
 message AbandonSessionRequest {
   string id = 1;
-  string user_id = 2;
 }
 
 message AbandonSessionResponse {
@@ -183,11 +178,10 @@ message AbandonSessionResponse {
 
 // ListSessions
 message ListSessionsRequest {
-  string user_id = 1;
-  optional WorkoutStatus status = 2;
-  optional string start_date = 3; // YYYY-MM-DD
-  optional string end_date = 4;   // YYYY-MM-DD
-  PaginationRequest pagination = 5;
+  optional WorkoutStatus status = 1;
+  optional string start_date = 2; // YYYY-MM-DD
+  optional string end_date = 3;   // YYYY-MM-DD
+  PaginationRequest pagination = 4;
 }
 
 message ListSessionsResponse {

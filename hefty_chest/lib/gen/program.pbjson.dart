@@ -106,9 +106,8 @@ final $typed_data.Uint8List programDayDescriptor = $convert.base64Decode(
 const ListProgramsRequest$json = {
   '1': 'ListProgramsRequest',
   '2': [
-    {'1': 'user_id', '3': 1, '4': 1, '5': 9, '10': 'userId'},
-    {'1': 'include_archived', '3': 2, '4': 1, '5': 8, '9': 0, '10': 'includeArchived', '17': true},
-    {'1': 'pagination', '3': 3, '4': 1, '5': 11, '6': '.heft.v1.PaginationRequest', '10': 'pagination'},
+    {'1': 'include_archived', '3': 1, '4': 1, '5': 8, '9': 0, '10': 'includeArchived', '17': true},
+    {'1': 'pagination', '3': 2, '4': 1, '5': 11, '6': '.heft.v1.PaginationRequest', '10': 'pagination'},
   ],
   '8': [
     {'1': '_include_archived'},
@@ -117,10 +116,9 @@ const ListProgramsRequest$json = {
 
 /// Descriptor for `ListProgramsRequest`. Decode as a `google.protobuf.DescriptorProto`.
 final $typed_data.Uint8List listProgramsRequestDescriptor = $convert.base64Decode(
-    'ChNMaXN0UHJvZ3JhbXNSZXF1ZXN0EhcKB3VzZXJfaWQYASABKAlSBnVzZXJJZBIuChBpbmNsdW'
-    'RlX2FyY2hpdmVkGAIgASgISABSD2luY2x1ZGVBcmNoaXZlZIgBARI6CgpwYWdpbmF0aW9uGAMg'
-    'ASgLMhouaGVmdC52MS5QYWdpbmF0aW9uUmVxdWVzdFIKcGFnaW5hdGlvbkITChFfaW5jbHVkZV'
-    '9hcmNoaXZlZA==');
+    'ChNMaXN0UHJvZ3JhbXNSZXF1ZXN0Ei4KEGluY2x1ZGVfYXJjaGl2ZWQYASABKAhIAFIPaW5jbH'
+    'VkZUFyY2hpdmVkiAEBEjoKCnBhZ2luYXRpb24YAiABKAsyGi5oZWZ0LnYxLlBhZ2luYXRpb25S'
+    'ZXF1ZXN0UgpwYWdpbmF0aW9uQhMKEV9pbmNsdWRlX2FyY2hpdmVk');
 
 @$core.Deprecated('Use listProgramsResponseDescriptor instead')
 const ListProgramsResponse$json = {
@@ -142,14 +140,12 @@ const GetProgramRequest$json = {
   '1': 'GetProgramRequest',
   '2': [
     {'1': 'id', '3': 1, '4': 1, '5': 9, '10': 'id'},
-    {'1': 'user_id', '3': 2, '4': 1, '5': 9, '10': 'userId'},
   ],
 };
 
 /// Descriptor for `GetProgramRequest`. Decode as a `google.protobuf.DescriptorProto`.
 final $typed_data.Uint8List getProgramRequestDescriptor = $convert.base64Decode(
-    'ChFHZXRQcm9ncmFtUmVxdWVzdBIOCgJpZBgBIAEoCVICaWQSFwoHdXNlcl9pZBgCIAEoCVIGdX'
-    'Nlcklk');
+    'ChFHZXRQcm9ncmFtUmVxdWVzdBIOCgJpZBgBIAEoCVICaWQ=');
 
 @$core.Deprecated('Use getProgramResponseDescriptor instead')
 const GetProgramResponse$json = {
@@ -168,12 +164,11 @@ final $typed_data.Uint8List getProgramResponseDescriptor = $convert.base64Decode
 const CreateProgramRequest$json = {
   '1': 'CreateProgramRequest',
   '2': [
-    {'1': 'user_id', '3': 1, '4': 1, '5': 9, '10': 'userId'},
-    {'1': 'name', '3': 2, '4': 1, '5': 9, '10': 'name'},
-    {'1': 'description', '3': 3, '4': 1, '5': 9, '9': 0, '10': 'description', '17': true},
-    {'1': 'duration_weeks', '3': 4, '4': 1, '5': 5, '10': 'durationWeeks'},
-    {'1': 'duration_days', '3': 5, '4': 1, '5': 5, '10': 'durationDays'},
-    {'1': 'days', '3': 6, '4': 3, '5': 11, '6': '.heft.v1.CreateProgramDay', '10': 'days'},
+    {'1': 'name', '3': 1, '4': 1, '5': 9, '10': 'name'},
+    {'1': 'description', '3': 2, '4': 1, '5': 9, '9': 0, '10': 'description', '17': true},
+    {'1': 'duration_weeks', '3': 3, '4': 1, '5': 5, '10': 'durationWeeks'},
+    {'1': 'duration_days', '3': 4, '4': 1, '5': 5, '10': 'durationDays'},
+    {'1': 'days', '3': 5, '4': 3, '5': 11, '6': '.heft.v1.CreateProgramDay', '10': 'days'},
   ],
   '8': [
     {'1': '_description'},
@@ -182,11 +177,10 @@ const CreateProgramRequest$json = {
 
 /// Descriptor for `CreateProgramRequest`. Decode as a `google.protobuf.DescriptorProto`.
 final $typed_data.Uint8List createProgramRequestDescriptor = $convert.base64Decode(
-    'ChRDcmVhdGVQcm9ncmFtUmVxdWVzdBIXCgd1c2VyX2lkGAEgASgJUgZ1c2VySWQSEgoEbmFtZR'
-    'gCIAEoCVIEbmFtZRIlCgtkZXNjcmlwdGlvbhgDIAEoCUgAUgtkZXNjcmlwdGlvbogBARIlCg5k'
-    'dXJhdGlvbl93ZWVrcxgEIAEoBVINZHVyYXRpb25XZWVrcxIjCg1kdXJhdGlvbl9kYXlzGAUgAS'
-    'gFUgxkdXJhdGlvbkRheXMSLQoEZGF5cxgGIAMoCzIZLmhlZnQudjEuQ3JlYXRlUHJvZ3JhbURh'
-    'eVIEZGF5c0IOCgxfZGVzY3JpcHRpb24=');
+    'ChRDcmVhdGVQcm9ncmFtUmVxdWVzdBISCgRuYW1lGAEgASgJUgRuYW1lEiUKC2Rlc2NyaXB0aW'
+    '9uGAIgASgJSABSC2Rlc2NyaXB0aW9uiAEBEiUKDmR1cmF0aW9uX3dlZWtzGAMgASgFUg1kdXJh'
+    'dGlvbldlZWtzEiMKDWR1cmF0aW9uX2RheXMYBCABKAVSDGR1cmF0aW9uRGF5cxItCgRkYXlzGA'
+    'UgAygLMhkuaGVmdC52MS5DcmVhdGVQcm9ncmFtRGF5UgRkYXlzQg4KDF9kZXNjcmlwdGlvbg==');
 
 @$core.Deprecated('Use createProgramDayDescriptor instead')
 const CreateProgramDay$json = {
@@ -229,13 +223,12 @@ const UpdateProgramRequest$json = {
   '1': 'UpdateProgramRequest',
   '2': [
     {'1': 'id', '3': 1, '4': 1, '5': 9, '10': 'id'},
-    {'1': 'user_id', '3': 2, '4': 1, '5': 9, '10': 'userId'},
-    {'1': 'name', '3': 3, '4': 1, '5': 9, '9': 0, '10': 'name', '17': true},
-    {'1': 'description', '3': 4, '4': 1, '5': 9, '9': 1, '10': 'description', '17': true},
-    {'1': 'duration_weeks', '3': 5, '4': 1, '5': 5, '9': 2, '10': 'durationWeeks', '17': true},
-    {'1': 'duration_days', '3': 6, '4': 1, '5': 5, '9': 3, '10': 'durationDays', '17': true},
-    {'1': 'is_archived', '3': 7, '4': 1, '5': 8, '9': 4, '10': 'isArchived', '17': true},
-    {'1': 'days', '3': 8, '4': 3, '5': 11, '6': '.heft.v1.CreateProgramDay', '10': 'days'},
+    {'1': 'name', '3': 2, '4': 1, '5': 9, '9': 0, '10': 'name', '17': true},
+    {'1': 'description', '3': 3, '4': 1, '5': 9, '9': 1, '10': 'description', '17': true},
+    {'1': 'duration_weeks', '3': 4, '4': 1, '5': 5, '9': 2, '10': 'durationWeeks', '17': true},
+    {'1': 'duration_days', '3': 5, '4': 1, '5': 5, '9': 3, '10': 'durationDays', '17': true},
+    {'1': 'is_archived', '3': 6, '4': 1, '5': 8, '9': 4, '10': 'isArchived', '17': true},
+    {'1': 'days', '3': 7, '4': 3, '5': 11, '6': '.heft.v1.CreateProgramDay', '10': 'days'},
   ],
   '8': [
     {'1': '_name'},
@@ -248,13 +241,13 @@ const UpdateProgramRequest$json = {
 
 /// Descriptor for `UpdateProgramRequest`. Decode as a `google.protobuf.DescriptorProto`.
 final $typed_data.Uint8List updateProgramRequestDescriptor = $convert.base64Decode(
-    'ChRVcGRhdGVQcm9ncmFtUmVxdWVzdBIOCgJpZBgBIAEoCVICaWQSFwoHdXNlcl9pZBgCIAEoCV'
-    'IGdXNlcklkEhcKBG5hbWUYAyABKAlIAFIEbmFtZYgBARIlCgtkZXNjcmlwdGlvbhgEIAEoCUgB'
-    'UgtkZXNjcmlwdGlvbogBARIqCg5kdXJhdGlvbl93ZWVrcxgFIAEoBUgCUg1kdXJhdGlvbldlZW'
-    'tziAEBEigKDWR1cmF0aW9uX2RheXMYBiABKAVIA1IMZHVyYXRpb25EYXlziAEBEiQKC2lzX2Fy'
-    'Y2hpdmVkGAcgASgISARSCmlzQXJjaGl2ZWSIAQESLQoEZGF5cxgIIAMoCzIZLmhlZnQudjEuQ3'
-    'JlYXRlUHJvZ3JhbURheVIEZGF5c0IHCgVfbmFtZUIOCgxfZGVzY3JpcHRpb25CEQoPX2R1cmF0'
-    'aW9uX3dlZWtzQhAKDl9kdXJhdGlvbl9kYXlzQg4KDF9pc19hcmNoaXZlZA==');
+    'ChRVcGRhdGVQcm9ncmFtUmVxdWVzdBIOCgJpZBgBIAEoCVICaWQSFwoEbmFtZRgCIAEoCUgAUg'
+    'RuYW1liAEBEiUKC2Rlc2NyaXB0aW9uGAMgASgJSAFSC2Rlc2NyaXB0aW9uiAEBEioKDmR1cmF0'
+    'aW9uX3dlZWtzGAQgASgFSAJSDWR1cmF0aW9uV2Vla3OIAQESKAoNZHVyYXRpb25fZGF5cxgFIA'
+    'EoBUgDUgxkdXJhdGlvbkRheXOIAQESJAoLaXNfYXJjaGl2ZWQYBiABKAhIBFIKaXNBcmNoaXZl'
+    'ZIgBARItCgRkYXlzGAcgAygLMhkuaGVmdC52MS5DcmVhdGVQcm9ncmFtRGF5UgRkYXlzQgcKBV'
+    '9uYW1lQg4KDF9kZXNjcmlwdGlvbkIRCg9fZHVyYXRpb25fd2Vla3NCEAoOX2R1cmF0aW9uX2Rh'
+    'eXNCDgoMX2lzX2FyY2hpdmVk');
 
 @$core.Deprecated('Use updateProgramResponseDescriptor instead')
 const UpdateProgramResponse$json = {
@@ -274,14 +267,12 @@ const DeleteProgramRequest$json = {
   '1': 'DeleteProgramRequest',
   '2': [
     {'1': 'id', '3': 1, '4': 1, '5': 9, '10': 'id'},
-    {'1': 'user_id', '3': 2, '4': 1, '5': 9, '10': 'userId'},
   ],
 };
 
 /// Descriptor for `DeleteProgramRequest`. Decode as a `google.protobuf.DescriptorProto`.
 final $typed_data.Uint8List deleteProgramRequestDescriptor = $convert.base64Decode(
-    'ChREZWxldGVQcm9ncmFtUmVxdWVzdBIOCgJpZBgBIAEoCVICaWQSFwoHdXNlcl9pZBgCIAEoCV'
-    'IGdXNlcklk');
+    'ChREZWxldGVQcm9ncmFtUmVxdWVzdBIOCgJpZBgBIAEoCVICaWQ=');
 
 @$core.Deprecated('Use deleteProgramResponseDescriptor instead')
 const DeleteProgramResponse$json = {
@@ -300,14 +291,12 @@ const SetActiveProgramRequest$json = {
   '1': 'SetActiveProgramRequest',
   '2': [
     {'1': 'id', '3': 1, '4': 1, '5': 9, '10': 'id'},
-    {'1': 'user_id', '3': 2, '4': 1, '5': 9, '10': 'userId'},
   ],
 };
 
 /// Descriptor for `SetActiveProgramRequest`. Decode as a `google.protobuf.DescriptorProto`.
 final $typed_data.Uint8List setActiveProgramRequestDescriptor = $convert.base64Decode(
-    'ChdTZXRBY3RpdmVQcm9ncmFtUmVxdWVzdBIOCgJpZBgBIAEoCVICaWQSFwoHdXNlcl9pZBgCIA'
-    'EoCVIGdXNlcklk');
+    'ChdTZXRBY3RpdmVQcm9ncmFtUmVxdWVzdBIOCgJpZBgBIAEoCVICaWQ=');
 
 @$core.Deprecated('Use setActiveProgramResponseDescriptor instead')
 const SetActiveProgramResponse$json = {
@@ -325,14 +314,11 @@ final $typed_data.Uint8List setActiveProgramResponseDescriptor = $convert.base64
 @$core.Deprecated('Use getTodayWorkoutRequestDescriptor instead')
 const GetTodayWorkoutRequest$json = {
   '1': 'GetTodayWorkoutRequest',
-  '2': [
-    {'1': 'user_id', '3': 1, '4': 1, '5': 9, '10': 'userId'},
-  ],
 };
 
 /// Descriptor for `GetTodayWorkoutRequest`. Decode as a `google.protobuf.DescriptorProto`.
 final $typed_data.Uint8List getTodayWorkoutRequestDescriptor = $convert.base64Decode(
-    'ChZHZXRUb2RheVdvcmtvdXRSZXF1ZXN0EhcKB3VzZXJfaWQYASABKAlSBnVzZXJJZA==');
+    'ChZHZXRUb2RheVdvcmtvdXRSZXF1ZXN0');
 
 @$core.Deprecated('Use getTodayWorkoutResponseDescriptor instead')
 const GetTodayWorkoutResponse$json = {

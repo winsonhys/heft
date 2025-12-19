@@ -67,181 +67,139 @@ class WorkoutBuilderScreen extends HookConsumerWidget {
       );
     }
 
-    return Scaffold(
-      backgroundColor: AppColors.bgPrimary,
-      body: SafeArea(
-        child: Column(
-          children: [
-            // Header
-            _buildHeader(context, isEditing, saveWorkout),
+    return FScaffold(
+      header: FHeader.nested(
+        title: Text(
+          isEditing ? 'Edit Workout' : 'Create Workout',
+          style: const TextStyle(
+            fontSize: 17,
+            fontWeight: FontWeight.w600,
+            color: AppColors.textPrimary,
+          ),
+        ),
+        prefixes: [
+          FHeaderAction.back(onPress: () => context.pop()),
+        ],
+        suffixes: [
+          FHeaderAction(
+            icon: const Icon(Icons.save, color: AppColors.accentBlue),
+            onPress: saveWorkout,
+          ),
+        ],
+      ),
+      child: isLoading.value
+          ? const Center(
+              child: FProgress(),
+            )
+          : SingleChildScrollView(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Workout Name Input
+                  FTextField(
+                    controller: nameController,
+                    hint: 'Workout Name',
+                    onChange: (value) {
+                      ref
+                          .read(workoutBuilderProvider.notifier)
+                          .updateName(value);
+                    },
+                  ),
 
-            // Content
-            Expanded(
-              child: isLoading.value
-                  ? const Center(
-                      child: FProgress(),
-                    )
-                  : SingleChildScrollView(
-                      padding: const EdgeInsets.all(20),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          // Workout Name Input
-                          FTextField(
-                            controller: nameController,
-                            hint: 'Workout Name',
-                            onChange: (value) {
-                              ref
-                                  .read(workoutBuilderProvider.notifier)
-                                  .updateName(value);
-                            },
-                          ),
+                  const SizedBox(height: 24),
 
-                          const SizedBox(height: 24),
-
-                          // Sections
-                          ...state.sections.map((section) {
-                            return SectionCard(
-                              key: ValueKey(section.id),
-                              section: section,
-                              isDragging: isDragging.value,
-                              onToggleSuperset: () {
-                                ref
-                                    .read(workoutBuilderProvider.notifier)
-                                    .toggleSuperset(section.id);
-                              },
-                              onDelete: () {
-                                ref
-                                    .read(workoutBuilderProvider.notifier)
-                                    .deleteSection(section.id);
-                              },
-                              onAddExercise: () {
-                                showExerciseSearch(section.id);
-                              },
-                              onAddRest: () {
-                                ref
-                                    .read(workoutBuilderProvider.notifier)
-                                    .addRest(section.id);
-                              },
-                              onSectionNameChanged: (name) {
-                                ref
-                                    .read(workoutBuilderProvider.notifier)
-                                    .updateSectionName(section.id, name);
-                              },
-                              onDragStarted: () {
-                                isDragging.value = true;
-                              },
-                              onDragEnd: () {
-                                isDragging.value = false;
-                              },
-                              onItemDropped: (DragData dragData, int targetIndex) {
-                                ref
-                                    .read(workoutBuilderProvider.notifier)
-                                    .moveItem(
-                                      itemId: dragData.item.id,
-                                      fromSectionId: dragData.fromSectionId,
-                                      toSectionId: section.id,
-                                      targetIndex: targetIndex,
-                                    );
-                              },
+                  // Sections
+                  ...state.sections.map((section) {
+                    return SectionCard(
+                      key: ValueKey(section.id),
+                      section: section,
+                      isDragging: isDragging.value,
+                      onToggleSuperset: () {
+                        ref
+                            .read(workoutBuilderProvider.notifier)
+                            .toggleSuperset(section.id);
+                      },
+                      onDelete: () {
+                        ref
+                            .read(workoutBuilderProvider.notifier)
+                            .deleteSection(section.id);
+                      },
+                      onAddExercise: () {
+                        showExerciseSearch(section.id);
+                      },
+                      onAddRest: () {
+                        ref
+                            .read(workoutBuilderProvider.notifier)
+                            .addRest(section.id);
+                      },
+                      onSectionNameChanged: (name) {
+                        ref
+                            .read(workoutBuilderProvider.notifier)
+                            .updateSectionName(section.id, name);
+                      },
+                      onDragStarted: () {
+                        isDragging.value = true;
+                      },
+                      onDragEnd: () {
+                        isDragging.value = false;
+                      },
+                      onItemDropped: (DragData dragData, int targetIndex) {
+                        ref
+                            .read(workoutBuilderProvider.notifier)
+                            .moveItem(
+                              itemId: dragData.item.id,
+                              fromSectionId: dragData.fromSectionId,
+                              toSectionId: section.id,
+                              targetIndex: targetIndex,
                             );
-                          }),
+                      },
+                    );
+                  }),
 
-                          const SizedBox(height: 16),
+                  const SizedBox(height: 16),
 
-                          // Add Section Button
-                          GestureDetector(
-                            onTap: () {
-                              ref
-                                  .read(workoutBuilderProvider.notifier)
-                                  .addSection();
-                            },
-                            child: Container(
-                              width: double.infinity,
-                              padding: const EdgeInsets.all(16),
-                              decoration: BoxDecoration(
-                                border: Border.all(
-                                  color: AppColors.borderColor,
-                                  style: BorderStyle.solid,
-                                ),
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Icon(
-                                    Icons.add,
-                                    color: AppColors.textMuted,
-                                    size: 20,
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Text(
-                                    'Add Section',
-                                    style: TextStyle(
-                                      color: AppColors.textMuted,
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                  ),
-                                ],
-                              ),
+                  // Add Section Button
+                  GestureDetector(
+                    onTap: () {
+                      ref
+                          .read(workoutBuilderProvider.notifier)
+                          .addSection();
+                    },
+                    child: Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        border: Border.all(
+                          color: AppColors.borderColor,
+                          style: BorderStyle.solid,
+                        ),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.add,
+                            color: AppColors.textMuted,
+                            size: 20,
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            'Add Section',
+                            style: TextStyle(
+                              color: AppColors.textMuted,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
                             ),
                           ),
                         ],
                       ),
                     ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildHeader(BuildContext context, bool isEditing, VoidCallback onSave) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          GestureDetector(
-            onTap: () => context.pop(),
-            child: const Padding(
-              padding: EdgeInsets.all(4),
-              child: Icon(
-                Icons.chevron_left,
-                color: AppColors.textPrimary,
-                size: 24,
+                  ),
+                ],
               ),
             ),
-          ),
-          Text(
-            isEditing ? 'Edit Workout' : 'Create Workout',
-            style: const TextStyle(
-              fontSize: 17,
-              fontWeight: FontWeight.w600,
-              color: AppColors.textPrimary,
-            ),
-          ),
-          GestureDetector(
-            onTap: onSave,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              decoration: BoxDecoration(
-                color: AppColors.accentBlue,
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: const Text(
-                'Save',
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.white,
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
     );
   }
 }

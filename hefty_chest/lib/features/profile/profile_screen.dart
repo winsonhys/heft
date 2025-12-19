@@ -35,152 +35,113 @@ class ProfileScreen extends ConsumerWidget {
     final userAsync = ref.watch(userProfileProvider);
     final statsAsync = ref.watch(profileStatsProvider);
 
-    return Scaffold(
-      backgroundColor: AppColors.bgPrimary,
-      body: SafeArea(
-        child: Column(
-          children: [
-            // Header
-            _buildHeader(context),
-
-            // Content
-            Expanded(
-              child: userAsync.when(
-                data: (user) => SingleChildScrollView(
-                  padding: const EdgeInsets.all(20),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // User Info
-                      _buildUserInfo(user.displayName, user.memberSince.toDateTime()),
-
-                      const SizedBox(height: 24),
-
-                      // Stats Grid
-                      statsAsync.when(
-                        data: (stats) => StatsGrid(
-                          daysActive: stats.daysActive,
-                          totalWorkouts: stats.totalWorkouts,
-                          totalVolumeKg: stats.totalVolumeKg,
-                        ),
-                        loading: () => const StatsGrid(
-                          daysActive: 0,
-                          totalWorkouts: 0,
-                          totalVolumeKg: 0,
-                          isLoading: true,
-                        ),
-                        error: (_, _) => const StatsGrid(
-                          daysActive: 0,
-                          totalWorkouts: 0,
-                          totalVolumeKg: 0,
-                        ),
-                      ),
-
-                      const SizedBox(height: 24),
-
-                      // Settings
-                      const Text(
-                        'Settings',
-                        style: TextStyle(
-                          fontSize: 17,
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.textPrimary,
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      SettingsCard(
-                        usePounds: user.usePounds,
-                        restTimerSeconds: user.restTimerSeconds,
-                        onUnitChanged: (usePounds) {
-                          ref.read(userSettingsProvider.notifier).updateSettings(
-                                usePounds: usePounds,
-                              );
-                        },
-                        onRestTimerChanged: (seconds) {
-                          ref.read(userSettingsProvider.notifier).updateSettings(
-                                restTimerSeconds: seconds,
-                              );
-                        },
-                      ),
-                    ],
-                  ),
-                ),
-                loading: () => const Center(
-                  child: FProgress(),
-                ),
-                error: (error, _) => Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Icon(
-                        Icons.error_outline,
-                        size: 48,
-                        color: AppColors.accentRed,
-                      ),
-                      const SizedBox(height: 16),
-                      Text(
-                        'Failed to load profile',
-                        style: TextStyle(
-                          color: AppColors.textSecondary,
-                          fontSize: 16,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      FButton(
-                        style: FButtonStyle.ghost(),
-                        onPress: () => ref.invalidate(userProfileProvider),
-                        child: const Text('Retry'),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ],
+    return FScaffold(
+      header: FHeader.nested(
+        title: const Text(
+          'Profile',
+          style: TextStyle(
+            fontSize: 22,
+            fontWeight: FontWeight.w700,
+            color: AppColors.textPrimary,
+          ),
         ),
+        prefixes: [
+          FHeaderAction.back(onPress: () => context.goHome()),
+        ],
       ),
-      bottomNavigationBar: BottomNavBar(
+      footer: BottomNavBar(
         selectedIndex: NavIndex.profile,
         onTap: (index) => _handleNavTap(context, index),
       ),
-    );
-  }
+      child: userAsync.when(
+        data: (user) => SingleChildScrollView(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // User Info
+              _buildUserInfo(user.displayName, user.memberSince.toDateTime()),
 
-  Widget _buildHeader(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.fromLTRB(20, 20, 20, 16),
-      decoration: const BoxDecoration(
-        border: Border(
-          bottom: BorderSide(color: AppColors.borderColor, width: 1),
+              const SizedBox(height: 24),
+
+              // Stats Grid
+              statsAsync.when(
+                data: (stats) => StatsGrid(
+                  daysActive: stats.daysActive,
+                  totalWorkouts: stats.totalWorkouts,
+                  totalVolumeKg: stats.totalVolumeKg,
+                ),
+                loading: () => const StatsGrid(
+                  daysActive: 0,
+                  totalWorkouts: 0,
+                  totalVolumeKg: 0,
+                  isLoading: true,
+                ),
+                error: (_, _) => const StatsGrid(
+                  daysActive: 0,
+                  totalWorkouts: 0,
+                  totalVolumeKg: 0,
+                ),
+              ),
+
+              const SizedBox(height: 24),
+
+              // Settings
+              const Text(
+                'Settings',
+                style: TextStyle(
+                  fontSize: 17,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.textPrimary,
+                ),
+              ),
+              const SizedBox(height: 12),
+              SettingsCard(
+                usePounds: user.usePounds,
+                restTimerSeconds: user.restTimerSeconds,
+                onUnitChanged: (usePounds) {
+                  ref.read(userSettingsProvider.notifier).updateSettings(
+                        usePounds: usePounds,
+                      );
+                },
+                onRestTimerChanged: (seconds) {
+                  ref.read(userSettingsProvider.notifier).updateSettings(
+                        restTimerSeconds: seconds,
+                      );
+                },
+              ),
+            ],
+          ),
         ),
-      ),
-      child: Row(
-        children: [
-          GestureDetector(
-            onTap: () => context.goHome(),
-            child: Container(
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color: AppColors.bgCard,
-                borderRadius: BorderRadius.circular(10),
+        loading: () => const Center(
+          child: FProgress(),
+        ),
+        error: (error, _) => Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(
+                Icons.error_outline,
+                size: 48,
+                color: AppColors.accentRed,
               ),
-              child: const Icon(
-                Icons.arrow_back,
-                color: AppColors.textSecondary,
-                size: 20,
+              const SizedBox(height: 16),
+              Text(
+                'Failed to load profile',
+                style: TextStyle(
+                  color: AppColors.textSecondary,
+                  fontSize: 16,
+                ),
               ),
-            ),
+              const SizedBox(height: 8),
+              FButton(
+                style: FButtonStyle.ghost(),
+                onPress: () => ref.invalidate(userProfileProvider),
+                child: const Text('Retry'),
+              ),
+            ],
           ),
-          const SizedBox(width: 16),
-          const Text(
-            'Profile',
-            style: TextStyle(
-              fontSize: 22,
-              fontWeight: FontWeight.w700,
-              color: AppColors.textPrimary,
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }

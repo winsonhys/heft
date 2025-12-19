@@ -272,7 +272,6 @@ func (x *UserSettings) GetRestTimerSeconds() int32 {
 // GetProfile
 type GetProfileRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	UserId        string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -305,13 +304,6 @@ func (x *GetProfileRequest) ProtoReflect() protoreflect.Message {
 // Deprecated: Use GetProfileRequest.ProtoReflect.Descriptor instead.
 func (*GetProfileRequest) Descriptor() ([]byte, []int) {
 	return file_heft_v1_user_proto_rawDescGZIP(), []int{3}
-}
-
-func (x *GetProfileRequest) GetUserId() string {
-	if x != nil {
-		return x.UserId
-	}
-	return ""
 }
 
 type GetProfileResponse struct {
@@ -361,9 +353,8 @@ func (x *GetProfileResponse) GetUser() *User {
 // UpdateProfile
 type UpdateProfileRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	UserId        string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
-	DisplayName   *string                `protobuf:"bytes,2,opt,name=display_name,json=displayName,proto3,oneof" json:"display_name,omitempty"`
-	AvatarUrl     *string                `protobuf:"bytes,3,opt,name=avatar_url,json=avatarUrl,proto3,oneof" json:"avatar_url,omitempty"`
+	DisplayName   *string                `protobuf:"bytes,1,opt,name=display_name,json=displayName,proto3,oneof" json:"display_name,omitempty"`
+	AvatarUrl     *string                `protobuf:"bytes,2,opt,name=avatar_url,json=avatarUrl,proto3,oneof" json:"avatar_url,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -396,13 +387,6 @@ func (x *UpdateProfileRequest) ProtoReflect() protoreflect.Message {
 // Deprecated: Use UpdateProfileRequest.ProtoReflect.Descriptor instead.
 func (*UpdateProfileRequest) Descriptor() ([]byte, []int) {
 	return file_heft_v1_user_proto_rawDescGZIP(), []int{5}
-}
-
-func (x *UpdateProfileRequest) GetUserId() string {
-	if x != nil {
-		return x.UserId
-	}
-	return ""
 }
 
 func (x *UpdateProfileRequest) GetDisplayName() string {
@@ -466,9 +450,8 @@ func (x *UpdateProfileResponse) GetUser() *User {
 // UpdateSettings
 type UpdateSettingsRequest struct {
 	state            protoimpl.MessageState `protogen:"open.v1"`
-	UserId           string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
-	UsePounds        *bool                  `protobuf:"varint,2,opt,name=use_pounds,json=usePounds,proto3,oneof" json:"use_pounds,omitempty"`
-	RestTimerSeconds *int32                 `protobuf:"varint,3,opt,name=rest_timer_seconds,json=restTimerSeconds,proto3,oneof" json:"rest_timer_seconds,omitempty"`
+	UsePounds        *bool                  `protobuf:"varint,1,opt,name=use_pounds,json=usePounds,proto3,oneof" json:"use_pounds,omitempty"`
+	RestTimerSeconds *int32                 `protobuf:"varint,2,opt,name=rest_timer_seconds,json=restTimerSeconds,proto3,oneof" json:"rest_timer_seconds,omitempty"`
 	unknownFields    protoimpl.UnknownFields
 	sizeCache        protoimpl.SizeCache
 }
@@ -501,13 +484,6 @@ func (x *UpdateSettingsRequest) ProtoReflect() protoreflect.Message {
 // Deprecated: Use UpdateSettingsRequest.ProtoReflect.Descriptor instead.
 func (*UpdateSettingsRequest) Descriptor() ([]byte, []int) {
 	return file_heft_v1_user_proto_rawDescGZIP(), []int{7}
-}
-
-func (x *UpdateSettingsRequest) GetUserId() string {
-	if x != nil {
-		return x.UserId
-	}
-	return ""
 }
 
 func (x *UpdateSettingsRequest) GetUsePounds() bool {
@@ -571,10 +547,9 @@ func (x *UpdateSettingsResponse) GetUser() *User {
 // LogWeight
 type LogWeightRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	UserId        string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
-	WeightKg      float64                `protobuf:"fixed64,2,opt,name=weight_kg,json=weightKg,proto3" json:"weight_kg,omitempty"`
-	LoggedDate    string                 `protobuf:"bytes,3,opt,name=logged_date,json=loggedDate,proto3" json:"logged_date,omitempty"` // YYYY-MM-DD format
-	Notes         *string                `protobuf:"bytes,4,opt,name=notes,proto3,oneof" json:"notes,omitempty"`
+	WeightKg      float64                `protobuf:"fixed64,1,opt,name=weight_kg,json=weightKg,proto3" json:"weight_kg,omitempty"`
+	LoggedDate    string                 `protobuf:"bytes,2,opt,name=logged_date,json=loggedDate,proto3" json:"logged_date,omitempty"` // YYYY-MM-DD format
+	Notes         *string                `protobuf:"bytes,3,opt,name=notes,proto3,oneof" json:"notes,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -607,13 +582,6 @@ func (x *LogWeightRequest) ProtoReflect() protoreflect.Message {
 // Deprecated: Use LogWeightRequest.ProtoReflect.Descriptor instead.
 func (*LogWeightRequest) Descriptor() ([]byte, []int) {
 	return file_heft_v1_user_proto_rawDescGZIP(), []int{9}
-}
-
-func (x *LogWeightRequest) GetUserId() string {
-	if x != nil {
-		return x.UserId
-	}
-	return ""
 }
 
 func (x *LogWeightRequest) GetWeightKg() float64 {
@@ -684,10 +652,9 @@ func (x *LogWeightResponse) GetWeightLog() *WeightLog {
 // GetWeightHistory
 type GetWeightHistoryRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	UserId        string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
-	StartDate     *string                `protobuf:"bytes,2,opt,name=start_date,json=startDate,proto3,oneof" json:"start_date,omitempty"` // YYYY-MM-DD
-	EndDate       *string                `protobuf:"bytes,3,opt,name=end_date,json=endDate,proto3,oneof" json:"end_date,omitempty"`       // YYYY-MM-DD
-	Limit         *int32                 `protobuf:"varint,4,opt,name=limit,proto3,oneof" json:"limit,omitempty"`
+	StartDate     *string                `protobuf:"bytes,1,opt,name=start_date,json=startDate,proto3,oneof" json:"start_date,omitempty"` // YYYY-MM-DD
+	EndDate       *string                `protobuf:"bytes,2,opt,name=end_date,json=endDate,proto3,oneof" json:"end_date,omitempty"`       // YYYY-MM-DD
+	Limit         *int32                 `protobuf:"varint,3,opt,name=limit,proto3,oneof" json:"limit,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -720,13 +687,6 @@ func (x *GetWeightHistoryRequest) ProtoReflect() protoreflect.Message {
 // Deprecated: Use GetWeightHistoryRequest.ProtoReflect.Descriptor instead.
 func (*GetWeightHistoryRequest) Descriptor() ([]byte, []int) {
 	return file_heft_v1_user_proto_rawDescGZIP(), []int{11}
-}
-
-func (x *GetWeightHistoryRequest) GetUserId() string {
-	if x != nil {
-		return x.UserId
-	}
-	return ""
 }
 
 func (x *GetWeightHistoryRequest) GetStartDate() string {
@@ -798,7 +758,6 @@ func (x *GetWeightHistoryResponse) GetWeightLogs() []*WeightLog {
 type DeleteWeightLogRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	UserId        string                 `protobuf:"bytes,2,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -836,13 +795,6 @@ func (*DeleteWeightLogRequest) Descriptor() ([]byte, []int) {
 func (x *DeleteWeightLogRequest) GetId() string {
 	if x != nil {
 		return x.Id
-	}
-	return ""
-}
-
-func (x *DeleteWeightLogRequest) GetUserId() string {
-	if x != nil {
-		return x.UserId
 	}
 	return ""
 }
@@ -922,54 +874,48 @@ const file_heft_v1_user_proto_rawDesc = "" +
 	"\fUserSettings\x12\x1d\n" +
 	"\n" +
 	"use_pounds\x18\x01 \x01(\bR\tusePounds\x12,\n" +
-	"\x12rest_timer_seconds\x18\x02 \x01(\x05R\x10restTimerSeconds\",\n" +
-	"\x11GetProfileRequest\x12\x17\n" +
-	"\auser_id\x18\x01 \x01(\tR\x06userId\"7\n" +
+	"\x12rest_timer_seconds\x18\x02 \x01(\x05R\x10restTimerSeconds\"\x13\n" +
+	"\x11GetProfileRequest\"7\n" +
 	"\x12GetProfileResponse\x12!\n" +
-	"\x04user\x18\x01 \x01(\v2\r.heft.v1.UserR\x04user\"\x9b\x01\n" +
-	"\x14UpdateProfileRequest\x12\x17\n" +
-	"\auser_id\x18\x01 \x01(\tR\x06userId\x12&\n" +
-	"\fdisplay_name\x18\x02 \x01(\tH\x00R\vdisplayName\x88\x01\x01\x12\"\n" +
+	"\x04user\x18\x01 \x01(\v2\r.heft.v1.UserR\x04user\"\x82\x01\n" +
+	"\x14UpdateProfileRequest\x12&\n" +
+	"\fdisplay_name\x18\x01 \x01(\tH\x00R\vdisplayName\x88\x01\x01\x12\"\n" +
 	"\n" +
-	"avatar_url\x18\x03 \x01(\tH\x01R\tavatarUrl\x88\x01\x01B\x0f\n" +
+	"avatar_url\x18\x02 \x01(\tH\x01R\tavatarUrl\x88\x01\x01B\x0f\n" +
 	"\r_display_nameB\r\n" +
 	"\v_avatar_url\":\n" +
 	"\x15UpdateProfileResponse\x12!\n" +
-	"\x04user\x18\x01 \x01(\v2\r.heft.v1.UserR\x04user\"\xad\x01\n" +
-	"\x15UpdateSettingsRequest\x12\x17\n" +
-	"\auser_id\x18\x01 \x01(\tR\x06userId\x12\"\n" +
+	"\x04user\x18\x01 \x01(\v2\r.heft.v1.UserR\x04user\"\x94\x01\n" +
+	"\x15UpdateSettingsRequest\x12\"\n" +
 	"\n" +
-	"use_pounds\x18\x02 \x01(\bH\x00R\tusePounds\x88\x01\x01\x121\n" +
-	"\x12rest_timer_seconds\x18\x03 \x01(\x05H\x01R\x10restTimerSeconds\x88\x01\x01B\r\n" +
+	"use_pounds\x18\x01 \x01(\bH\x00R\tusePounds\x88\x01\x01\x121\n" +
+	"\x12rest_timer_seconds\x18\x02 \x01(\x05H\x01R\x10restTimerSeconds\x88\x01\x01B\r\n" +
 	"\v_use_poundsB\x15\n" +
 	"\x13_rest_timer_seconds\";\n" +
 	"\x16UpdateSettingsResponse\x12!\n" +
-	"\x04user\x18\x01 \x01(\v2\r.heft.v1.UserR\x04user\"\x8e\x01\n" +
-	"\x10LogWeightRequest\x12\x17\n" +
-	"\auser_id\x18\x01 \x01(\tR\x06userId\x12\x1b\n" +
-	"\tweight_kg\x18\x02 \x01(\x01R\bweightKg\x12\x1f\n" +
-	"\vlogged_date\x18\x03 \x01(\tR\n" +
+	"\x04user\x18\x01 \x01(\v2\r.heft.v1.UserR\x04user\"u\n" +
+	"\x10LogWeightRequest\x12\x1b\n" +
+	"\tweight_kg\x18\x01 \x01(\x01R\bweightKg\x12\x1f\n" +
+	"\vlogged_date\x18\x02 \x01(\tR\n" +
 	"loggedDate\x12\x19\n" +
-	"\x05notes\x18\x04 \x01(\tH\x00R\x05notes\x88\x01\x01B\b\n" +
+	"\x05notes\x18\x03 \x01(\tH\x00R\x05notes\x88\x01\x01B\b\n" +
 	"\x06_notes\"F\n" +
 	"\x11LogWeightResponse\x121\n" +
 	"\n" +
-	"weight_log\x18\x01 \x01(\v2\x12.heft.v1.WeightLogR\tweightLog\"\xb7\x01\n" +
-	"\x17GetWeightHistoryRequest\x12\x17\n" +
-	"\auser_id\x18\x01 \x01(\tR\x06userId\x12\"\n" +
+	"weight_log\x18\x01 \x01(\v2\x12.heft.v1.WeightLogR\tweightLog\"\x9e\x01\n" +
+	"\x17GetWeightHistoryRequest\x12\"\n" +
 	"\n" +
-	"start_date\x18\x02 \x01(\tH\x00R\tstartDate\x88\x01\x01\x12\x1e\n" +
-	"\bend_date\x18\x03 \x01(\tH\x01R\aendDate\x88\x01\x01\x12\x19\n" +
-	"\x05limit\x18\x04 \x01(\x05H\x02R\x05limit\x88\x01\x01B\r\n" +
+	"start_date\x18\x01 \x01(\tH\x00R\tstartDate\x88\x01\x01\x12\x1e\n" +
+	"\bend_date\x18\x02 \x01(\tH\x01R\aendDate\x88\x01\x01\x12\x19\n" +
+	"\x05limit\x18\x03 \x01(\x05H\x02R\x05limit\x88\x01\x01B\r\n" +
 	"\v_start_dateB\v\n" +
 	"\t_end_dateB\b\n" +
 	"\x06_limit\"O\n" +
 	"\x18GetWeightHistoryResponse\x123\n" +
 	"\vweight_logs\x18\x01 \x03(\v2\x12.heft.v1.WeightLogR\n" +
-	"weightLogs\"A\n" +
+	"weightLogs\"(\n" +
 	"\x16DeleteWeightLogRequest\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\tR\x02id\x12\x17\n" +
-	"\auser_id\x18\x02 \x01(\tR\x06userId\"3\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\"3\n" +
 	"\x17DeleteWeightLogResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess2\xea\x03\n" +
 	"\vUserService\x12E\n" +

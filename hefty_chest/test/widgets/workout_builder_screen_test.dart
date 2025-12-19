@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:forui/forui.dart';
 import 'package:hefty_chest/features/workout_builder/workout_builder_screen.dart';
 import 'package:hefty_chest/features/workout_builder/providers/workout_builder_providers.dart';
 import 'package:hefty_chest/features/workout_builder/widgets/section_card.dart';
@@ -93,8 +94,8 @@ void main() {
       // Verify Add Section button is visible
       expect(find.text('Add Section'), findsOneWidget);
 
-      // Verify Save button is present
-      expect(find.text('Save'), findsOneWidget);
+      // Verify Save icon is present
+      expect(find.byIcon(Icons.save), findsOneWidget);
     });
 
     testWidgets('renders Edit mode when workoutId is provided', (tester) async {
@@ -113,8 +114,8 @@ void main() {
       expect(find.text('Edit Workout'), findsOneWidget);
       expect(find.text('Create Workout'), findsNothing);
 
-      // Verify Save button is present
-      expect(find.text('Save'), findsOneWidget);
+      // Verify Save icon is present
+      expect(find.byIcon(Icons.save), findsOneWidget);
     });
 
     testWidgets('displays sections when state has sections', (tester) async {
@@ -219,7 +220,7 @@ void main() {
       expect(find.text('Superset'), findsOneWidget);
     });
 
-    testWidgets('back button (chevron) is visible', (tester) async {
+    testWidgets('back button is visible', (tester) async {
       await tester.pumpWidget(
         createTestWidget(
           child: const WorkoutBuilderScreen(),
@@ -227,8 +228,8 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      // Verify back chevron icon
-      expect(find.byIcon(Icons.chevron_left), findsOneWidget);
+      // Verify back button is present (forui FHeaderAction.back uses FIcons.arrowLeft)
+      expect(find.byIcon(FIcons.arrowLeft), findsOneWidget);
     });
 
     testWidgets('shows correct number of sections', (tester) async {

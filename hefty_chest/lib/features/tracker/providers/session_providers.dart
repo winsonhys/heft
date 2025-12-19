@@ -117,12 +117,14 @@ class ActiveSession extends _$ActiveSession {
       _startSyncTimer();
 
       // Refresh active session provider so floating widget updates immediately
-      await ref.refresh(hasActiveSessionProvider.future);
+      ref.invalidate(hasActiveSessionProvider);
 
       return response.session;
     } catch (e, st) {
       if (e.toString().contains('disposed') ||
-          e.toString().contains('UnmountedRefException')) return null;
+          e.toString().contains('UnmountedRefException')) {
+        return null;
+      }
       state = AsyncValue.error(e, st);
       return null;
     }
@@ -144,7 +146,9 @@ class ActiveSession extends _$ActiveSession {
       return response.session;
     } catch (e, st) {
       if (e.toString().contains('disposed') ||
-          e.toString().contains('UnmountedRefException')) return null;
+          e.toString().contains('UnmountedRefException')) {
+        return null;
+      }
       state = AsyncValue.error(e, st);
       return null;
     }
@@ -320,10 +324,12 @@ class ActiveSession extends _$ActiveSession {
       ref.invalidate(personalRecordsProvider);
       ref.invalidate(dashboardStatsProvider);
       // Refresh active session provider so floating widget updates immediately
-      await ref.refresh(hasActiveSessionProvider.future);
+      ref.invalidate(hasActiveSessionProvider);
     } catch (e, st) {
       if (e.toString().contains('disposed') ||
-          e.toString().contains('UnmountedRefException')) return;
+          e.toString().contains('UnmountedRefException')) {
+        return;
+      }
       // Keep backup on error
       state = AsyncValue.error(e, st);
     }
@@ -346,10 +352,12 @@ class ActiveSession extends _$ActiveSession {
       state = const AsyncValue.data(null);
 
       // Refresh active session provider so floating widget updates immediately
-      await ref.refresh(hasActiveSessionProvider.future);
+      ref.invalidate(hasActiveSessionProvider);
     } catch (e, st) {
       if (e.toString().contains('disposed') ||
-          e.toString().contains('UnmountedRefException')) return;
+          e.toString().contains('UnmountedRefException')) {
+        return;
+      }
       state = AsyncValue.error(e, st);
     }
   }

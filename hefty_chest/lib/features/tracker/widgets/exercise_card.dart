@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:forui/forui.dart';
 
 import '../../../shared/theme/app_colors.dart';
 import '../../../gen/session.pb.dart';
@@ -42,7 +43,7 @@ class _ExerciseCardState extends State<ExerciseCard> {
           GestureDetector(
             onTap: () => setState(() => _isExpanded = !_isExpanded),
             child: Container(
-              padding: const EdgeInsets.all(14),
+              padding: const EdgeInsets.all(16),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -115,20 +116,20 @@ class _ExerciseCardState extends State<ExerciseCard> {
             ),
 
             // Add set button
-            GestureDetector(
-              onTap: () {
-                // TODO: Add set functionality
-              },
-              child: Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(12),
-                child: const Text(
-                  '+ Add Set',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: AppColors.textSecondary,
-                  ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: FButton(
+                style: FButtonStyle.ghost(),
+                onPress: () {
+                  // TODO: Add set functionality
+                },
+                child: const Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.add, size: 16),
+                    SizedBox(width: 4),
+                    Text('Add Set'),
+                  ],
                 ),
               ),
             ),

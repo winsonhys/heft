@@ -27,7 +27,7 @@ void main() {
       final uniqueName = 'Test Program ${DateTime.now().millisecondsSinceEpoch}';
 
       final request = CreateProgramRequest()
-        ..userId = TestData.testUserId
+        
         ..name = uniqueName
         ..durationWeeks = 4
         ..durationDays = 28;
@@ -49,7 +49,7 @@ void main() {
       // Get program
       final request = GetProgramRequest()
         ..id = programId
-        ..userId = TestData.testUserId;
+        ;
 
       final response = await programClient.getProgram(request);
 
@@ -67,7 +67,7 @@ void main() {
       );
 
       // List programs
-      final request = ListProgramsRequest()..userId = TestData.testUserId;
+      final request = ListProgramsRequest();
 
       final response = await programClient.listPrograms(request);
 
@@ -87,7 +87,7 @@ void main() {
 
       // Create program with days
       final request = CreateProgramRequest()
-        ..userId = TestData.testUserId
+        
         ..name = 'Program With Days'
         ..durationWeeks = 1
         ..durationDays = 7;
@@ -132,7 +132,7 @@ void main() {
       // Set as active
       final request = SetActiveProgramRequest()
         ..id = programId
-        ..userId = TestData.testUserId;
+        ;
 
       final response = await programClient.setActiveProgram(request);
 
@@ -153,7 +153,7 @@ void main() {
       // Update program (returns existing, doesn't actually update)
       final updateRequest = UpdateProgramRequest()
         ..id = programId
-        ..userId = TestData.testUserId
+        
         ..name = 'Updated Program Name'
         ..description = 'Updated description';
 
@@ -174,7 +174,7 @@ void main() {
       // Delete program
       final request = DeleteProgramRequest()
         ..id = programId
-        ..userId = TestData.testUserId;
+        ;
 
       final response = await programClient.deleteProgram(request);
       expect(response.success, isTrue);
@@ -184,7 +184,7 @@ void main() {
         await programClient.getProgram(
           GetProgramRequest()
             ..id = programId
-            ..userId = TestData.testUserId,
+            ,
         );
         fail('Expected program to be deleted');
       } catch (e) {
@@ -207,11 +207,11 @@ void main() {
       await programClient.setActiveProgram(
         SetActiveProgramRequest()
           ..id = programId
-          ..userId = TestData.testUserId,
+          ,
       );
 
       // Get today's workout
-      final request = GetTodayWorkoutRequest()..userId = TestData.testUserId;
+      final request = GetTodayWorkoutRequest();
 
       final response = await programClient.getTodayWorkout(request);
 
@@ -236,7 +236,7 @@ void main() {
       final activate1Response = await programClient.setActiveProgram(
         SetActiveProgramRequest()
           ..id = program1Id
-          ..userId = TestData.testUserId,
+          ,
       );
       expect(activate1Response.program.isActive, isTrue);
 
@@ -244,7 +244,7 @@ void main() {
       final activate2Response = await programClient.setActiveProgram(
         SetActiveProgramRequest()
           ..id = program2Id
-          ..userId = TestData.testUserId,
+          ,
       );
       expect(activate2Response.program.isActive, isTrue);
 
@@ -252,7 +252,7 @@ void main() {
       final program1Response = await programClient.getProgram(
         GetProgramRequest()
           ..id = program1Id
-          ..userId = TestData.testUserId,
+          ,
       );
       expect(program1Response.program.isActive, isFalse);
 

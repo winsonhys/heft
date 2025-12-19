@@ -336,7 +336,7 @@ void main() {
 
         // Verify program was created by listing
         final listResponse = await programClient.listPrograms(
-          ListProgramsRequest()..userId = TestData.testUserId,
+          ListProgramsRequest(),
         );
 
         final created = listResponse.programs.where((p) => p.name == uniqueName);

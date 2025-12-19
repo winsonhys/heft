@@ -48,72 +48,69 @@ class AuthScreen extends HookConsumerWidget {
       }
     }
 
-    return Scaffold(
-      backgroundColor: AppColors.bgPrimary,
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(24.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              // Logo/Brand
-              const Icon(
-                Icons.fitness_center,
-                size: 64,
-                color: AppColors.accentBlue,
+    return FScaffold(
+      child: Padding(
+        padding: const EdgeInsets.all(24.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // Logo/Brand
+            const Icon(
+              Icons.fitness_center,
+              size: 64,
+              color: AppColors.accentBlue,
+            ),
+            const SizedBox(height: 16),
+            const Text(
+              'Heft',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 32,
+                fontWeight: FontWeight.bold,
+                color: AppColors.textPrimary,
               ),
-              const SizedBox(height: 16),
-              const Text(
-                'Heft',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 32,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.textPrimary,
-                ),
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              'Track your workouts',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 16,
+                color: AppColors.textSecondary,
               ),
-              const SizedBox(height: 8),
-              const Text(
-                'Track your workouts',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 16,
-                  color: AppColors.textSecondary,
-                ),
-              ),
-              const SizedBox(height: 48),
+            ),
+            const SizedBox(height: 48),
 
-              // Email field
-              FTextField.email(
-                controller: emailController,
-                hint: 'you@example.com',
-                label: const Text('Email'),
-                description: errorMessage.value != null
-                    ? null
-                    : const Text(
-                        'No password needed - just enter your email to get started'),
-                error: errorMessage.value != null
-                    ? Text(errorMessage.value!)
-                    : null,
-                onSubmit: (_) => handleLogin(),
-              ),
+            // Email field
+            FTextField.email(
+              controller: emailController,
+              hint: 'you@example.com',
+              label: const Text('Email'),
+              description: errorMessage.value != null
+                  ? null
+                  : const Text(
+                      'No password needed - just enter your email to get started'),
+              error: errorMessage.value != null
+                  ? Text(errorMessage.value!)
+                  : null,
+              onSubmit: (_) => handleLogin(),
+            ),
 
-              const SizedBox(height: 24),
+            const SizedBox(height: 24),
 
-              // Login button
-              FButton(
-                onPress: isLoading.value ? null : handleLogin,
-                child: isLoading.value
-                    ? const SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: FProgress(),
-                      )
-                    : const Text('Continue'),
-              ),
-            ],
-          ),
+            // Login button
+            FButton(
+              onPress: isLoading.value ? null : handleLogin,
+              child: isLoading.value
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: FProgress(),
+                    )
+                  : const Text('Continue'),
+            ),
+          ],
         ),
       ),
     );

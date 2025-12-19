@@ -88,187 +88,145 @@ class ProgramBuilderScreen extends HookConsumerWidget {
       daysInWeek.add(i);
     }
 
-    return Scaffold(
-      backgroundColor: AppColors.bgPrimary,
-      body: SafeArea(
-        child: Column(
-          children: [
-            // Header
-            _buildHeader(context, isEditing, saveProgram),
-
-            // Content
-            Expanded(
-              child: isLoading.value
-                  ? const Center(
-                      child: FProgress(),
-                    )
-                  : SingleChildScrollView(
-                      padding: const EdgeInsets.all(20),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          // Program Name Input
-                          FTextField(
-                            controller: nameController,
-                            hint: 'Program Name',
-                            onChange: (value) {
-                              ref
-                                  .read(programBuilderProvider.notifier)
-                                  .updateName(value);
-                            },
-                          ),
-
-                          const SizedBox(height: 24),
-
-                          // Duration Selector
-                          const Text(
-                            'Duration',
-                            style: TextStyle(
-                              fontSize: 17,
-                              fontWeight: FontWeight.w600,
-                              color: AppColors.textPrimary,
-                            ),
-                          ),
-                          const SizedBox(height: 12),
-                          DurationSelector(
-                            weeks: state.durationWeeks,
-                            days: state.durationDays,
-                            onChanged: (weeks, days) {
-                              ref
-                                  .read(programBuilderProvider.notifier)
-                                  .setDuration(weeks, days);
-                            },
-                          ),
-
-                          const SizedBox(height: 24),
-
-                          // Summary Card
-                          ProgramSummaryCard(
-                            totalDays: state.totalDays,
-                            workoutDays: state.workoutDays,
-                            restDays: state.restDays,
-                          ),
-
-                          const SizedBox(height: 24),
-
-                          // Week Navigation
-                          WeekNavigation(
-                            currentWeek: currentWeek,
-                            totalWeeks: state.totalWeeks,
-                            onPrevious: currentWeek > 1
-                                ? () {
-                                    ref.read(currentWeekProvider.notifier).previousWeek();
-                                  }
-                                : null,
-                            onNext: currentWeek < state.totalWeeks
-                                ? () {
-                                    ref.read(currentWeekProvider.notifier).nextWeek();
-                                  }
-                                : null,
-                          ),
-
-                          const SizedBox(height: 16),
-
-                          // Days Grid
-                          Wrap(
-                            spacing: 8,
-                            runSpacing: 8,
-                            children: daysInWeek.map((dayNumber) {
-                              final assignment =
-                                  state.dayAssignments[dayNumber];
-                              return DayCard(
-                                dayNumber: dayNumber,
-                                assignment: assignment,
-                                onTap: () {
-                                  showWorkoutAssignment(dayNumber);
-                                },
-                              );
-                            }).toList(),
-                          ),
-
-                          const SizedBox(height: 16),
-
-                          // Week Actions
-                          Row(
-                            children: [
-                              Expanded(
-                                child: _buildActionButton(
-                                  'Fill empty with rest',
-                                  () {
-                                    ref
-                                        .read(programBuilderProvider.notifier)
-                                        .fillWeekWithRest(currentWeek);
-                                  },
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: _buildActionButton(
-                                  'Clear week',
-                                  () {
-                                    ref
-                                        .read(programBuilderProvider.notifier)
-                                        .clearWeek(currentWeek);
-                                  },
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-            ),
-          ],
+    return FScaffold(
+      header: FHeader.nested(
+        title: Text(
+          isEditing ? 'Edit Program' : 'Create Program',
+          style: const TextStyle(
+            fontSize: 17,
+            fontWeight: FontWeight.w600,
+            color: AppColors.textPrimary,
+          ),
         ),
-      ),
-    );
-  }
-
-  Widget _buildHeader(BuildContext context, bool isEditing, VoidCallback onSave) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          GestureDetector(
-            onTap: () => context.pop(),
-            child: const Padding(
-              padding: EdgeInsets.all(4),
-              child: Icon(
-                Icons.chevron_left,
-                color: AppColors.textPrimary,
-                size: 24,
-              ),
-            ),
-          ),
-          Text(
-            isEditing ? 'Edit Program' : 'Create Program',
-            style: const TextStyle(
-              fontSize: 17,
-              fontWeight: FontWeight.w600,
-              color: AppColors.textPrimary,
-            ),
-          ),
-          GestureDetector(
-            onTap: onSave,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              decoration: BoxDecoration(
-                color: AppColors.accentBlue,
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: const Text(
-                'Save',
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.white,
-                ),
-              ),
-            ),
+        prefixes: [
+          FHeaderAction.back(onPress: () => context.pop()),
+        ],
+        suffixes: [
+          FHeaderAction(
+            icon: const Icon(Icons.save, color: AppColors.accentBlue),
+            onPress: saveProgram,
           ),
         ],
       ),
+      child: isLoading.value
+          ? const Center(
+              child: FProgress(),
+            )
+          : SingleChildScrollView(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Program Name Input
+                  FTextField(
+                    controller: nameController,
+                    hint: 'Program Name',
+                    onChange: (value) {
+                      ref
+                          .read(programBuilderProvider.notifier)
+                          .updateName(value);
+                    },
+                  ),
+
+                  const SizedBox(height: 24),
+
+                  // Duration Selector
+                  const Text(
+                    'Duration',
+                    style: TextStyle(
+                      fontSize: 17,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.textPrimary,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  DurationSelector(
+                    weeks: state.durationWeeks,
+                    days: state.durationDays,
+                    onChanged: (weeks, days) {
+                      ref
+                          .read(programBuilderProvider.notifier)
+                          .setDuration(weeks, days);
+                    },
+                  ),
+
+                  const SizedBox(height: 24),
+
+                  // Summary Card
+                  ProgramSummaryCard(
+                    totalDays: state.totalDays,
+                    workoutDays: state.workoutDays,
+                    restDays: state.restDays,
+                  ),
+
+                  const SizedBox(height: 24),
+
+                  // Week Navigation
+                  WeekNavigation(
+                    currentWeek: currentWeek,
+                    totalWeeks: state.totalWeeks,
+                    onPrevious: currentWeek > 1
+                        ? () {
+                            ref.read(currentWeekProvider.notifier).previousWeek();
+                          }
+                        : null,
+                    onNext: currentWeek < state.totalWeeks
+                        ? () {
+                            ref.read(currentWeekProvider.notifier).nextWeek();
+                          }
+                        : null,
+                  ),
+
+                  const SizedBox(height: 16),
+
+                  // Days Grid
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: daysInWeek.map((dayNumber) {
+                      final assignment =
+                          state.dayAssignments[dayNumber];
+                      return DayCard(
+                        dayNumber: dayNumber,
+                        assignment: assignment,
+                        onTap: () {
+                          showWorkoutAssignment(dayNumber);
+                        },
+                      );
+                    }).toList(),
+                  ),
+
+                  const SizedBox(height: 16),
+
+                  // Week Actions
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _buildActionButton(
+                          'Fill empty with rest',
+                          () {
+                            ref
+                                .read(programBuilderProvider.notifier)
+                                .fillWeekWithRest(currentWeek);
+                          },
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: _buildActionButton(
+                          'Clear week',
+                          () {
+                            ref
+                                .read(programBuilderProvider.notifier)
+                                .clearWeek(currentWeek);
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
     );
   }
 

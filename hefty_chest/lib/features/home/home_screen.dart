@@ -62,7 +62,7 @@ class HomeScreen extends ConsumerWidget {
     final confirmed = await showFDialog<bool>(
       context: context,
       builder: (context, style, animation) => FDialog(
-        style: style,
+        style: style, // ignore: implicit_call_tearoffs
         animation: animation,
         direction: Axis.horizontal,
         title: const Text('Delete Workout'),
@@ -105,179 +105,166 @@ class HomeScreen extends ConsumerWidget {
     final workoutsAsync = ref.watch(workoutListProvider);
     final statsAsync = ref.watch(dashboardStatsProvider);
 
-    return Scaffold(
-      backgroundColor: AppColors.bgPrimary,
-      body: SafeArea(
-        child: Column(
-          children: [
-            // Header
-            _buildHeader(context),
-
-            // Quick Stats
-            statsAsync.when(
-              data: (stats) => QuickStatsRow(
-                totalWorkouts: stats.totalWorkouts,
-                thisWeek: stats.workoutsThisWeek,
-                streak: stats.currentStreak,
-              ),
-              loading: () => const QuickStatsRow(
-                totalWorkouts: 0,
-                thisWeek: 0,
-                streak: 0,
-                isLoading: true,
-              ),
-              error: (_, _) => const QuickStatsRow(
-                totalWorkouts: 0,
-                thisWeek: 0,
-                streak: 0,
-              ),
-            ),
-
-            // Section Header
-            Padding(
-              padding: const EdgeInsets.fromLTRB(20, 20, 20, 12),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    'My Workouts',
-                    style: TextStyle(
-                      fontSize: 17,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.textPrimary,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-            // Workout List
-            Expanded(
-              child: workoutsAsync.when(
-                data: (workouts) {
-                  if (workouts.isEmpty) {
-                    return _buildEmptyState();
-                  }
-                  return ListView.builder(
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
-                    itemCount: workouts.length,
-                    itemBuilder: (context, index) {
-                      final workout = workouts[index];
-                      return WorkoutCard(
-                        workout: workout,
-                        onStart: () => _startWorkout(context, ref, workout.id),
-                        onEdit: () => context.goEditWorkout(workoutId: workout.id),
-                        onDelete: () => _confirmDelete(context, ref, workout),
-                      );
-                    },
-                  );
-                },
-                loading: () => const Center(
-                  child: FProgress(),
+    return Stack(
+      children: [
+        FScaffold(
+          header: FHeader(
+            title: Row(
+              children: [
+                Icon(
+                  Icons.fitness_center,
+                  color: AppColors.accentBlue,
+                  size: 28,
                 ),
-                error: (error, _) => Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        Icons.error_outline,
-                        size: 48,
-                        color: AppColors.accentRed,
-                      ),
-                      const SizedBox(height: 16),
-                      Text(
-                        'Failed to load workouts',
-                        style: TextStyle(
-                          color: AppColors.textSecondary,
-                          fontSize: 16,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      FButton(
-                        style: FButtonStyle.ghost(),
-                        onPress: () => ref.invalidate(workoutListProvider),
-                        child: const Text('Retry'),
-                      ),
-                    ],
+                const SizedBox(width: 10),
+                Text(
+                  'Heft',
+                  style: TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.textPrimary,
                   ),
                 ),
-              ),
+              ],
             ),
-          ],
-        ),
-      ),
-      // FAB
-      floatingActionButton: Container(
-        width: 56,
-        height: 56,
-        decoration: BoxDecoration(
-          color: AppColors.accentBlue,
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            BoxShadow(
-              color: AppColors.accentBlue.withValues(alpha: 0.4),
-              blurRadius: 12,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        ),
-        child: IconButton(
-          icon: const Icon(Icons.add, color: Colors.white, size: 24),
-          onPressed: () => context.goWorkoutBuilder(),
-        ),
-      ),
-      bottomNavigationBar: BottomNavBar(
-        selectedIndex: NavIndex.home,
-        onTap: (index) => _handleNavTap(context, index),
-      ),
-    );
-  }
-
-  Widget _buildHeader(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.fromLTRB(20, 20, 20, 16),
-      decoration: const BoxDecoration(
-        border: Border(
-          bottom: BorderSide(color: AppColors.borderColor, width: 1),
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          ),
+          footer: BottomNavBar(
+            selectedIndex: NavIndex.home,
+            onTap: (index) => _handleNavTap(context, index),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(
-                children: [
-                  // Dumbbell icon
-                  Icon(
-                    Icons.fitness_center,
-                    color: AppColors.accentBlue,
-                    size: 28,
+              // Subtitle
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 0, 20, 0),
+                child: Text(
+                  'Ready to crush your workout?',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: AppColors.textMuted,
                   ),
-                  const SizedBox(width: 10),
-                  Text(
-                    'Heft',
-                    style: TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.textPrimary,
+                ),
+              ),
+
+              // Quick Stats
+              statsAsync.when(
+                data: (stats) => QuickStatsRow(
+                  totalWorkouts: stats.totalWorkouts,
+                  thisWeek: stats.workoutsThisWeek,
+                  streak: stats.currentStreak,
+                ),
+                loading: () => const QuickStatsRow(
+                  totalWorkouts: 0,
+                  thisWeek: 0,
+                  streak: 0,
+                  isLoading: true,
+                ),
+                error: (_, _) => const QuickStatsRow(
+                  totalWorkouts: 0,
+                  thisWeek: 0,
+                  streak: 0,
+                ),
+              ),
+
+              // Section Header
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 20, 20, 12),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'My Workouts',
+                      style: TextStyle(
+                        fontSize: 17,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.textPrimary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              // Workout List
+              Expanded(
+                child: workoutsAsync.when(
+                  data: (workouts) {
+                    if (workouts.isEmpty) {
+                      return _buildEmptyState();
+                    }
+                    return ListView.builder(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      itemCount: workouts.length,
+                      itemBuilder: (context, index) {
+                        final workout = workouts[index];
+                        return WorkoutCard(
+                          workout: workout,
+                          onStart: () => _startWorkout(context, ref, workout.id),
+                          onEdit: () => context.goEditWorkout(workoutId: workout.id),
+                          onDelete: () => _confirmDelete(context, ref, workout),
+                        );
+                      },
+                    );
+                  },
+                  loading: () => const Center(
+                    child: FProgress(),
+                  ),
+                  error: (error, _) => Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.error_outline,
+                          size: 48,
+                          color: AppColors.accentRed,
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          'Failed to load workouts',
+                          style: TextStyle(
+                            color: AppColors.textSecondary,
+                            fontSize: 16,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        FButton(
+                          style: FButtonStyle.ghost(),
+                          onPress: () => ref.invalidate(workoutListProvider),
+                          child: const Text('Retry'),
+                        ),
+                      ],
                     ),
                   ),
-                ],
+                ),
               ),
             ],
           ),
-          const SizedBox(height: 4),
-          Text(
-            'Ready to crush your workout?',
-            style: TextStyle(
-              fontSize: 14,
-              color: AppColors.textMuted,
+        ),
+        // FAB - positioned above bottom nav
+        Positioned(
+          right: 20,
+          bottom: 100,
+          child: Container(
+            width: 56,
+            height: 56,
+            decoration: BoxDecoration(
+              color: AppColors.accentBlue,
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.accentBlue.withValues(alpha: 0.4),
+                  blurRadius: 12,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: IconButton(
+              icon: const Icon(Icons.add, color: Colors.white, size: 24),
+              onPressed: () => context.goWorkoutBuilder(),
             ),
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 

@@ -56,9 +56,7 @@ message UserSettings {
 }
 
 // GetProfile
-message GetProfileRequest {
-  string user_id = 1;
-}
+message GetProfileRequest {}
 
 message GetProfileResponse {
   User user = 1;
@@ -66,9 +64,8 @@ message GetProfileResponse {
 
 // UpdateProfile
 message UpdateProfileRequest {
-  string user_id = 1;
-  optional string display_name = 2;
-  optional string avatar_url = 3;
+  optional string display_name = 1;
+  optional string avatar_url = 2;
 }
 
 message UpdateProfileResponse {
@@ -77,9 +74,8 @@ message UpdateProfileResponse {
 
 // UpdateSettings
 message UpdateSettingsRequest {
-  string user_id = 1;
-  optional bool use_pounds = 2;
-  optional int32 rest_timer_seconds = 3;
+  optional bool use_pounds = 1;
+  optional int32 rest_timer_seconds = 2;
 }
 
 message UpdateSettingsResponse {
@@ -88,10 +84,9 @@ message UpdateSettingsResponse {
 
 // LogWeight
 message LogWeightRequest {
-  string user_id = 1;
-  double weight_kg = 2;
-  string logged_date = 3; // YYYY-MM-DD format
-  optional string notes = 4;
+  double weight_kg = 1;
+  string logged_date = 2; // YYYY-MM-DD format
+  optional string notes = 3;
 }
 
 message LogWeightResponse {
@@ -100,10 +95,9 @@ message LogWeightResponse {
 
 // GetWeightHistory
 message GetWeightHistoryRequest {
-  string user_id = 1;
-  optional string start_date = 2; // YYYY-MM-DD
-  optional string end_date = 3;   // YYYY-MM-DD
-  optional int32 limit = 4;
+  optional string start_date = 1; // YYYY-MM-DD
+  optional string end_date = 2;   // YYYY-MM-DD
+  optional int32 limit = 3;
 }
 
 message GetWeightHistoryResponse {
@@ -113,7 +107,6 @@ message GetWeightHistoryResponse {
 // DeleteWeightLog
 message DeleteWeightLogRequest {
   string id = 1;
-  string user_id = 2;
 }
 
 message DeleteWeightLogResponse {

@@ -1,10 +1,14 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:go_router/go_router.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../features/tracker/providers/session_providers.dart';
 import '../theme/app_colors.dart';
+import '../utils/formatters.dart';
 
 part 'floating_session_widget.g.dart';
 
@@ -40,7 +44,7 @@ class FloatingWidgetVisible extends _$FloatingWidgetVisible {
 }
 
 /// Floating widget showing active session progress
-class FloatingSessionWidget extends ConsumerStatefulWidget {
+class FloatingSessionWidget extends StatefulHookConsumerWidget {
   final GoRouter router;
 
   const FloatingSessionWidget({super.key, required this.router});
@@ -68,7 +72,11 @@ class _FloatingSessionWidgetState extends ConsumerState<FloatingSessionWidget> {
 
   void _onRouteChange() {
     if (mounted) {
-      setState(() {});
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          setState(() {});
+        }
+      });
     }
   }
 
@@ -80,7 +88,14 @@ class _FloatingSessionWidgetState extends ConsumerState<FloatingSessionWidget> {
       return const SizedBox.shrink();
     }
 
-    final sessionAsync = ref.watch(hasActiveSessionProvider);
+    // Watch activeSessionProvider for live updates (sets completing in real-time)
+    final activeSession = ref.watch(activeSessionProvider);
+    // Fallback to hasActiveSessionProvider for initial session load
+    final fallbackSession = ref.watch(hasActiveSessionProvider);
+
+    // Use active session if available, otherwise use fallback
+    final session = activeSession.value ?? fallbackSession.value;
+
     final position = ref.watch(floatingSessionPositionProvider);
 
     // Capture screen size before callback to avoid context issues
@@ -98,37 +113,63 @@ class _FloatingSessionWidgetState extends ConsumerState<FloatingSessionWidget> {
       });
     }
 
-    return sessionAsync.when(
-      data: (session) {
-        if (session == null) return const SizedBox.shrink();
+    // Return early if no session
+    if (session == null) {
+      return const SizedBox.shrink();
+    }
 
-        return Positioned(
-          left: position.dx,
-          top: position.dy,
-          child: GestureDetector(
-            behavior: HitTestBehavior.opaque,
-            onPanUpdate: (details) {
-              final widgetSize = _widgetKey.currentContext?.size ?? const Size(200, 60);
-              ref.read(floatingSessionPositionProvider.notifier)
-                  .updatePosition(details.delta, screenSize, widgetSize);
-            },
-            onTap: () {
-              widget.router.push('/session/${session.id}');
-            },
-            child: Material(
-              key: _widgetKey,
-              elevation: 8,
-              borderRadius: BorderRadius.circular(12),
-              color: AppColors.accentBlue,
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                child: Row(
+    // Elapsed time timer using hooks
+    final elapsedSeconds = useState(0);
+
+    // Timer effect - update elapsed time every second
+    useEffect(() {
+      // Calculate initial elapsed time
+      if (session.hasStartedAt()) {
+        final startedAt = session.startedAt.toDateTime();
+        elapsedSeconds.value = DateTime.now().difference(startedAt).inSeconds;
+      }
+
+      // Set up periodic timer
+      final timer = Timer.periodic(const Duration(seconds: 1), (_) {
+        if (session.hasStartedAt()) {
+          final startedAt = session.startedAt.toDateTime();
+          elapsedSeconds.value = DateTime.now().difference(startedAt).inSeconds;
+        }
+      });
+
+      return timer.cancel;
+    }, [session.id]);
+
+    return Positioned(
+      left: position.dx,
+      top: position.dy,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onPanUpdate: (details) {
+          final widgetSize = _widgetKey.currentContext?.size ?? const Size(200, 60);
+          ref.read(floatingSessionPositionProvider.notifier)
+              .updatePosition(details.delta, screenSize, widgetSize);
+        },
+        onTap: () {
+          widget.router.push('/session/${session.id}');
+        },
+        child: Material(
+          key: _widgetKey,
+          elevation: 8,
+          borderRadius: BorderRadius.circular(12),
+          color: AppColors.accentBlue,
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.fitness_center, color: Colors.white, size: 20),
+                const SizedBox(width: 10),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(Icons.fitness_center, color: Colors.white, size: 20),
-                    const SizedBox(width: 10),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                    Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Text(
@@ -139,26 +180,33 @@ class _FloatingSessionWidgetState extends ConsumerState<FloatingSessionWidget> {
                             fontSize: 14,
                           ),
                         ),
+                        const SizedBox(width: 8),
                         Text(
-                          '${session.completedSets}/${session.totalSets} sets',
+                          formatDuration(elapsedSeconds.value),
                           style: const TextStyle(
                             color: Colors.white70,
                             fontSize: 12,
+                            fontFeatures: [FontFeature.tabularFigures()],
                           ),
                         ),
                       ],
                     ),
-                    const SizedBox(width: 8),
-                    const Icon(Icons.chevron_right, color: Colors.white70, size: 20),
+                    Text(
+                      '${session.completedSets}/${session.totalSets} sets',
+                      style: const TextStyle(
+                        color: Colors.white70,
+                        fontSize: 12,
+                      ),
+                    ),
                   ],
                 ),
-              ),
+                const SizedBox(width: 8),
+                const Icon(Icons.chevron_right, color: Colors.white70, size: 20),
+              ],
             ),
           ),
-        );
-      },
-      loading: () => const SizedBox.shrink(),
-      error: (e, st) => const SizedBox.shrink(),
+        ),
+      ),
     );
   }
 }

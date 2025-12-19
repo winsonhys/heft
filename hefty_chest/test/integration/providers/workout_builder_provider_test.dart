@@ -391,7 +391,7 @@ void main() {
 
         // Verify workout was created by listing
         final listResponse = await workoutClient.listWorkouts(
-          ListWorkoutsRequest()..userId = TestData.testUserId,
+          ListWorkoutsRequest(),
         );
 
         final created = listResponse.workouts.where((w) => w.name == uniqueName);

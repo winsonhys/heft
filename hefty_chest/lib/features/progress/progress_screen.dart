@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:forui/forui.dart';
 
 import '../../shared/theme/app_colors.dart';
 import '../../shared/widgets/bottom_nav_bar.dart';
@@ -37,121 +38,95 @@ class ProgressScreen extends ConsumerWidget {
     final weeklyAsync = ref.watch(weeklyActivityProvider);
     final prsAsync = ref.watch(personalRecordsProvider);
 
-    return Scaffold(
-      backgroundColor: AppColors.bgPrimary,
-      body: SafeArea(
-        child: Column(
-          children: [
-            // Header
-            _buildHeader(),
-
-            // Content
-            Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const SizedBox(height: 16),
-
-                    // Summary Cards
-                    statsAsync.when(
-                      data: (stats) => SummaryCardsRow(
-                        thisWeek: stats.workoutsThisWeek,
-                        streak: stats.currentStreak,
-                        totalWorkouts: stats.totalWorkouts,
-                      ),
-                      loading: () => const SummaryCardsRow(
-                        thisWeek: 0,
-                        streak: 0,
-                        totalWorkouts: 0,
-                        isLoading: true,
-                      ),
-                      error: (_, _) => const SummaryCardsRow(
-                        thisWeek: 0,
-                        streak: 0,
-                        totalWorkouts: 0,
-                      ),
-                    ),
-
-                    const SizedBox(height: 24),
-
-                    // Weekly Activity Chart
-                    const Text(
-                      'Weekly Activity',
-                      style: TextStyle(
-                        fontSize: 17,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.textPrimary,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    weeklyAsync.when(
-                      data: (weekly) => WeeklyActivityChart(weeklyData: weekly),
-                      loading: () => const WeeklyActivityChart(
-                        weeklyData: [],
-                        isLoading: true,
-                      ),
-                      error: (_, _) => const WeeklyActivityChart(weeklyData: []),
-                    ),
-
-                    const SizedBox(height: 24),
-
-                    // Personal Records
-                    const Text(
-                      'Recent PRs',
-                      style: TextStyle(
-                        fontSize: 17,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.textPrimary,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    prsAsync.when(
-                      data: (prs) => PrList(records: prs),
-                      loading: () => const PrList(records: [], isLoading: true),
-                      error: (_, _) => const PrList(records: []),
-                    ),
-
-                    const SizedBox(height: 24),
-
-                    // Exercise Progress
-                    const ExerciseProgressSection(),
-
-                    const SizedBox(height: 24),
-                  ],
-                ),
-              ),
-            ),
-          ],
+    return FScaffold(
+      header: FHeader(
+        title: const Text(
+          'Progress',
+          style: TextStyle(
+            fontSize: 22,
+            fontWeight: FontWeight.w700,
+            color: AppColors.textPrimary,
+          ),
         ),
       ),
-      bottomNavigationBar: BottomNavBar(
+      footer: BottomNavBar(
         selectedIndex: NavIndex.progress,
         onTap: (index) => _handleNavTap(context, index),
       ),
-    );
-  }
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const SizedBox(height: 16),
 
-  Widget _buildHeader() {
-    return Container(
-      padding: const EdgeInsets.fromLTRB(20, 20, 20, 16),
-      decoration: const BoxDecoration(
-        border: Border(
-          bottom: BorderSide(color: AppColors.borderColor, width: 1),
-        ),
-      ),
-      child: const Row(
-        children: [
-          Text(
-            'Progress',
-            style: TextStyle(
-              fontSize: 22,
-              fontWeight: FontWeight.w700,
-              color: AppColors.textPrimary,
+            // Summary Cards
+            statsAsync.when(
+              data: (stats) => SummaryCardsRow(
+                thisWeek: stats.workoutsThisWeek,
+                streak: stats.currentStreak,
+                totalWorkouts: stats.totalWorkouts,
+              ),
+              loading: () => const SummaryCardsRow(
+                thisWeek: 0,
+                streak: 0,
+                totalWorkouts: 0,
+                isLoading: true,
+              ),
+              error: (_, _) => const SummaryCardsRow(
+                thisWeek: 0,
+                streak: 0,
+                totalWorkouts: 0,
+              ),
             ),
-          ),
-        ],
+
+            const SizedBox(height: 24),
+
+            // Weekly Activity Chart
+            const Text(
+              'Weekly Activity',
+              style: TextStyle(
+                fontSize: 17,
+                fontWeight: FontWeight.w600,
+                color: AppColors.textPrimary,
+              ),
+            ),
+            const SizedBox(height: 12),
+            weeklyAsync.when(
+              data: (weekly) => WeeklyActivityChart(weeklyData: weekly),
+              loading: () => const WeeklyActivityChart(
+                weeklyData: [],
+                isLoading: true,
+              ),
+              error: (_, _) => const WeeklyActivityChart(weeklyData: []),
+            ),
+
+            const SizedBox(height: 24),
+
+            // Personal Records
+            const Text(
+              'Recent PRs',
+              style: TextStyle(
+                fontSize: 17,
+                fontWeight: FontWeight.w600,
+                color: AppColors.textPrimary,
+              ),
+            ),
+            const SizedBox(height: 12),
+            prsAsync.when(
+              data: (prs) => PrList(records: prs),
+              loading: () => const PrList(records: [], isLoading: true),
+              error: (_, _) => const PrList(records: []),
+            ),
+
+            const SizedBox(height: 24),
+
+            // Exercise Progress
+            const ExerciseProgressSection(),
+
+            const SizedBox(height: 24),
+          ],
+        ),
       ),
     );
   }

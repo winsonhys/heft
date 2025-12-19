@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:forui/forui.dart';
@@ -5,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 import '../../shared/theme/app_colors.dart';
+import '../../shared/utils/formatters.dart';
 import '../../shared/widgets/floating_session_widget.dart';
 import '../../gen/session.pb.dart';
 import 'providers/session_providers.dart';
@@ -30,32 +33,63 @@ class TrackerScreen extends HookConsumerWidget {
     final restTimeRemaining = useState(120);
     final nextExerciseName = useState('');
     final nextSetNumber = useState(1);
+    final elapsedSeconds = useState(0);
 
     final sessionAsync = ref.watch(activeSessionProvider);
 
-    // Hide floating widget when on tracker screen, show when leaving
+    // Timer effect for elapsed time
     useEffect(() {
-      ref.read(floatingWidgetVisibleProvider.notifier).hide();
-      return () => ref.read(floatingWidgetVisibleProvider.notifier).show();
-    }, []);
+      final session = sessionAsync.value;
+      if (session == null || !session.hasStartedAt()) {
+        return null;
+      }
+
+      // Calculate initial elapsed time
+      final startedAt = session.startedAt.toDateTime();
+      elapsedSeconds.value = DateTime.now().difference(startedAt).inSeconds;
+
+      // Set up periodic timer
+      final timer = Timer.periodic(const Duration(seconds: 1), (_) {
+        elapsedSeconds.value = DateTime.now().difference(startedAt).inSeconds;
+      });
+
+      return timer.cancel;
+    }, [sessionAsync.value?.id]);
+
+    // Hide floating widget when on tracker screen, show when leaving
+    // Capture notifier before disposal since ref is invalid in cleanup
+    final floatingNotifier = ref.read(floatingWidgetVisibleProvider.notifier);
+    useEffect(() {
+      Future.microtask(() {
+        floatingNotifier.hide();
+      });
+      return () {
+        Future.microtask(() {
+          floatingNotifier.show();
+        });
+      };
+    }, [floatingNotifier]);
+
+    // Function to initialize/retry session
+    Future<void> initSession() async {
+      isLoading.value = true;
+      final notifier = ref.read(activeSessionProvider.notifier);
+
+      if (sessionId != null) {
+        // Resume existing session
+        await notifier.loadSession(sessionId: sessionId!);
+      } else if (workoutTemplateId != null) {
+        // Start new session
+        await notifier.startSession(workoutTemplateId: workoutTemplateId!);
+      }
+
+      if (context.mounted) {
+        isLoading.value = false;
+      }
+    }
 
     // Initialize session on mount
     useEffect(() {
-      Future<void> initSession() async {
-        final notifier = ref.read(activeSessionProvider.notifier);
-
-        if (sessionId != null) {
-          // Resume existing session
-          await notifier.loadSession(sessionId: sessionId!);
-        } else if (workoutTemplateId != null) {
-          // Start new session
-          await notifier.startSession(workoutTemplateId: workoutTemplateId!);
-        }
-
-        if (context.mounted) {
-          isLoading.value = false;
-        }
-      }
       Future.microtask(() => initSession());
       return null;
     }, [sessionId, workoutTemplateId]);
@@ -68,7 +102,7 @@ class TrackerScreen extends HookConsumerWidget {
       final confirm = await showFDialog<bool>(
         context: context,
         builder: (context, style, animation) => FDialog(
-          style: style,
+          style: style, // ignore: implicit_call_tearoffs
           animation: animation,
           direction: Axis.horizontal,
           title: const Text('Finish Workout?'),
@@ -95,126 +129,98 @@ class TrackerScreen extends HookConsumerWidget {
       }
     }
 
-    return Scaffold(
-      backgroundColor: AppColors.bgPrimary,
-      body: SafeArea(
-        child: Stack(
-          children: [
-            Column(
+    return Stack(
+      children: [
+        FScaffold(
+          header: FHeader.nested(
+            title: Row(
+              mainAxisSize: MainAxisSize.min,
               children: [
-                // Header
-                _buildHeader(context, finishWorkout),
-
-                // Content
-                Expanded(
-                  child: isLoading.value
-                      ? const Center(
-                          child: FProgress(),
-                        )
-                      : sessionAsync.when(
-                          data: (session) {
-                            if (session == null) {
-                              return _buildNoSession(context);
-                            }
-                            return _buildSessionContent(context, ref, session);
-                          },
-                          loading: () => const Center(
-                            child: FProgress(),
-                          ),
-                          error: (error, _) => Center(
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                const Icon(
-                                  Icons.error_outline,
-                                  size: 48,
-                                  color: AppColors.accentRed,
-                                ),
-                                const SizedBox(height: 16),
-                                Text(
-                                  'Failed to load session',
-                                  style: TextStyle(
-                                    color: AppColors.textSecondary,
-                                    fontSize: 16,
-                                  ),
-                                ),
-                                const SizedBox(height: 8),
-                                FButton(
-                                  style: FButtonStyle.ghost(),
-                                  onPress: () {
-                                    isLoading.value = true;
-                                    // Re-trigger init
-                                  },
-                                  child: const Text('Retry'),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
+                const Text(
+                  'Workout',
+                  style: TextStyle(
+                    fontSize: 17,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.textPrimary,
+                  ),
                 ),
+                if (sessionAsync.value != null) ...[
+                  const SizedBox(width: 12),
+                  Text(
+                    formatDuration(elapsedSeconds.value),
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                      color: AppColors.textMuted,
+                      fontFeatures: [FontFeature.tabularFigures()],
+                    ),
+                  ),
+                ],
               ],
             ),
-
-            // Rest Timer Bottom Sheet
-            if (showRestTimer.value)
-              RestTimerSheet(
-                initialTime: restTimeRemaining.value,
-                nextExerciseName: nextExerciseName.value,
-                nextSetNumber: nextSetNumber.value,
-                onSkip: hideRestTimer,
-                onComplete: hideRestTimer,
+            prefixes: [
+              FHeaderAction.back(onPress: () => context.go('/')),
+            ],
+            suffixes: [
+              FHeaderAction(
+                icon: const Icon(Icons.check, color: AppColors.accentGreen),
+                onPress: finishWorkout,
               ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildHeader(BuildContext context, VoidCallback onFinish) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          GestureDetector(
-            onTap: () => context.go('/'),
-            child: const Padding(
-              padding: EdgeInsets.all(4),
-              child: Icon(
-                Icons.chevron_left,
-                color: AppColors.textPrimary,
-                size: 20,
-              ),
-            ),
+            ],
           ),
-          const Text(
-            'Workout',
-            style: TextStyle(
-              fontSize: 17,
-              fontWeight: FontWeight.w600,
-              color: AppColors.textPrimary,
-            ),
-          ),
-          GestureDetector(
-            onTap: onFinish,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-              decoration: BoxDecoration(
-                color: AppColors.accentGreen,
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: const Text(
-                'Finish',
-                style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.white,
+          child: isLoading.value
+              ? const Center(
+                  child: FProgress(),
+                )
+              : sessionAsync.when(
+                  data: (session) {
+                    if (session == null) {
+                      return _buildNoSession(context);
+                    }
+                    return _buildSessionContent(context, ref, session);
+                  },
+                  loading: () => const Center(
+                    child: FProgress(),
+                  ),
+                  error: (error, _) => Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(
+                          Icons.error_outline,
+                          size: 48,
+                          color: AppColors.accentRed,
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          'Failed to load session',
+                          style: TextStyle(
+                            color: AppColors.textSecondary,
+                            fontSize: 16,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        FButton(
+                          style: FButtonStyle.ghost(),
+                          onPress: initSession,
+                          child: const Text('Retry'),
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
-              ),
-            ),
+        ),
+
+        // Rest Timer Bottom Sheet
+        if (showRestTimer.value)
+          RestTimerSheet(
+            initialTime: restTimeRemaining.value,
+            nextExerciseName: nextExerciseName.value,
+            nextSetNumber: nextSetNumber.value,
+            onSkip: hideRestTimer,
+            onComplete: hideRestTimer,
           ),
-        ],
-      ),
+      ],
     );
   }
 

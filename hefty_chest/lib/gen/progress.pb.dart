@@ -895,21 +895,12 @@ class CalendarEvent extends $pb.GeneratedMessage {
 
 /// GetDashboardStats
 class GetDashboardStatsRequest extends $pb.GeneratedMessage {
-  factory GetDashboardStatsRequest({
-    $core.String? userId,
-  }) {
-    final $result = create();
-    if (userId != null) {
-      $result.userId = userId;
-    }
-    return $result;
-  }
+  factory GetDashboardStatsRequest() => create();
   GetDashboardStatsRequest._() : super();
   factory GetDashboardStatsRequest.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
   factory GetDashboardStatsRequest.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
 
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'GetDashboardStatsRequest', package: const $pb.PackageName(_omitMessageNames ? '' : 'heft.v1'), createEmptyInstance: create)
-    ..aOS(1, _omitFieldNames ? '' : 'userId')
     ..hasRequiredFields = false
   ;
 
@@ -933,15 +924,6 @@ class GetDashboardStatsRequest extends $pb.GeneratedMessage {
   @$core.pragma('dart2js:noInline')
   static GetDashboardStatsRequest getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<GetDashboardStatsRequest>(create);
   static GetDashboardStatsRequest? _defaultInstance;
-
-  @$pb.TagNumber(1)
-  $core.String get userId => $_getSZ(0);
-  @$pb.TagNumber(1)
-  set userId($core.String v) { $_setString(0, v); }
-  @$pb.TagNumber(1)
-  $core.bool hasUserId() => $_has(0);
-  @$pb.TagNumber(1)
-  void clearUserId() => clearField(1);
 }
 
 class GetDashboardStatsResponse extends $pb.GeneratedMessage {
@@ -999,13 +981,9 @@ class GetDashboardStatsResponse extends $pb.GeneratedMessage {
 /// GetWeeklyActivity
 class GetWeeklyActivityRequest extends $pb.GeneratedMessage {
   factory GetWeeklyActivityRequest({
-    $core.String? userId,
     $core.String? weekStart,
   }) {
     final $result = create();
-    if (userId != null) {
-      $result.userId = userId;
-    }
     if (weekStart != null) {
       $result.weekStart = weekStart;
     }
@@ -1016,8 +994,7 @@ class GetWeeklyActivityRequest extends $pb.GeneratedMessage {
   factory GetWeeklyActivityRequest.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
 
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'GetWeeklyActivityRequest', package: const $pb.PackageName(_omitMessageNames ? '' : 'heft.v1'), createEmptyInstance: create)
-    ..aOS(1, _omitFieldNames ? '' : 'userId')
-    ..aOS(2, _omitFieldNames ? '' : 'weekStart')
+    ..aOS(1, _omitFieldNames ? '' : 'weekStart')
     ..hasRequiredFields = false
   ;
 
@@ -1043,22 +1020,13 @@ class GetWeeklyActivityRequest extends $pb.GeneratedMessage {
   static GetWeeklyActivityRequest? _defaultInstance;
 
   @$pb.TagNumber(1)
-  $core.String get userId => $_getSZ(0);
+  $core.String get weekStart => $_getSZ(0);
   @$pb.TagNumber(1)
-  set userId($core.String v) { $_setString(0, v); }
+  set weekStart($core.String v) { $_setString(0, v); }
   @$pb.TagNumber(1)
-  $core.bool hasUserId() => $_has(0);
+  $core.bool hasWeekStart() => $_has(0);
   @$pb.TagNumber(1)
-  void clearUserId() => clearField(1);
-
-  @$pb.TagNumber(2)
-  $core.String get weekStart => $_getSZ(1);
-  @$pb.TagNumber(2)
-  set weekStart($core.String v) { $_setString(1, v); }
-  @$pb.TagNumber(2)
-  $core.bool hasWeekStart() => $_has(1);
-  @$pb.TagNumber(2)
-  void clearWeekStart() => clearField(2);
+  void clearWeekStart() => clearField(1);
 }
 
 class GetWeeklyActivityResponse extends $pb.GeneratedMessage {
@@ -1122,14 +1090,10 @@ class GetWeeklyActivityResponse extends $pb.GeneratedMessage {
 /// GetPersonalRecords
 class GetPersonalRecordsRequest extends $pb.GeneratedMessage {
   factory GetPersonalRecordsRequest({
-    $core.String? userId,
     $core.int? limit,
     $core.String? exerciseId,
   }) {
     final $result = create();
-    if (userId != null) {
-      $result.userId = userId;
-    }
     if (limit != null) {
       $result.limit = limit;
     }
@@ -1143,9 +1107,8 @@ class GetPersonalRecordsRequest extends $pb.GeneratedMessage {
   factory GetPersonalRecordsRequest.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
 
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'GetPersonalRecordsRequest', package: const $pb.PackageName(_omitMessageNames ? '' : 'heft.v1'), createEmptyInstance: create)
-    ..aOS(1, _omitFieldNames ? '' : 'userId')
-    ..a<$core.int>(2, _omitFieldNames ? '' : 'limit', $pb.PbFieldType.O3)
-    ..aOS(3, _omitFieldNames ? '' : 'exerciseId')
+    ..a<$core.int>(1, _omitFieldNames ? '' : 'limit', $pb.PbFieldType.O3)
+    ..aOS(2, _omitFieldNames ? '' : 'exerciseId')
     ..hasRequiredFields = false
   ;
 
@@ -1171,31 +1134,22 @@ class GetPersonalRecordsRequest extends $pb.GeneratedMessage {
   static GetPersonalRecordsRequest? _defaultInstance;
 
   @$pb.TagNumber(1)
-  $core.String get userId => $_getSZ(0);
+  $core.int get limit => $_getIZ(0);
   @$pb.TagNumber(1)
-  set userId($core.String v) { $_setString(0, v); }
+  set limit($core.int v) { $_setSignedInt32(0, v); }
   @$pb.TagNumber(1)
-  $core.bool hasUserId() => $_has(0);
+  $core.bool hasLimit() => $_has(0);
   @$pb.TagNumber(1)
-  void clearUserId() => clearField(1);
+  void clearLimit() => clearField(1);
 
   @$pb.TagNumber(2)
-  $core.int get limit => $_getIZ(1);
+  $core.String get exerciseId => $_getSZ(1);
   @$pb.TagNumber(2)
-  set limit($core.int v) { $_setSignedInt32(1, v); }
+  set exerciseId($core.String v) { $_setString(1, v); }
   @$pb.TagNumber(2)
-  $core.bool hasLimit() => $_has(1);
+  $core.bool hasExerciseId() => $_has(1);
   @$pb.TagNumber(2)
-  void clearLimit() => clearField(2);
-
-  @$pb.TagNumber(3)
-  $core.String get exerciseId => $_getSZ(2);
-  @$pb.TagNumber(3)
-  set exerciseId($core.String v) { $_setString(2, v); }
-  @$pb.TagNumber(3)
-  $core.bool hasExerciseId() => $_has(2);
-  @$pb.TagNumber(3)
-  void clearExerciseId() => clearField(3);
+  void clearExerciseId() => clearField(2);
 }
 
 class GetPersonalRecordsResponse extends $pb.GeneratedMessage {
@@ -1245,14 +1199,10 @@ class GetPersonalRecordsResponse extends $pb.GeneratedMessage {
 /// GetExerciseProgress
 class GetExerciseProgressRequest extends $pb.GeneratedMessage {
   factory GetExerciseProgressRequest({
-    $core.String? userId,
     $core.String? exerciseId,
     $core.int? limit,
   }) {
     final $result = create();
-    if (userId != null) {
-      $result.userId = userId;
-    }
     if (exerciseId != null) {
       $result.exerciseId = exerciseId;
     }
@@ -1266,9 +1216,8 @@ class GetExerciseProgressRequest extends $pb.GeneratedMessage {
   factory GetExerciseProgressRequest.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
 
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'GetExerciseProgressRequest', package: const $pb.PackageName(_omitMessageNames ? '' : 'heft.v1'), createEmptyInstance: create)
-    ..aOS(1, _omitFieldNames ? '' : 'userId')
-    ..aOS(2, _omitFieldNames ? '' : 'exerciseId')
-    ..a<$core.int>(3, _omitFieldNames ? '' : 'limit', $pb.PbFieldType.O3)
+    ..aOS(1, _omitFieldNames ? '' : 'exerciseId')
+    ..a<$core.int>(2, _omitFieldNames ? '' : 'limit', $pb.PbFieldType.O3)
     ..hasRequiredFields = false
   ;
 
@@ -1294,31 +1243,22 @@ class GetExerciseProgressRequest extends $pb.GeneratedMessage {
   static GetExerciseProgressRequest? _defaultInstance;
 
   @$pb.TagNumber(1)
-  $core.String get userId => $_getSZ(0);
+  $core.String get exerciseId => $_getSZ(0);
   @$pb.TagNumber(1)
-  set userId($core.String v) { $_setString(0, v); }
+  set exerciseId($core.String v) { $_setString(0, v); }
   @$pb.TagNumber(1)
-  $core.bool hasUserId() => $_has(0);
+  $core.bool hasExerciseId() => $_has(0);
   @$pb.TagNumber(1)
-  void clearUserId() => clearField(1);
+  void clearExerciseId() => clearField(1);
 
   @$pb.TagNumber(2)
-  $core.String get exerciseId => $_getSZ(1);
+  $core.int get limit => $_getIZ(1);
   @$pb.TagNumber(2)
-  set exerciseId($core.String v) { $_setString(1, v); }
+  set limit($core.int v) { $_setSignedInt32(1, v); }
   @$pb.TagNumber(2)
-  $core.bool hasExerciseId() => $_has(1);
+  $core.bool hasLimit() => $_has(1);
   @$pb.TagNumber(2)
-  void clearExerciseId() => clearField(2);
-
-  @$pb.TagNumber(3)
-  $core.int get limit => $_getIZ(2);
-  @$pb.TagNumber(3)
-  set limit($core.int v) { $_setSignedInt32(2, v); }
-  @$pb.TagNumber(3)
-  $core.bool hasLimit() => $_has(2);
-  @$pb.TagNumber(3)
-  void clearLimit() => clearField(3);
+  void clearLimit() => clearField(2);
 }
 
 class GetExerciseProgressResponse extends $pb.GeneratedMessage {
@@ -1376,14 +1316,10 @@ class GetExerciseProgressResponse extends $pb.GeneratedMessage {
 /// GetCalendarMonth
 class GetCalendarMonthRequest extends $pb.GeneratedMessage {
   factory GetCalendarMonthRequest({
-    $core.String? userId,
     $core.int? year,
     $core.int? month,
   }) {
     final $result = create();
-    if (userId != null) {
-      $result.userId = userId;
-    }
     if (year != null) {
       $result.year = year;
     }
@@ -1397,9 +1333,8 @@ class GetCalendarMonthRequest extends $pb.GeneratedMessage {
   factory GetCalendarMonthRequest.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
 
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'GetCalendarMonthRequest', package: const $pb.PackageName(_omitMessageNames ? '' : 'heft.v1'), createEmptyInstance: create)
-    ..aOS(1, _omitFieldNames ? '' : 'userId')
-    ..a<$core.int>(2, _omitFieldNames ? '' : 'year', $pb.PbFieldType.O3)
-    ..a<$core.int>(3, _omitFieldNames ? '' : 'month', $pb.PbFieldType.O3)
+    ..a<$core.int>(1, _omitFieldNames ? '' : 'year', $pb.PbFieldType.O3)
+    ..a<$core.int>(2, _omitFieldNames ? '' : 'month', $pb.PbFieldType.O3)
     ..hasRequiredFields = false
   ;
 
@@ -1425,31 +1360,22 @@ class GetCalendarMonthRequest extends $pb.GeneratedMessage {
   static GetCalendarMonthRequest? _defaultInstance;
 
   @$pb.TagNumber(1)
-  $core.String get userId => $_getSZ(0);
+  $core.int get year => $_getIZ(0);
   @$pb.TagNumber(1)
-  set userId($core.String v) { $_setString(0, v); }
+  set year($core.int v) { $_setSignedInt32(0, v); }
   @$pb.TagNumber(1)
-  $core.bool hasUserId() => $_has(0);
+  $core.bool hasYear() => $_has(0);
   @$pb.TagNumber(1)
-  void clearUserId() => clearField(1);
+  void clearYear() => clearField(1);
 
   @$pb.TagNumber(2)
-  $core.int get year => $_getIZ(1);
+  $core.int get month => $_getIZ(1);
   @$pb.TagNumber(2)
-  set year($core.int v) { $_setSignedInt32(1, v); }
+  set month($core.int v) { $_setSignedInt32(1, v); }
   @$pb.TagNumber(2)
-  $core.bool hasYear() => $_has(1);
+  $core.bool hasMonth() => $_has(1);
   @$pb.TagNumber(2)
-  void clearYear() => clearField(2);
-
-  @$pb.TagNumber(3)
-  $core.int get month => $_getIZ(2);
-  @$pb.TagNumber(3)
-  set month($core.int v) { $_setSignedInt32(2, v); }
-  @$pb.TagNumber(3)
-  $core.bool hasMonth() => $_has(2);
-  @$pb.TagNumber(3)
-  void clearMonth() => clearField(3);
+  void clearMonth() => clearField(2);
 }
 
 class GetCalendarMonthResponse extends $pb.GeneratedMessage {
@@ -1526,21 +1452,12 @@ class GetCalendarMonthResponse extends $pb.GeneratedMessage {
 
 /// GetStreak
 class GetStreakRequest extends $pb.GeneratedMessage {
-  factory GetStreakRequest({
-    $core.String? userId,
-  }) {
-    final $result = create();
-    if (userId != null) {
-      $result.userId = userId;
-    }
-    return $result;
-  }
+  factory GetStreakRequest() => create();
   GetStreakRequest._() : super();
   factory GetStreakRequest.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
   factory GetStreakRequest.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
 
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'GetStreakRequest', package: const $pb.PackageName(_omitMessageNames ? '' : 'heft.v1'), createEmptyInstance: create)
-    ..aOS(1, _omitFieldNames ? '' : 'userId')
     ..hasRequiredFields = false
   ;
 
@@ -1564,15 +1481,6 @@ class GetStreakRequest extends $pb.GeneratedMessage {
   @$core.pragma('dart2js:noInline')
   static GetStreakRequest getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<GetStreakRequest>(create);
   static GetStreakRequest? _defaultInstance;
-
-  @$pb.TagNumber(1)
-  $core.String get userId => $_getSZ(0);
-  @$pb.TagNumber(1)
-  set userId($core.String v) { $_setString(0, v); }
-  @$pb.TagNumber(1)
-  $core.bool hasUserId() => $_has(0);
-  @$pb.TagNumber(1)
-  void clearUserId() => clearField(1);
 }
 
 class GetStreakResponse extends $pb.GeneratedMessage {

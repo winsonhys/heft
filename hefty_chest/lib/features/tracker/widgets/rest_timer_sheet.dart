@@ -3,6 +3,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:forui/forui.dart';
 
 import '../../../shared/theme/app_colors.dart';
 
@@ -158,42 +159,15 @@ class RestTimerSheet extends HookWidget {
             Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                GestureDetector(
-                  onTap: onSkip,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                    decoration: BoxDecoration(
-                      color: Colors.transparent,
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: const Text(
-                      'Skip',
-                      style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.textSecondary,
-                      ),
-                    ),
-                  ),
+                FButton(
+                  style: FButtonStyle.ghost(),
+                  onPress: onSkip,
+                  child: const Text('Skip'),
                 ),
                 const SizedBox(width: 8),
-                GestureDetector(
-                  onTap: addTime,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                    decoration: BoxDecoration(
-                      color: AppColors.accentBlue,
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: const Text(
-                      '+30s',
-                      style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ),
+                FButton(
+                  onPress: addTime,
+                  child: const Text('+30s'),
                 ),
               ],
             ),

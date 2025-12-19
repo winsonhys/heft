@@ -6,7 +6,6 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 import '../core/client.dart';
 import '../features/auth/providers/auth_providers.dart';
-import '../shared/theme/app_colors.dart';
 import '../shared/theme/heft_theme.dart';
 import '../shared/widgets/floating_session_widget.dart';
 import 'router.dart';
@@ -51,9 +50,8 @@ class _HeftyChestAppState extends ConsumerState<HeftyChestApp> {
         theme: heftDarkTheme.toApproximateMaterialTheme(),
         home: FTheme(
           data: heftDarkTheme,
-          child: const Scaffold(
-            backgroundColor: AppColors.bgPrimary,
-            body: Center(
+          child: const FScaffold(
+            child: Center(
               child: FProgress(),
             ),
           ),

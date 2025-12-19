@@ -873,16 +873,12 @@ class SessionSummary extends $pb.GeneratedMessage {
 /// StartSession
 class StartSessionRequest extends $pb.GeneratedMessage {
   factory StartSessionRequest({
-    $core.String? userId,
     $core.String? workoutTemplateId,
     $core.String? programId,
     $core.int? programDayNumber,
     $core.String? name,
   }) {
     final $result = create();
-    if (userId != null) {
-      $result.userId = userId;
-    }
     if (workoutTemplateId != null) {
       $result.workoutTemplateId = workoutTemplateId;
     }
@@ -902,11 +898,10 @@ class StartSessionRequest extends $pb.GeneratedMessage {
   factory StartSessionRequest.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
 
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'StartSessionRequest', package: const $pb.PackageName(_omitMessageNames ? '' : 'heft.v1'), createEmptyInstance: create)
-    ..aOS(1, _omitFieldNames ? '' : 'userId')
-    ..aOS(2, _omitFieldNames ? '' : 'workoutTemplateId')
-    ..aOS(3, _omitFieldNames ? '' : 'programId')
-    ..a<$core.int>(4, _omitFieldNames ? '' : 'programDayNumber', $pb.PbFieldType.O3)
-    ..aOS(5, _omitFieldNames ? '' : 'name')
+    ..aOS(1, _omitFieldNames ? '' : 'workoutTemplateId')
+    ..aOS(2, _omitFieldNames ? '' : 'programId')
+    ..a<$core.int>(3, _omitFieldNames ? '' : 'programDayNumber', $pb.PbFieldType.O3)
+    ..aOS(4, _omitFieldNames ? '' : 'name')
     ..hasRequiredFields = false
   ;
 
@@ -932,49 +927,40 @@ class StartSessionRequest extends $pb.GeneratedMessage {
   static StartSessionRequest? _defaultInstance;
 
   @$pb.TagNumber(1)
-  $core.String get userId => $_getSZ(0);
+  $core.String get workoutTemplateId => $_getSZ(0);
   @$pb.TagNumber(1)
-  set userId($core.String v) { $_setString(0, v); }
+  set workoutTemplateId($core.String v) { $_setString(0, v); }
   @$pb.TagNumber(1)
-  $core.bool hasUserId() => $_has(0);
+  $core.bool hasWorkoutTemplateId() => $_has(0);
   @$pb.TagNumber(1)
-  void clearUserId() => clearField(1);
+  void clearWorkoutTemplateId() => clearField(1);
 
   @$pb.TagNumber(2)
-  $core.String get workoutTemplateId => $_getSZ(1);
+  $core.String get programId => $_getSZ(1);
   @$pb.TagNumber(2)
-  set workoutTemplateId($core.String v) { $_setString(1, v); }
+  set programId($core.String v) { $_setString(1, v); }
   @$pb.TagNumber(2)
-  $core.bool hasWorkoutTemplateId() => $_has(1);
+  $core.bool hasProgramId() => $_has(1);
   @$pb.TagNumber(2)
-  void clearWorkoutTemplateId() => clearField(2);
+  void clearProgramId() => clearField(2);
 
   @$pb.TagNumber(3)
-  $core.String get programId => $_getSZ(2);
+  $core.int get programDayNumber => $_getIZ(2);
   @$pb.TagNumber(3)
-  set programId($core.String v) { $_setString(2, v); }
+  set programDayNumber($core.int v) { $_setSignedInt32(2, v); }
   @$pb.TagNumber(3)
-  $core.bool hasProgramId() => $_has(2);
+  $core.bool hasProgramDayNumber() => $_has(2);
   @$pb.TagNumber(3)
-  void clearProgramId() => clearField(3);
+  void clearProgramDayNumber() => clearField(3);
 
   @$pb.TagNumber(4)
-  $core.int get programDayNumber => $_getIZ(3);
+  $core.String get name => $_getSZ(3);
   @$pb.TagNumber(4)
-  set programDayNumber($core.int v) { $_setSignedInt32(3, v); }
+  set name($core.String v) { $_setString(3, v); }
   @$pb.TagNumber(4)
-  $core.bool hasProgramDayNumber() => $_has(3);
+  $core.bool hasName() => $_has(3);
   @$pb.TagNumber(4)
-  void clearProgramDayNumber() => clearField(4);
-
-  @$pb.TagNumber(5)
-  $core.String get name => $_getSZ(4);
-  @$pb.TagNumber(5)
-  set name($core.String v) { $_setString(4, v); }
-  @$pb.TagNumber(5)
-  $core.bool hasName() => $_has(4);
-  @$pb.TagNumber(5)
-  void clearName() => clearField(5);
+  void clearName() => clearField(4);
 }
 
 class StartSessionResponse extends $pb.GeneratedMessage {
@@ -1033,14 +1019,10 @@ class StartSessionResponse extends $pb.GeneratedMessage {
 class GetSessionRequest extends $pb.GeneratedMessage {
   factory GetSessionRequest({
     $core.String? id,
-    $core.String? userId,
   }) {
     final $result = create();
     if (id != null) {
       $result.id = id;
-    }
-    if (userId != null) {
-      $result.userId = userId;
     }
     return $result;
   }
@@ -1050,7 +1032,6 @@ class GetSessionRequest extends $pb.GeneratedMessage {
 
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'GetSessionRequest', package: const $pb.PackageName(_omitMessageNames ? '' : 'heft.v1'), createEmptyInstance: create)
     ..aOS(1, _omitFieldNames ? '' : 'id')
-    ..aOS(2, _omitFieldNames ? '' : 'userId')
     ..hasRequiredFields = false
   ;
 
@@ -1083,15 +1064,6 @@ class GetSessionRequest extends $pb.GeneratedMessage {
   $core.bool hasId() => $_has(0);
   @$pb.TagNumber(1)
   void clearId() => clearField(1);
-
-  @$pb.TagNumber(2)
-  $core.String get userId => $_getSZ(1);
-  @$pb.TagNumber(2)
-  set userId($core.String v) { $_setString(1, v); }
-  @$pb.TagNumber(2)
-  $core.bool hasUserId() => $_has(1);
-  @$pb.TagNumber(2)
-  void clearUserId() => clearField(2);
 }
 
 class GetSessionResponse extends $pb.GeneratedMessage {
@@ -1423,7 +1395,6 @@ class SyncSessionResponse extends $pb.GeneratedMessage {
 class AddExerciseRequest extends $pb.GeneratedMessage {
   factory AddExerciseRequest({
     $core.String? sessionId,
-    $core.String? userId,
     $core.String? exerciseId,
     $core.int? displayOrder,
     $core.String? sectionName,
@@ -1432,9 +1403,6 @@ class AddExerciseRequest extends $pb.GeneratedMessage {
     final $result = create();
     if (sessionId != null) {
       $result.sessionId = sessionId;
-    }
-    if (userId != null) {
-      $result.userId = userId;
     }
     if (exerciseId != null) {
       $result.exerciseId = exerciseId;
@@ -1456,11 +1424,10 @@ class AddExerciseRequest extends $pb.GeneratedMessage {
 
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'AddExerciseRequest', package: const $pb.PackageName(_omitMessageNames ? '' : 'heft.v1'), createEmptyInstance: create)
     ..aOS(1, _omitFieldNames ? '' : 'sessionId')
-    ..aOS(2, _omitFieldNames ? '' : 'userId')
-    ..aOS(3, _omitFieldNames ? '' : 'exerciseId')
-    ..a<$core.int>(4, _omitFieldNames ? '' : 'displayOrder', $pb.PbFieldType.O3)
-    ..aOS(5, _omitFieldNames ? '' : 'sectionName')
-    ..a<$core.int>(6, _omitFieldNames ? '' : 'numSets', $pb.PbFieldType.O3)
+    ..aOS(2, _omitFieldNames ? '' : 'exerciseId')
+    ..a<$core.int>(3, _omitFieldNames ? '' : 'displayOrder', $pb.PbFieldType.O3)
+    ..aOS(4, _omitFieldNames ? '' : 'sectionName')
+    ..a<$core.int>(5, _omitFieldNames ? '' : 'numSets', $pb.PbFieldType.O3)
     ..hasRequiredFields = false
   ;
 
@@ -1495,49 +1462,40 @@ class AddExerciseRequest extends $pb.GeneratedMessage {
   void clearSessionId() => clearField(1);
 
   @$pb.TagNumber(2)
-  $core.String get userId => $_getSZ(1);
+  $core.String get exerciseId => $_getSZ(1);
   @$pb.TagNumber(2)
-  set userId($core.String v) { $_setString(1, v); }
+  set exerciseId($core.String v) { $_setString(1, v); }
   @$pb.TagNumber(2)
-  $core.bool hasUserId() => $_has(1);
+  $core.bool hasExerciseId() => $_has(1);
   @$pb.TagNumber(2)
-  void clearUserId() => clearField(2);
+  void clearExerciseId() => clearField(2);
 
   @$pb.TagNumber(3)
-  $core.String get exerciseId => $_getSZ(2);
+  $core.int get displayOrder => $_getIZ(2);
   @$pb.TagNumber(3)
-  set exerciseId($core.String v) { $_setString(2, v); }
+  set displayOrder($core.int v) { $_setSignedInt32(2, v); }
   @$pb.TagNumber(3)
-  $core.bool hasExerciseId() => $_has(2);
+  $core.bool hasDisplayOrder() => $_has(2);
   @$pb.TagNumber(3)
-  void clearExerciseId() => clearField(3);
+  void clearDisplayOrder() => clearField(3);
 
   @$pb.TagNumber(4)
-  $core.int get displayOrder => $_getIZ(3);
+  $core.String get sectionName => $_getSZ(3);
   @$pb.TagNumber(4)
-  set displayOrder($core.int v) { $_setSignedInt32(3, v); }
+  set sectionName($core.String v) { $_setString(3, v); }
   @$pb.TagNumber(4)
-  $core.bool hasDisplayOrder() => $_has(3);
+  $core.bool hasSectionName() => $_has(3);
   @$pb.TagNumber(4)
-  void clearDisplayOrder() => clearField(4);
+  void clearSectionName() => clearField(4);
 
   @$pb.TagNumber(5)
-  $core.String get sectionName => $_getSZ(4);
+  $core.int get numSets => $_getIZ(4);
   @$pb.TagNumber(5)
-  set sectionName($core.String v) { $_setString(4, v); }
+  set numSets($core.int v) { $_setSignedInt32(4, v); }
   @$pb.TagNumber(5)
-  $core.bool hasSectionName() => $_has(4);
+  $core.bool hasNumSets() => $_has(4);
   @$pb.TagNumber(5)
-  void clearSectionName() => clearField(5);
-
-  @$pb.TagNumber(6)
-  $core.int get numSets => $_getIZ(5);
-  @$pb.TagNumber(6)
-  set numSets($core.int v) { $_setSignedInt32(5, v); }
-  @$pb.TagNumber(6)
-  $core.bool hasNumSets() => $_has(5);
-  @$pb.TagNumber(6)
-  void clearNumSets() => clearField(6);
+  void clearNumSets() => clearField(5);
 }
 
 class AddExerciseResponse extends $pb.GeneratedMessage {
@@ -1596,15 +1554,11 @@ class AddExerciseResponse extends $pb.GeneratedMessage {
 class FinishSessionRequest extends $pb.GeneratedMessage {
   factory FinishSessionRequest({
     $core.String? id,
-    $core.String? userId,
     $core.String? notes,
   }) {
     final $result = create();
     if (id != null) {
       $result.id = id;
-    }
-    if (userId != null) {
-      $result.userId = userId;
     }
     if (notes != null) {
       $result.notes = notes;
@@ -1617,8 +1571,7 @@ class FinishSessionRequest extends $pb.GeneratedMessage {
 
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'FinishSessionRequest', package: const $pb.PackageName(_omitMessageNames ? '' : 'heft.v1'), createEmptyInstance: create)
     ..aOS(1, _omitFieldNames ? '' : 'id')
-    ..aOS(2, _omitFieldNames ? '' : 'userId')
-    ..aOS(3, _omitFieldNames ? '' : 'notes')
+    ..aOS(2, _omitFieldNames ? '' : 'notes')
     ..hasRequiredFields = false
   ;
 
@@ -1653,22 +1606,13 @@ class FinishSessionRequest extends $pb.GeneratedMessage {
   void clearId() => clearField(1);
 
   @$pb.TagNumber(2)
-  $core.String get userId => $_getSZ(1);
+  $core.String get notes => $_getSZ(1);
   @$pb.TagNumber(2)
-  set userId($core.String v) { $_setString(1, v); }
+  set notes($core.String v) { $_setString(1, v); }
   @$pb.TagNumber(2)
-  $core.bool hasUserId() => $_has(1);
+  $core.bool hasNotes() => $_has(1);
   @$pb.TagNumber(2)
-  void clearUserId() => clearField(2);
-
-  @$pb.TagNumber(3)
-  $core.String get notes => $_getSZ(2);
-  @$pb.TagNumber(3)
-  set notes($core.String v) { $_setString(2, v); }
-  @$pb.TagNumber(3)
-  $core.bool hasNotes() => $_has(2);
-  @$pb.TagNumber(3)
-  void clearNotes() => clearField(3);
+  void clearNotes() => clearField(2);
 }
 
 class FinishSessionResponse extends $pb.GeneratedMessage {
@@ -1727,14 +1671,10 @@ class FinishSessionResponse extends $pb.GeneratedMessage {
 class AbandonSessionRequest extends $pb.GeneratedMessage {
   factory AbandonSessionRequest({
     $core.String? id,
-    $core.String? userId,
   }) {
     final $result = create();
     if (id != null) {
       $result.id = id;
-    }
-    if (userId != null) {
-      $result.userId = userId;
     }
     return $result;
   }
@@ -1744,7 +1684,6 @@ class AbandonSessionRequest extends $pb.GeneratedMessage {
 
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'AbandonSessionRequest', package: const $pb.PackageName(_omitMessageNames ? '' : 'heft.v1'), createEmptyInstance: create)
     ..aOS(1, _omitFieldNames ? '' : 'id')
-    ..aOS(2, _omitFieldNames ? '' : 'userId')
     ..hasRequiredFields = false
   ;
 
@@ -1777,15 +1716,6 @@ class AbandonSessionRequest extends $pb.GeneratedMessage {
   $core.bool hasId() => $_has(0);
   @$pb.TagNumber(1)
   void clearId() => clearField(1);
-
-  @$pb.TagNumber(2)
-  $core.String get userId => $_getSZ(1);
-  @$pb.TagNumber(2)
-  set userId($core.String v) { $_setString(1, v); }
-  @$pb.TagNumber(2)
-  $core.bool hasUserId() => $_has(1);
-  @$pb.TagNumber(2)
-  void clearUserId() => clearField(2);
 }
 
 class AbandonSessionResponse extends $pb.GeneratedMessage {
@@ -1841,16 +1771,12 @@ class AbandonSessionResponse extends $pb.GeneratedMessage {
 /// ListSessions
 class ListSessionsRequest extends $pb.GeneratedMessage {
   factory ListSessionsRequest({
-    $core.String? userId,
     $2.WorkoutStatus? status,
     $core.String? startDate,
     $core.String? endDate,
     $2.PaginationRequest? pagination,
   }) {
     final $result = create();
-    if (userId != null) {
-      $result.userId = userId;
-    }
     if (status != null) {
       $result.status = status;
     }
@@ -1870,11 +1796,10 @@ class ListSessionsRequest extends $pb.GeneratedMessage {
   factory ListSessionsRequest.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
 
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'ListSessionsRequest', package: const $pb.PackageName(_omitMessageNames ? '' : 'heft.v1'), createEmptyInstance: create)
-    ..aOS(1, _omitFieldNames ? '' : 'userId')
-    ..e<$2.WorkoutStatus>(2, _omitFieldNames ? '' : 'status', $pb.PbFieldType.OE, defaultOrMaker: $2.WorkoutStatus.WORKOUT_STATUS_UNSPECIFIED, valueOf: $2.WorkoutStatus.valueOf, enumValues: $2.WorkoutStatus.values)
-    ..aOS(3, _omitFieldNames ? '' : 'startDate')
-    ..aOS(4, _omitFieldNames ? '' : 'endDate')
-    ..aOM<$2.PaginationRequest>(5, _omitFieldNames ? '' : 'pagination', subBuilder: $2.PaginationRequest.create)
+    ..e<$2.WorkoutStatus>(1, _omitFieldNames ? '' : 'status', $pb.PbFieldType.OE, defaultOrMaker: $2.WorkoutStatus.WORKOUT_STATUS_UNSPECIFIED, valueOf: $2.WorkoutStatus.valueOf, enumValues: $2.WorkoutStatus.values)
+    ..aOS(2, _omitFieldNames ? '' : 'startDate')
+    ..aOS(3, _omitFieldNames ? '' : 'endDate')
+    ..aOM<$2.PaginationRequest>(4, _omitFieldNames ? '' : 'pagination', subBuilder: $2.PaginationRequest.create)
     ..hasRequiredFields = false
   ;
 
@@ -1900,51 +1825,42 @@ class ListSessionsRequest extends $pb.GeneratedMessage {
   static ListSessionsRequest? _defaultInstance;
 
   @$pb.TagNumber(1)
-  $core.String get userId => $_getSZ(0);
+  $2.WorkoutStatus get status => $_getN(0);
   @$pb.TagNumber(1)
-  set userId($core.String v) { $_setString(0, v); }
+  set status($2.WorkoutStatus v) { setField(1, v); }
   @$pb.TagNumber(1)
-  $core.bool hasUserId() => $_has(0);
+  $core.bool hasStatus() => $_has(0);
   @$pb.TagNumber(1)
-  void clearUserId() => clearField(1);
+  void clearStatus() => clearField(1);
 
   @$pb.TagNumber(2)
-  $2.WorkoutStatus get status => $_getN(1);
+  $core.String get startDate => $_getSZ(1);
   @$pb.TagNumber(2)
-  set status($2.WorkoutStatus v) { setField(2, v); }
+  set startDate($core.String v) { $_setString(1, v); }
   @$pb.TagNumber(2)
-  $core.bool hasStatus() => $_has(1);
+  $core.bool hasStartDate() => $_has(1);
   @$pb.TagNumber(2)
-  void clearStatus() => clearField(2);
+  void clearStartDate() => clearField(2);
 
   @$pb.TagNumber(3)
-  $core.String get startDate => $_getSZ(2);
+  $core.String get endDate => $_getSZ(2);
   @$pb.TagNumber(3)
-  set startDate($core.String v) { $_setString(2, v); }
+  set endDate($core.String v) { $_setString(2, v); }
   @$pb.TagNumber(3)
-  $core.bool hasStartDate() => $_has(2);
+  $core.bool hasEndDate() => $_has(2);
   @$pb.TagNumber(3)
-  void clearStartDate() => clearField(3);
+  void clearEndDate() => clearField(3);
 
   @$pb.TagNumber(4)
-  $core.String get endDate => $_getSZ(3);
+  $2.PaginationRequest get pagination => $_getN(3);
   @$pb.TagNumber(4)
-  set endDate($core.String v) { $_setString(3, v); }
+  set pagination($2.PaginationRequest v) { setField(4, v); }
   @$pb.TagNumber(4)
-  $core.bool hasEndDate() => $_has(3);
+  $core.bool hasPagination() => $_has(3);
   @$pb.TagNumber(4)
-  void clearEndDate() => clearField(4);
-
-  @$pb.TagNumber(5)
-  $2.PaginationRequest get pagination => $_getN(4);
-  @$pb.TagNumber(5)
-  set pagination($2.PaginationRequest v) { setField(5, v); }
-  @$pb.TagNumber(5)
-  $core.bool hasPagination() => $_has(4);
-  @$pb.TagNumber(5)
-  void clearPagination() => clearField(5);
-  @$pb.TagNumber(5)
-  $2.PaginationRequest ensurePagination() => $_ensure(4);
+  void clearPagination() => clearField(4);
+  @$pb.TagNumber(4)
+  $2.PaginationRequest ensurePagination() => $_ensure(3);
 }
 
 class ListSessionsResponse extends $pb.GeneratedMessage {

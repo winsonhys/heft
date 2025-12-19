@@ -583,14 +583,10 @@ class ProgramDay extends $pb.GeneratedMessage {
 /// ListPrograms
 class ListProgramsRequest extends $pb.GeneratedMessage {
   factory ListProgramsRequest({
-    $core.String? userId,
     $core.bool? includeArchived,
     $2.PaginationRequest? pagination,
   }) {
     final $result = create();
-    if (userId != null) {
-      $result.userId = userId;
-    }
     if (includeArchived != null) {
       $result.includeArchived = includeArchived;
     }
@@ -604,9 +600,8 @@ class ListProgramsRequest extends $pb.GeneratedMessage {
   factory ListProgramsRequest.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
 
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'ListProgramsRequest', package: const $pb.PackageName(_omitMessageNames ? '' : 'heft.v1'), createEmptyInstance: create)
-    ..aOS(1, _omitFieldNames ? '' : 'userId')
-    ..aOB(2, _omitFieldNames ? '' : 'includeArchived')
-    ..aOM<$2.PaginationRequest>(3, _omitFieldNames ? '' : 'pagination', subBuilder: $2.PaginationRequest.create)
+    ..aOB(1, _omitFieldNames ? '' : 'includeArchived')
+    ..aOM<$2.PaginationRequest>(2, _omitFieldNames ? '' : 'pagination', subBuilder: $2.PaginationRequest.create)
     ..hasRequiredFields = false
   ;
 
@@ -632,33 +627,24 @@ class ListProgramsRequest extends $pb.GeneratedMessage {
   static ListProgramsRequest? _defaultInstance;
 
   @$pb.TagNumber(1)
-  $core.String get userId => $_getSZ(0);
+  $core.bool get includeArchived => $_getBF(0);
   @$pb.TagNumber(1)
-  set userId($core.String v) { $_setString(0, v); }
+  set includeArchived($core.bool v) { $_setBool(0, v); }
   @$pb.TagNumber(1)
-  $core.bool hasUserId() => $_has(0);
+  $core.bool hasIncludeArchived() => $_has(0);
   @$pb.TagNumber(1)
-  void clearUserId() => clearField(1);
+  void clearIncludeArchived() => clearField(1);
 
   @$pb.TagNumber(2)
-  $core.bool get includeArchived => $_getBF(1);
+  $2.PaginationRequest get pagination => $_getN(1);
   @$pb.TagNumber(2)
-  set includeArchived($core.bool v) { $_setBool(1, v); }
+  set pagination($2.PaginationRequest v) { setField(2, v); }
   @$pb.TagNumber(2)
-  $core.bool hasIncludeArchived() => $_has(1);
+  $core.bool hasPagination() => $_has(1);
   @$pb.TagNumber(2)
-  void clearIncludeArchived() => clearField(2);
-
-  @$pb.TagNumber(3)
-  $2.PaginationRequest get pagination => $_getN(2);
-  @$pb.TagNumber(3)
-  set pagination($2.PaginationRequest v) { setField(3, v); }
-  @$pb.TagNumber(3)
-  $core.bool hasPagination() => $_has(2);
-  @$pb.TagNumber(3)
-  void clearPagination() => clearField(3);
-  @$pb.TagNumber(3)
-  $2.PaginationRequest ensurePagination() => $_ensure(2);
+  void clearPagination() => clearField(2);
+  @$pb.TagNumber(2)
+  $2.PaginationRequest ensurePagination() => $_ensure(1);
 }
 
 class ListProgramsResponse extends $pb.GeneratedMessage {
@@ -725,14 +711,10 @@ class ListProgramsResponse extends $pb.GeneratedMessage {
 class GetProgramRequest extends $pb.GeneratedMessage {
   factory GetProgramRequest({
     $core.String? id,
-    $core.String? userId,
   }) {
     final $result = create();
     if (id != null) {
       $result.id = id;
-    }
-    if (userId != null) {
-      $result.userId = userId;
     }
     return $result;
   }
@@ -742,7 +724,6 @@ class GetProgramRequest extends $pb.GeneratedMessage {
 
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'GetProgramRequest', package: const $pb.PackageName(_omitMessageNames ? '' : 'heft.v1'), createEmptyInstance: create)
     ..aOS(1, _omitFieldNames ? '' : 'id')
-    ..aOS(2, _omitFieldNames ? '' : 'userId')
     ..hasRequiredFields = false
   ;
 
@@ -775,15 +756,6 @@ class GetProgramRequest extends $pb.GeneratedMessage {
   $core.bool hasId() => $_has(0);
   @$pb.TagNumber(1)
   void clearId() => clearField(1);
-
-  @$pb.TagNumber(2)
-  $core.String get userId => $_getSZ(1);
-  @$pb.TagNumber(2)
-  set userId($core.String v) { $_setString(1, v); }
-  @$pb.TagNumber(2)
-  $core.bool hasUserId() => $_has(1);
-  @$pb.TagNumber(2)
-  void clearUserId() => clearField(2);
 }
 
 class GetProgramResponse extends $pb.GeneratedMessage {
@@ -841,7 +813,6 @@ class GetProgramResponse extends $pb.GeneratedMessage {
 /// CreateProgram
 class CreateProgramRequest extends $pb.GeneratedMessage {
   factory CreateProgramRequest({
-    $core.String? userId,
     $core.String? name,
     $core.String? description,
     $core.int? durationWeeks,
@@ -849,9 +820,6 @@ class CreateProgramRequest extends $pb.GeneratedMessage {
     $core.Iterable<CreateProgramDay>? days,
   }) {
     final $result = create();
-    if (userId != null) {
-      $result.userId = userId;
-    }
     if (name != null) {
       $result.name = name;
     }
@@ -874,12 +842,11 @@ class CreateProgramRequest extends $pb.GeneratedMessage {
   factory CreateProgramRequest.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
 
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'CreateProgramRequest', package: const $pb.PackageName(_omitMessageNames ? '' : 'heft.v1'), createEmptyInstance: create)
-    ..aOS(1, _omitFieldNames ? '' : 'userId')
-    ..aOS(2, _omitFieldNames ? '' : 'name')
-    ..aOS(3, _omitFieldNames ? '' : 'description')
-    ..a<$core.int>(4, _omitFieldNames ? '' : 'durationWeeks', $pb.PbFieldType.O3)
-    ..a<$core.int>(5, _omitFieldNames ? '' : 'durationDays', $pb.PbFieldType.O3)
-    ..pc<CreateProgramDay>(6, _omitFieldNames ? '' : 'days', $pb.PbFieldType.PM, subBuilder: CreateProgramDay.create)
+    ..aOS(1, _omitFieldNames ? '' : 'name')
+    ..aOS(2, _omitFieldNames ? '' : 'description')
+    ..a<$core.int>(3, _omitFieldNames ? '' : 'durationWeeks', $pb.PbFieldType.O3)
+    ..a<$core.int>(4, _omitFieldNames ? '' : 'durationDays', $pb.PbFieldType.O3)
+    ..pc<CreateProgramDay>(5, _omitFieldNames ? '' : 'days', $pb.PbFieldType.PM, subBuilder: CreateProgramDay.create)
     ..hasRequiredFields = false
   ;
 
@@ -905,52 +872,43 @@ class CreateProgramRequest extends $pb.GeneratedMessage {
   static CreateProgramRequest? _defaultInstance;
 
   @$pb.TagNumber(1)
-  $core.String get userId => $_getSZ(0);
+  $core.String get name => $_getSZ(0);
   @$pb.TagNumber(1)
-  set userId($core.String v) { $_setString(0, v); }
+  set name($core.String v) { $_setString(0, v); }
   @$pb.TagNumber(1)
-  $core.bool hasUserId() => $_has(0);
+  $core.bool hasName() => $_has(0);
   @$pb.TagNumber(1)
-  void clearUserId() => clearField(1);
+  void clearName() => clearField(1);
 
   @$pb.TagNumber(2)
-  $core.String get name => $_getSZ(1);
+  $core.String get description => $_getSZ(1);
   @$pb.TagNumber(2)
-  set name($core.String v) { $_setString(1, v); }
+  set description($core.String v) { $_setString(1, v); }
   @$pb.TagNumber(2)
-  $core.bool hasName() => $_has(1);
+  $core.bool hasDescription() => $_has(1);
   @$pb.TagNumber(2)
-  void clearName() => clearField(2);
+  void clearDescription() => clearField(2);
 
   @$pb.TagNumber(3)
-  $core.String get description => $_getSZ(2);
+  $core.int get durationWeeks => $_getIZ(2);
   @$pb.TagNumber(3)
-  set description($core.String v) { $_setString(2, v); }
+  set durationWeeks($core.int v) { $_setSignedInt32(2, v); }
   @$pb.TagNumber(3)
-  $core.bool hasDescription() => $_has(2);
+  $core.bool hasDurationWeeks() => $_has(2);
   @$pb.TagNumber(3)
-  void clearDescription() => clearField(3);
+  void clearDurationWeeks() => clearField(3);
 
   @$pb.TagNumber(4)
-  $core.int get durationWeeks => $_getIZ(3);
+  $core.int get durationDays => $_getIZ(3);
   @$pb.TagNumber(4)
-  set durationWeeks($core.int v) { $_setSignedInt32(3, v); }
+  set durationDays($core.int v) { $_setSignedInt32(3, v); }
   @$pb.TagNumber(4)
-  $core.bool hasDurationWeeks() => $_has(3);
+  $core.bool hasDurationDays() => $_has(3);
   @$pb.TagNumber(4)
-  void clearDurationWeeks() => clearField(4);
+  void clearDurationDays() => clearField(4);
 
   @$pb.TagNumber(5)
-  $core.int get durationDays => $_getIZ(4);
-  @$pb.TagNumber(5)
-  set durationDays($core.int v) { $_setSignedInt32(4, v); }
-  @$pb.TagNumber(5)
-  $core.bool hasDurationDays() => $_has(4);
-  @$pb.TagNumber(5)
-  void clearDurationDays() => clearField(5);
-
-  @$pb.TagNumber(6)
-  $core.List<CreateProgramDay> get days => $_getList(5);
+  $core.List<CreateProgramDay> get days => $_getList(4);
 }
 
 class CreateProgramDay extends $pb.GeneratedMessage {
@@ -1101,7 +1059,6 @@ class CreateProgramResponse extends $pb.GeneratedMessage {
 class UpdateProgramRequest extends $pb.GeneratedMessage {
   factory UpdateProgramRequest({
     $core.String? id,
-    $core.String? userId,
     $core.String? name,
     $core.String? description,
     $core.int? durationWeeks,
@@ -1112,9 +1069,6 @@ class UpdateProgramRequest extends $pb.GeneratedMessage {
     final $result = create();
     if (id != null) {
       $result.id = id;
-    }
-    if (userId != null) {
-      $result.userId = userId;
     }
     if (name != null) {
       $result.name = name;
@@ -1142,13 +1096,12 @@ class UpdateProgramRequest extends $pb.GeneratedMessage {
 
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'UpdateProgramRequest', package: const $pb.PackageName(_omitMessageNames ? '' : 'heft.v1'), createEmptyInstance: create)
     ..aOS(1, _omitFieldNames ? '' : 'id')
-    ..aOS(2, _omitFieldNames ? '' : 'userId')
-    ..aOS(3, _omitFieldNames ? '' : 'name')
-    ..aOS(4, _omitFieldNames ? '' : 'description')
-    ..a<$core.int>(5, _omitFieldNames ? '' : 'durationWeeks', $pb.PbFieldType.O3)
-    ..a<$core.int>(6, _omitFieldNames ? '' : 'durationDays', $pb.PbFieldType.O3)
-    ..aOB(7, _omitFieldNames ? '' : 'isArchived')
-    ..pc<CreateProgramDay>(8, _omitFieldNames ? '' : 'days', $pb.PbFieldType.PM, subBuilder: CreateProgramDay.create)
+    ..aOS(2, _omitFieldNames ? '' : 'name')
+    ..aOS(3, _omitFieldNames ? '' : 'description')
+    ..a<$core.int>(4, _omitFieldNames ? '' : 'durationWeeks', $pb.PbFieldType.O3)
+    ..a<$core.int>(5, _omitFieldNames ? '' : 'durationDays', $pb.PbFieldType.O3)
+    ..aOB(6, _omitFieldNames ? '' : 'isArchived')
+    ..pc<CreateProgramDay>(7, _omitFieldNames ? '' : 'days', $pb.PbFieldType.PM, subBuilder: CreateProgramDay.create)
     ..hasRequiredFields = false
   ;
 
@@ -1183,61 +1136,52 @@ class UpdateProgramRequest extends $pb.GeneratedMessage {
   void clearId() => clearField(1);
 
   @$pb.TagNumber(2)
-  $core.String get userId => $_getSZ(1);
+  $core.String get name => $_getSZ(1);
   @$pb.TagNumber(2)
-  set userId($core.String v) { $_setString(1, v); }
+  set name($core.String v) { $_setString(1, v); }
   @$pb.TagNumber(2)
-  $core.bool hasUserId() => $_has(1);
+  $core.bool hasName() => $_has(1);
   @$pb.TagNumber(2)
-  void clearUserId() => clearField(2);
+  void clearName() => clearField(2);
 
   @$pb.TagNumber(3)
-  $core.String get name => $_getSZ(2);
+  $core.String get description => $_getSZ(2);
   @$pb.TagNumber(3)
-  set name($core.String v) { $_setString(2, v); }
+  set description($core.String v) { $_setString(2, v); }
   @$pb.TagNumber(3)
-  $core.bool hasName() => $_has(2);
+  $core.bool hasDescription() => $_has(2);
   @$pb.TagNumber(3)
-  void clearName() => clearField(3);
+  void clearDescription() => clearField(3);
 
   @$pb.TagNumber(4)
-  $core.String get description => $_getSZ(3);
+  $core.int get durationWeeks => $_getIZ(3);
   @$pb.TagNumber(4)
-  set description($core.String v) { $_setString(3, v); }
+  set durationWeeks($core.int v) { $_setSignedInt32(3, v); }
   @$pb.TagNumber(4)
-  $core.bool hasDescription() => $_has(3);
+  $core.bool hasDurationWeeks() => $_has(3);
   @$pb.TagNumber(4)
-  void clearDescription() => clearField(4);
+  void clearDurationWeeks() => clearField(4);
 
   @$pb.TagNumber(5)
-  $core.int get durationWeeks => $_getIZ(4);
+  $core.int get durationDays => $_getIZ(4);
   @$pb.TagNumber(5)
-  set durationWeeks($core.int v) { $_setSignedInt32(4, v); }
+  set durationDays($core.int v) { $_setSignedInt32(4, v); }
   @$pb.TagNumber(5)
-  $core.bool hasDurationWeeks() => $_has(4);
+  $core.bool hasDurationDays() => $_has(4);
   @$pb.TagNumber(5)
-  void clearDurationWeeks() => clearField(5);
+  void clearDurationDays() => clearField(5);
 
   @$pb.TagNumber(6)
-  $core.int get durationDays => $_getIZ(5);
+  $core.bool get isArchived => $_getBF(5);
   @$pb.TagNumber(6)
-  set durationDays($core.int v) { $_setSignedInt32(5, v); }
+  set isArchived($core.bool v) { $_setBool(5, v); }
   @$pb.TagNumber(6)
-  $core.bool hasDurationDays() => $_has(5);
+  $core.bool hasIsArchived() => $_has(5);
   @$pb.TagNumber(6)
-  void clearDurationDays() => clearField(6);
+  void clearIsArchived() => clearField(6);
 
   @$pb.TagNumber(7)
-  $core.bool get isArchived => $_getBF(6);
-  @$pb.TagNumber(7)
-  set isArchived($core.bool v) { $_setBool(6, v); }
-  @$pb.TagNumber(7)
-  $core.bool hasIsArchived() => $_has(6);
-  @$pb.TagNumber(7)
-  void clearIsArchived() => clearField(7);
-
-  @$pb.TagNumber(8)
-  $core.List<CreateProgramDay> get days => $_getList(7);
+  $core.List<CreateProgramDay> get days => $_getList(6);
 }
 
 class UpdateProgramResponse extends $pb.GeneratedMessage {
@@ -1296,14 +1240,10 @@ class UpdateProgramResponse extends $pb.GeneratedMessage {
 class DeleteProgramRequest extends $pb.GeneratedMessage {
   factory DeleteProgramRequest({
     $core.String? id,
-    $core.String? userId,
   }) {
     final $result = create();
     if (id != null) {
       $result.id = id;
-    }
-    if (userId != null) {
-      $result.userId = userId;
     }
     return $result;
   }
@@ -1313,7 +1253,6 @@ class DeleteProgramRequest extends $pb.GeneratedMessage {
 
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'DeleteProgramRequest', package: const $pb.PackageName(_omitMessageNames ? '' : 'heft.v1'), createEmptyInstance: create)
     ..aOS(1, _omitFieldNames ? '' : 'id')
-    ..aOS(2, _omitFieldNames ? '' : 'userId')
     ..hasRequiredFields = false
   ;
 
@@ -1346,15 +1285,6 @@ class DeleteProgramRequest extends $pb.GeneratedMessage {
   $core.bool hasId() => $_has(0);
   @$pb.TagNumber(1)
   void clearId() => clearField(1);
-
-  @$pb.TagNumber(2)
-  $core.String get userId => $_getSZ(1);
-  @$pb.TagNumber(2)
-  set userId($core.String v) { $_setString(1, v); }
-  @$pb.TagNumber(2)
-  $core.bool hasUserId() => $_has(1);
-  @$pb.TagNumber(2)
-  void clearUserId() => clearField(2);
 }
 
 class DeleteProgramResponse extends $pb.GeneratedMessage {
@@ -1411,14 +1341,10 @@ class DeleteProgramResponse extends $pb.GeneratedMessage {
 class SetActiveProgramRequest extends $pb.GeneratedMessage {
   factory SetActiveProgramRequest({
     $core.String? id,
-    $core.String? userId,
   }) {
     final $result = create();
     if (id != null) {
       $result.id = id;
-    }
-    if (userId != null) {
-      $result.userId = userId;
     }
     return $result;
   }
@@ -1428,7 +1354,6 @@ class SetActiveProgramRequest extends $pb.GeneratedMessage {
 
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'SetActiveProgramRequest', package: const $pb.PackageName(_omitMessageNames ? '' : 'heft.v1'), createEmptyInstance: create)
     ..aOS(1, _omitFieldNames ? '' : 'id')
-    ..aOS(2, _omitFieldNames ? '' : 'userId')
     ..hasRequiredFields = false
   ;
 
@@ -1461,15 +1386,6 @@ class SetActiveProgramRequest extends $pb.GeneratedMessage {
   $core.bool hasId() => $_has(0);
   @$pb.TagNumber(1)
   void clearId() => clearField(1);
-
-  @$pb.TagNumber(2)
-  $core.String get userId => $_getSZ(1);
-  @$pb.TagNumber(2)
-  set userId($core.String v) { $_setString(1, v); }
-  @$pb.TagNumber(2)
-  $core.bool hasUserId() => $_has(1);
-  @$pb.TagNumber(2)
-  void clearUserId() => clearField(2);
 }
 
 class SetActiveProgramResponse extends $pb.GeneratedMessage {
@@ -1526,21 +1442,12 @@ class SetActiveProgramResponse extends $pb.GeneratedMessage {
 
 /// GetTodayWorkout
 class GetTodayWorkoutRequest extends $pb.GeneratedMessage {
-  factory GetTodayWorkoutRequest({
-    $core.String? userId,
-  }) {
-    final $result = create();
-    if (userId != null) {
-      $result.userId = userId;
-    }
-    return $result;
-  }
+  factory GetTodayWorkoutRequest() => create();
   GetTodayWorkoutRequest._() : super();
   factory GetTodayWorkoutRequest.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
   factory GetTodayWorkoutRequest.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
 
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'GetTodayWorkoutRequest', package: const $pb.PackageName(_omitMessageNames ? '' : 'heft.v1'), createEmptyInstance: create)
-    ..aOS(1, _omitFieldNames ? '' : 'userId')
     ..hasRequiredFields = false
   ;
 
@@ -1564,15 +1471,6 @@ class GetTodayWorkoutRequest extends $pb.GeneratedMessage {
   @$core.pragma('dart2js:noInline')
   static GetTodayWorkoutRequest getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<GetTodayWorkoutRequest>(create);
   static GetTodayWorkoutRequest? _defaultInstance;
-
-  @$pb.TagNumber(1)
-  $core.String get userId => $_getSZ(0);
-  @$pb.TagNumber(1)
-  set userId($core.String v) { $_setString(0, v); }
-  @$pb.TagNumber(1)
-  $core.bool hasUserId() => $_has(0);
-  @$pb.TagNumber(1)
-  void clearUserId() => clearField(1);
 }
 
 class GetTodayWorkoutResponse extends $pb.GeneratedMessage {

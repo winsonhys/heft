@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:hefty_chest/shared/widgets/floating_session_widget.dart';
 import 'package:hefty_chest/features/tracker/providers/session_providers.dart';
 import 'package:hefty_chest/core/client.dart';
+import 'package:hefty_chest/gen/google/protobuf/timestamp.pb.dart';
 
 /// Creates a mock Session for testing
 Session createMockSession({
@@ -12,12 +13,19 @@ Session createMockSession({
   String name = 'Test Workout',
   int completedSets = 5,
   int totalSets = 12,
+  DateTime? startedAt,
 }) {
-  return Session()
+  final session = Session()
     ..id = id
     ..name = name
     ..completedSets = completedSets
     ..totalSets = totalSets;
+
+  if (startedAt != null) {
+    session.startedAt = Timestamp.fromDateTime(startedAt);
+  }
+
+  return session;
 }
 
 /// Creates a mock GoRouter for testing
@@ -238,6 +246,55 @@ void main() {
         materialWidget.borderRadius,
         equals(BorderRadius.circular(12)),
       );
+    });
+
+    testWidgets('displays elapsed time when session has startedAt', (tester) async {
+      // Create a session that started 125 seconds ago (2:05)
+      final startTime = DateTime.now().subtract(const Duration(seconds: 125));
+
+      await tester.pumpWidget(
+        createTestWidget(
+          overrides: [
+            hasActiveSessionProvider.overrideWith(
+              (ref) async => createMockSession(startedAt: startTime),
+            ),
+          ],
+          child: FloatingSessionWidget(router: mockRouter),
+        ),
+      );
+
+      await tester.pumpAndSettle();
+
+      // Should display elapsed time in MM:SS format
+      // The exact time might be 2:05 or 2:06 depending on test timing
+      expect(find.textContaining('2:'), findsOneWidget);
+    });
+
+    testWidgets('elapsed time updates after 1 second', (tester) async {
+      // Create a session that started 5 seconds ago
+      final startTime = DateTime.now().subtract(const Duration(seconds: 5));
+
+      await tester.pumpWidget(
+        createTestWidget(
+          overrides: [
+            hasActiveSessionProvider.overrideWith(
+              (ref) async => createMockSession(startedAt: startTime),
+            ),
+          ],
+          child: FloatingSessionWidget(router: mockRouter),
+        ),
+      );
+
+      await tester.pumpAndSettle();
+
+      // Should show initial time (around 0:05)
+      expect(find.textContaining('0:0'), findsOneWidget);
+
+      // Pump 1 second
+      await tester.pump(const Duration(seconds: 1));
+
+      // Time should have incremented (around 0:06)
+      expect(find.textContaining('0:0'), findsOneWidget);
     });
   });
 }

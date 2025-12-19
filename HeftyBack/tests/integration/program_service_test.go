@@ -26,9 +26,7 @@ func TestProgramService_Integration_ListPrograms(t *testing.T) {
 	t.Run("list empty programs", func(t *testing.T) {
 		ctx := context.Background()
 
-		req := connect.NewRequest(&heftv1.ListProgramsRequest{
-			UserId: userID,
-		})
+		req := connect.NewRequest(&heftv1.ListProgramsRequest{})
 		req.Header().Set("Authorization", ts.AuthHeader(userID))
 		resp, err := ts.ProgramClient.ListPrograms(ctx, req)
 
@@ -47,7 +45,6 @@ func TestProgramService_Integration_ListPrograms(t *testing.T) {
 
 		// Create a program
 		createReq := connect.NewRequest(&heftv1.CreateProgramRequest{
-			UserId:        userID,
 			Name:          "Test Program",
 			DurationWeeks: 4,
 		})
@@ -58,9 +55,7 @@ func TestProgramService_Integration_ListPrograms(t *testing.T) {
 		}
 
 		// List programs
-		listReq := connect.NewRequest(&heftv1.ListProgramsRequest{
-			UserId: userID,
-		})
+		listReq := connect.NewRequest(&heftv1.ListProgramsRequest{})
 		listReq.Header().Set("Authorization", ts.AuthHeader(userID))
 		resp, err := ts.ProgramClient.ListPrograms(ctx, listReq)
 
@@ -90,7 +85,6 @@ func TestProgramService_Integration_CreateProgram(t *testing.T) {
 		ctx := context.Background()
 
 		req := connect.NewRequest(&heftv1.CreateProgramRequest{
-			UserId:        userID,
 			Name:          "5x5 Strength",
 			DurationWeeks: 12,
 		})
@@ -119,7 +113,6 @@ func TestProgramService_Integration_CreateProgram(t *testing.T) {
 		description := "A classic strength building program"
 
 		req := connect.NewRequest(&heftv1.CreateProgramRequest{
-			UserId:        userID,
 			Name:          "StrongLifts 5x5",
 			Description:   &description,
 			DurationWeeks: 12,
@@ -141,8 +134,7 @@ func TestProgramService_Integration_CreateProgram(t *testing.T) {
 
 		// First create a workout template
 		workoutReq := connect.NewRequest(&heftv1.CreateWorkoutRequest{
-			UserId: userID,
-			Name:   "Push Day",
+			Name: "Push Day",
 		})
 		workoutReq.Header().Set("Authorization", ts.AuthHeader(userID))
 		workoutResp, err := ts.WorkoutClient.CreateWorkout(ctx, workoutReq)
@@ -152,7 +144,6 @@ func TestProgramService_Integration_CreateProgram(t *testing.T) {
 		workoutID := workoutResp.Msg.Workout.Id
 
 		req := connect.NewRequest(&heftv1.CreateProgramRequest{
-			UserId:        userID,
 			Name:          "Weekly Program",
 			DurationWeeks: 1,
 			Days: []*heftv1.CreateProgramDay{
@@ -212,7 +203,6 @@ func TestProgramService_Integration_GetProgram(t *testing.T) {
 
 		// Create a program first
 		createReq := connect.NewRequest(&heftv1.CreateProgramRequest{
-			UserId:        userID,
 			Name:          "Test Program",
 			DurationWeeks: 4,
 		})
@@ -226,8 +216,7 @@ func TestProgramService_Integration_GetProgram(t *testing.T) {
 
 		// Get the program
 		getReq := connect.NewRequest(&heftv1.GetProgramRequest{
-			Id:     programID,
-			UserId: userID,
+			Id: programID,
 		})
 		getReq.Header().Set("Authorization", ts.AuthHeader(userID))
 		getResp, err := ts.ProgramClient.GetProgram(ctx, getReq)
@@ -245,8 +234,7 @@ func TestProgramService_Integration_GetProgram(t *testing.T) {
 		ctx := context.Background()
 
 		req := connect.NewRequest(&heftv1.GetProgramRequest{
-			Id:     "00000000-0000-0000-0000-000000000000",
-			UserId: userID,
+			Id: "00000000-0000-0000-0000-000000000000",
 		})
 		req.Header().Set("Authorization", ts.AuthHeader(userID))
 		_, err := ts.ProgramClient.GetProgram(ctx, req)
@@ -283,7 +271,6 @@ func TestProgramService_Integration_DeleteProgram(t *testing.T) {
 
 		// Create a program first
 		createReq := connect.NewRequest(&heftv1.CreateProgramRequest{
-			UserId:        userID,
 			Name:          "To Be Deleted",
 			DurationWeeks: 4,
 		})
@@ -297,8 +284,7 @@ func TestProgramService_Integration_DeleteProgram(t *testing.T) {
 
 		// Delete the program
 		deleteReq := connect.NewRequest(&heftv1.DeleteProgramRequest{
-			Id:     programID,
-			UserId: userID,
+			Id: programID,
 		})
 		deleteReq.Header().Set("Authorization", ts.AuthHeader(userID))
 		deleteResp, err := ts.ProgramClient.DeleteProgram(ctx, deleteReq)
@@ -313,8 +299,7 @@ func TestProgramService_Integration_DeleteProgram(t *testing.T) {
 
 		// Verify program is deleted
 		verifyReq := connect.NewRequest(&heftv1.GetProgramRequest{
-			Id:     programID,
-			UserId: userID,
+			Id: programID,
 		})
 		verifyReq.Header().Set("Authorization", ts.AuthHeader(userID))
 		_, err = ts.ProgramClient.GetProgram(ctx, verifyReq)
@@ -349,7 +334,6 @@ func TestProgramService_Integration_SetActiveProgram(t *testing.T) {
 
 		// Create a program
 		createReq := connect.NewRequest(&heftv1.CreateProgramRequest{
-			UserId:        userID,
 			Name:          "Active Program",
 			DurationWeeks: 4,
 		})
@@ -363,8 +347,7 @@ func TestProgramService_Integration_SetActiveProgram(t *testing.T) {
 
 		// Set as active
 		setActiveReq := connect.NewRequest(&heftv1.SetActiveProgramRequest{
-			Id:     programID,
-			UserId: userID,
+			Id: programID,
 		})
 		setActiveReq.Header().Set("Authorization", ts.AuthHeader(userID))
 		setActiveResp, err := ts.ProgramClient.SetActiveProgram(ctx, setActiveReq)
@@ -383,7 +366,6 @@ func TestProgramService_Integration_SetActiveProgram(t *testing.T) {
 
 		// Create two programs
 		create1Req := connect.NewRequest(&heftv1.CreateProgramRequest{
-			UserId:        userID,
 			Name:          "Program One",
 			DurationWeeks: 4,
 		})
@@ -395,7 +377,6 @@ func TestProgramService_Integration_SetActiveProgram(t *testing.T) {
 		program1ID := create1Resp.Msg.Program.Id
 
 		create2Req := connect.NewRequest(&heftv1.CreateProgramRequest{
-			UserId:        userID,
 			Name:          "Program Two",
 			DurationWeeks: 4,
 		})
@@ -408,8 +389,7 @@ func TestProgramService_Integration_SetActiveProgram(t *testing.T) {
 
 		// Set program 1 as active
 		setActive1Req := connect.NewRequest(&heftv1.SetActiveProgramRequest{
-			Id:     program1ID,
-			UserId: userID,
+			Id: program1ID,
 		})
 		setActive1Req.Header().Set("Authorization", ts.AuthHeader(userID))
 		_, err = ts.ProgramClient.SetActiveProgram(ctx, setActive1Req)
@@ -419,8 +399,7 @@ func TestProgramService_Integration_SetActiveProgram(t *testing.T) {
 
 		// Set program 2 as active
 		setActive2Req := connect.NewRequest(&heftv1.SetActiveProgramRequest{
-			Id:     program2ID,
-			UserId: userID,
+			Id: program2ID,
 		})
 		setActive2Req.Header().Set("Authorization", ts.AuthHeader(userID))
 		_, err = ts.ProgramClient.SetActiveProgram(ctx, setActive2Req)
@@ -430,8 +409,7 @@ func TestProgramService_Integration_SetActiveProgram(t *testing.T) {
 
 		// Verify program 1 is no longer active
 		get1Req := connect.NewRequest(&heftv1.GetProgramRequest{
-			Id:     program1ID,
-			UserId: userID,
+			Id: program1ID,
 		})
 		get1Req.Header().Set("Authorization", ts.AuthHeader(userID))
 		get1Resp, err := ts.ProgramClient.GetProgram(ctx, get1Req)
@@ -445,8 +423,7 @@ func TestProgramService_Integration_SetActiveProgram(t *testing.T) {
 
 		// Verify program 2 is active
 		get2Req := connect.NewRequest(&heftv1.GetProgramRequest{
-			Id:     program2ID,
-			UserId: userID,
+			Id: program2ID,
 		})
 		get2Req.Header().Set("Authorization", ts.AuthHeader(userID))
 		get2Resp, err := ts.ProgramClient.GetProgram(ctx, get2Req)
@@ -475,9 +452,7 @@ func TestProgramService_Integration_GetTodayWorkout(t *testing.T) {
 	t.Run("no active program returns no workout", func(t *testing.T) {
 		ctx := context.Background()
 
-		req := connect.NewRequest(&heftv1.GetTodayWorkoutRequest{
-			UserId: userID,
-		})
+		req := connect.NewRequest(&heftv1.GetTodayWorkoutRequest{})
 		req.Header().Set("Authorization", ts.AuthHeader(userID))
 		resp, err := ts.ProgramClient.GetTodayWorkout(ctx, req)
 
@@ -495,7 +470,6 @@ func TestProgramService_Integration_GetTodayWorkout(t *testing.T) {
 
 		// Create a workout template
 		workoutReq := connect.NewRequest(&heftv1.CreateWorkoutRequest{
-			UserId: userID,
 			Name:   "Day 1 Workout",
 		})
 		workoutReq.Header().Set("Authorization", ts.AuthHeader(userID))
@@ -507,7 +481,6 @@ func TestProgramService_Integration_GetTodayWorkout(t *testing.T) {
 
 		// Create a program with day 1 as workout
 		createReq := connect.NewRequest(&heftv1.CreateProgramRequest{
-			UserId:        userID,
 			Name:          "Test Program",
 			DurationWeeks: 1,
 			Days: []*heftv1.CreateProgramDay{
@@ -527,8 +500,7 @@ func TestProgramService_Integration_GetTodayWorkout(t *testing.T) {
 
 		// Set as active
 		setActiveReq := connect.NewRequest(&heftv1.SetActiveProgramRequest{
-			Id:     programID,
-			UserId: userID,
+			Id: programID,
 		})
 		setActiveReq.Header().Set("Authorization", ts.AuthHeader(userID))
 		_, err = ts.ProgramClient.SetActiveProgram(ctx, setActiveReq)
@@ -537,9 +509,7 @@ func TestProgramService_Integration_GetTodayWorkout(t *testing.T) {
 		}
 
 		// Get today's workout
-		getTodayReq := connect.NewRequest(&heftv1.GetTodayWorkoutRequest{
-			UserId: userID,
-		})
+		getTodayReq := connect.NewRequest(&heftv1.GetTodayWorkoutRequest{})
 		getTodayReq.Header().Set("Authorization", ts.AuthHeader(userID))
 		resp, err := ts.ProgramClient.GetTodayWorkout(ctx, getTodayReq)
 

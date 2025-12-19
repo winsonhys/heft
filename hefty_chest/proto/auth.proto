@@ -2,6 +2,8 @@ syntax = "proto3";
 
 package heft.v1;
 
+option go_package = "github.com/heftyback/gen/heft/v1;heftv1";
+
 // AuthService handles authentication
 service AuthService {
   // Login authenticates a user by email, creating a new account if needed

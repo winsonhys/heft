@@ -580,9 +580,8 @@ func (x *TargetSet) GetRestDurationSeconds() int32 {
 // ListWorkouts
 type ListWorkoutsRequest struct {
 	state           protoimpl.MessageState `protogen:"open.v1"`
-	UserId          string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
-	IncludeArchived *bool                  `protobuf:"varint,2,opt,name=include_archived,json=includeArchived,proto3,oneof" json:"include_archived,omitempty"`
-	Pagination      *PaginationRequest     `protobuf:"bytes,3,opt,name=pagination,proto3" json:"pagination,omitempty"`
+	IncludeArchived *bool                  `protobuf:"varint,1,opt,name=include_archived,json=includeArchived,proto3,oneof" json:"include_archived,omitempty"`
+	Pagination      *PaginationRequest     `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
 	unknownFields   protoimpl.UnknownFields
 	sizeCache       protoimpl.SizeCache
 }
@@ -615,13 +614,6 @@ func (x *ListWorkoutsRequest) ProtoReflect() protoreflect.Message {
 // Deprecated: Use ListWorkoutsRequest.ProtoReflect.Descriptor instead.
 func (*ListWorkoutsRequest) Descriptor() ([]byte, []int) {
 	return file_heft_v1_workout_proto_rawDescGZIP(), []int{5}
-}
-
-func (x *ListWorkoutsRequest) GetUserId() string {
-	if x != nil {
-		return x.UserId
-	}
-	return ""
 }
 
 func (x *ListWorkoutsRequest) GetIncludeArchived() bool {
@@ -694,7 +686,6 @@ func (x *ListWorkoutsResponse) GetPagination() *PaginationResponse {
 type GetWorkoutRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	UserId        string                 `protobuf:"bytes,2,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -732,13 +723,6 @@ func (*GetWorkoutRequest) Descriptor() ([]byte, []int) {
 func (x *GetWorkoutRequest) GetId() string {
 	if x != nil {
 		return x.Id
-	}
-	return ""
-}
-
-func (x *GetWorkoutRequest) GetUserId() string {
-	if x != nil {
-		return x.UserId
 	}
 	return ""
 }
@@ -790,10 +774,9 @@ func (x *GetWorkoutResponse) GetWorkout() *Workout {
 // CreateWorkout
 type CreateWorkoutRequest struct {
 	state         protoimpl.MessageState  `protogen:"open.v1"`
-	UserId        string                  `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
-	Name          string                  `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
-	Description   *string                 `protobuf:"bytes,3,opt,name=description,proto3,oneof" json:"description,omitempty"`
-	Sections      []*CreateWorkoutSection `protobuf:"bytes,4,rep,name=sections,proto3" json:"sections,omitempty"`
+	Name          string                  `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	Description   *string                 `protobuf:"bytes,2,opt,name=description,proto3,oneof" json:"description,omitempty"`
+	Sections      []*CreateWorkoutSection `protobuf:"bytes,3,rep,name=sections,proto3" json:"sections,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -826,13 +809,6 @@ func (x *CreateWorkoutRequest) ProtoReflect() protoreflect.Message {
 // Deprecated: Use CreateWorkoutRequest.ProtoReflect.Descriptor instead.
 func (*CreateWorkoutRequest) Descriptor() ([]byte, []int) {
 	return file_heft_v1_workout_proto_rawDescGZIP(), []int{9}
-}
-
-func (x *CreateWorkoutRequest) GetUserId() string {
-	if x != nil {
-		return x.UserId
-	}
-	return ""
 }
 
 func (x *CreateWorkoutRequest) GetName() string {
@@ -1148,12 +1124,11 @@ func (x *CreateWorkoutResponse) GetWorkout() *Workout {
 type UpdateWorkoutRequest struct {
 	state       protoimpl.MessageState `protogen:"open.v1"`
 	Id          string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	UserId      string                 `protobuf:"bytes,2,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
-	Name        *string                `protobuf:"bytes,3,opt,name=name,proto3,oneof" json:"name,omitempty"`
-	Description *string                `protobuf:"bytes,4,opt,name=description,proto3,oneof" json:"description,omitempty"`
-	IsArchived  *bool                  `protobuf:"varint,5,opt,name=is_archived,json=isArchived,proto3,oneof" json:"is_archived,omitempty"`
+	Name        *string                `protobuf:"bytes,2,opt,name=name,proto3,oneof" json:"name,omitempty"`
+	Description *string                `protobuf:"bytes,3,opt,name=description,proto3,oneof" json:"description,omitempty"`
+	IsArchived  *bool                  `protobuf:"varint,4,opt,name=is_archived,json=isArchived,proto3,oneof" json:"is_archived,omitempty"`
 	// For full update, include sections
-	Sections      []*CreateWorkoutSection `protobuf:"bytes,6,rep,name=sections,proto3" json:"sections,omitempty"`
+	Sections      []*CreateWorkoutSection `protobuf:"bytes,5,rep,name=sections,proto3" json:"sections,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1191,13 +1166,6 @@ func (*UpdateWorkoutRequest) Descriptor() ([]byte, []int) {
 func (x *UpdateWorkoutRequest) GetId() string {
 	if x != nil {
 		return x.Id
-	}
-	return ""
-}
-
-func (x *UpdateWorkoutRequest) GetUserId() string {
-	if x != nil {
-		return x.UserId
 	}
 	return ""
 }
@@ -1278,7 +1246,6 @@ func (x *UpdateWorkoutResponse) GetWorkout() *Workout {
 type DeleteWorkoutRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	UserId        string                 `protobuf:"bytes,2,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1316,13 +1283,6 @@ func (*DeleteWorkoutRequest) Descriptor() ([]byte, []int) {
 func (x *DeleteWorkoutRequest) GetId() string {
 	if x != nil {
 		return x.Id
-	}
-	return ""
-}
-
-func (x *DeleteWorkoutRequest) GetUserId() string {
-	if x != nil {
-		return x.UserId
 	}
 	return ""
 }
@@ -1375,8 +1335,7 @@ func (x *DeleteWorkoutResponse) GetSuccess() bool {
 type DuplicateWorkoutRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	UserId        string                 `protobuf:"bytes,2,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
-	NewName       *string                `protobuf:"bytes,3,opt,name=new_name,json=newName,proto3,oneof" json:"new_name,omitempty"`
+	NewName       *string                `protobuf:"bytes,2,opt,name=new_name,json=newName,proto3,oneof" json:"new_name,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1414,13 +1373,6 @@ func (*DuplicateWorkoutRequest) Descriptor() ([]byte, []int) {
 func (x *DuplicateWorkoutRequest) GetId() string {
 	if x != nil {
 		return x.Id
-	}
-	return ""
-}
-
-func (x *DuplicateWorkoutRequest) GetUserId() string {
-	if x != nil {
-		return x.UserId
 	}
 	return ""
 }
@@ -1553,29 +1505,26 @@ const file_heft_v1_workout_proto_rawDesc = "" +
 	"\f_target_repsB\x16\n" +
 	"\x14_target_time_secondsB\x14\n" +
 	"\x12_target_distance_mB\x18\n" +
-	"\x16_rest_duration_seconds\"\xaf\x01\n" +
-	"\x13ListWorkoutsRequest\x12\x17\n" +
-	"\auser_id\x18\x01 \x01(\tR\x06userId\x12.\n" +
-	"\x10include_archived\x18\x02 \x01(\bH\x00R\x0fincludeArchived\x88\x01\x01\x12:\n" +
+	"\x16_rest_duration_seconds\"\x96\x01\n" +
+	"\x13ListWorkoutsRequest\x12.\n" +
+	"\x10include_archived\x18\x01 \x01(\bH\x00R\x0fincludeArchived\x88\x01\x01\x12:\n" +
 	"\n" +
-	"pagination\x18\x03 \x01(\v2\x1a.heft.v1.PaginationRequestR\n" +
+	"pagination\x18\x02 \x01(\v2\x1a.heft.v1.PaginationRequestR\n" +
 	"paginationB\x13\n" +
 	"\x11_include_archived\"\x88\x01\n" +
 	"\x14ListWorkoutsResponse\x123\n" +
 	"\bworkouts\x18\x01 \x03(\v2\x17.heft.v1.WorkoutSummaryR\bworkouts\x12;\n" +
 	"\n" +
 	"pagination\x18\x02 \x01(\v2\x1b.heft.v1.PaginationResponseR\n" +
-	"pagination\"<\n" +
+	"pagination\"#\n" +
 	"\x11GetWorkoutRequest\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\tR\x02id\x12\x17\n" +
-	"\auser_id\x18\x02 \x01(\tR\x06userId\"@\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\"@\n" +
 	"\x12GetWorkoutResponse\x12*\n" +
-	"\aworkout\x18\x01 \x01(\v2\x10.heft.v1.WorkoutR\aworkout\"\xb5\x01\n" +
-	"\x14CreateWorkoutRequest\x12\x17\n" +
-	"\auser_id\x18\x01 \x01(\tR\x06userId\x12\x12\n" +
-	"\x04name\x18\x02 \x01(\tR\x04name\x12%\n" +
-	"\vdescription\x18\x03 \x01(\tH\x00R\vdescription\x88\x01\x01\x129\n" +
-	"\bsections\x18\x04 \x03(\v2\x1d.heft.v1.CreateWorkoutSectionR\bsectionsB\x0e\n" +
+	"\aworkout\x18\x01 \x01(\v2\x10.heft.v1.WorkoutR\aworkout\"\x9c\x01\n" +
+	"\x14CreateWorkoutRequest\x12\x12\n" +
+	"\x04name\x18\x01 \x01(\tR\x04name\x12%\n" +
+	"\vdescription\x18\x02 \x01(\tH\x00R\vdescription\x88\x01\x01\x129\n" +
+	"\bsections\x18\x03 \x03(\v2\x1d.heft.v1.CreateWorkoutSectionR\bsectionsB\x0e\n" +
 	"\f_description\"\xa2\x01\n" +
 	"\x14CreateWorkoutSection\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12#\n" +
@@ -1611,29 +1560,26 @@ const file_heft_v1_workout_proto_rawDesc = "" +
 	"\x06_notesB\x18\n" +
 	"\x16_rest_duration_seconds\"C\n" +
 	"\x15CreateWorkoutResponse\x12*\n" +
-	"\aworkout\x18\x01 \x01(\v2\x10.heft.v1.WorkoutR\aworkout\"\x89\x02\n" +
+	"\aworkout\x18\x01 \x01(\v2\x10.heft.v1.WorkoutR\aworkout\"\xf0\x01\n" +
 	"\x14UpdateWorkoutRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x17\n" +
-	"\auser_id\x18\x02 \x01(\tR\x06userId\x12\x17\n" +
-	"\x04name\x18\x03 \x01(\tH\x00R\x04name\x88\x01\x01\x12%\n" +
-	"\vdescription\x18\x04 \x01(\tH\x01R\vdescription\x88\x01\x01\x12$\n" +
-	"\vis_archived\x18\x05 \x01(\bH\x02R\n" +
+	"\x04name\x18\x02 \x01(\tH\x00R\x04name\x88\x01\x01\x12%\n" +
+	"\vdescription\x18\x03 \x01(\tH\x01R\vdescription\x88\x01\x01\x12$\n" +
+	"\vis_archived\x18\x04 \x01(\bH\x02R\n" +
 	"isArchived\x88\x01\x01\x129\n" +
-	"\bsections\x18\x06 \x03(\v2\x1d.heft.v1.CreateWorkoutSectionR\bsectionsB\a\n" +
+	"\bsections\x18\x05 \x03(\v2\x1d.heft.v1.CreateWorkoutSectionR\bsectionsB\a\n" +
 	"\x05_nameB\x0e\n" +
 	"\f_descriptionB\x0e\n" +
 	"\f_is_archived\"C\n" +
 	"\x15UpdateWorkoutResponse\x12*\n" +
-	"\aworkout\x18\x01 \x01(\v2\x10.heft.v1.WorkoutR\aworkout\"?\n" +
+	"\aworkout\x18\x01 \x01(\v2\x10.heft.v1.WorkoutR\aworkout\"&\n" +
 	"\x14DeleteWorkoutRequest\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\tR\x02id\x12\x17\n" +
-	"\auser_id\x18\x02 \x01(\tR\x06userId\"1\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\"1\n" +
 	"\x15DeleteWorkoutResponse\x12\x18\n" +
-	"\asuccess\x18\x01 \x01(\bR\asuccess\"o\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\"V\n" +
 	"\x17DuplicateWorkoutRequest\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\tR\x02id\x12\x17\n" +
-	"\auser_id\x18\x02 \x01(\tR\x06userId\x12\x1e\n" +
-	"\bnew_name\x18\x03 \x01(\tH\x00R\anewName\x88\x01\x01B\v\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1e\n" +
+	"\bnew_name\x18\x02 \x01(\tH\x00R\anewName\x88\x01\x01B\v\n" +
 	"\t_new_name\"F\n" +
 	"\x18DuplicateWorkoutResponse\x12*\n" +
 	"\aworkout\x18\x01 \x01(\v2\x10.heft.v1.WorkoutR\aworkout2\xed\x03\n" +

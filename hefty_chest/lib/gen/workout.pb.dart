@@ -674,6 +674,7 @@ class TargetSet extends $pb.GeneratedMessage {
     $core.double? targetDistanceM,
     $core.bool? isBodyweight,
     $core.String? notes,
+    $core.int? restDurationSeconds,
   }) {
     final $result = create();
     if (id != null) {
@@ -703,6 +704,9 @@ class TargetSet extends $pb.GeneratedMessage {
     if (notes != null) {
       $result.notes = notes;
     }
+    if (restDurationSeconds != null) {
+      $result.restDurationSeconds = restDurationSeconds;
+    }
     return $result;
   }
   TargetSet._() : super();
@@ -719,6 +723,7 @@ class TargetSet extends $pb.GeneratedMessage {
     ..a<$core.double>(7, _omitFieldNames ? '' : 'targetDistanceM', $pb.PbFieldType.OD)
     ..aOB(8, _omitFieldNames ? '' : 'isBodyweight')
     ..aOS(9, _omitFieldNames ? '' : 'notes')
+    ..a<$core.int>(10, _omitFieldNames ? '' : 'restDurationSeconds', $pb.PbFieldType.O3)
     ..hasRequiredFields = false
   ;
 
@@ -823,19 +828,24 @@ class TargetSet extends $pb.GeneratedMessage {
   $core.bool hasNotes() => $_has(8);
   @$pb.TagNumber(9)
   void clearNotes() => clearField(9);
+
+  @$pb.TagNumber(10)
+  $core.int get restDurationSeconds => $_getIZ(9);
+  @$pb.TagNumber(10)
+  set restDurationSeconds($core.int v) { $_setSignedInt32(9, v); }
+  @$pb.TagNumber(10)
+  $core.bool hasRestDurationSeconds() => $_has(9);
+  @$pb.TagNumber(10)
+  void clearRestDurationSeconds() => clearField(10);
 }
 
 /// ListWorkouts
 class ListWorkoutsRequest extends $pb.GeneratedMessage {
   factory ListWorkoutsRequest({
-    $core.String? userId,
     $core.bool? includeArchived,
     $2.PaginationRequest? pagination,
   }) {
     final $result = create();
-    if (userId != null) {
-      $result.userId = userId;
-    }
     if (includeArchived != null) {
       $result.includeArchived = includeArchived;
     }
@@ -849,9 +859,8 @@ class ListWorkoutsRequest extends $pb.GeneratedMessage {
   factory ListWorkoutsRequest.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
 
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'ListWorkoutsRequest', package: const $pb.PackageName(_omitMessageNames ? '' : 'heft.v1'), createEmptyInstance: create)
-    ..aOS(1, _omitFieldNames ? '' : 'userId')
-    ..aOB(2, _omitFieldNames ? '' : 'includeArchived')
-    ..aOM<$2.PaginationRequest>(3, _omitFieldNames ? '' : 'pagination', subBuilder: $2.PaginationRequest.create)
+    ..aOB(1, _omitFieldNames ? '' : 'includeArchived')
+    ..aOM<$2.PaginationRequest>(2, _omitFieldNames ? '' : 'pagination', subBuilder: $2.PaginationRequest.create)
     ..hasRequiredFields = false
   ;
 
@@ -877,33 +886,24 @@ class ListWorkoutsRequest extends $pb.GeneratedMessage {
   static ListWorkoutsRequest? _defaultInstance;
 
   @$pb.TagNumber(1)
-  $core.String get userId => $_getSZ(0);
+  $core.bool get includeArchived => $_getBF(0);
   @$pb.TagNumber(1)
-  set userId($core.String v) { $_setString(0, v); }
+  set includeArchived($core.bool v) { $_setBool(0, v); }
   @$pb.TagNumber(1)
-  $core.bool hasUserId() => $_has(0);
+  $core.bool hasIncludeArchived() => $_has(0);
   @$pb.TagNumber(1)
-  void clearUserId() => clearField(1);
+  void clearIncludeArchived() => clearField(1);
 
   @$pb.TagNumber(2)
-  $core.bool get includeArchived => $_getBF(1);
+  $2.PaginationRequest get pagination => $_getN(1);
   @$pb.TagNumber(2)
-  set includeArchived($core.bool v) { $_setBool(1, v); }
+  set pagination($2.PaginationRequest v) { setField(2, v); }
   @$pb.TagNumber(2)
-  $core.bool hasIncludeArchived() => $_has(1);
+  $core.bool hasPagination() => $_has(1);
   @$pb.TagNumber(2)
-  void clearIncludeArchived() => clearField(2);
-
-  @$pb.TagNumber(3)
-  $2.PaginationRequest get pagination => $_getN(2);
-  @$pb.TagNumber(3)
-  set pagination($2.PaginationRequest v) { setField(3, v); }
-  @$pb.TagNumber(3)
-  $core.bool hasPagination() => $_has(2);
-  @$pb.TagNumber(3)
-  void clearPagination() => clearField(3);
-  @$pb.TagNumber(3)
-  $2.PaginationRequest ensurePagination() => $_ensure(2);
+  void clearPagination() => clearField(2);
+  @$pb.TagNumber(2)
+  $2.PaginationRequest ensurePagination() => $_ensure(1);
 }
 
 class ListWorkoutsResponse extends $pb.GeneratedMessage {
@@ -970,14 +970,10 @@ class ListWorkoutsResponse extends $pb.GeneratedMessage {
 class GetWorkoutRequest extends $pb.GeneratedMessage {
   factory GetWorkoutRequest({
     $core.String? id,
-    $core.String? userId,
   }) {
     final $result = create();
     if (id != null) {
       $result.id = id;
-    }
-    if (userId != null) {
-      $result.userId = userId;
     }
     return $result;
   }
@@ -987,7 +983,6 @@ class GetWorkoutRequest extends $pb.GeneratedMessage {
 
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'GetWorkoutRequest', package: const $pb.PackageName(_omitMessageNames ? '' : 'heft.v1'), createEmptyInstance: create)
     ..aOS(1, _omitFieldNames ? '' : 'id')
-    ..aOS(2, _omitFieldNames ? '' : 'userId')
     ..hasRequiredFields = false
   ;
 
@@ -1020,15 +1015,6 @@ class GetWorkoutRequest extends $pb.GeneratedMessage {
   $core.bool hasId() => $_has(0);
   @$pb.TagNumber(1)
   void clearId() => clearField(1);
-
-  @$pb.TagNumber(2)
-  $core.String get userId => $_getSZ(1);
-  @$pb.TagNumber(2)
-  set userId($core.String v) { $_setString(1, v); }
-  @$pb.TagNumber(2)
-  $core.bool hasUserId() => $_has(1);
-  @$pb.TagNumber(2)
-  void clearUserId() => clearField(2);
 }
 
 class GetWorkoutResponse extends $pb.GeneratedMessage {
@@ -1086,15 +1072,11 @@ class GetWorkoutResponse extends $pb.GeneratedMessage {
 /// CreateWorkout
 class CreateWorkoutRequest extends $pb.GeneratedMessage {
   factory CreateWorkoutRequest({
-    $core.String? userId,
     $core.String? name,
     $core.String? description,
     $core.Iterable<CreateWorkoutSection>? sections,
   }) {
     final $result = create();
-    if (userId != null) {
-      $result.userId = userId;
-    }
     if (name != null) {
       $result.name = name;
     }
@@ -1111,10 +1093,9 @@ class CreateWorkoutRequest extends $pb.GeneratedMessage {
   factory CreateWorkoutRequest.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
 
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'CreateWorkoutRequest', package: const $pb.PackageName(_omitMessageNames ? '' : 'heft.v1'), createEmptyInstance: create)
-    ..aOS(1, _omitFieldNames ? '' : 'userId')
-    ..aOS(2, _omitFieldNames ? '' : 'name')
-    ..aOS(3, _omitFieldNames ? '' : 'description')
-    ..pc<CreateWorkoutSection>(4, _omitFieldNames ? '' : 'sections', $pb.PbFieldType.PM, subBuilder: CreateWorkoutSection.create)
+    ..aOS(1, _omitFieldNames ? '' : 'name')
+    ..aOS(2, _omitFieldNames ? '' : 'description')
+    ..pc<CreateWorkoutSection>(3, _omitFieldNames ? '' : 'sections', $pb.PbFieldType.PM, subBuilder: CreateWorkoutSection.create)
     ..hasRequiredFields = false
   ;
 
@@ -1140,34 +1121,25 @@ class CreateWorkoutRequest extends $pb.GeneratedMessage {
   static CreateWorkoutRequest? _defaultInstance;
 
   @$pb.TagNumber(1)
-  $core.String get userId => $_getSZ(0);
+  $core.String get name => $_getSZ(0);
   @$pb.TagNumber(1)
-  set userId($core.String v) { $_setString(0, v); }
+  set name($core.String v) { $_setString(0, v); }
   @$pb.TagNumber(1)
-  $core.bool hasUserId() => $_has(0);
+  $core.bool hasName() => $_has(0);
   @$pb.TagNumber(1)
-  void clearUserId() => clearField(1);
+  void clearName() => clearField(1);
 
   @$pb.TagNumber(2)
-  $core.String get name => $_getSZ(1);
+  $core.String get description => $_getSZ(1);
   @$pb.TagNumber(2)
-  set name($core.String v) { $_setString(1, v); }
+  set description($core.String v) { $_setString(1, v); }
   @$pb.TagNumber(2)
-  $core.bool hasName() => $_has(1);
+  $core.bool hasDescription() => $_has(1);
   @$pb.TagNumber(2)
-  void clearName() => clearField(2);
+  void clearDescription() => clearField(2);
 
   @$pb.TagNumber(3)
-  $core.String get description => $_getSZ(2);
-  @$pb.TagNumber(3)
-  set description($core.String v) { $_setString(2, v); }
-  @$pb.TagNumber(3)
-  $core.bool hasDescription() => $_has(2);
-  @$pb.TagNumber(3)
-  void clearDescription() => clearField(3);
-
-  @$pb.TagNumber(4)
-  $core.List<CreateWorkoutSection> get sections => $_getList(3);
+  $core.List<CreateWorkoutSection> get sections => $_getList(2);
 }
 
 class CreateWorkoutSection extends $pb.GeneratedMessage {
@@ -1365,6 +1337,7 @@ class CreateTargetSet extends $pb.GeneratedMessage {
     $core.double? targetDistanceM,
     $core.bool? isBodyweight,
     $core.String? notes,
+    $core.int? restDurationSeconds,
   }) {
     final $result = create();
     if (setNumber != null) {
@@ -1388,6 +1361,9 @@ class CreateTargetSet extends $pb.GeneratedMessage {
     if (notes != null) {
       $result.notes = notes;
     }
+    if (restDurationSeconds != null) {
+      $result.restDurationSeconds = restDurationSeconds;
+    }
     return $result;
   }
   CreateTargetSet._() : super();
@@ -1402,6 +1378,7 @@ class CreateTargetSet extends $pb.GeneratedMessage {
     ..a<$core.double>(5, _omitFieldNames ? '' : 'targetDistanceM', $pb.PbFieldType.OD)
     ..aOB(6, _omitFieldNames ? '' : 'isBodyweight')
     ..aOS(7, _omitFieldNames ? '' : 'notes')
+    ..a<$core.int>(8, _omitFieldNames ? '' : 'restDurationSeconds', $pb.PbFieldType.O3)
     ..hasRequiredFields = false
   ;
 
@@ -1488,6 +1465,15 @@ class CreateTargetSet extends $pb.GeneratedMessage {
   $core.bool hasNotes() => $_has(6);
   @$pb.TagNumber(7)
   void clearNotes() => clearField(7);
+
+  @$pb.TagNumber(8)
+  $core.int get restDurationSeconds => $_getIZ(7);
+  @$pb.TagNumber(8)
+  set restDurationSeconds($core.int v) { $_setSignedInt32(7, v); }
+  @$pb.TagNumber(8)
+  $core.bool hasRestDurationSeconds() => $_has(7);
+  @$pb.TagNumber(8)
+  void clearRestDurationSeconds() => clearField(8);
 }
 
 class CreateWorkoutResponse extends $pb.GeneratedMessage {
@@ -1546,7 +1532,6 @@ class CreateWorkoutResponse extends $pb.GeneratedMessage {
 class UpdateWorkoutRequest extends $pb.GeneratedMessage {
   factory UpdateWorkoutRequest({
     $core.String? id,
-    $core.String? userId,
     $core.String? name,
     $core.String? description,
     $core.bool? isArchived,
@@ -1555,9 +1540,6 @@ class UpdateWorkoutRequest extends $pb.GeneratedMessage {
     final $result = create();
     if (id != null) {
       $result.id = id;
-    }
-    if (userId != null) {
-      $result.userId = userId;
     }
     if (name != null) {
       $result.name = name;
@@ -1579,11 +1561,10 @@ class UpdateWorkoutRequest extends $pb.GeneratedMessage {
 
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'UpdateWorkoutRequest', package: const $pb.PackageName(_omitMessageNames ? '' : 'heft.v1'), createEmptyInstance: create)
     ..aOS(1, _omitFieldNames ? '' : 'id')
-    ..aOS(2, _omitFieldNames ? '' : 'userId')
-    ..aOS(3, _omitFieldNames ? '' : 'name')
-    ..aOS(4, _omitFieldNames ? '' : 'description')
-    ..aOB(5, _omitFieldNames ? '' : 'isArchived')
-    ..pc<CreateWorkoutSection>(6, _omitFieldNames ? '' : 'sections', $pb.PbFieldType.PM, subBuilder: CreateWorkoutSection.create)
+    ..aOS(2, _omitFieldNames ? '' : 'name')
+    ..aOS(3, _omitFieldNames ? '' : 'description')
+    ..aOB(4, _omitFieldNames ? '' : 'isArchived')
+    ..pc<CreateWorkoutSection>(5, _omitFieldNames ? '' : 'sections', $pb.PbFieldType.PM, subBuilder: CreateWorkoutSection.create)
     ..hasRequiredFields = false
   ;
 
@@ -1618,44 +1599,35 @@ class UpdateWorkoutRequest extends $pb.GeneratedMessage {
   void clearId() => clearField(1);
 
   @$pb.TagNumber(2)
-  $core.String get userId => $_getSZ(1);
+  $core.String get name => $_getSZ(1);
   @$pb.TagNumber(2)
-  set userId($core.String v) { $_setString(1, v); }
+  set name($core.String v) { $_setString(1, v); }
   @$pb.TagNumber(2)
-  $core.bool hasUserId() => $_has(1);
+  $core.bool hasName() => $_has(1);
   @$pb.TagNumber(2)
-  void clearUserId() => clearField(2);
+  void clearName() => clearField(2);
 
   @$pb.TagNumber(3)
-  $core.String get name => $_getSZ(2);
+  $core.String get description => $_getSZ(2);
   @$pb.TagNumber(3)
-  set name($core.String v) { $_setString(2, v); }
+  set description($core.String v) { $_setString(2, v); }
   @$pb.TagNumber(3)
-  $core.bool hasName() => $_has(2);
+  $core.bool hasDescription() => $_has(2);
   @$pb.TagNumber(3)
-  void clearName() => clearField(3);
+  void clearDescription() => clearField(3);
 
   @$pb.TagNumber(4)
-  $core.String get description => $_getSZ(3);
+  $core.bool get isArchived => $_getBF(3);
   @$pb.TagNumber(4)
-  set description($core.String v) { $_setString(3, v); }
+  set isArchived($core.bool v) { $_setBool(3, v); }
   @$pb.TagNumber(4)
-  $core.bool hasDescription() => $_has(3);
+  $core.bool hasIsArchived() => $_has(3);
   @$pb.TagNumber(4)
-  void clearDescription() => clearField(4);
-
-  @$pb.TagNumber(5)
-  $core.bool get isArchived => $_getBF(4);
-  @$pb.TagNumber(5)
-  set isArchived($core.bool v) { $_setBool(4, v); }
-  @$pb.TagNumber(5)
-  $core.bool hasIsArchived() => $_has(4);
-  @$pb.TagNumber(5)
-  void clearIsArchived() => clearField(5);
+  void clearIsArchived() => clearField(4);
 
   /// For full update, include sections
-  @$pb.TagNumber(6)
-  $core.List<CreateWorkoutSection> get sections => $_getList(5);
+  @$pb.TagNumber(5)
+  $core.List<CreateWorkoutSection> get sections => $_getList(4);
 }
 
 class UpdateWorkoutResponse extends $pb.GeneratedMessage {
@@ -1714,14 +1686,10 @@ class UpdateWorkoutResponse extends $pb.GeneratedMessage {
 class DeleteWorkoutRequest extends $pb.GeneratedMessage {
   factory DeleteWorkoutRequest({
     $core.String? id,
-    $core.String? userId,
   }) {
     final $result = create();
     if (id != null) {
       $result.id = id;
-    }
-    if (userId != null) {
-      $result.userId = userId;
     }
     return $result;
   }
@@ -1731,7 +1699,6 @@ class DeleteWorkoutRequest extends $pb.GeneratedMessage {
 
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'DeleteWorkoutRequest', package: const $pb.PackageName(_omitMessageNames ? '' : 'heft.v1'), createEmptyInstance: create)
     ..aOS(1, _omitFieldNames ? '' : 'id')
-    ..aOS(2, _omitFieldNames ? '' : 'userId')
     ..hasRequiredFields = false
   ;
 
@@ -1764,15 +1731,6 @@ class DeleteWorkoutRequest extends $pb.GeneratedMessage {
   $core.bool hasId() => $_has(0);
   @$pb.TagNumber(1)
   void clearId() => clearField(1);
-
-  @$pb.TagNumber(2)
-  $core.String get userId => $_getSZ(1);
-  @$pb.TagNumber(2)
-  set userId($core.String v) { $_setString(1, v); }
-  @$pb.TagNumber(2)
-  $core.bool hasUserId() => $_has(1);
-  @$pb.TagNumber(2)
-  void clearUserId() => clearField(2);
 }
 
 class DeleteWorkoutResponse extends $pb.GeneratedMessage {
@@ -1829,15 +1787,11 @@ class DeleteWorkoutResponse extends $pb.GeneratedMessage {
 class DuplicateWorkoutRequest extends $pb.GeneratedMessage {
   factory DuplicateWorkoutRequest({
     $core.String? id,
-    $core.String? userId,
     $core.String? newName,
   }) {
     final $result = create();
     if (id != null) {
       $result.id = id;
-    }
-    if (userId != null) {
-      $result.userId = userId;
     }
     if (newName != null) {
       $result.newName = newName;
@@ -1850,8 +1804,7 @@ class DuplicateWorkoutRequest extends $pb.GeneratedMessage {
 
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'DuplicateWorkoutRequest', package: const $pb.PackageName(_omitMessageNames ? '' : 'heft.v1'), createEmptyInstance: create)
     ..aOS(1, _omitFieldNames ? '' : 'id')
-    ..aOS(2, _omitFieldNames ? '' : 'userId')
-    ..aOS(3, _omitFieldNames ? '' : 'newName')
+    ..aOS(2, _omitFieldNames ? '' : 'newName')
     ..hasRequiredFields = false
   ;
 
@@ -1886,22 +1839,13 @@ class DuplicateWorkoutRequest extends $pb.GeneratedMessage {
   void clearId() => clearField(1);
 
   @$pb.TagNumber(2)
-  $core.String get userId => $_getSZ(1);
+  $core.String get newName => $_getSZ(1);
   @$pb.TagNumber(2)
-  set userId($core.String v) { $_setString(1, v); }
+  set newName($core.String v) { $_setString(1, v); }
   @$pb.TagNumber(2)
-  $core.bool hasUserId() => $_has(1);
+  $core.bool hasNewName() => $_has(1);
   @$pb.TagNumber(2)
-  void clearUserId() => clearField(2);
-
-  @$pb.TagNumber(3)
-  $core.String get newName => $_getSZ(2);
-  @$pb.TagNumber(3)
-  set newName($core.String v) { $_setString(2, v); }
-  @$pb.TagNumber(3)
-  $core.bool hasNewName() => $_has(2);
-  @$pb.TagNumber(3)
-  void clearNewName() => clearField(3);
+  void clearNewName() => clearField(2);
 }
 
 class DuplicateWorkoutResponse extends $pb.GeneratedMessage {

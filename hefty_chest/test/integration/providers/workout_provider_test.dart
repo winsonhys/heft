@@ -28,7 +28,7 @@ void main() {
       final uniqueName = 'Test Workout ${DateTime.now().millisecondsSinceEpoch}';
 
       final request = CreateWorkoutRequest()
-        ..userId = TestData.testUserId
+        
         ..name = uniqueName
         ..description = 'Integration test workout';
 
@@ -48,7 +48,7 @@ void main() {
       // Get workout
       final request = GetWorkoutRequest()
         ..id = workoutId
-        ..userId = TestData.testUserId;
+        ;
 
       final response = await workoutClient.getWorkout(request);
 
@@ -66,7 +66,7 @@ void main() {
       );
 
       // List workouts
-      final request = ListWorkoutsRequest()..userId = TestData.testUserId;
+      final request = ListWorkoutsRequest();
 
       final response = await workoutClient.listWorkouts(request);
 
@@ -146,7 +146,7 @@ void main() {
 
       // Create workout
       final request = CreateWorkoutRequest()
-        ..userId = TestData.testUserId
+        
         ..name = 'Structured Workout Test'
         ..description = 'Test with sections';
 
@@ -199,7 +199,7 @@ void main() {
       section.items.addAll([item1, item2]);
 
       final request = CreateWorkoutRequest()
-        ..userId = TestData.testUserId
+        
         ..name = 'Superset Test';
 
       request.sections.add(section);
@@ -224,7 +224,7 @@ void main() {
       // Call update (returns existing workout, doesn't actually update)
       final updateRequest = UpdateWorkoutRequest()
         ..id = workoutId
-        ..userId = TestData.testUserId
+        
         ..name = 'Updated Workout Name'
         ..description = 'Updated description';
 
@@ -245,7 +245,7 @@ void main() {
       // Delete workout
       final deleteRequest = DeleteWorkoutRequest()
         ..id = workoutId
-        ..userId = TestData.testUserId;
+        ;
 
       final deleteResponse = await workoutClient.deleteWorkout(deleteRequest);
       expect(deleteResponse.success, isTrue);
@@ -254,7 +254,7 @@ void main() {
       try {
         final getRequest = GetWorkoutRequest()
           ..id = workoutId
-          ..userId = TestData.testUserId;
+          ;
 
         await workoutClient.getWorkout(getRequest);
         fail('Expected workout to be deleted');
@@ -273,7 +273,7 @@ void main() {
       // Duplicate
       final duplicateRequest = DuplicateWorkoutRequest()
         ..id = workoutId
-        ..userId = TestData.testUserId
+        
         ..newName = 'Duplicated Workout';
 
       final duplicateResponse = await workoutClient.duplicateWorkout(duplicateRequest);
@@ -296,7 +296,7 @@ void main() {
       // Verify structure
       final getRequest = GetWorkoutRequest()
         ..id = workoutId
-        ..userId = TestData.testUserId;
+        ;
 
       final response = await workoutClient.getWorkout(getRequest);
 

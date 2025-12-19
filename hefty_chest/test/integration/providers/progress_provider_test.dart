@@ -26,7 +26,7 @@ void main() {
   group('ProgressService Integration', () {
     test('gets dashboard stats', () async {
       final request = GetDashboardStatsRequest()
-        ..userId = TestData.testUserId;
+        ;
 
       final response = await progressClient.getDashboardStats(request);
 
@@ -45,7 +45,7 @@ void main() {
 
     test('gets weekly activity', () async {
       final request = GetWeeklyActivityRequest()
-        ..userId = TestData.testUserId;
+        ;
 
       final response = await progressClient.getWeeklyActivity(request);
 
@@ -66,7 +66,7 @@ void main() {
 
     test('gets personal records', () async {
       final request = GetPersonalRecordsRequest()
-        ..userId = TestData.testUserId;
+        ;
 
       final response = await progressClient.getPersonalRecords(request);
 
@@ -83,12 +83,12 @@ void main() {
     test('gets exercise progress', () async {
       // Get an exercise ID first
       final exercisesResponse = await exerciseClient.listExercises(
-        ListExercisesRequest()..userId = TestData.testUserId,
+        ListExercisesRequest(),
       );
       final exerciseId = exercisesResponse.exercises.first.id;
 
       final request = GetExerciseProgressRequest()
-        ..userId = TestData.testUserId
+        
         ..exerciseId = exerciseId
         ..limit = 10;
 
@@ -101,7 +101,7 @@ void main() {
     test('gets exercise progress via provider', () async {
       // Get an exercise ID first
       final exercisesResponse = await exerciseClient.listExercises(
-        ListExercisesRequest()..userId = TestData.testUserId,
+        ListExercisesRequest(),
       );
       final exerciseId = exercisesResponse.exercises.first.id;
 
@@ -114,7 +114,7 @@ void main() {
     });
 
     test('gets streak', () async {
-      final request = GetStreakRequest()..userId = TestData.testUserId;
+      final request = GetStreakRequest();
 
       final response = await progressClient.getStreak(request);
 
@@ -125,7 +125,7 @@ void main() {
     test('gets calendar month', () async {
       final now = DateTime.now();
       final request = GetCalendarMonthRequest()
-        ..userId = TestData.testUserId
+        
         ..year = now.year
         ..month = now.month;
 
@@ -139,7 +139,7 @@ void main() {
     test('selected exercise progress workflow', () async {
       // Get an exercise ID
       final exercisesResponse = await exerciseClient.listExercises(
-        ListExercisesRequest()..userId = TestData.testUserId,
+        ListExercisesRequest(),
       );
       final exerciseId = exercisesResponse.exercises.first.id;
 
@@ -179,7 +179,7 @@ void main() {
       final sessionResponse = await sessionClient.getSession(
         GetSessionRequest()
           ..id = sessionId
-          ..userId = TestData.testUserId,
+          ,
       );
 
       final syncSets = <SyncSetData>[];
@@ -203,7 +203,7 @@ void main() {
       await sessionClient.finishSession(
         FinishSessionRequest()
           ..id = sessionId
-          ..userId = TestData.testUserId,
+          ,
       );
 
       // Invalidate provider to force refresh

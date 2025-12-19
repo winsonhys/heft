@@ -40,14 +40,13 @@ void main() {
 
     test('updates user settings', () async {
       // Get current settings via direct client call
-      final getRequest = GetProfileRequest()..userId = TestData.testUserId;
+      final getRequest = GetProfileRequest();
       final profileResponse = await userClient.getProfile(getRequest);
       final originalUsePounds = profileResponse.user.usePounds;
       final originalRestTimer = profileResponse.user.restTimerSeconds;
 
       // Update settings to opposite values
       final updateRequest = UpdateSettingsRequest()
-        ..userId = TestData.testUserId
         ..usePounds = !originalUsePounds
         ..restTimerSeconds = 120;
 
@@ -58,7 +57,6 @@ void main() {
 
       // Restore original settings
       final restoreRequest = UpdateSettingsRequest()
-        ..userId = TestData.testUserId
         ..usePounds = originalUsePounds
         ..restTimerSeconds = originalRestTimer;
 
@@ -94,7 +92,6 @@ void main() {
           '${today.year}-${today.month.toString().padLeft(2, '0')}-${today.day.toString().padLeft(2, '0')}';
 
       final request = LogWeightRequest()
-        ..userId = TestData.testUserId
         ..weightKg = 75.5
         ..loggedDate = dateStr
         ..notes = 'Integration test weight log';
@@ -107,8 +104,7 @@ void main() {
 
       // Clean up - delete the weight log
       final deleteRequest = DeleteWeightLogRequest()
-        ..id = response.weightLog.id
-        ..userId = TestData.testUserId;
+        ..id = response.weightLog.id;
 
       await userClient.deleteWeightLog(deleteRequest);
     });
@@ -120,7 +116,6 @@ void main() {
           '${today.year}-${today.month.toString().padLeft(2, '0')}-${today.day.toString().padLeft(2, '0')}';
 
       final logRequest = LogWeightRequest()
-        ..userId = TestData.testUserId
         ..weightKg = 80.0
         ..loggedDate = dateStr
         ..notes = 'Test weight for history';
@@ -128,8 +123,7 @@ void main() {
       final logResponse = await userClient.logWeight(logRequest);
 
       // Get history
-      final historyRequest = GetWeightHistoryRequest()
-        ..userId = TestData.testUserId;
+      final historyRequest = GetWeightHistoryRequest();
 
       final historyResponse = await userClient.getWeightHistory(historyRequest);
 
@@ -141,8 +135,7 @@ void main() {
 
       // Clean up
       final deleteRequest = DeleteWeightLogRequest()
-        ..id = logResponse.weightLog.id
-        ..userId = TestData.testUserId;
+        ..id = logResponse.weightLog.id;
 
       await userClient.deleteWeightLog(deleteRequest);
     });

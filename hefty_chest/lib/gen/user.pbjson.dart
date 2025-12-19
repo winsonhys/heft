@@ -78,14 +78,11 @@ final $typed_data.Uint8List userSettingsDescriptor = $convert.base64Decode(
 @$core.Deprecated('Use getProfileRequestDescriptor instead')
 const GetProfileRequest$json = {
   '1': 'GetProfileRequest',
-  '2': [
-    {'1': 'user_id', '3': 1, '4': 1, '5': 9, '10': 'userId'},
-  ],
 };
 
 /// Descriptor for `GetProfileRequest`. Decode as a `google.protobuf.DescriptorProto`.
 final $typed_data.Uint8List getProfileRequestDescriptor = $convert.base64Decode(
-    'ChFHZXRQcm9maWxlUmVxdWVzdBIXCgd1c2VyX2lkGAEgASgJUgZ1c2VySWQ=');
+    'ChFHZXRQcm9maWxlUmVxdWVzdA==');
 
 @$core.Deprecated('Use getProfileResponseDescriptor instead')
 const GetProfileResponse$json = {
@@ -104,9 +101,8 @@ final $typed_data.Uint8List getProfileResponseDescriptor = $convert.base64Decode
 const UpdateProfileRequest$json = {
   '1': 'UpdateProfileRequest',
   '2': [
-    {'1': 'user_id', '3': 1, '4': 1, '5': 9, '10': 'userId'},
-    {'1': 'display_name', '3': 2, '4': 1, '5': 9, '9': 0, '10': 'displayName', '17': true},
-    {'1': 'avatar_url', '3': 3, '4': 1, '5': 9, '9': 1, '10': 'avatarUrl', '17': true},
+    {'1': 'display_name', '3': 1, '4': 1, '5': 9, '9': 0, '10': 'displayName', '17': true},
+    {'1': 'avatar_url', '3': 2, '4': 1, '5': 9, '9': 1, '10': 'avatarUrl', '17': true},
   ],
   '8': [
     {'1': '_display_name'},
@@ -116,9 +112,9 @@ const UpdateProfileRequest$json = {
 
 /// Descriptor for `UpdateProfileRequest`. Decode as a `google.protobuf.DescriptorProto`.
 final $typed_data.Uint8List updateProfileRequestDescriptor = $convert.base64Decode(
-    'ChRVcGRhdGVQcm9maWxlUmVxdWVzdBIXCgd1c2VyX2lkGAEgASgJUgZ1c2VySWQSJgoMZGlzcG'
-    'xheV9uYW1lGAIgASgJSABSC2Rpc3BsYXlOYW1liAEBEiIKCmF2YXRhcl91cmwYAyABKAlIAVIJ'
-    'YXZhdGFyVXJsiAEBQg8KDV9kaXNwbGF5X25hbWVCDQoLX2F2YXRhcl91cmw=');
+    'ChRVcGRhdGVQcm9maWxlUmVxdWVzdBImCgxkaXNwbGF5X25hbWUYASABKAlIAFILZGlzcGxheU'
+    '5hbWWIAQESIgoKYXZhdGFyX3VybBgCIAEoCUgBUglhdmF0YXJVcmyIAQFCDwoNX2Rpc3BsYXlf'
+    'bmFtZUINCgtfYXZhdGFyX3VybA==');
 
 @$core.Deprecated('Use updateProfileResponseDescriptor instead')
 const UpdateProfileResponse$json = {
@@ -137,9 +133,8 @@ final $typed_data.Uint8List updateProfileResponseDescriptor = $convert.base64Dec
 const UpdateSettingsRequest$json = {
   '1': 'UpdateSettingsRequest',
   '2': [
-    {'1': 'user_id', '3': 1, '4': 1, '5': 9, '10': 'userId'},
-    {'1': 'use_pounds', '3': 2, '4': 1, '5': 8, '9': 0, '10': 'usePounds', '17': true},
-    {'1': 'rest_timer_seconds', '3': 3, '4': 1, '5': 5, '9': 1, '10': 'restTimerSeconds', '17': true},
+    {'1': 'use_pounds', '3': 1, '4': 1, '5': 8, '9': 0, '10': 'usePounds', '17': true},
+    {'1': 'rest_timer_seconds', '3': 2, '4': 1, '5': 5, '9': 1, '10': 'restTimerSeconds', '17': true},
   ],
   '8': [
     {'1': '_use_pounds'},
@@ -149,10 +144,9 @@ const UpdateSettingsRequest$json = {
 
 /// Descriptor for `UpdateSettingsRequest`. Decode as a `google.protobuf.DescriptorProto`.
 final $typed_data.Uint8List updateSettingsRequestDescriptor = $convert.base64Decode(
-    'ChVVcGRhdGVTZXR0aW5nc1JlcXVlc3QSFwoHdXNlcl9pZBgBIAEoCVIGdXNlcklkEiIKCnVzZV'
-    '9wb3VuZHMYAiABKAhIAFIJdXNlUG91bmRziAEBEjEKEnJlc3RfdGltZXJfc2Vjb25kcxgDIAEo'
-    'BUgBUhByZXN0VGltZXJTZWNvbmRziAEBQg0KC191c2VfcG91bmRzQhUKE19yZXN0X3RpbWVyX3'
-    'NlY29uZHM=');
+    'ChVVcGRhdGVTZXR0aW5nc1JlcXVlc3QSIgoKdXNlX3BvdW5kcxgBIAEoCEgAUgl1c2VQb3VuZH'
+    'OIAQESMQoScmVzdF90aW1lcl9zZWNvbmRzGAIgASgFSAFSEHJlc3RUaW1lclNlY29uZHOIAQFC'
+    'DQoLX3VzZV9wb3VuZHNCFQoTX3Jlc3RfdGltZXJfc2Vjb25kcw==');
 
 @$core.Deprecated('Use updateSettingsResponseDescriptor instead')
 const UpdateSettingsResponse$json = {
@@ -171,10 +165,9 @@ final $typed_data.Uint8List updateSettingsResponseDescriptor = $convert.base64De
 const LogWeightRequest$json = {
   '1': 'LogWeightRequest',
   '2': [
-    {'1': 'user_id', '3': 1, '4': 1, '5': 9, '10': 'userId'},
-    {'1': 'weight_kg', '3': 2, '4': 1, '5': 1, '10': 'weightKg'},
-    {'1': 'logged_date', '3': 3, '4': 1, '5': 9, '10': 'loggedDate'},
-    {'1': 'notes', '3': 4, '4': 1, '5': 9, '9': 0, '10': 'notes', '17': true},
+    {'1': 'weight_kg', '3': 1, '4': 1, '5': 1, '10': 'weightKg'},
+    {'1': 'logged_date', '3': 2, '4': 1, '5': 9, '10': 'loggedDate'},
+    {'1': 'notes', '3': 3, '4': 1, '5': 9, '9': 0, '10': 'notes', '17': true},
   ],
   '8': [
     {'1': '_notes'},
@@ -183,9 +176,9 @@ const LogWeightRequest$json = {
 
 /// Descriptor for `LogWeightRequest`. Decode as a `google.protobuf.DescriptorProto`.
 final $typed_data.Uint8List logWeightRequestDescriptor = $convert.base64Decode(
-    'ChBMb2dXZWlnaHRSZXF1ZXN0EhcKB3VzZXJfaWQYASABKAlSBnVzZXJJZBIbCgl3ZWlnaHRfa2'
-    'cYAiABKAFSCHdlaWdodEtnEh8KC2xvZ2dlZF9kYXRlGAMgASgJUgpsb2dnZWREYXRlEhkKBW5v'
-    'dGVzGAQgASgJSABSBW5vdGVziAEBQggKBl9ub3Rlcw==');
+    'ChBMb2dXZWlnaHRSZXF1ZXN0EhsKCXdlaWdodF9rZxgBIAEoAVIId2VpZ2h0S2cSHwoLbG9nZ2'
+    'VkX2RhdGUYAiABKAlSCmxvZ2dlZERhdGUSGQoFbm90ZXMYAyABKAlIAFIFbm90ZXOIAQFCCAoG'
+    'X25vdGVz');
 
 @$core.Deprecated('Use logWeightResponseDescriptor instead')
 const LogWeightResponse$json = {
@@ -204,10 +197,9 @@ final $typed_data.Uint8List logWeightResponseDescriptor = $convert.base64Decode(
 const GetWeightHistoryRequest$json = {
   '1': 'GetWeightHistoryRequest',
   '2': [
-    {'1': 'user_id', '3': 1, '4': 1, '5': 9, '10': 'userId'},
-    {'1': 'start_date', '3': 2, '4': 1, '5': 9, '9': 0, '10': 'startDate', '17': true},
-    {'1': 'end_date', '3': 3, '4': 1, '5': 9, '9': 1, '10': 'endDate', '17': true},
-    {'1': 'limit', '3': 4, '4': 1, '5': 5, '9': 2, '10': 'limit', '17': true},
+    {'1': 'start_date', '3': 1, '4': 1, '5': 9, '9': 0, '10': 'startDate', '17': true},
+    {'1': 'end_date', '3': 2, '4': 1, '5': 9, '9': 1, '10': 'endDate', '17': true},
+    {'1': 'limit', '3': 3, '4': 1, '5': 5, '9': 2, '10': 'limit', '17': true},
   ],
   '8': [
     {'1': '_start_date'},
@@ -218,10 +210,9 @@ const GetWeightHistoryRequest$json = {
 
 /// Descriptor for `GetWeightHistoryRequest`. Decode as a `google.protobuf.DescriptorProto`.
 final $typed_data.Uint8List getWeightHistoryRequestDescriptor = $convert.base64Decode(
-    'ChdHZXRXZWlnaHRIaXN0b3J5UmVxdWVzdBIXCgd1c2VyX2lkGAEgASgJUgZ1c2VySWQSIgoKc3'
-    'RhcnRfZGF0ZRgCIAEoCUgAUglzdGFydERhdGWIAQESHgoIZW5kX2RhdGUYAyABKAlIAVIHZW5k'
-    'RGF0ZYgBARIZCgVsaW1pdBgEIAEoBUgCUgVsaW1pdIgBAUINCgtfc3RhcnRfZGF0ZUILCglfZW'
-    '5kX2RhdGVCCAoGX2xpbWl0');
+    'ChdHZXRXZWlnaHRIaXN0b3J5UmVxdWVzdBIiCgpzdGFydF9kYXRlGAEgASgJSABSCXN0YXJ0RG'
+    'F0ZYgBARIeCghlbmRfZGF0ZRgCIAEoCUgBUgdlbmREYXRliAEBEhkKBWxpbWl0GAMgASgFSAJS'
+    'BWxpbWl0iAEBQg0KC19zdGFydF9kYXRlQgsKCV9lbmRfZGF0ZUIICgZfbGltaXQ=');
 
 @$core.Deprecated('Use getWeightHistoryResponseDescriptor instead')
 const GetWeightHistoryResponse$json = {
@@ -241,14 +232,12 @@ const DeleteWeightLogRequest$json = {
   '1': 'DeleteWeightLogRequest',
   '2': [
     {'1': 'id', '3': 1, '4': 1, '5': 9, '10': 'id'},
-    {'1': 'user_id', '3': 2, '4': 1, '5': 9, '10': 'userId'},
   ],
 };
 
 /// Descriptor for `DeleteWeightLogRequest`. Decode as a `google.protobuf.DescriptorProto`.
 final $typed_data.Uint8List deleteWeightLogRequestDescriptor = $convert.base64Decode(
-    'ChZEZWxldGVXZWlnaHRMb2dSZXF1ZXN0Eg4KAmlkGAEgASgJUgJpZBIXCgd1c2VyX2lkGAIgAS'
-    'gJUgZ1c2VySWQ=');
+    'ChZEZWxldGVXZWlnaHRMb2dSZXF1ZXN0Eg4KAmlkGAEgASgJUgJpZA==');
 
 @$core.Deprecated('Use deleteWeightLogResponseDescriptor instead')
 const DeleteWeightLogResponse$json = {

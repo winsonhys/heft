@@ -165,14 +165,11 @@ final $typed_data.Uint8List calendarEventDescriptor = $convert.base64Decode(
 @$core.Deprecated('Use getDashboardStatsRequestDescriptor instead')
 const GetDashboardStatsRequest$json = {
   '1': 'GetDashboardStatsRequest',
-  '2': [
-    {'1': 'user_id', '3': 1, '4': 1, '5': 9, '10': 'userId'},
-  ],
 };
 
 /// Descriptor for `GetDashboardStatsRequest`. Decode as a `google.protobuf.DescriptorProto`.
 final $typed_data.Uint8List getDashboardStatsRequestDescriptor = $convert.base64Decode(
-    'ChhHZXREYXNoYm9hcmRTdGF0c1JlcXVlc3QSFwoHdXNlcl9pZBgBIAEoCVIGdXNlcklk');
+    'ChhHZXREYXNoYm9hcmRTdGF0c1JlcXVlc3Q=');
 
 @$core.Deprecated('Use getDashboardStatsResponseDescriptor instead')
 const GetDashboardStatsResponse$json = {
@@ -191,8 +188,7 @@ final $typed_data.Uint8List getDashboardStatsResponseDescriptor = $convert.base6
 const GetWeeklyActivityRequest$json = {
   '1': 'GetWeeklyActivityRequest',
   '2': [
-    {'1': 'user_id', '3': 1, '4': 1, '5': 9, '10': 'userId'},
-    {'1': 'week_start', '3': 2, '4': 1, '5': 9, '9': 0, '10': 'weekStart', '17': true},
+    {'1': 'week_start', '3': 1, '4': 1, '5': 9, '9': 0, '10': 'weekStart', '17': true},
   ],
   '8': [
     {'1': '_week_start'},
@@ -201,8 +197,8 @@ const GetWeeklyActivityRequest$json = {
 
 /// Descriptor for `GetWeeklyActivityRequest`. Decode as a `google.protobuf.DescriptorProto`.
 final $typed_data.Uint8List getWeeklyActivityRequestDescriptor = $convert.base64Decode(
-    'ChhHZXRXZWVrbHlBY3Rpdml0eVJlcXVlc3QSFwoHdXNlcl9pZBgBIAEoCVIGdXNlcklkEiIKCn'
-    'dlZWtfc3RhcnQYAiABKAlIAFIJd2Vla1N0YXJ0iAEBQg0KC193ZWVrX3N0YXJ0');
+    'ChhHZXRXZWVrbHlBY3Rpdml0eVJlcXVlc3QSIgoKd2Vla19zdGFydBgBIAEoCUgAUgl3ZWVrU3'
+    'RhcnSIAQFCDQoLX3dlZWtfc3RhcnQ=');
 
 @$core.Deprecated('Use getWeeklyActivityResponseDescriptor instead')
 const GetWeeklyActivityResponse$json = {
@@ -223,9 +219,8 @@ final $typed_data.Uint8List getWeeklyActivityResponseDescriptor = $convert.base6
 const GetPersonalRecordsRequest$json = {
   '1': 'GetPersonalRecordsRequest',
   '2': [
-    {'1': 'user_id', '3': 1, '4': 1, '5': 9, '10': 'userId'},
-    {'1': 'limit', '3': 2, '4': 1, '5': 5, '9': 0, '10': 'limit', '17': true},
-    {'1': 'exercise_id', '3': 3, '4': 1, '5': 9, '9': 1, '10': 'exerciseId', '17': true},
+    {'1': 'limit', '3': 1, '4': 1, '5': 5, '9': 0, '10': 'limit', '17': true},
+    {'1': 'exercise_id', '3': 2, '4': 1, '5': 9, '9': 1, '10': 'exerciseId', '17': true},
   ],
   '8': [
     {'1': '_limit'},
@@ -235,9 +230,9 @@ const GetPersonalRecordsRequest$json = {
 
 /// Descriptor for `GetPersonalRecordsRequest`. Decode as a `google.protobuf.DescriptorProto`.
 final $typed_data.Uint8List getPersonalRecordsRequestDescriptor = $convert.base64Decode(
-    'ChlHZXRQZXJzb25hbFJlY29yZHNSZXF1ZXN0EhcKB3VzZXJfaWQYASABKAlSBnVzZXJJZBIZCg'
-    'VsaW1pdBgCIAEoBUgAUgVsaW1pdIgBARIkCgtleGVyY2lzZV9pZBgDIAEoCUgBUgpleGVyY2lz'
-    'ZUlkiAEBQggKBl9saW1pdEIOCgxfZXhlcmNpc2VfaWQ=');
+    'ChlHZXRQZXJzb25hbFJlY29yZHNSZXF1ZXN0EhkKBWxpbWl0GAEgASgFSABSBWxpbWl0iAEBEi'
+    'QKC2V4ZXJjaXNlX2lkGAIgASgJSAFSCmV4ZXJjaXNlSWSIAQFCCAoGX2xpbWl0Qg4KDF9leGVy'
+    'Y2lzZV9pZA==');
 
 @$core.Deprecated('Use getPersonalRecordsResponseDescriptor instead')
 const GetPersonalRecordsResponse$json = {
@@ -256,9 +251,8 @@ final $typed_data.Uint8List getPersonalRecordsResponseDescriptor = $convert.base
 const GetExerciseProgressRequest$json = {
   '1': 'GetExerciseProgressRequest',
   '2': [
-    {'1': 'user_id', '3': 1, '4': 1, '5': 9, '10': 'userId'},
-    {'1': 'exercise_id', '3': 2, '4': 1, '5': 9, '10': 'exerciseId'},
-    {'1': 'limit', '3': 3, '4': 1, '5': 5, '9': 0, '10': 'limit', '17': true},
+    {'1': 'exercise_id', '3': 1, '4': 1, '5': 9, '10': 'exerciseId'},
+    {'1': 'limit', '3': 2, '4': 1, '5': 5, '9': 0, '10': 'limit', '17': true},
   ],
   '8': [
     {'1': '_limit'},
@@ -267,9 +261,8 @@ const GetExerciseProgressRequest$json = {
 
 /// Descriptor for `GetExerciseProgressRequest`. Decode as a `google.protobuf.DescriptorProto`.
 final $typed_data.Uint8List getExerciseProgressRequestDescriptor = $convert.base64Decode(
-    'ChpHZXRFeGVyY2lzZVByb2dyZXNzUmVxdWVzdBIXCgd1c2VyX2lkGAEgASgJUgZ1c2VySWQSHw'
-    'oLZXhlcmNpc2VfaWQYAiABKAlSCmV4ZXJjaXNlSWQSGQoFbGltaXQYAyABKAVIAFIFbGltaXSI'
-    'AQFCCAoGX2xpbWl0');
+    'ChpHZXRFeGVyY2lzZVByb2dyZXNzUmVxdWVzdBIfCgtleGVyY2lzZV9pZBgBIAEoCVIKZXhlcm'
+    'Npc2VJZBIZCgVsaW1pdBgCIAEoBUgAUgVsaW1pdIgBAUIICgZfbGltaXQ=');
 
 @$core.Deprecated('Use getExerciseProgressResponseDescriptor instead')
 const GetExerciseProgressResponse$json = {
@@ -288,16 +281,15 @@ final $typed_data.Uint8List getExerciseProgressResponseDescriptor = $convert.bas
 const GetCalendarMonthRequest$json = {
   '1': 'GetCalendarMonthRequest',
   '2': [
-    {'1': 'user_id', '3': 1, '4': 1, '5': 9, '10': 'userId'},
-    {'1': 'year', '3': 2, '4': 1, '5': 5, '10': 'year'},
-    {'1': 'month', '3': 3, '4': 1, '5': 5, '10': 'month'},
+    {'1': 'year', '3': 1, '4': 1, '5': 5, '10': 'year'},
+    {'1': 'month', '3': 2, '4': 1, '5': 5, '10': 'month'},
   ],
 };
 
 /// Descriptor for `GetCalendarMonthRequest`. Decode as a `google.protobuf.DescriptorProto`.
 final $typed_data.Uint8List getCalendarMonthRequestDescriptor = $convert.base64Decode(
-    'ChdHZXRDYWxlbmRhck1vbnRoUmVxdWVzdBIXCgd1c2VyX2lkGAEgASgJUgZ1c2VySWQSEgoEeW'
-    'VhchgCIAEoBVIEeWVhchIUCgVtb250aBgDIAEoBVIFbW9udGg=');
+    'ChdHZXRDYWxlbmRhck1vbnRoUmVxdWVzdBISCgR5ZWFyGAEgASgFUgR5ZWFyEhQKBW1vbnRoGA'
+    'IgASgFUgVtb250aA==');
 
 @$core.Deprecated('Use getCalendarMonthResponseDescriptor instead')
 const GetCalendarMonthResponse$json = {
@@ -318,14 +310,11 @@ final $typed_data.Uint8List getCalendarMonthResponseDescriptor = $convert.base64
 @$core.Deprecated('Use getStreakRequestDescriptor instead')
 const GetStreakRequest$json = {
   '1': 'GetStreakRequest',
-  '2': [
-    {'1': 'user_id', '3': 1, '4': 1, '5': 9, '10': 'userId'},
-  ],
 };
 
 /// Descriptor for `GetStreakRequest`. Decode as a `google.protobuf.DescriptorProto`.
 final $typed_data.Uint8List getStreakRequestDescriptor = $convert.base64Decode(
-    'ChBHZXRTdHJlYWtSZXF1ZXN0EhcKB3VzZXJfaWQYASABKAlSBnVzZXJJZA==');
+    'ChBHZXRTdHJlYWtSZXF1ZXN0');
 
 @$core.Deprecated('Use getStreakResponseDescriptor instead')
 const GetStreakResponse$json = {

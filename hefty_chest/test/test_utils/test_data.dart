@@ -25,7 +25,6 @@ class TestData {
     List<CreateWorkoutSection>? sections,
   }) async {
     final request = CreateWorkoutRequest()
-      ..userId = testUserId
       ..name = name
       ..description = description;
 
@@ -45,7 +44,7 @@ class TestData {
   }) async {
     // Get first exercise from list
     final exercisesResponse = await exerciseClient.listExercises(
-      ListExercisesRequest()..userId = testUserId,
+      ListExercisesRequest(),
     );
     final exercise = exercisesResponse.exercises.first;
 
@@ -86,8 +85,7 @@ class TestData {
   /// Use [deleteWorkoutSafe] instead if sessions may exist.
   static Future<void> deleteWorkout(String workoutId) async {
     final request = DeleteWorkoutRequest()
-      ..id = workoutId
-      ..userId = testUserId;
+      ..id = workoutId;
 
     await workoutClient.deleteWorkout(request);
   }
@@ -113,7 +111,6 @@ class TestData {
     int durationWeeks = 4,
   }) async {
     final request = CreateProgramRequest()
-      ..userId = testUserId
       ..name = name
       ..durationWeeks = durationWeeks
       ..durationDays = durationWeeks * 7;
@@ -125,15 +122,13 @@ class TestData {
   /// Delete a program by ID.
   static Future<void> deleteProgram(String programId) async {
     final request = DeleteProgramRequest()
-      ..id = programId
-      ..userId = testUserId;
+      ..id = programId;
     await programClient.deleteProgram(request);
   }
 
   /// Start a session and return the session ID.
   static Future<String> startSession({required String workoutTemplateId}) async {
     final request = StartSessionRequest()
-      ..userId = testUserId
       ..workoutTemplateId = workoutTemplateId;
 
     final response = await sessionClient.startSession(request);
@@ -143,8 +138,7 @@ class TestData {
   /// Abandon a session by ID.
   static Future<void> abandonSession(String sessionId) async {
     final request = AbandonSessionRequest()
-      ..id = sessionId
-      ..userId = testUserId;
+      ..id = sessionId;
 
     await sessionClient.abandonSession(request);
   }

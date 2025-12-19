@@ -100,9 +100,7 @@ message CalendarEvent {
 }
 
 // GetDashboardStats
-message GetDashboardStatsRequest {
-  string user_id = 1;
-}
+message GetDashboardStatsRequest {}
 
 message GetDashboardStatsResponse {
   DashboardStats stats = 1;
@@ -110,8 +108,7 @@ message GetDashboardStatsResponse {
 
 // GetWeeklyActivity
 message GetWeeklyActivityRequest {
-  string user_id = 1;
-  optional string week_start = 2; // YYYY-MM-DD, defaults to current week
+  optional string week_start = 1; // YYYY-MM-DD, defaults to current week
 }
 
 message GetWeeklyActivityResponse {
@@ -121,9 +118,8 @@ message GetWeeklyActivityResponse {
 
 // GetPersonalRecords
 message GetPersonalRecordsRequest {
-  string user_id = 1;
-  optional int32 limit = 2;
-  optional string exercise_id = 3;
+  optional int32 limit = 1;
+  optional string exercise_id = 2;
 }
 
 message GetPersonalRecordsResponse {
@@ -132,9 +128,8 @@ message GetPersonalRecordsResponse {
 
 // GetExerciseProgress
 message GetExerciseProgressRequest {
-  string user_id = 1;
-  string exercise_id = 2;
-  optional int32 limit = 3; // Number of sessions to include
+  string exercise_id = 1;
+  optional int32 limit = 2; // Number of sessions to include
 }
 
 message GetExerciseProgressResponse {
@@ -143,9 +138,8 @@ message GetExerciseProgressResponse {
 
 // GetCalendarMonth
 message GetCalendarMonthRequest {
-  string user_id = 1;
-  int32 year = 2;
-  int32 month = 3; // 1-12
+  int32 year = 1;
+  int32 month = 2; // 1-12
 }
 
 message GetCalendarMonthResponse {
@@ -155,9 +149,7 @@ message GetCalendarMonthResponse {
 }
 
 // GetStreak
-message GetStreakRequest {
-  string user_id = 1;
-}
+message GetStreakRequest {}
 
 message GetStreakResponse {
   int32 current_streak = 1;

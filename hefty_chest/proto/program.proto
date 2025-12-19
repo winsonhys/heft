@@ -76,9 +76,8 @@ message ProgramDay {
 
 // ListPrograms
 message ListProgramsRequest {
-  string user_id = 1;
-  optional bool include_archived = 2;
-  PaginationRequest pagination = 3;
+  optional bool include_archived = 1;
+  PaginationRequest pagination = 2;
 }
 
 message ListProgramsResponse {
@@ -89,7 +88,6 @@ message ListProgramsResponse {
 // GetProgram
 message GetProgramRequest {
   string id = 1;
-  string user_id = 2;
 }
 
 message GetProgramResponse {
@@ -98,12 +96,11 @@ message GetProgramResponse {
 
 // CreateProgram
 message CreateProgramRequest {
-  string user_id = 1;
-  string name = 2;
-  optional string description = 3;
-  int32 duration_weeks = 4;
-  int32 duration_days = 5;
-  repeated CreateProgramDay days = 6;
+  string name = 1;
+  optional string description = 2;
+  int32 duration_weeks = 3;
+  int32 duration_days = 4;
+  repeated CreateProgramDay days = 5;
 }
 
 message CreateProgramDay {
@@ -120,13 +117,12 @@ message CreateProgramResponse {
 // UpdateProgram
 message UpdateProgramRequest {
   string id = 1;
-  string user_id = 2;
-  optional string name = 3;
-  optional string description = 4;
-  optional int32 duration_weeks = 5;
-  optional int32 duration_days = 6;
-  optional bool is_archived = 7;
-  repeated CreateProgramDay days = 8;
+  optional string name = 2;
+  optional string description = 3;
+  optional int32 duration_weeks = 4;
+  optional int32 duration_days = 5;
+  optional bool is_archived = 6;
+  repeated CreateProgramDay days = 7;
 }
 
 message UpdateProgramResponse {
@@ -136,7 +132,6 @@ message UpdateProgramResponse {
 // DeleteProgram
 message DeleteProgramRequest {
   string id = 1;
-  string user_id = 2;
 }
 
 message DeleteProgramResponse {
@@ -146,7 +141,6 @@ message DeleteProgramResponse {
 // SetActiveProgram
 message SetActiveProgramRequest {
   string id = 1;
-  string user_id = 2;
 }
 
 message SetActiveProgramResponse {
@@ -154,9 +148,7 @@ message SetActiveProgramResponse {
 }
 
 // GetTodayWorkout
-message GetTodayWorkoutRequest {
-  string user_id = 1;
-}
+message GetTodayWorkoutRequest {}
 
 message GetTodayWorkoutResponse {
   bool has_workout = 1;

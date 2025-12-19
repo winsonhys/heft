@@ -93,13 +93,13 @@ message TargetSet {
   optional double target_distance_m = 7;
   bool is_bodyweight = 8;
   string notes = 9;
+  optional int32 rest_duration_seconds = 10;
 }
 
 // ListWorkouts
 message ListWorkoutsRequest {
-  string user_id = 1;
-  optional bool include_archived = 2;
-  PaginationRequest pagination = 3;
+  optional bool include_archived = 1;
+  PaginationRequest pagination = 2;
 }
 
 message ListWorkoutsResponse {
@@ -110,7 +110,6 @@ message ListWorkoutsResponse {
 // GetWorkout
 message GetWorkoutRequest {
   string id = 1;
-  string user_id = 2;
 }
 
 message GetWorkoutResponse {
@@ -119,10 +118,9 @@ message GetWorkoutResponse {
 
 // CreateWorkout
 message CreateWorkoutRequest {
-  string user_id = 1;
-  string name = 2;
-  optional string description = 3;
-  repeated CreateWorkoutSection sections = 4;
+  string name = 1;
+  optional string description = 2;
+  repeated CreateWorkoutSection sections = 3;
 }
 
 message CreateWorkoutSection {
@@ -148,6 +146,7 @@ message CreateTargetSet {
   optional double target_distance_m = 5;
   bool is_bodyweight = 6;
   optional string notes = 7;
+  optional int32 rest_duration_seconds = 8;
 }
 
 message CreateWorkoutResponse {
@@ -157,12 +156,11 @@ message CreateWorkoutResponse {
 // UpdateWorkout
 message UpdateWorkoutRequest {
   string id = 1;
-  string user_id = 2;
-  optional string name = 3;
-  optional string description = 4;
-  optional bool is_archived = 5;
+  optional string name = 2;
+  optional string description = 3;
+  optional bool is_archived = 4;
   // For full update, include sections
-  repeated CreateWorkoutSection sections = 6;
+  repeated CreateWorkoutSection sections = 5;
 }
 
 message UpdateWorkoutResponse {
@@ -172,7 +170,6 @@ message UpdateWorkoutResponse {
 // DeleteWorkout
 message DeleteWorkoutRequest {
   string id = 1;
-  string user_id = 2;
 }
 
 message DeleteWorkoutResponse {
@@ -182,8 +179,7 @@ message DeleteWorkoutResponse {
 // DuplicateWorkout
 message DuplicateWorkoutRequest {
   string id = 1;
-  string user_id = 2;
-  optional string new_name = 3;
+  optional string new_name = 2;
 }
 
 message DuplicateWorkoutResponse {

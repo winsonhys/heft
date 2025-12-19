@@ -644,7 +644,6 @@ func (x *CalendarEvent) GetDurationSeconds() int32 {
 // GetDashboardStats
 type GetDashboardStatsRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	UserId        string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -677,13 +676,6 @@ func (x *GetDashboardStatsRequest) ProtoReflect() protoreflect.Message {
 // Deprecated: Use GetDashboardStatsRequest.ProtoReflect.Descriptor instead.
 func (*GetDashboardStatsRequest) Descriptor() ([]byte, []int) {
 	return file_heft_v1_progress_proto_rawDescGZIP(), []int{7}
-}
-
-func (x *GetDashboardStatsRequest) GetUserId() string {
-	if x != nil {
-		return x.UserId
-	}
-	return ""
 }
 
 type GetDashboardStatsResponse struct {
@@ -733,8 +725,7 @@ func (x *GetDashboardStatsResponse) GetStats() *DashboardStats {
 // GetWeeklyActivity
 type GetWeeklyActivityRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	UserId        string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
-	WeekStart     *string                `protobuf:"bytes,2,opt,name=week_start,json=weekStart,proto3,oneof" json:"week_start,omitempty"` // YYYY-MM-DD, defaults to current week
+	WeekStart     *string                `protobuf:"bytes,1,opt,name=week_start,json=weekStart,proto3,oneof" json:"week_start,omitempty"` // YYYY-MM-DD, defaults to current week
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -767,13 +758,6 @@ func (x *GetWeeklyActivityRequest) ProtoReflect() protoreflect.Message {
 // Deprecated: Use GetWeeklyActivityRequest.ProtoReflect.Descriptor instead.
 func (*GetWeeklyActivityRequest) Descriptor() ([]byte, []int) {
 	return file_heft_v1_progress_proto_rawDescGZIP(), []int{9}
-}
-
-func (x *GetWeeklyActivityRequest) GetUserId() string {
-	if x != nil {
-		return x.UserId
-	}
-	return ""
 }
 
 func (x *GetWeeklyActivityRequest) GetWeekStart() string {
@@ -838,9 +822,8 @@ func (x *GetWeeklyActivityResponse) GetTotalWorkouts() int32 {
 // GetPersonalRecords
 type GetPersonalRecordsRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	UserId        string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
-	Limit         *int32                 `protobuf:"varint,2,opt,name=limit,proto3,oneof" json:"limit,omitempty"`
-	ExerciseId    *string                `protobuf:"bytes,3,opt,name=exercise_id,json=exerciseId,proto3,oneof" json:"exercise_id,omitempty"`
+	Limit         *int32                 `protobuf:"varint,1,opt,name=limit,proto3,oneof" json:"limit,omitempty"`
+	ExerciseId    *string                `protobuf:"bytes,2,opt,name=exercise_id,json=exerciseId,proto3,oneof" json:"exercise_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -873,13 +856,6 @@ func (x *GetPersonalRecordsRequest) ProtoReflect() protoreflect.Message {
 // Deprecated: Use GetPersonalRecordsRequest.ProtoReflect.Descriptor instead.
 func (*GetPersonalRecordsRequest) Descriptor() ([]byte, []int) {
 	return file_heft_v1_progress_proto_rawDescGZIP(), []int{11}
-}
-
-func (x *GetPersonalRecordsRequest) GetUserId() string {
-	if x != nil {
-		return x.UserId
-	}
-	return ""
 }
 
 func (x *GetPersonalRecordsRequest) GetLimit() int32 {
@@ -943,9 +919,8 @@ func (x *GetPersonalRecordsResponse) GetRecords() []*PersonalRecord {
 // GetExerciseProgress
 type GetExerciseProgressRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	UserId        string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
-	ExerciseId    string                 `protobuf:"bytes,2,opt,name=exercise_id,json=exerciseId,proto3" json:"exercise_id,omitempty"`
-	Limit         *int32                 `protobuf:"varint,3,opt,name=limit,proto3,oneof" json:"limit,omitempty"` // Number of sessions to include
+	ExerciseId    string                 `protobuf:"bytes,1,opt,name=exercise_id,json=exerciseId,proto3" json:"exercise_id,omitempty"`
+	Limit         *int32                 `protobuf:"varint,2,opt,name=limit,proto3,oneof" json:"limit,omitempty"` // Number of sessions to include
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -978,13 +953,6 @@ func (x *GetExerciseProgressRequest) ProtoReflect() protoreflect.Message {
 // Deprecated: Use GetExerciseProgressRequest.ProtoReflect.Descriptor instead.
 func (*GetExerciseProgressRequest) Descriptor() ([]byte, []int) {
 	return file_heft_v1_progress_proto_rawDescGZIP(), []int{13}
-}
-
-func (x *GetExerciseProgressRequest) GetUserId() string {
-	if x != nil {
-		return x.UserId
-	}
-	return ""
 }
 
 func (x *GetExerciseProgressRequest) GetExerciseId() string {
@@ -1048,9 +1016,8 @@ func (x *GetExerciseProgressResponse) GetProgress() *ExerciseProgressSummary {
 // GetCalendarMonth
 type GetCalendarMonthRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	UserId        string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
-	Year          int32                  `protobuf:"varint,2,opt,name=year,proto3" json:"year,omitempty"`
-	Month         int32                  `protobuf:"varint,3,opt,name=month,proto3" json:"month,omitempty"` // 1-12
+	Year          int32                  `protobuf:"varint,1,opt,name=year,proto3" json:"year,omitempty"`
+	Month         int32                  `protobuf:"varint,2,opt,name=month,proto3" json:"month,omitempty"` // 1-12
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1083,13 +1050,6 @@ func (x *GetCalendarMonthRequest) ProtoReflect() protoreflect.Message {
 // Deprecated: Use GetCalendarMonthRequest.ProtoReflect.Descriptor instead.
 func (*GetCalendarMonthRequest) Descriptor() ([]byte, []int) {
 	return file_heft_v1_progress_proto_rawDescGZIP(), []int{15}
-}
-
-func (x *GetCalendarMonthRequest) GetUserId() string {
-	if x != nil {
-		return x.UserId
-	}
-	return ""
 }
 
 func (x *GetCalendarMonthRequest) GetYear() int32 {
@@ -1169,7 +1129,6 @@ func (x *GetCalendarMonthResponse) GetTotalRestDays() int32 {
 // GetStreak
 type GetStreakRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	UserId        string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1202,13 +1161,6 @@ func (x *GetStreakRequest) ProtoReflect() protoreflect.Message {
 // Deprecated: Use GetStreakRequest.ProtoReflect.Descriptor instead.
 func (*GetStreakRequest) Descriptor() ([]byte, []int) {
 	return file_heft_v1_progress_proto_rawDescGZIP(), []int{17}
-}
-
-func (x *GetStreakRequest) GetUserId() string {
-	if x != nil {
-		return x.UserId
-	}
-	return ""
 }
 
 type GetStreakResponse struct {
@@ -1334,46 +1286,40 @@ const file_heft_v1_progress_proto_rawDesc = "" +
 	"\x04name\x18\x03 \x01(\tR\x04name\x12!\n" +
 	"\fis_completed\x18\x04 \x01(\bR\visCompleted\x12!\n" +
 	"\fcompleted_at\x18\x05 \x01(\tR\vcompletedAt\x12)\n" +
-	"\x10duration_seconds\x18\x06 \x01(\x05R\x0fdurationSeconds\"3\n" +
-	"\x18GetDashboardStatsRequest\x12\x17\n" +
-	"\auser_id\x18\x01 \x01(\tR\x06userId\"J\n" +
+	"\x10duration_seconds\x18\x06 \x01(\x05R\x0fdurationSeconds\"\x1a\n" +
+	"\x18GetDashboardStatsRequest\"J\n" +
 	"\x19GetDashboardStatsResponse\x12-\n" +
-	"\x05stats\x18\x01 \x01(\v2\x17.heft.v1.DashboardStatsR\x05stats\"f\n" +
-	"\x18GetWeeklyActivityRequest\x12\x17\n" +
-	"\auser_id\x18\x01 \x01(\tR\x06userId\x12\"\n" +
+	"\x05stats\x18\x01 \x01(\v2\x17.heft.v1.DashboardStatsR\x05stats\"M\n" +
+	"\x18GetWeeklyActivityRequest\x12\"\n" +
 	"\n" +
-	"week_start\x18\x02 \x01(\tH\x00R\tweekStart\x88\x01\x01B\r\n" +
+	"week_start\x18\x01 \x01(\tH\x00R\tweekStart\x88\x01\x01B\r\n" +
 	"\v_week_start\"r\n" +
 	"\x19GetWeeklyActivityResponse\x12.\n" +
 	"\x04days\x18\x01 \x03(\v2\x1a.heft.v1.WeeklyActivityDayR\x04days\x12%\n" +
-	"\x0etotal_workouts\x18\x02 \x01(\x05R\rtotalWorkouts\"\x8f\x01\n" +
-	"\x19GetPersonalRecordsRequest\x12\x17\n" +
-	"\auser_id\x18\x01 \x01(\tR\x06userId\x12\x19\n" +
-	"\x05limit\x18\x02 \x01(\x05H\x00R\x05limit\x88\x01\x01\x12$\n" +
-	"\vexercise_id\x18\x03 \x01(\tH\x01R\n" +
+	"\x0etotal_workouts\x18\x02 \x01(\x05R\rtotalWorkouts\"v\n" +
+	"\x19GetPersonalRecordsRequest\x12\x19\n" +
+	"\x05limit\x18\x01 \x01(\x05H\x00R\x05limit\x88\x01\x01\x12$\n" +
+	"\vexercise_id\x18\x02 \x01(\tH\x01R\n" +
 	"exerciseId\x88\x01\x01B\b\n" +
 	"\x06_limitB\x0e\n" +
 	"\f_exercise_id\"O\n" +
 	"\x1aGetPersonalRecordsResponse\x121\n" +
-	"\arecords\x18\x01 \x03(\v2\x17.heft.v1.PersonalRecordR\arecords\"{\n" +
-	"\x1aGetExerciseProgressRequest\x12\x17\n" +
-	"\auser_id\x18\x01 \x01(\tR\x06userId\x12\x1f\n" +
-	"\vexercise_id\x18\x02 \x01(\tR\n" +
+	"\arecords\x18\x01 \x03(\v2\x17.heft.v1.PersonalRecordR\arecords\"b\n" +
+	"\x1aGetExerciseProgressRequest\x12\x1f\n" +
+	"\vexercise_id\x18\x01 \x01(\tR\n" +
 	"exerciseId\x12\x19\n" +
-	"\x05limit\x18\x03 \x01(\x05H\x00R\x05limit\x88\x01\x01B\b\n" +
+	"\x05limit\x18\x02 \x01(\x05H\x00R\x05limit\x88\x01\x01B\b\n" +
 	"\x06_limit\"[\n" +
 	"\x1bGetExerciseProgressResponse\x12<\n" +
-	"\bprogress\x18\x01 \x01(\v2 .heft.v1.ExerciseProgressSummaryR\bprogress\"\\\n" +
-	"\x17GetCalendarMonthRequest\x12\x17\n" +
-	"\auser_id\x18\x01 \x01(\tR\x06userId\x12\x12\n" +
-	"\x04year\x18\x02 \x01(\x05R\x04year\x12\x14\n" +
-	"\x05month\x18\x03 \x01(\x05R\x05month\"\x93\x01\n" +
+	"\bprogress\x18\x01 \x01(\v2 .heft.v1.ExerciseProgressSummaryR\bprogress\"C\n" +
+	"\x17GetCalendarMonthRequest\x12\x12\n" +
+	"\x04year\x18\x01 \x01(\x05R\x04year\x12\x14\n" +
+	"\x05month\x18\x02 \x01(\x05R\x05month\"\x93\x01\n" +
 	"\x18GetCalendarMonthResponse\x12(\n" +
 	"\x04days\x18\x01 \x03(\v2\x14.heft.v1.CalendarDayR\x04days\x12%\n" +
 	"\x0etotal_workouts\x18\x02 \x01(\x05R\rtotalWorkouts\x12&\n" +
-	"\x0ftotal_rest_days\x18\x03 \x01(\x05R\rtotalRestDays\"+\n" +
-	"\x10GetStreakRequest\x12\x17\n" +
-	"\auser_id\x18\x01 \x01(\tR\x06userId\"\x8d\x01\n" +
+	"\x0ftotal_rest_days\x18\x03 \x01(\x05R\rtotalRestDays\"\x12\n" +
+	"\x10GetStreakRequest\"\x8d\x01\n" +
 	"\x11GetStreakResponse\x12%\n" +
 	"\x0ecurrent_streak\x18\x01 \x01(\x05R\rcurrentStreak\x12%\n" +
 	"\x0elongest_streak\x18\x02 \x01(\x05R\rlongestStreak\x12*\n" +

@@ -575,11 +575,10 @@ func (x *SessionSummary) GetTemplateName() string {
 // StartSession
 type StartSessionRequest struct {
 	state             protoimpl.MessageState `protogen:"open.v1"`
-	UserId            string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
-	WorkoutTemplateId *string                `protobuf:"bytes,2,opt,name=workout_template_id,json=workoutTemplateId,proto3,oneof" json:"workout_template_id,omitempty"`
-	ProgramId         *string                `protobuf:"bytes,3,opt,name=program_id,json=programId,proto3,oneof" json:"program_id,omitempty"`
-	ProgramDayNumber  *int32                 `protobuf:"varint,4,opt,name=program_day_number,json=programDayNumber,proto3,oneof" json:"program_day_number,omitempty"`
-	Name              *string                `protobuf:"bytes,5,opt,name=name,proto3,oneof" json:"name,omitempty"`
+	WorkoutTemplateId *string                `protobuf:"bytes,1,opt,name=workout_template_id,json=workoutTemplateId,proto3,oneof" json:"workout_template_id,omitempty"`
+	ProgramId         *string                `protobuf:"bytes,2,opt,name=program_id,json=programId,proto3,oneof" json:"program_id,omitempty"`
+	ProgramDayNumber  *int32                 `protobuf:"varint,3,opt,name=program_day_number,json=programDayNumber,proto3,oneof" json:"program_day_number,omitempty"`
+	Name              *string                `protobuf:"bytes,4,opt,name=name,proto3,oneof" json:"name,omitempty"`
 	unknownFields     protoimpl.UnknownFields
 	sizeCache         protoimpl.SizeCache
 }
@@ -612,13 +611,6 @@ func (x *StartSessionRequest) ProtoReflect() protoreflect.Message {
 // Deprecated: Use StartSessionRequest.ProtoReflect.Descriptor instead.
 func (*StartSessionRequest) Descriptor() ([]byte, []int) {
 	return file_heft_v1_session_proto_rawDescGZIP(), []int{4}
-}
-
-func (x *StartSessionRequest) GetUserId() string {
-	if x != nil {
-		return x.UserId
-	}
-	return ""
 }
 
 func (x *StartSessionRequest) GetWorkoutTemplateId() string {
@@ -697,7 +689,6 @@ func (x *StartSessionResponse) GetSession() *Session {
 type GetSessionRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	UserId        string                 `protobuf:"bytes,2,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -735,13 +726,6 @@ func (*GetSessionRequest) Descriptor() ([]byte, []int) {
 func (x *GetSessionRequest) GetId() string {
 	if x != nil {
 		return x.Id
-	}
-	return ""
-}
-
-func (x *GetSessionRequest) GetUserId() string {
-	if x != nil {
-		return x.UserId
 	}
 	return ""
 }
@@ -999,11 +983,10 @@ func (x *SyncSessionResponse) GetSuccess() bool {
 type AddExerciseRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	SessionId     string                 `protobuf:"bytes,1,opt,name=session_id,json=sessionId,proto3" json:"session_id,omitempty"`
-	UserId        string                 `protobuf:"bytes,2,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
-	ExerciseId    string                 `protobuf:"bytes,3,opt,name=exercise_id,json=exerciseId,proto3" json:"exercise_id,omitempty"`
-	DisplayOrder  int32                  `protobuf:"varint,4,opt,name=display_order,json=displayOrder,proto3" json:"display_order,omitempty"`
-	SectionName   *string                `protobuf:"bytes,5,opt,name=section_name,json=sectionName,proto3,oneof" json:"section_name,omitempty"`
-	NumSets       int32                  `protobuf:"varint,6,opt,name=num_sets,json=numSets,proto3" json:"num_sets,omitempty"`
+	ExerciseId    string                 `protobuf:"bytes,2,opt,name=exercise_id,json=exerciseId,proto3" json:"exercise_id,omitempty"`
+	DisplayOrder  int32                  `protobuf:"varint,3,opt,name=display_order,json=displayOrder,proto3" json:"display_order,omitempty"`
+	SectionName   *string                `protobuf:"bytes,4,opt,name=section_name,json=sectionName,proto3,oneof" json:"section_name,omitempty"`
+	NumSets       int32                  `protobuf:"varint,5,opt,name=num_sets,json=numSets,proto3" json:"num_sets,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1041,13 +1024,6 @@ func (*AddExerciseRequest) Descriptor() ([]byte, []int) {
 func (x *AddExerciseRequest) GetSessionId() string {
 	if x != nil {
 		return x.SessionId
-	}
-	return ""
-}
-
-func (x *AddExerciseRequest) GetUserId() string {
-	if x != nil {
-		return x.UserId
 	}
 	return ""
 }
@@ -1128,8 +1104,7 @@ func (x *AddExerciseResponse) GetExercise() *SessionExercise {
 type FinishSessionRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	UserId        string                 `protobuf:"bytes,2,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
-	Notes         *string                `protobuf:"bytes,3,opt,name=notes,proto3,oneof" json:"notes,omitempty"`
+	Notes         *string                `protobuf:"bytes,2,opt,name=notes,proto3,oneof" json:"notes,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1167,13 +1142,6 @@ func (*FinishSessionRequest) Descriptor() ([]byte, []int) {
 func (x *FinishSessionRequest) GetId() string {
 	if x != nil {
 		return x.Id
-	}
-	return ""
-}
-
-func (x *FinishSessionRequest) GetUserId() string {
-	if x != nil {
-		return x.UserId
 	}
 	return ""
 }
@@ -1233,7 +1201,6 @@ func (x *FinishSessionResponse) GetSession() *Session {
 type AbandonSessionRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	UserId        string                 `protobuf:"bytes,2,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1271,13 +1238,6 @@ func (*AbandonSessionRequest) Descriptor() ([]byte, []int) {
 func (x *AbandonSessionRequest) GetId() string {
 	if x != nil {
 		return x.Id
-	}
-	return ""
-}
-
-func (x *AbandonSessionRequest) GetUserId() string {
-	if x != nil {
-		return x.UserId
 	}
 	return ""
 }
@@ -1329,11 +1289,10 @@ func (x *AbandonSessionResponse) GetSuccess() bool {
 // ListSessions
 type ListSessionsRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	UserId        string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
-	Status        *WorkoutStatus         `protobuf:"varint,2,opt,name=status,proto3,enum=heft.v1.WorkoutStatus,oneof" json:"status,omitempty"`
-	StartDate     *string                `protobuf:"bytes,3,opt,name=start_date,json=startDate,proto3,oneof" json:"start_date,omitempty"` // YYYY-MM-DD
-	EndDate       *string                `protobuf:"bytes,4,opt,name=end_date,json=endDate,proto3,oneof" json:"end_date,omitempty"`       // YYYY-MM-DD
-	Pagination    *PaginationRequest     `protobuf:"bytes,5,opt,name=pagination,proto3" json:"pagination,omitempty"`
+	Status        *WorkoutStatus         `protobuf:"varint,1,opt,name=status,proto3,enum=heft.v1.WorkoutStatus,oneof" json:"status,omitempty"`
+	StartDate     *string                `protobuf:"bytes,2,opt,name=start_date,json=startDate,proto3,oneof" json:"start_date,omitempty"` // YYYY-MM-DD
+	EndDate       *string                `protobuf:"bytes,3,opt,name=end_date,json=endDate,proto3,oneof" json:"end_date,omitempty"`       // YYYY-MM-DD
+	Pagination    *PaginationRequest     `protobuf:"bytes,4,opt,name=pagination,proto3" json:"pagination,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1366,13 +1325,6 @@ func (x *ListSessionsRequest) ProtoReflect() protoreflect.Message {
 // Deprecated: Use ListSessionsRequest.ProtoReflect.Descriptor instead.
 func (*ListSessionsRequest) Descriptor() ([]byte, []int) {
 	return file_heft_v1_session_proto_rawDescGZIP(), []int{17}
-}
-
-func (x *ListSessionsRequest) GetUserId() string {
-	if x != nil {
-		return x.UserId
-	}
-	return ""
 }
 
 func (x *ListSessionsRequest) GetStatus() WorkoutStatus {
@@ -1538,23 +1490,21 @@ const file_heft_v1_session_proto_rawDesc = "" +
 	"total_sets\x18\b \x01(\x05R\ttotalSets\x12%\n" +
 	"\x0ecompleted_sets\x18\t \x01(\x05R\rcompletedSets\x12#\n" +
 	"\rtemplate_name\x18\n" +
-	" \x01(\tR\ftemplateName\"\x9a\x02\n" +
-	"\x13StartSessionRequest\x12\x17\n" +
-	"\auser_id\x18\x01 \x01(\tR\x06userId\x123\n" +
-	"\x13workout_template_id\x18\x02 \x01(\tH\x00R\x11workoutTemplateId\x88\x01\x01\x12\"\n" +
+	" \x01(\tR\ftemplateName\"\x81\x02\n" +
+	"\x13StartSessionRequest\x123\n" +
+	"\x13workout_template_id\x18\x01 \x01(\tH\x00R\x11workoutTemplateId\x88\x01\x01\x12\"\n" +
 	"\n" +
-	"program_id\x18\x03 \x01(\tH\x01R\tprogramId\x88\x01\x01\x121\n" +
-	"\x12program_day_number\x18\x04 \x01(\x05H\x02R\x10programDayNumber\x88\x01\x01\x12\x17\n" +
-	"\x04name\x18\x05 \x01(\tH\x03R\x04name\x88\x01\x01B\x16\n" +
+	"program_id\x18\x02 \x01(\tH\x01R\tprogramId\x88\x01\x01\x121\n" +
+	"\x12program_day_number\x18\x03 \x01(\x05H\x02R\x10programDayNumber\x88\x01\x01\x12\x17\n" +
+	"\x04name\x18\x04 \x01(\tH\x03R\x04name\x88\x01\x01B\x16\n" +
 	"\x14_workout_template_idB\r\n" +
 	"\v_program_idB\x15\n" +
 	"\x13_program_day_numberB\a\n" +
 	"\x05_name\"B\n" +
 	"\x14StartSessionResponse\x12*\n" +
-	"\asession\x18\x01 \x01(\v2\x10.heft.v1.SessionR\asession\"<\n" +
+	"\asession\x18\x01 \x01(\v2\x10.heft.v1.SessionR\asession\"#\n" +
 	"\x11GetSessionRequest\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\tR\x02id\x12\x17\n" +
-	"\auser_id\x18\x02 \x01(\tR\x06userId\"@\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\"@\n" +
 	"\x12GetSessionResponse\x12*\n" +
 	"\asession\x18\x01 \x01(\v2\x10.heft.v1.SessionR\asession\"]\n" +
 	"\x12SyncSessionRequest\x12\x1d\n" +
@@ -1580,39 +1530,35 @@ const file_heft_v1_session_proto_rawDesc = "" +
 	"\x06_notes\"[\n" +
 	"\x13SyncSessionResponse\x12*\n" +
 	"\asession\x18\x01 \x01(\v2\x10.heft.v1.SessionR\asession\x12\x18\n" +
-	"\asuccess\x18\x02 \x01(\bR\asuccess\"\xe6\x01\n" +
+	"\asuccess\x18\x02 \x01(\bR\asuccess\"\xcd\x01\n" +
 	"\x12AddExerciseRequest\x12\x1d\n" +
 	"\n" +
-	"session_id\x18\x01 \x01(\tR\tsessionId\x12\x17\n" +
-	"\auser_id\x18\x02 \x01(\tR\x06userId\x12\x1f\n" +
-	"\vexercise_id\x18\x03 \x01(\tR\n" +
+	"session_id\x18\x01 \x01(\tR\tsessionId\x12\x1f\n" +
+	"\vexercise_id\x18\x02 \x01(\tR\n" +
 	"exerciseId\x12#\n" +
-	"\rdisplay_order\x18\x04 \x01(\x05R\fdisplayOrder\x12&\n" +
-	"\fsection_name\x18\x05 \x01(\tH\x00R\vsectionName\x88\x01\x01\x12\x19\n" +
-	"\bnum_sets\x18\x06 \x01(\x05R\anumSetsB\x0f\n" +
+	"\rdisplay_order\x18\x03 \x01(\x05R\fdisplayOrder\x12&\n" +
+	"\fsection_name\x18\x04 \x01(\tH\x00R\vsectionName\x88\x01\x01\x12\x19\n" +
+	"\bnum_sets\x18\x05 \x01(\x05R\anumSetsB\x0f\n" +
 	"\r_section_name\"K\n" +
 	"\x13AddExerciseResponse\x124\n" +
-	"\bexercise\x18\x01 \x01(\v2\x18.heft.v1.SessionExerciseR\bexercise\"d\n" +
+	"\bexercise\x18\x01 \x01(\v2\x18.heft.v1.SessionExerciseR\bexercise\"K\n" +
 	"\x14FinishSessionRequest\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\tR\x02id\x12\x17\n" +
-	"\auser_id\x18\x02 \x01(\tR\x06userId\x12\x19\n" +
-	"\x05notes\x18\x03 \x01(\tH\x00R\x05notes\x88\x01\x01B\b\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x19\n" +
+	"\x05notes\x18\x02 \x01(\tH\x00R\x05notes\x88\x01\x01B\b\n" +
 	"\x06_notes\"C\n" +
 	"\x15FinishSessionResponse\x12*\n" +
-	"\asession\x18\x01 \x01(\v2\x10.heft.v1.SessionR\asession\"@\n" +
+	"\asession\x18\x01 \x01(\v2\x10.heft.v1.SessionR\asession\"'\n" +
 	"\x15AbandonSessionRequest\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\tR\x02id\x12\x17\n" +
-	"\auser_id\x18\x02 \x01(\tR\x06userId\"2\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\"2\n" +
 	"\x16AbandonSessionResponse\x12\x18\n" +
-	"\asuccess\x18\x01 \x01(\bR\asuccess\"\x8a\x02\n" +
-	"\x13ListSessionsRequest\x12\x17\n" +
-	"\auser_id\x18\x01 \x01(\tR\x06userId\x123\n" +
-	"\x06status\x18\x02 \x01(\x0e2\x16.heft.v1.WorkoutStatusH\x00R\x06status\x88\x01\x01\x12\"\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\"\xf1\x01\n" +
+	"\x13ListSessionsRequest\x123\n" +
+	"\x06status\x18\x01 \x01(\x0e2\x16.heft.v1.WorkoutStatusH\x00R\x06status\x88\x01\x01\x12\"\n" +
 	"\n" +
-	"start_date\x18\x03 \x01(\tH\x01R\tstartDate\x88\x01\x01\x12\x1e\n" +
-	"\bend_date\x18\x04 \x01(\tH\x02R\aendDate\x88\x01\x01\x12:\n" +
+	"start_date\x18\x02 \x01(\tH\x01R\tstartDate\x88\x01\x01\x12\x1e\n" +
+	"\bend_date\x18\x03 \x01(\tH\x02R\aendDate\x88\x01\x01\x12:\n" +
 	"\n" +
-	"pagination\x18\x05 \x01(\v2\x1a.heft.v1.PaginationRequestR\n" +
+	"pagination\x18\x04 \x01(\v2\x1a.heft.v1.PaginationRequestR\n" +
 	"paginationB\t\n" +
 	"\a_statusB\r\n" +
 	"\v_start_dateB\v\n" +
