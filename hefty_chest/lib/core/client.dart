@@ -49,10 +49,12 @@ Interceptor authInterceptor = <I extends Object, O extends Object>(next) {
 };
 
 /// Creates the Connect transport for RPC calls
+/// Using JsonCodec instead of ProtoCodec for better web compatibility
+/// (ProtoCodec has issues parsing nested Timestamp fields on Flutter web)
 protocol.Transport createTransport() {
   return protocol.Transport(
     baseUrl: AppConfig.backendUrl,
-    codec: const ProtoCodec(),
+    codec: const JsonCodec(),
     httpClient: createHttpClient(),
     interceptors: [authInterceptor],
   );

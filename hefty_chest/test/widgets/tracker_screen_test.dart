@@ -5,7 +5,6 @@ import 'package:hefty_chest/features/tracker/widgets/progress_header.dart';
 import 'package:hefty_chest/features/tracker/widgets/exercise_card.dart';
 import 'package:hefty_chest/features/tracker/widgets/rest_timer_sheet.dart';
 import 'package:hefty_chest/core/client.dart';
-import 'package:hefty_chest/gen/common.pbenum.dart';
 
 /// Creates a mock Session for testing
 Session createMockSession({

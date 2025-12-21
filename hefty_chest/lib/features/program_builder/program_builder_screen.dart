@@ -119,13 +119,11 @@ class ProgramBuilderScreen extends HookConsumerWidget {
                 children: [
                   // Program Name Input
                   FTextField(
-                    controller: nameController,
-                    hint: 'Program Name',
-                    onChange: (value) {
+                    control: .managed(controller: nameController, onChange: (value) {
                       ref
                           .read(programBuilderProvider.notifier)
-                          .updateName(value);
-                    },
+                          .updateName(value.text);
+                    }), hint: 'Program Name',
                   ),
 
                   const SizedBox(height: 24),

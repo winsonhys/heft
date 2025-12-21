@@ -44,7 +44,7 @@ final class ActiveSessionProvider
   }
 }
 
-String _$activeSessionHash() => r'53ab75bb6ce8aa8c0852ae69cdd6b5a6c5ef18f4';
+String _$activeSessionHash() => r'a647359ff262dc0e6e3528861af6bfa4423df860';
 
 /// Active session notifier with periodic sync
 

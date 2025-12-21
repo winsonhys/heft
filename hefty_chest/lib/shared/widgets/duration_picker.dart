@@ -107,7 +107,7 @@ class _DurationPickerSheet extends HookWidget {
     final secondsIndex = useState(initialSecondsIndex);
 
     final controller = useMemoized(
-      () => FPickerController(initialIndexes: [minutes.value, secondsIndex.value]),
+      () => FPickerController(indexes: [minutes.value, secondsIndex.value]),
       [],
     );
 
@@ -144,9 +144,7 @@ class _DurationPickerSheet extends HookWidget {
           // Picker
           Expanded(
             child: FPicker(
-              controller: controller,
-              onChange: handleChange,
-              children: [
+              control: .managed(controller: controller, onChange: handleChange), children: [
                 // Minutes wheel (0-59)
                 FPickerWheel.builder(
                   flex: 1,

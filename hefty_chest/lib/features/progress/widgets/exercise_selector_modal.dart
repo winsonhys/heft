@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:forui/forui.dart';
 
 import '../../../shared/theme/app_colors.dart';
 import '../../../core/client.dart';
@@ -66,31 +67,8 @@ class ExerciseSelectorModal extends HookWidget {
                 ),
                 const SizedBox(height: 12),
                 // Search bar
-                TextField(
-                  controller: searchController,
-                  onChanged: filterExercises,
-                  style: const TextStyle(
-                    color: AppColors.textPrimary,
-                    fontSize: 14,
-                  ),
-                  decoration: InputDecoration(
-                    hintText: 'Search exercises...',
-                    hintStyle: TextStyle(color: AppColors.textMuted),
-                    prefixIcon: Icon(
-                      Icons.search,
-                      color: AppColors.textMuted,
-                    ),
-                    filled: true,
-                    fillColor: AppColors.bgCard,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide.none,
-                    ),
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 12,
-                    ),
-                  ),
+                FTextField(
+                  control: .managed(controller: searchController, onChange: (value) => filterExercises(value.text)), hint: 'Search exercises...',
                 ),
               ],
             ),

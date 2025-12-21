@@ -44,7 +44,7 @@ final class WorkoutBuilderProvider
   }
 }
 
-String _$workoutBuilderHash() => r'd0115867dcbccfcecf2120bc89c5e599419e5b55';
+String _$workoutBuilderHash() => r'4b2d095a723fc9900267ca219e6124f9d0a11e9f';
 
 /// Workout builder state notifier
 

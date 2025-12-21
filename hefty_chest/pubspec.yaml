@@ -11,8 +11,8 @@ dependencies:
     sdk: flutter
 
   # UI Framework
-  forui: ^0.16.0
-  forui_hooks: ^0.16.0
+  forui: ^0.17.0
+  forui_hooks: ^0.17.0
 
   # Routing
   go_router: ^17.0.0

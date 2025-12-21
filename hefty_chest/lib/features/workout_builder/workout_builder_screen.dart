@@ -98,13 +98,11 @@ class WorkoutBuilderScreen extends HookConsumerWidget {
                 children: [
                   // Workout Name Input
                   FTextField(
-                    controller: nameController,
-                    hint: 'Workout Name',
-                    onChange: (value) {
+                    control: .managed(controller: nameController, onChange: (value) {
                       ref
                           .read(workoutBuilderProvider.notifier)
-                          .updateName(value);
-                    },
+                          .updateName(value.text);
+                    }), hint: 'Workout Name',
                   ),
 
                   const SizedBox(height: 24),

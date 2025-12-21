@@ -1,22 +1,29 @@
 import 'package:flutter/material.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 import '../../../shared/theme/app_colors.dart';
+import '../providers/session_providers.dart';
 
 /// Progress header showing workout completion percentage
-class ProgressHeader extends StatelessWidget {
-  final double progress;
-  final int completedSets;
-  final int totalSets;
-
-  const ProgressHeader({
-    super.key,
-    required this.progress,
-    required this.completedSets,
-    required this.totalSets,
-  });
+class ProgressHeader extends ConsumerWidget {
+  const ProgressHeader({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final session = ref.watch(activeSessionProvider).value;
+
+    // Compute progress from exercises
+    int totalSets = 0;
+    int completedSets = 0;
+    if (session != null) {
+      for (final exercise in session.exercises) {
+        for (final set in exercise.sets) {
+          totalSets++;
+          if (set.isCompleted) completedSets++;
+        }
+      }
+    }
+    final progress = totalSets > 0 ? completedSets / totalSets : 0.0;
     final percentage = (progress * 100).toInt();
 
     return Container(

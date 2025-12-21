@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../gen/session.pb.dart';
@@ -11,8 +13,8 @@ class SessionStorage {
   static Future<void> saveSession(Session session) async {
     final prefs = await SharedPreferences.getInstance();
 
-    // Convert protobuf to JSON string
-    final jsonStr = session.writeToJson();
+    // Convert protobuf to JSON string using toProto3Json for web compatibility
+    final jsonStr = jsonEncode(session.toProto3Json());
     await prefs.setString(_backupKey, jsonStr);
     await prefs.setInt(
         _backupTimestampKey, DateTime.now().millisecondsSinceEpoch);
@@ -28,7 +30,10 @@ class SessionStorage {
     }
 
     try {
-      return Session.fromJson(jsonStr);
+      // Use mergeFromProto3Json for web compatibility
+      final session = Session();
+      session.mergeFromProto3Json(jsonDecode(jsonStr));
+      return session;
     } catch (e) {
       // Corrupted data - clear it
       await clearSession();

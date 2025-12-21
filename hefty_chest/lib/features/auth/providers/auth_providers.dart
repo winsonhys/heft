@@ -2,6 +2,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../core/client.dart';
+import '../../../core/session_storage.dart';
 import '../../home/providers/home_providers.dart';
 import '../../profile/providers/profile_providers.dart';
 import '../../progress/providers/progress_providers.dart';
@@ -81,6 +82,9 @@ class Auth extends _$Auth {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString(_tokenKey, response.token);
       await prefs.setString(_userIdKey, response.userId);
+
+      // Clear any stale session backup from previous user/database
+      await SessionStorage.clearSession();
 
       state = AuthState(
         token: response.token,

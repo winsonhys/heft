@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:forui/forui.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 import '../../../shared/theme/app_colors.dart';
@@ -114,21 +115,17 @@ class SetRowEditor extends HookConsumerWidget {
           // Weight input (for weight exercises)
           if (isWeight) ...[
             Expanded(
-              child: _InputField(
-                controller: weightController,
-                onChanged: (v) => updateValues(weight: double.tryParse(v)),
-                placeholder: 'kg',
-                isEdited: set.isEdited,
+              child: FTextField(
+                control: .managed(controller: weightController, onChange: (v) => updateValues(weight: double.tryParse(v.text))), hint: 'kg',
+                keyboardType: const TextInputType.numberWithOptions(decimal: true),
               ),
             ),
             const SizedBox(width: 8),
             // Reps input
             Expanded(
-              child: _InputField(
-                controller: repsController,
-                onChanged: (v) => updateValues(reps: int.tryParse(v)),
-                placeholder: 'reps',
-                isEdited: set.isEdited,
+              child: FTextField(
+                control: .managed(controller: repsController, onChange: (v) => updateValues(reps: int.tryParse(v.text))), hint: 'reps',
+                keyboardType: TextInputType.number,
               ),
             ),
           ] else if (isTime) ...[
@@ -136,12 +133,10 @@ class SetRowEditor extends HookConsumerWidget {
             Expanded(
               child: Row(
                 children: [
-                   Expanded(
-                    child: _InputField(
-                      controller: timeMinController,
-                      onChanged: (_) => onTimeChanged(),
-                      placeholder: 'm',
-                      isEdited: set.isEdited,
+                  Expanded(
+                    child: FTextField(
+                      control: .managed(controller: timeMinController, onChange: (_) => onTimeChanged()), hint: 'm',
+                      keyboardType: TextInputType.number,
                     ),
                   ),
                   const Padding(
@@ -149,11 +144,9 @@ class SetRowEditor extends HookConsumerWidget {
                     child: Text(':', style: TextStyle(color: AppColors.textMuted)),
                   ),
                   Expanded(
-                    child: _InputField(
-                      controller: timeSecController,
-                      onChanged: (_) => onTimeChanged(),
-                      placeholder: 's',
-                      isEdited: set.isEdited,
+                    child: FTextField(
+                      control: .managed(controller: timeSecController, onChange: (_) => onTimeChanged()), hint: 's',
+                      keyboardType: TextInputType.number,
                     ),
                   ),
                 ],
@@ -162,11 +155,9 @@ class SetRowEditor extends HookConsumerWidget {
           ] else ...[
             // Bodyweight - just reps
             Expanded(
-              child: _InputField(
-                controller: repsController,
-                onChanged: (v) => updateValues(reps: int.tryParse(v)),
-                placeholder: 'reps',
-                isEdited: set.isEdited,
+              child: FTextField(
+                control: .managed(controller: repsController, onChange: (v) => updateValues(reps: int.tryParse(v.text))), hint: 'reps',
+                keyboardType: TextInputType.number,
               ),
             ),
           ],
@@ -200,82 +191,6 @@ class SetRowEditor extends HookConsumerWidget {
           ),
         ],
       ),
-    );
-  }
-}
-
-class _InputField extends StatefulWidget {
-  final TextEditingController controller;
-  final Function(String) onChanged;
-  final String placeholder;
-  final bool isEdited;
-
-  const _InputField({
-    required this.controller,
-    required this.onChanged,
-    required this.placeholder,
-    this.isEdited = true,
-  });
-
-  @override
-  State<_InputField> createState() => _InputFieldState();
-}
-
-class _InputFieldState extends State<_InputField> {
-  late FocusNode _focusNode;
-
-  @override
-  void initState() {
-    super.initState();
-    _focusNode = FocusNode();
-    _focusNode.addListener(_onFocusChange);
-  }
-
-  @override
-  void dispose() {
-    _focusNode.removeListener(_onFocusChange);
-    _focusNode.dispose();
-    super.dispose();
-  }
-
-  void _onFocusChange() {
-    if (_focusNode.hasFocus) {
-      // Select all text when focused
-      widget.controller.selection = TextSelection(
-        baseOffset: 0,
-        extentOffset: widget.controller.text.length,
-      );
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return TextField(
-      controller: widget.controller,
-      focusNode: _focusNode,
-      keyboardType: const TextInputType.numberWithOptions(decimal: true),
-      textAlign: TextAlign.center,
-      style: TextStyle(
-        fontSize: 14,
-        // Show muted color for unedited (linked) values
-        color: widget.isEdited ? AppColors.textPrimary : AppColors.textMuted,
-      ),
-      decoration: InputDecoration(
-        isDense: true,
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: 4,
-          vertical: 8,
-        ),
-        hintText: widget.placeholder,
-        hintStyle: const TextStyle(color: AppColors.textMuted, fontSize: 14),
-        filled: true,
-        fillColor: AppColors.bgPrimary,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(6),
-          borderSide: BorderSide.none,
-        ),
-      ),
-      onChanged: widget.onChanged,
     );
   }
 }

@@ -47,6 +47,7 @@ class ActiveSession extends _$ActiveSession {
 
   /// Perform sync to server
   Future<void> _performSync() async {
+    return;
     final session = state.value;
     if (session == null || !_hasPendingChanges) return;
 
@@ -193,11 +194,15 @@ class ActiveSession extends _$ActiveSession {
     final currentSession = state.value;
     if (currentSession == null) return;
 
-    // Find and update the set in-place
+    // Clone FIRST - before any modifications
+    // This ensures old state remains unchanged so Riverpod detects the difference
+    final updatedSession = Session()..mergeFromMessage(currentSession);
+
+    // Find and update the set in the CLONE
     bool found = false;
     int completedDelta = 0;
 
-    for (final exercise in currentSession.exercises) {
+    for (final exercise in updatedSession.exercises) {
       for (var i = 0; i < exercise.sets.length; i++) {
         if (exercise.sets[i].id == sessionSetId) {
           final oldCompleted = exercise.sets[i].isCompleted;
@@ -222,17 +227,17 @@ class ActiveSession extends _$ActiveSession {
 
     if (found) {
       // Update completed count
-      currentSession.completedSets =
-          (currentSession.completedSets + completedDelta)
-              .clamp(0, currentSession.totalSets);
+      updatedSession.completedSets =
+          (updatedSession.completedSets + completedDelta)
+              .clamp(0, updatedSession.totalSets);
 
       // Mark changes and update state
       _hasPendingChanges = true;
       _syncStatus = SyncStatus.pending;
-      state = AsyncValue.data(currentSession);
+      state = AsyncValue.data(updatedSession);
 
       // Save to local backup immediately
-      SessionStorage.saveSession(currentSession);
+      SessionStorage.saveSession(updatedSession);
     }
   }
 

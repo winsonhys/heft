@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:forui/forui.dart';
 
 import '../../../shared/theme/app_colors.dart';
 import '../providers/workout_builder_providers.dart';
@@ -95,20 +96,9 @@ class SectionCard extends HookWidget {
               children: [
                 Expanded(
                   child: isEditing.value
-                      ? TextField(
-                          controller: nameController,
-                          focusNode: focusNode,
-                          style: const TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.textPrimary,
-                          ),
-                          decoration: const InputDecoration(
-                            isDense: true,
-                            contentPadding: EdgeInsets.zero,
-                            border: InputBorder.none,
-                          ),
-                          onSubmitted: (_) => finishEditing(),
+                      ? FTextField(
+                          control: .managed(controller: nameController), focusNode: focusNode,
+                          onSubmit: (_) => finishEditing(),
                         )
                       : GestureDetector(
                           onTap: startEditing,

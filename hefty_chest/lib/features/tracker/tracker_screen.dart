@@ -193,7 +193,7 @@ class TrackerScreen extends HookConsumerWidget {
                         ),
                         const SizedBox(height: 16),
                         Text(
-                          'Failed to load session',
+                          'Failed to load session, ${error.toString()}',
                           style: TextStyle(
                             color: AppColors.textSecondary,
                             fontSize: 16,
@@ -255,10 +255,6 @@ class TrackerScreen extends HookConsumerWidget {
   }
 
   Widget _buildSessionContent(BuildContext context, WidgetRef ref, Session session) {
-    final completedSets = session.completedSets;
-    final totalSets = session.totalSets;
-    final progress = totalSets > 0 ? completedSets / totalSets : 0.0;
-
     // Group exercises by section
     final exercisesBySection = <String, List<SessionExercise>>{};
     for (final exercise in session.exercises) {
@@ -268,12 +264,8 @@ class TrackerScreen extends HookConsumerWidget {
 
     return Column(
       children: [
-        // Progress Card
-        ProgressHeader(
-          progress: progress,
-          completedSets: completedSets,
-          totalSets: totalSets,
-        ),
+        // Progress Card - watches sessionProgressProvider directly
+        const ProgressHeader(),
 
         // Exercise List
         Expanded(
@@ -319,8 +311,9 @@ class TrackerScreen extends HookConsumerWidget {
                         children: exercises.map((exercise) {
                           return ExerciseCard(
                             exercise: exercise,
-                            onSetCompleted: (setId, weight, reps, timeSeconds) async {
-                              final isPR = await ref
+                            onSetCompleted: (setId, weight, reps, timeSeconds) {
+                              // Fire-and-forget for instant UI update
+                              ref
                                   .read(activeSessionProvider.notifier)
                                   .completeSet(
                                     sessionSetId: setId,
@@ -329,13 +322,6 @@ class TrackerScreen extends HookConsumerWidget {
                                     timeSeconds: timeSeconds,
                                     toggle: true,
                                   );
-                              if (isPR && context.mounted) {
-                                showFToast(
-                                  context: context,
-                                  title: const Text('New Personal Record!'),
-                                  icon: const Icon(Icons.emoji_events),
-                                );
-                              }
                             },
                           );
                         }).toList(),
@@ -345,8 +331,9 @@ class TrackerScreen extends HookConsumerWidget {
                     ...exercises.map((exercise) {
                       return ExerciseCard(
                         exercise: exercise,
-                        onSetCompleted: (setId, weight, reps, timeSeconds) async {
-                          final isPR = await ref
+                        onSetCompleted: (setId, weight, reps, timeSeconds) {
+                          // Fire-and-forget for instant UI update
+                          ref
                               .read(activeSessionProvider.notifier)
                               .completeSet(
                                 sessionSetId: setId,
@@ -355,13 +342,6 @@ class TrackerScreen extends HookConsumerWidget {
                                 timeSeconds: timeSeconds,
                                 toggle: true,
                               );
-                          if (isPR && context.mounted) {
-                            showFToast(
-                              context: context,
-                              title: const Text('New Personal Record!'),
-                              icon: const Icon(Icons.emoji_events),
-                            );
-                          }
                         },
                       );
                     }),

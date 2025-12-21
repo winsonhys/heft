@@ -84,8 +84,7 @@ class AuthScreen extends HookConsumerWidget {
 
             // Email field
             FTextField.email(
-              controller: emailController,
-              hint: 'you@example.com',
+              control: .managed(controller: emailController), hint: 'you@example.com',
               label: const Text('Email'),
               description: errorMessage.value != null
                   ? null

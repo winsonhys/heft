@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:forui/forui.dart';
 
 import '../../../shared/theme/app_colors.dart';
 import '../../../gen/session.pb.dart';
@@ -72,7 +72,19 @@ class SetRow extends HookWidget {
       return null;
     }, [set.id]);
 
+    // Optimistic local state - updates INSTANTLY on tap
+    final isCompleted = useState(set.isCompleted);
+
+    // Sync with prop when provider eventually updates
+    useEffect(() {
+      isCompleted.value = set.isCompleted;
+      return null;
+    }, [set.isCompleted]);
+
     void handleComplete() {
+      // INSTANT visual feedback
+      isCompleted.value = !isCompleted.value;
+
       final weight = double.tryParse(weightController.text);
       final reps = int.tryParse(repsController.text);
       final time = _parseTime(timeController.text);
@@ -85,12 +97,10 @@ class SetRow extends HookWidget {
       );
     }
 
-    final isCompleted = set.isCompleted;
-
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 10),
       decoration: BoxDecoration(
-        color: isCompleted ? const Color(0x0D22D3EE) : Colors.transparent,
+        color: isCompleted.value ? const Color(0x0D22D3EE) : Colors.transparent,
         borderRadius: BorderRadius.circular(6),
       ),
       child: Row(
@@ -103,7 +113,7 @@ class SetRow extends HookWidget {
               style: TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.w500,
-                color: isCompleted ? const Color(0xFF22D3EE) : AppColors.textPrimary,
+                color: isCompleted.value ? const Color(0xFF22D3EE) : AppColors.textPrimary,
               ),
             ),
           ),
@@ -126,30 +136,30 @@ class SetRow extends HookWidget {
             // Time-based: single wide input
             Expanded(
               flex: 2,
-              child: _buildInput(
-                controller: timeController,
-                placeholder: '0:00',
-                isCompleted: isCompleted,
+              child: FTextField(
+                control: .managed(controller: timeController),
+                hint: '0:00',
+                keyboardType: TextInputType.number,
               ),
             )
           else ...[
             // Weight input
             SizedBox(
               width: 52,
-              child: _buildInput(
-                controller: weightController,
-                placeholder: '-',
-                isCompleted: isCompleted,
+              child: FTextField(
+                control: .managed(controller: weightController),
+                hint: '-',
+                keyboardType: TextInputType.number,
               ),
             ),
             const SizedBox(width: 6),
             // Reps input
             SizedBox(
               width: 52,
-              child: _buildInput(
-                controller: repsController,
-                placeholder: '-',
-                isCompleted: isCompleted,
+              child: FTextField(
+                control: .managed(controller: repsController),
+                hint: '-',
+                keyboardType: TextInputType.number,
               ),
             ),
           ],
@@ -164,13 +174,13 @@ class SetRow extends HookWidget {
                 height: 24,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: isCompleted ? AppColors.accentGreen : Colors.transparent,
+                  color: isCompleted.value ? AppColors.accentGreen : Colors.transparent,
                   border: Border.all(
-                    color: isCompleted ? AppColors.accentGreen : AppColors.textMuted,
+                    color: isCompleted.value ? AppColors.accentGreen : AppColors.textMuted,
                     width: 2,
                   ),
                 ),
-                child: isCompleted
+                child: isCompleted.value
                     ? const Icon(
                         Icons.check,
                         size: 14,
@@ -196,35 +206,6 @@ class SetRow extends HookWidget {
           ),
         ],
       ),
-    );
-  }
-
-  Widget _buildInput({
-    required TextEditingController controller,
-    required String placeholder,
-    required bool isCompleted,
-  }) {
-    return TextField(
-      controller: controller,
-      textAlign: TextAlign.center,
-      style: TextStyle(
-        fontSize: 14,
-        color: isCompleted ? const Color(0xFF22D3EE) : AppColors.textPrimary,
-      ),
-      decoration: InputDecoration(
-        hintText: placeholder,
-        hintStyle: const TextStyle(
-          color: AppColors.textMuted,
-          fontSize: 14,
-        ),
-        border: InputBorder.none,
-        isDense: true,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
-      ),
-      keyboardType: TextInputType.number,
-      inputFormatters: [
-        FilteringTextInputFormatter.allow(RegExp(r'[0-9:]')),
-      ],
     );
   }
 }
