@@ -9,7 +9,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import '../../shared/theme/app_colors.dart';
 import '../../shared/utils/formatters.dart';
 import '../../shared/widgets/floating_session_widget.dart';
-import '../../gen/session.pb.dart';
+import 'models/session_models.dart';
 import 'providers/session_providers.dart';
 import 'widgets/progress_header.dart';
 import 'widgets/exercise_card.dart';
@@ -40,12 +40,12 @@ class TrackerScreen extends HookConsumerWidget {
     // Timer effect for elapsed time
     useEffect(() {
       final session = sessionAsync.value;
-      if (session == null || !session.hasStartedAt()) {
+      if (session == null || session.startedAt == null) {
         return null;
       }
 
       // Calculate initial elapsed time
-      final startedAt = session.startedAt.toDateTime();
+      final startedAt = session.startedAt!;
       elapsedSeconds.value = DateTime.now().difference(startedAt).inSeconds;
 
       // Set up periodic timer
@@ -254,9 +254,9 @@ class TrackerScreen extends HookConsumerWidget {
     );
   }
 
-  Widget _buildSessionContent(BuildContext context, WidgetRef ref, Session session) {
+  Widget _buildSessionContent(BuildContext context, WidgetRef ref, SessionModel session) {
     // Group exercises by section
-    final exercisesBySection = <String, List<SessionExercise>>{};
+    final exercisesBySection = <String, List<SessionExerciseModel>>{};
     for (final exercise in session.exercises) {
       final sectionName = exercise.sectionName.isEmpty ? 'Exercises' : exercise.sectionName;
       exercisesBySection.putIfAbsent(sectionName, () => []).add(exercise);

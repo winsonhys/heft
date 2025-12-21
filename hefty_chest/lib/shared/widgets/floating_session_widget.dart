@@ -124,15 +124,15 @@ class _FloatingSessionWidgetState extends ConsumerState<FloatingSessionWidget> {
     // Timer effect - update elapsed time every second
     useEffect(() {
       // Calculate initial elapsed time
-      if (session.hasStartedAt()) {
-        final startedAt = session.startedAt.toDateTime();
+      if (session.startedAt != null) {
+        final startedAt = session.startedAt!;
         elapsedSeconds.value = DateTime.now().difference(startedAt).inSeconds;
       }
 
       // Set up periodic timer
       final timer = Timer.periodic(const Duration(seconds: 1), (_) {
-        if (session.hasStartedAt()) {
-          final startedAt = session.startedAt.toDateTime();
+        if (session.startedAt != null) {
+          final startedAt = session.startedAt!;
           elapsedSeconds.value = DateTime.now().difference(startedAt).inSeconds;
         }
       });

@@ -202,14 +202,12 @@ mux.Handle(heftv1connect.NewExerciseServiceHandler(exerciseHandler))
 - `DeleteProgram(program_id)` → Success
 
 ### SessionService
-- `StartSession(user_id, workout_template_id, program_id?)` → New session
+- `StartSession(workout_template_id, program_id?)` → New session
 - `GetSession(session_id)` → Session with exercises/sets
-- `AddExercise(session_id, exercise_id)` → New session exercise
-- `CompleteSet(set_id, weight, reps, time, distance, rpe)` → Updated set
-- `UpdateSet(set_id, ...)` → Updated set
+- `SyncSession(session_id, exercises, sets)` → Synced session state (replaces CompleteSet/UpdateSet)
 - `FinishSession(session_id, notes)` → Completed session
 - `AbandonSession(session_id)` → Abandoned session
-- `ListSessions(user_id, pagination)` → Session history
+- `ListSessionHistory(pagination)` → Session history
 
 ### ProgressService
 - `GetDashboard(user_id)` → Overview stats
@@ -510,6 +508,35 @@ func (h *UserHandler) GetProfile(ctx context.Context, req *connect.Request[heftv
 - `CodeNotFound` (404) - Resource not found
 - `CodeInternal` (500) - Other database errors
 
+### User ID Extraction from JWT
+
+All authenticated endpoints extract user ID from the JWT token claims, not from request parameters.
+
+```go
+// internal/auth/context.go - Get user ID from context
+func UserIDFromContext(ctx context.Context) (string, bool) {
+    userID, ok := ctx.Value(userIDKey).(string)
+    return userID, ok
+}
+
+// Handler usage - user ID comes from JWT, not request body
+func (h *SessionHandler) StartSession(ctx context.Context, req *connect.Request[heftv1.StartSessionRequest]) (*connect.Response[heftv1.StartSessionResponse], error) {
+    userID, ok := auth.UserIDFromContext(ctx)
+    if !ok {
+        return nil, connect.NewError(connect.CodeUnauthenticated, errors.New("user not authenticated"))
+    }
+
+    // Use userID from JWT, not from request
+    session, err := h.repo.StartSession(ctx, userID, req.Msg.WorkoutTemplateId)
+    // ...
+}
+```
+
+**Key Points:**
+- Requests no longer include `user_id` field in the message body
+- Backend extracts `user_id` from JWT claims via auth middleware
+- This applies to all services: User, Exercise, Workout, Program, Session, Progress
+
 ### User Scoping Pattern
 
 All queries include user_id for data isolation:
@@ -548,7 +575,8 @@ service MyService {
 }
 
 message NewMethodRequest {
-    string user_id = 1;
+    // Note: user_id is NOT included - extracted from JWT by backend
+    string resource_id = 1;
     // ...
 }
 
@@ -564,7 +592,21 @@ message NewMethodResponse {
 4. Implement handler in `internal/handlers/myservice.go`:
 ```go
 func (h *MyHandler) NewMethod(ctx context.Context, req *connect.Request[heftv1.NewMethodRequest]) (*connect.Response[heftv1.NewMethodResponse], error) {
-    // Implementation
+    // Get user ID from JWT (set by auth middleware)
+    userID, ok := auth.UserIDFromContext(ctx)
+    if !ok {
+        return nil, connect.NewError(connect.CodeUnauthenticated, errors.New("user not authenticated"))
+    }
+
+    // Use userID from context, not from request
+    result, err := h.repo.DoSomething(ctx, userID, req.Msg.ResourceId)
+    if err != nil {
+        return nil, handleDBError(err)
+    }
+
+    return connect.NewResponse(&heftv1.NewMethodResponse{
+        // ...
+    }), nil
 }
 ```
 

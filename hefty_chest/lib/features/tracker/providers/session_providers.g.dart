@@ -15,7 +15,7 @@ const activeSessionProvider = ActiveSessionProvider._();
 
 /// Active session notifier with periodic sync
 final class ActiveSessionProvider
-    extends $NotifierProvider<ActiveSession, AsyncValue<Session?>> {
+    extends $NotifierProvider<ActiveSession, AsyncValue<SessionModel?>> {
   /// Active session notifier with periodic sync
   const ActiveSessionProvider._()
     : super(
@@ -36,30 +36,31 @@ final class ActiveSessionProvider
   ActiveSession create() => ActiveSession();
 
   /// {@macro riverpod.override_with_value}
-  Override overrideWithValue(AsyncValue<Session?> value) {
+  Override overrideWithValue(AsyncValue<SessionModel?> value) {
     return $ProviderOverride(
       origin: this,
-      providerOverride: $SyncValueProvider<AsyncValue<Session?>>(value),
+      providerOverride: $SyncValueProvider<AsyncValue<SessionModel?>>(value),
     );
   }
 }
 
-String _$activeSessionHash() => r'a647359ff262dc0e6e3528861af6bfa4423df860';
+String _$activeSessionHash() => r'a45a528be9f098b286ac5dacc32ca9b7eac2a47b';
 
 /// Active session notifier with periodic sync
 
-abstract class _$ActiveSession extends $Notifier<AsyncValue<Session?>> {
-  AsyncValue<Session?> build();
+abstract class _$ActiveSession extends $Notifier<AsyncValue<SessionModel?>> {
+  AsyncValue<SessionModel?> build();
   @$mustCallSuper
   @override
   void runBuild() {
     final created = build();
-    final ref = this.ref as $Ref<AsyncValue<Session?>, AsyncValue<Session?>>;
+    final ref =
+        this.ref as $Ref<AsyncValue<SessionModel?>, AsyncValue<SessionModel?>>;
     final element =
         ref.element
             as $ClassProviderElement<
-              AnyNotifier<AsyncValue<Session?>, AsyncValue<Session?>>,
-              AsyncValue<Session?>,
+              AnyNotifier<AsyncValue<SessionModel?>, AsyncValue<SessionModel?>>,
+              AsyncValue<SessionModel?>,
               Object?,
               Object?
             >;
@@ -76,8 +77,12 @@ const hasActiveSessionProvider = HasActiveSessionProvider._();
 
 final class HasActiveSessionProvider
     extends
-        $FunctionalProvider<AsyncValue<Session?>, Session?, FutureOr<Session?>>
-    with $FutureModifier<Session?>, $FutureProvider<Session?> {
+        $FunctionalProvider<
+          AsyncValue<SessionModel?>,
+          SessionModel?,
+          FutureOr<SessionModel?>
+        >
+    with $FutureModifier<SessionModel?>, $FutureProvider<SessionModel?> {
   /// Provider for checking if there's an in-progress session (with backup recovery)
   const HasActiveSessionProvider._()
     : super(
@@ -95,13 +100,14 @@ final class HasActiveSessionProvider
 
   @$internal
   @override
-  $FutureProviderElement<Session?> $createElement($ProviderPointer pointer) =>
-      $FutureProviderElement(pointer);
+  $FutureProviderElement<SessionModel?> $createElement(
+    $ProviderPointer pointer,
+  ) => $FutureProviderElement(pointer);
 
   @override
-  FutureOr<Session?> create(Ref ref) {
+  FutureOr<SessionModel?> create(Ref ref) {
     return hasActiveSession(ref);
   }
 }
 
-String _$hasActiveSessionHash() => r'f8d08eb2c122c7e8a2add8f495c6bb244bbb1f09';
+String _$hasActiveSessionHash() => r'6efd9432112404ab297f9cbbef9a2f56eff081d6';

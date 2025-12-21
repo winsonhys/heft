@@ -342,7 +342,7 @@ void main() {
       );
 
       // Keep provider alive during async operations by listening
-      final subscription = container.listen(workoutBuilderProvider, (_, __) {});
+      final subscription = container.listen(workoutBuilderProvider, (_, _) {});
 
       try {
         final notifier = container.read(workoutBuilderProvider.notifier);
@@ -370,7 +370,7 @@ void main() {
       final uniqueName = 'Save Test ${DateTime.now().millisecondsSinceEpoch}';
 
       // Keep provider alive during async operations
-      final subscription = container.listen(workoutBuilderProvider, (_, __) {});
+      final subscription = container.listen(workoutBuilderProvider, (_, _) {});
 
       String? createdWorkoutId;
       try {
@@ -408,7 +408,7 @@ void main() {
 
     test('saveWorkout validates name required', () async {
       // Keep provider alive
-      final subscription = container.listen(workoutBuilderProvider, (_, __) {});
+      final subscription = container.listen(workoutBuilderProvider, (_, _) {});
 
       try {
         final notifier = container.read(workoutBuilderProvider.notifier);
@@ -432,7 +432,7 @@ void main() {
       );
 
       // Keep provider alive
-      final subscription = container.listen(workoutBuilderProvider, (_, __) {});
+      final subscription = container.listen(workoutBuilderProvider, (_, _) {});
 
       try {
         final notifier = container.read(workoutBuilderProvider.notifier);

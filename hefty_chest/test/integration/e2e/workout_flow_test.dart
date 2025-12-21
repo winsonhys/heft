@@ -20,10 +20,6 @@ void main() {
     IntegrationTestSetup.restoreTokenProvider();
   });
 
-  Auth mockAuth() {
-    return MockAuth();
-  }
-
   group('Workout Flow E2E', () {
     testWidgets('displays home screen with app title', (tester) async {
       await tester.pumpWidget(

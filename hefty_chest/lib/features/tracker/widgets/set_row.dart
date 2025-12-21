@@ -3,11 +3,11 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:forui/forui.dart';
 
 import '../../../shared/theme/app_colors.dart';
-import '../../../gen/session.pb.dart';
+import '../models/session_models.dart';
 
 /// Individual set row with editable inputs
 class SetRow extends HookWidget {
-  final SessionSet set;
+  final SessionSetModel set;
   final bool isTimeBased;
   final Function(String setId, double? weight, int? reps, int? timeSeconds) onComplete;
 

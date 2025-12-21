@@ -48,6 +48,8 @@ hefty_chest/
 │   │   │   └── widgets/
 │   │   ├── tracker/
 │   │   │   ├── tracker_screen.dart
+│   │   │   ├── models/
+│   │   │   │   └── session_models.dart   # Freezed models for session state
 │   │   │   ├── providers/
 │   │   │   │   └── session_providers.dart
 │   │   │   └── widgets/
@@ -261,6 +263,38 @@ class WorkoutBuilderState {
 }
 ```
 
+### Session Models (Freezed)
+
+The tracker feature uses freezed models for immutable session state:
+
+| Model | Purpose |
+|-------|---------|
+| `SessionModel` | Main session with exercises, progress counts |
+| `SessionExerciseModel` | Exercise within a session with sets |
+| `SessionSetModel` | Individual set with weight, reps, completion |
+
+Location: `lib/features/tracker/models/session_models.dart`
+
+These models provide:
+- Immutable state with `copyWith()` for updates
+- `fromProto()` to convert from protobuf responses
+- `toProto()` to convert back for sync operations
+
+```dart
+// Example: Update a set in the session
+final updatedSession = session.copyWith(
+  exercises: session.exercises.map((exercise) {
+    if (exercise.id != targetExerciseId) return exercise;
+    return exercise.copyWith(
+      sets: exercise.sets.map((set) {
+        if (set.id != targetSetId) return set;
+        return set.copyWith(completedAt: DateTime.now());
+      }).toList(),
+    );
+  }).toList(),
+);
+```
+
 ## Routing (go_router)
 
 ### Route Definitions
@@ -455,21 +489,22 @@ Future<List<WorkoutSummary>> workoutList(Ref ref) async {
   return response.workouts;
 }
 
-// In a notifier
+// In a notifier - uses freezed SessionModel for immutable state
 @riverpod
 class ActiveSession extends _$ActiveSession {
   @override
-  AsyncValue<Session?> build() => const AsyncValue.data(null);
+  AsyncValue<SessionModel?> build() => const AsyncValue.data(null);
 
-  Future<Session?> startSession({required String workoutTemplateId}) async {
+  Future<SessionModel?> startSession({required String workoutTemplateId}) async {
     state = const AsyncValue.loading();
     try {
       final request = StartSessionRequest()
         ..workoutTemplateId = workoutTemplateId;
 
       final response = await sessionClient.startSession(request);
-      state = AsyncValue.data(response.session);
-      return response.session;
+      final sessionModel = SessionModel.fromProto(response.session);
+      state = AsyncValue.data(sessionModel);
+      return sessionModel;
     } catch (e, st) {
       state = AsyncValue.error(e, st);
       return null;

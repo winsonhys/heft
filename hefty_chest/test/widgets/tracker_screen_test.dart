@@ -1,71 +1,76 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:forui/forui.dart';
 import 'package:hefty_chest/features/tracker/widgets/progress_header.dart';
 import 'package:hefty_chest/features/tracker/widgets/exercise_card.dart';
 import 'package:hefty_chest/features/tracker/widgets/rest_timer_sheet.dart';
-import 'package:hefty_chest/core/client.dart';
+import 'package:hefty_chest/features/tracker/models/session_models.dart';
+import 'package:hefty_chest/features/tracker/providers/session_providers.dart';
+import 'package:hefty_chest/gen/common.pbenum.dart';
 
-/// Creates a mock Session for testing
-Session createMockSession({
+/// Mock ActiveSession notifier for testing
+class MockActiveSession extends ActiveSession {
+  final SessionModel? _mockSession;
+
+  MockActiveSession(this._mockSession);
+
+  @override
+  AsyncValue<SessionModel?> build() => AsyncValue.data(_mockSession);
+}
+
+/// Creates a mock SessionModel for testing
+SessionModel createMockSession({
   String id = 'test-session-id',
   String name = 'Test Workout',
   int completedSets = 3,
   int totalSets = 10,
-  List<SessionExercise>? exercises,
+  List<SessionExerciseModel>? exercises,
 }) {
-  final session = Session()
-    ..id = id
-    ..name = name
-    ..completedSets = completedSets
-    ..totalSets = totalSets;
-
-  if (exercises != null) {
-    session.exercises.addAll(exercises);
-  }
-
-  return session;
+  return SessionModel(
+    id: id,
+    workoutTemplateId: 'test-workout-id',
+    name: name,
+    exercises: exercises ?? [],
+    completedSets: completedSets,
+    totalSets: totalSets,
+  );
 }
 
-/// Creates a mock SessionExercise for testing
-SessionExercise createMockExercise({
+/// Creates a mock SessionExerciseModel for testing
+SessionExerciseModel createMockExercise({
   String id = 'exercise-1',
   String exerciseId = 'ex-1',
   String exerciseName = 'Bench Press',
   String sectionName = 'Main Workout',
   ExerciseType exerciseType = ExerciseType.EXERCISE_TYPE_WEIGHT_REPS,
-  List<SessionSet>? sets,
+  List<SessionSetModel>? sets,
   String notes = '',
 }) {
-  final exercise = SessionExercise()
-    ..id = id
-    ..exerciseId = exerciseId
-    ..exerciseName = exerciseName
-    ..sectionName = sectionName
-    ..exerciseType = exerciseType
-    ..notes = notes;
-
-  if (sets != null) {
-    exercise.sets.addAll(sets);
-  } else {
-    // Add default sets
-    exercise.sets.addAll([
-      SessionSet()
-        ..id = 'set-1'
-        ..setNumber = 1
-        ..weightKg = 60.0
-        ..reps = 10
-        ..isCompleted = true,
-      SessionSet()
-        ..id = 'set-2'
-        ..setNumber = 2
-        ..weightKg = 60.0
-        ..reps = 10
-        ..isCompleted = false,
-    ]);
-  }
-
-  return exercise;
+  return SessionExerciseModel(
+    id: id,
+    exerciseId: exerciseId,
+    exerciseName: exerciseName,
+    sectionName: sectionName,
+    exerciseType: exerciseType,
+    notes: notes,
+    sets: sets ?? [
+      const SessionSetModel(
+        id: 'set-1',
+        setNumber: 1,
+        weightKg: 60.0,
+        reps: 10,
+        isCompleted: true,
+      ),
+      const SessionSetModel(
+        id: 'set-2',
+        setNumber: 2,
+        weightKg: 60.0,
+        reps: 10,
+        isCompleted: false,
+      ),
+    ],
+  );
 }
 
 /// Helper to wrap widget with FTheme
@@ -78,16 +83,54 @@ Widget wrapWithTheme(Widget child) {
   );
 }
 
+/// Helper to wrap widget with FTheme and ProviderScope
+Widget wrapWithThemeAndProvider(Widget child, {SessionModel? mockSession}) {
+  return ProviderScope(
+    overrides: [
+      activeSessionProvider.overrideWith(() => MockActiveSession(mockSession)),
+    ],
+    child: MaterialApp(
+      home: FTheme(
+        data: FThemes.zinc.dark,
+        child: Scaffold(body: child),
+      ),
+    ),
+  );
+}
+
+/// Creates a session with exercises that have the specified completed/total sets
+SessionModel createSessionWithSets(int completedSets, int totalSets) {
+  final sets = <SessionSetModel>[];
+  for (var i = 0; i < totalSets; i++) {
+    sets.add(SessionSetModel(
+      id: 'set-$i',
+      setNumber: i + 1,
+      isCompleted: i < completedSets,
+    ));
+  }
+  return SessionModel(
+    id: 'test-session',
+    workoutTemplateId: 'test-workout',
+    name: 'Test',
+    exercises: [
+      SessionExerciseModel(
+        id: 'ex-1',
+        exerciseId: 'ex-1',
+        exerciseName: 'Test Exercise',
+        sectionName: 'Main',
+        sets: sets,
+      ),
+    ],
+  );
+}
+
 void main() {
   group('ProgressHeader', () {
     testWidgets('displays correct progress values', (tester) async {
       await tester.pumpWidget(
-        wrapWithTheme(
-          const ProgressHeader(
-            progress: 0.6,
-            completedSets: 6,
-            totalSets: 10,
-          ),
+        wrapWithThemeAndProvider(
+          const ProgressHeader(),
+          mockSession: createSessionWithSets(6, 10),
         ),
       );
 
@@ -98,12 +141,9 @@ void main() {
 
     testWidgets('handles zero total sets', (tester) async {
       await tester.pumpWidget(
-        wrapWithTheme(
-          const ProgressHeader(
-            progress: 0.0,
-            completedSets: 0,
-            totalSets: 0,
-          ),
+        wrapWithThemeAndProvider(
+          const ProgressHeader(),
+          mockSession: createSessionWithSets(0, 0),
         ),
       );
 
@@ -113,12 +153,9 @@ void main() {
 
     testWidgets('shows 100% when all sets completed', (tester) async {
       await tester.pumpWidget(
-        wrapWithTheme(
-          const ProgressHeader(
-            progress: 1.0,
-            completedSets: 12,
-            totalSets: 12,
-          ),
+        wrapWithThemeAndProvider(
+          const ProgressHeader(),
+          mockSession: createSessionWithSets(12, 12),
         ),
       );
 
@@ -128,12 +165,9 @@ void main() {
 
     testWidgets('rounds percentage correctly', (tester) async {
       await tester.pumpWidget(
-        wrapWithTheme(
-          const ProgressHeader(
-            progress: 0.333,
-            completedSets: 1,
-            totalSets: 3,
-          ),
+        wrapWithThemeAndProvider(
+          const ProgressHeader(),
+          mockSession: createSessionWithSets(1, 3),
         ),
       );
 
@@ -143,12 +177,9 @@ void main() {
 
     testWidgets('uses consistent 16px padding', (tester) async {
       await tester.pumpWidget(
-        wrapWithTheme(
-          const ProgressHeader(
-            progress: 0.5,
-            completedSets: 5,
-            totalSets: 10,
-          ),
+        wrapWithThemeAndProvider(
+          const ProgressHeader(),
+          mockSession: createSessionWithSets(5, 10),
         ),
       );
 
@@ -173,7 +204,7 @@ void main() {
           SingleChildScrollView(
             child: ExerciseCard(
               exercise: exercise,
-              onSetCompleted: (_, __, ___, ____) {},
+              onSetCompleted: (_, _, _, _) {},
             ),
           ),
         ),
@@ -185,12 +216,13 @@ void main() {
     testWidgets('displays set rows with table headers', (tester) async {
       final exercise = createMockExercise(
         sets: [
-          SessionSet()
-            ..id = 'set-1'
-            ..setNumber = 1
-            ..weightKg = 100.0
-            ..reps = 5
-            ..isCompleted = false,
+          const SessionSetModel(
+            id: 'set-1',
+            setNumber: 1,
+            weightKg: 100.0,
+            reps: 5,
+            isCompleted: false,
+          ),
         ],
       );
 
@@ -199,7 +231,7 @@ void main() {
           SingleChildScrollView(
             child: ExerciseCard(
               exercise: exercise,
-              onSetCompleted: (_, __, ___, ____) {},
+              onSetCompleted: (_, _, _, _) {},
             ),
           ),
         ),
@@ -217,11 +249,12 @@ void main() {
         exerciseName: 'Plank',
         exerciseType: ExerciseType.EXERCISE_TYPE_TIME,
         sets: [
-          SessionSet()
-            ..id = 'set-1'
-            ..setNumber = 1
-            ..timeSeconds = 60
-            ..isCompleted = false,
+          const SessionSetModel(
+            id: 'set-1',
+            setNumber: 1,
+            timeSeconds: 60,
+            isCompleted: false,
+          ),
         ],
       );
 
@@ -230,7 +263,7 @@ void main() {
           SingleChildScrollView(
             child: ExerciseCard(
               exercise: exercise,
-              onSetCompleted: (_, __, ___, ____) {},
+              onSetCompleted: (_, _, _, _) {},
             ),
           ),
         ),
@@ -245,10 +278,11 @@ void main() {
     testWidgets('shows Add Set button with FButton', (tester) async {
       final exercise = createMockExercise(
         sets: [
-          SessionSet()
-            ..id = 'set-1'
-            ..setNumber = 1
-            ..isCompleted = false,
+          const SessionSetModel(
+            id: 'set-1',
+            setNumber: 1,
+            isCompleted: false,
+          ),
         ],
       );
 
@@ -257,7 +291,7 @@ void main() {
           SingleChildScrollView(
             child: ExerciseCard(
               exercise: exercise,
-              onSetCompleted: (_, __, ___, ____) {},
+              onSetCompleted: (_, _, _, _) {},
             ),
           ),
         ),
@@ -277,10 +311,11 @@ void main() {
       final exercise = createMockExercise(
         notes: 'Keep core tight, control the descent',
         sets: [
-          SessionSet()
-            ..id = 'set-1'
-            ..setNumber = 1
-            ..isCompleted = false,
+          const SessionSetModel(
+            id: 'set-1',
+            setNumber: 1,
+            isCompleted: false,
+          ),
         ],
       );
 
@@ -289,7 +324,7 @@ void main() {
           SingleChildScrollView(
             child: ExerciseCard(
               exercise: exercise,
-              onSetCompleted: (_, __, ___, ____) {},
+              onSetCompleted: (_, _, _, _) {},
             ),
           ),
         ),
@@ -303,10 +338,11 @@ void main() {
       final exercise = createMockExercise(
         notes: '',
         sets: [
-          SessionSet()
-            ..id = 'set-1'
-            ..setNumber = 1
-            ..isCompleted = false,
+          const SessionSetModel(
+            id: 'set-1',
+            setNumber: 1,
+            isCompleted: false,
+          ),
         ],
       );
 
@@ -315,7 +351,7 @@ void main() {
           SingleChildScrollView(
             child: ExerciseCard(
               exercise: exercise,
-              onSetCompleted: (_, __, ___, ____) {},
+              onSetCompleted: (_, _, _, _) {},
             ),
           ),
         ),
@@ -328,10 +364,11 @@ void main() {
     testWidgets('can toggle expansion by tapping header', (tester) async {
       final exercise = createMockExercise(
         sets: [
-          SessionSet()
-            ..id = 'set-1'
-            ..setNumber = 1
-            ..isCompleted = false,
+          const SessionSetModel(
+            id: 'set-1',
+            setNumber: 1,
+            isCompleted: false,
+          ),
         ],
       );
 
@@ -340,7 +377,7 @@ void main() {
           SingleChildScrollView(
             child: ExerciseCard(
               exercise: exercise,
-              onSetCompleted: (_, __, ___, ____) {},
+              onSetCompleted: (_, _, _, _) {},
             ),
           ),
         ),
@@ -370,10 +407,11 @@ void main() {
     testWidgets('shows more options menu icon in header', (tester) async {
       final exercise = createMockExercise(
         sets: [
-          SessionSet()
-            ..id = 'set-1'
-            ..setNumber = 1
-            ..isCompleted = false,
+          const SessionSetModel(
+            id: 'set-1',
+            setNumber: 1,
+            isCompleted: false,
+          ),
         ],
       );
 
@@ -382,7 +420,7 @@ void main() {
           SingleChildScrollView(
             child: ExerciseCard(
               exercise: exercise,
-              onSetCompleted: (_, __, ___, ____) {},
+              onSetCompleted: (_, _, _, _) {},
             ),
           ),
         ),
@@ -395,10 +433,11 @@ void main() {
     testWidgets('uses 16px padding in header', (tester) async {
       final exercise = createMockExercise(
         sets: [
-          SessionSet()
-            ..id = 'set-1'
-            ..setNumber = 1
-            ..isCompleted = false,
+          const SessionSetModel(
+            id: 'set-1',
+            setNumber: 1,
+            isCompleted: false,
+          ),
         ],
       );
 
@@ -407,7 +446,7 @@ void main() {
           SingleChildScrollView(
             child: ExerciseCard(
               exercise: exercise,
-              onSetCompleted: (_, __, ___, ____) {},
+              onSetCompleted: (_, _, _, _) {},
             ),
           ),
         ),
@@ -426,24 +465,27 @@ void main() {
     testWidgets('renders multiple sets', (tester) async {
       final exercise = createMockExercise(
         sets: [
-          SessionSet()
-            ..id = 'set-1'
-            ..setNumber = 1
-            ..weightKg = 60.0
-            ..reps = 10
-            ..isCompleted = true,
-          SessionSet()
-            ..id = 'set-2'
-            ..setNumber = 2
-            ..weightKg = 65.0
-            ..reps = 8
-            ..isCompleted = false,
-          SessionSet()
-            ..id = 'set-3'
-            ..setNumber = 3
-            ..weightKg = 70.0
-            ..reps = 6
-            ..isCompleted = false,
+          const SessionSetModel(
+            id: 'set-1',
+            setNumber: 1,
+            weightKg: 60.0,
+            reps: 10,
+            isCompleted: true,
+          ),
+          const SessionSetModel(
+            id: 'set-2',
+            setNumber: 2,
+            weightKg: 65.0,
+            reps: 8,
+            isCompleted: false,
+          ),
+          const SessionSetModel(
+            id: 'set-3',
+            setNumber: 3,
+            weightKg: 70.0,
+            reps: 6,
+            isCompleted: false,
+          ),
         ],
       );
 
@@ -452,7 +494,7 @@ void main() {
           SingleChildScrollView(
             child: ExerciseCard(
               exercise: exercise,
-              onSetCompleted: (_, __, ___, ____) {},
+              onSetCompleted: (_, _, _, _) {},
             ),
           ),
         ),
@@ -466,10 +508,11 @@ void main() {
     testWidgets('shows exercise card with 12px border radius', (tester) async {
       final exercise = createMockExercise(
         sets: [
-          SessionSet()
-            ..id = 'set-1'
-            ..setNumber = 1
-            ..isCompleted = false,
+          const SessionSetModel(
+            id: 'set-1',
+            setNumber: 1,
+            isCompleted: false,
+          ),
         ],
       );
 
@@ -478,7 +521,7 @@ void main() {
           SingleChildScrollView(
             child: ExerciseCard(
               exercise: exercise,
-              onSetCompleted: (_, __, ___, ____) {},
+              onSetCompleted: (_, _, _, _) {},
             ),
           ),
         ),
@@ -503,10 +546,11 @@ void main() {
       final exercise = createMockExercise(
         exerciseType: ExerciseType.EXERCISE_TYPE_WEIGHT_REPS,
         sets: [
-          SessionSet()
-            ..id = 'set-1'
-            ..setNumber = 1
-            ..isCompleted = false,
+          const SessionSetModel(
+            id: 'set-1',
+            setNumber: 1,
+            isCompleted: false,
+          ),
         ],
       );
 
@@ -515,7 +559,7 @@ void main() {
           SingleChildScrollView(
             child: ExerciseCard(
               exercise: exercise,
-              onSetCompleted: (_, __, ___, ____) {},
+              onSetCompleted: (_, _, _, _) {},
             ),
           ),
         ),
@@ -530,10 +574,11 @@ void main() {
       final exercise = createMockExercise(
         exerciseType: ExerciseType.EXERCISE_TYPE_TIME,
         sets: [
-          SessionSet()
-            ..id = 'set-1'
-            ..setNumber = 1
-            ..isCompleted = false,
+          const SessionSetModel(
+            id: 'set-1',
+            setNumber: 1,
+            isCompleted: false,
+          ),
         ],
       );
 
@@ -542,7 +587,7 @@ void main() {
           SingleChildScrollView(
             child: ExerciseCard(
               exercise: exercise,
-              onSetCompleted: (_, __, ___, ____) {},
+              onSetCompleted: (_, _, _, _) {},
             ),
           ),
         ),
@@ -556,9 +601,6 @@ void main() {
 
   group('RestTimerSheet', () {
     testWidgets('displays timer with formatted time', (tester) async {
-      bool skipCalled = false;
-      bool completeCalled = false;
-
       await tester.pumpWidget(
         wrapWithTheme(
           Stack(
@@ -567,8 +609,8 @@ void main() {
                 initialTime: 90,
                 nextExerciseName: 'Squat',
                 nextSetNumber: 2,
-                onSkip: () => skipCalled = true,
-                onComplete: () => completeCalled = true,
+                onSkip: () {},
+                onComplete: () {},
               ),
             ],
           ),

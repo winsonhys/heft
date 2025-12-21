@@ -130,6 +130,7 @@ class IntegrationTestSetup {
       final response = await request.close();
       if (response.statusCode == 404) {
         // Test mode not enabled - skip reset (tests may have stale data)
+        // ignore: avoid_print
         print('Warning: /test/reset not available. Run tests via run_integration_tests.sh');
         return;
       }

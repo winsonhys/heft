@@ -294,7 +294,7 @@ void main() {
       );
 
       // Keep provider alive during async operations
-      final subscription = container.listen(programBuilderProvider, (_, __) {});
+      final subscription = container.listen(programBuilderProvider, (_, _) {});
 
       try {
         final notifier = container.read(programBuilderProvider.notifier);
@@ -316,7 +316,7 @@ void main() {
       final uniqueName = 'Save Test ${DateTime.now().millisecondsSinceEpoch}';
 
       // Keep provider alive during async operations
-      final subscription = container.listen(programBuilderProvider, (_, __) {});
+      final subscription = container.listen(programBuilderProvider, (_, _) {});
 
       String? createdProgramId;
       try {
@@ -353,7 +353,7 @@ void main() {
 
     test('saveProgram validates name required', () async {
       // Keep provider alive
-      final subscription = container.listen(programBuilderProvider, (_, __) {});
+      final subscription = container.listen(programBuilderProvider, (_, _) {});
 
       try {
         final notifier = container.read(programBuilderProvider.notifier);

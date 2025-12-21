@@ -6,6 +6,7 @@ import '../../../core/client.dart';
 import '../../../core/session_storage.dart';
 import '../../home/providers/home_providers.dart';
 import '../../progress/providers/progress_providers.dart';
+import '../models/session_models.dart';
 
 part 'session_providers.g.dart';
 
@@ -20,7 +21,7 @@ class ActiveSession extends _$ActiveSession {
   SyncStatus _syncStatus = SyncStatus.synced;
 
   @override
-  AsyncValue<Session?> build() {
+  AsyncValue<SessionModel?> build() {
     // Cancel timer on dispose
     ref.onDispose(() {
       _syncTimer?.cancel();
@@ -47,7 +48,6 @@ class ActiveSession extends _$ActiveSession {
 
   /// Perform sync to server
   Future<void> _performSync() async {
-    return;
     final session = state.value;
     if (session == null || !_hasPendingChanges) return;
 
@@ -60,23 +60,13 @@ class ActiveSession extends _$ActiveSession {
         for (final set in exercise.sets) {
           final syncSet = SyncSetData()
             ..setId = set.id
-            ..isCompleted = set.isCompleted;
+            ..isCompleted = set.isCompleted
+            ..weightKg = set.weightKg
+            ..reps = set.reps
+            ..timeSeconds = set.timeSeconds
+            ..distanceM = set.distanceM
+            ..rpe = set.rpe;
 
-          if (set.hasWeightKg()) {
-            syncSet.weightKg = set.weightKg;
-          }
-          if (set.hasReps()) {
-            syncSet.reps = set.reps;
-          }
-          if (set.hasTimeSeconds()) {
-            syncSet.timeSeconds = set.timeSeconds;
-          }
-          if (set.hasDistanceM()) {
-            syncSet.distanceM = set.distanceM;
-          }
-          if (set.hasRpe()) {
-            syncSet.rpe = set.rpe;
-          }
           if (set.notes.isNotEmpty) {
             syncSet.notes = set.notes;
           }
@@ -94,8 +84,8 @@ class ActiveSession extends _$ActiveSession {
       _hasPendingChanges = false;
       _syncStatus = SyncStatus.synced;
 
-      // Update local backup
-      await SessionStorage.saveSession(session);
+      // Update local backup (convert to protobuf for storage)
+      await SessionStorage.saveSession(session.toProto());
     } catch (e) {
       _syncStatus = SyncStatus.error;
       // Keep _hasPendingChanges = true so we retry on next tick
@@ -103,7 +93,7 @@ class ActiveSession extends _$ActiveSession {
   }
 
   /// Start a new session from a workout template
-  Future<Session?> startSession({required String workoutTemplateId}) async {
+  Future<SessionModel?> startSession({required String workoutTemplateId}) async {
     try {
       state = const AsyncValue.loading();
 
@@ -111,7 +101,8 @@ class ActiveSession extends _$ActiveSession {
         ..workoutTemplateId = workoutTemplateId;
 
       final response = await sessionClient.startSession(request);
-      state = AsyncValue.data(response.session);
+      final sessionModel = SessionModel.fromProto(response.session);
+      state = AsyncValue.data(sessionModel);
 
       // Save backup and start sync timer
       await SessionStorage.saveSession(response.session);
@@ -120,7 +111,7 @@ class ActiveSession extends _$ActiveSession {
       // Refresh active session provider so floating widget updates immediately
       ref.invalidate(hasActiveSessionProvider);
 
-      return response.session;
+      return sessionModel;
     } catch (e, st) {
       if (e.toString().contains('disposed') ||
           e.toString().contains('UnmountedRefException')) {
@@ -132,19 +123,20 @@ class ActiveSession extends _$ActiveSession {
   }
 
   /// Load an existing session (or recover from backup)
-  Future<Session?> loadSession({required String sessionId}) async {
+  Future<SessionModel?> loadSession({required String sessionId}) async {
     try {
       state = const AsyncValue.loading();
 
       final request = GetSessionRequest()..id = sessionId;
       final response = await sessionClient.getSession(request);
-      state = AsyncValue.data(response.session);
+      final sessionModel = SessionModel.fromProto(response.session);
+      state = AsyncValue.data(sessionModel);
 
       // Save backup and start sync timer
       await SessionStorage.saveSession(response.session);
       _startSyncTimer();
 
-      return response.session;
+      return sessionModel;
     } catch (e, st) {
       if (e.toString().contains('disposed') ||
           e.toString().contains('UnmountedRefException')) {
@@ -156,7 +148,7 @@ class ActiveSession extends _$ActiveSession {
   }
 
   /// Recover session from local backup
-  Future<Session?> recoverFromBackup() async {
+  Future<SessionModel?> recoverFromBackup() async {
     try {
       final backup = await SessionStorage.loadSession();
       if (backup == null) return null;
@@ -167,16 +159,18 @@ class ActiveSession extends _$ActiveSession {
         final response = await sessionClient.getSession(request);
 
         // Server has data - use server version
-        state = AsyncValue.data(response.session);
+        final sessionModel = SessionModel.fromProto(response.session);
+        state = AsyncValue.data(sessionModel);
         await SessionStorage.saveSession(response.session);
         _startSyncTimer();
-        return response.session;
+        return sessionModel;
       } catch (e) {
         // Server error - use backup as fallback
-        state = AsyncValue.data(backup);
+        final backupModel = SessionModel.fromProto(backup);
+        state = AsyncValue.data(backupModel);
         _hasPendingChanges = true;
         _startSyncTimer();
-        return backup;
+        return backupModel;
       }
     } catch (e) {
       return null;
@@ -194,50 +188,49 @@ class ActiveSession extends _$ActiveSession {
     final currentSession = state.value;
     if (currentSession == null) return;
 
-    // Clone FIRST - before any modifications
-    // This ensures old state remains unchanged so Riverpod detects the difference
-    final updatedSession = Session()..mergeFromMessage(currentSession);
-
-    // Find and update the set in the CLONE
-    bool found = false;
     int completedDelta = 0;
+    bool found = false;
 
-    for (final exercise in updatedSession.exercises) {
-      for (var i = 0; i < exercise.sets.length; i++) {
-        if (exercise.sets[i].id == sessionSetId) {
-          final oldCompleted = exercise.sets[i].isCompleted;
+    // Use freezed copyWith for immutable updates
+    final updatedSession = currentSession.copyWith(
+      exercises: currentSession.exercises.map((exercise) {
+        return exercise.copyWith(
+          sets: exercise.sets.map((set) {
+            if (set.id != sessionSetId) return set;
 
-          if (weightKg != null) exercise.sets[i].weightKg = weightKg;
-          if (reps != null) exercise.sets[i].reps = reps;
-          if (timeSeconds != null) exercise.sets[i].timeSeconds = timeSeconds;
-          if (isCompleted != null) exercise.sets[i].isCompleted = isCompleted;
+            found = true;
 
-          // Track completion change
-          if (isCompleted != null) {
-            if (isCompleted && !oldCompleted) completedDelta = 1;
-            if (!isCompleted && oldCompleted) completedDelta = -1;
-          }
+            // Track completion change
+            if (isCompleted != null) {
+              if (isCompleted && !set.isCompleted) completedDelta = 1;
+              if (!isCompleted && set.isCompleted) completedDelta = -1;
+            }
 
-          found = true;
-          break;
-        }
-      }
-      if (found) break;
-    }
+            return set.copyWith(
+              weightKg: weightKg ?? set.weightKg,
+              reps: reps ?? set.reps,
+              timeSeconds: timeSeconds ?? set.timeSeconds,
+              isCompleted: isCompleted ?? set.isCompleted,
+            );
+          }).toList(),
+        );
+      }).toList(),
+    );
 
     if (found) {
-      // Update completed count
-      updatedSession.completedSets =
-          (updatedSession.completedSets + completedDelta)
-              .clamp(0, updatedSession.totalSets);
+      // Update completed count using copyWith
+      final finalSession = updatedSession.copyWith(
+        completedSets: (updatedSession.completedSets + completedDelta)
+            .clamp(0, updatedSession.totalSets),
+      );
 
       // Mark changes and update state
       _hasPendingChanges = true;
       _syncStatus = SyncStatus.pending;
-      state = AsyncValue.data(updatedSession);
+      state = AsyncValue.data(finalSession);
 
-      // Save to local backup immediately
-      SessionStorage.saveSession(updatedSession);
+      // Save to local backup immediately (convert to protobuf)
+      SessionStorage.saveSession(finalSession.toProto());
     }
   }
 
@@ -376,7 +369,7 @@ class ActiveSession extends _$ActiveSession {
 
 /// Provider for checking if there's an in-progress session (with backup recovery)
 @riverpod
-Future<Session?> hasActiveSession(Ref ref) async {
+Future<SessionModel?> hasActiveSession(Ref ref) async {
   // First check for local backup
   final hasBackup = await SessionStorage.hasBackup();
 
@@ -389,7 +382,8 @@ Future<Session?> hasActiveSession(Ref ref) async {
   if (response.sessions.isEmpty) {
     // No server session - check if we have a backup to recover
     if (hasBackup) {
-      return await SessionStorage.loadSession();
+      final backup = await SessionStorage.loadSession();
+      return backup != null ? SessionModel.fromProto(backup) : null;
     }
     return null;
   }
@@ -397,5 +391,5 @@ Future<Session?> hasActiveSession(Ref ref) async {
   // Load the full session from server
   final getRequest = GetSessionRequest()..id = response.sessions.first.id;
   final sessionResponse = await sessionClient.getSession(getRequest);
-  return sessionResponse.session;
+  return SessionModel.fromProto(sessionResponse.session);
 }

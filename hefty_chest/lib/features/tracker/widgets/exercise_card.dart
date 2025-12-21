@@ -2,13 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:forui/forui.dart';
 
 import '../../../shared/theme/app_colors.dart';
-import '../../../gen/session.pb.dart';
 import '../../../gen/common.pbenum.dart';
+import '../models/session_models.dart';
 import 'set_row.dart';
 
 /// Expandable exercise card with sets table
 class ExerciseCard extends StatefulWidget {
-  final SessionExercise exercise;
+  final SessionExerciseModel exercise;
   final Function(String setId, double? weight, int? reps, int? timeSeconds) onSetCompleted;
 
   const ExerciseCard({

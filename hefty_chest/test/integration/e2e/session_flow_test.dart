@@ -97,7 +97,7 @@ void main() {
         
         // Cleanup session explicitly if possible (Abandon doesn't delete, but good practice)
         await sessionClient.abandonSession(
-            AbandonSessionRequest()..id = sessionId..userId = TestData.testUserId);
+            AbandonSessionRequest()..id = sessionId);
       });
     });
 
@@ -245,7 +245,7 @@ void main() {
 
         // Complete one set via sync API
         final sessionResponse = await sessionClient.getSession(
-          GetSessionRequest()..id = sessionId..userId = TestData.testUserId,
+          GetSessionRequest()..id = sessionId,
         );
         final setId = sessionResponse.session.exercises.first.sets.first.id;
 
@@ -273,13 +273,13 @@ void main() {
 
         // Verify session set completed status via API (independent of UI)
         final checkResponse = await sessionClient.getSession(
-          GetSessionRequest()..id = sessionId..userId = TestData.testUserId,
+          GetSessionRequest()..id = sessionId,
         );
 
         expect(checkResponse.session.exercises.first.sets.first.isCompleted, isTrue);
 
         await sessionClient.abandonSession(
-            AbandonSessionRequest()..id = sessionId..userId = TestData.testUserId);
+            AbandonSessionRequest()..id = sessionId);
       });
     });
   });
@@ -291,14 +291,14 @@ void main() {
         final workoutId = await TestData.createWorkoutWithExercise(name: name);
 
         final initialStats = await progressClient.getDashboardStats(
-          GetDashboardStatsRequest()..userId = TestData.testUserId,
+          GetDashboardStatsRequest(),
         );
         final initialCount = initialStats.stats.totalWorkouts;
 
         final sessionId = await TestData.startSession(workoutTemplateId: workoutId);
 
         final sessionResponse = await sessionClient.getSession(
-          GetSessionRequest()..id = sessionId..userId = TestData.testUserId,
+          GetSessionRequest()..id = sessionId,
         );
 
         final syncSets = <SyncSetData>[];
@@ -319,7 +319,7 @@ void main() {
         );
 
         await sessionClient.finishSession(
-          FinishSessionRequest()..id = sessionId..userId = TestData.testUserId,
+          FinishSessionRequest()..id = sessionId,
         );
 
         await tester.pumpWidget(
@@ -335,7 +335,7 @@ void main() {
         await tester.pump();
 
         final updatedStats = await progressClient.getDashboardStats(
-          GetDashboardStatsRequest()..userId = TestData.testUserId,
+          GetDashboardStatsRequest(),
         );
 
         expect(updatedStats.stats.totalWorkouts, equals(initialCount + 1));

@@ -4,28 +4,25 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hefty_chest/shared/widgets/floating_session_widget.dart';
 import 'package:hefty_chest/features/tracker/providers/session_providers.dart';
-import 'package:hefty_chest/core/client.dart';
-import 'package:hefty_chest/gen/google/protobuf/timestamp.pb.dart';
+import 'package:hefty_chest/features/tracker/models/session_models.dart';
 
-/// Creates a mock Session for testing
-Session createMockSession({
+/// Creates a mock SessionModel for testing
+SessionModel createMockSession({
   String id = 'test-session-id',
   String name = 'Test Workout',
   int completedSets = 5,
   int totalSets = 12,
   DateTime? startedAt,
 }) {
-  final session = Session()
-    ..id = id
-    ..name = name
-    ..completedSets = completedSets
-    ..totalSets = totalSets;
-
-  if (startedAt != null) {
-    session.startedAt = Timestamp.fromDateTime(startedAt);
-  }
-
-  return session;
+  return SessionModel(
+    id: id,
+    workoutTemplateId: 'test-workout-id',
+    name: name,
+    exercises: [],
+    completedSets: completedSets,
+    totalSets: totalSets,
+    startedAt: startedAt,
+  );
 }
 
 /// Creates a mock GoRouter for testing
@@ -33,8 +30,8 @@ GoRouter createMockRouter() {
   return GoRouter(
     initialLocation: '/',
     routes: [
-      GoRoute(path: '/', builder: (_, __) => const SizedBox()),
-      GoRoute(path: '/session/:id', builder: (_, __) => const SizedBox()),
+      GoRoute(path: '/', builder: (_, _) => const SizedBox()),
+      GoRoute(path: '/session/:id', builder: (_, _) => const SizedBox()),
     ],
   );
 }
