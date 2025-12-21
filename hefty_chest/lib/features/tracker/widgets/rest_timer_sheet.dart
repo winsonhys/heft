@@ -6,6 +6,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:forui/forui.dart';
 
 import '../../../shared/theme/app_colors.dart';
+import '../../../shared/utils/formatters.dart';
 
 /// Rest timer bottom sheet with circular progress
 class RestTimerSheet extends HookWidget {
@@ -24,28 +25,15 @@ class RestTimerSheet extends HookWidget {
     required this.onComplete,
   });
 
-  String _formatTime(int seconds) {
-    final mins = seconds ~/ 60;
-    final secs = seconds % 60;
-    return '$mins:${secs.toString().padLeft(2, '0')}';
-  }
-
-  Color _getProgressColor(int timeRemaining) {
+  /// Returns progress and text colors based on time remaining
+  ({Color progress, Color text}) _getTimerColors(int timeRemaining) {
     if (timeRemaining <= 10) {
-      return AppColors.accentGreen;
-    } else if (timeRemaining <= 30) {
-      return AppColors.accentOrange;
+      return (progress: AppColors.accentGreen, text: AppColors.accentGreen);
     }
-    return AppColors.accentBlue;
-  }
-
-  Color _getTextColor(int timeRemaining) {
-    if (timeRemaining <= 10) {
-      return AppColors.accentGreen;
-    } else if (timeRemaining <= 30) {
-      return AppColors.accentOrange;
+    if (timeRemaining <= 30) {
+      return (progress: AppColors.accentOrange, text: AppColors.accentOrange);
     }
-    return AppColors.textPrimary;
+    return (progress: AppColors.accentBlue, text: AppColors.textPrimary);
   }
 
   @override
@@ -72,8 +60,7 @@ class RestTimerSheet extends HookWidget {
     }
 
     final progress = timeRemaining.value / totalDuration.value;
-    final progressColor = _getProgressColor(timeRemaining.value);
-    final textColor = _getTextColor(timeRemaining.value);
+    final colors = _getTimerColors(timeRemaining.value);
 
     return Positioned(
       left: 12,
@@ -106,18 +93,18 @@ class RestTimerSheet extends HookWidget {
                     size: const Size(56, 56),
                     painter: _CircleProgressPainter(
                       progress: progress,
-                      progressColor: progressColor,
+                      progressColor: colors.progress,
                       backgroundColor: AppColors.bgCardInner,
                       strokeWidth: 4,
                     ),
                   ),
                   // Time text
                   Text(
-                    _formatTime(timeRemaining.value),
+                    formatDuration(timeRemaining.value),
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w700,
-                      color: textColor,
+                      color: colors.text,
                       fontFeatures: const [FontFeature.tabularFigures()],
                     ),
                   ),

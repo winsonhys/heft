@@ -8,6 +8,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 import '../../shared/theme/app_colors.dart';
 import '../../shared/utils/formatters.dart';
+import '../../shared/widgets/confirm_dialog.dart';
 import '../../shared/widgets/floating_session_widget.dart';
 import '../workout_builder/widgets/exercise_search_modal.dart';
 import 'models/session_models.dart';
@@ -100,29 +101,14 @@ class TrackerScreen extends HookConsumerWidget {
     }
 
     Future<void> finishWorkout() async {
-      final confirm = await showFDialog<bool>(
+      final confirm = await showConfirmDialog(
         context: context,
-        builder: (context, style, animation) => FDialog(
-          style: style, // ignore: implicit_call_tearoffs
-          animation: animation,
-          direction: Axis.horizontal,
-          title: const Text('Finish Workout?'),
-          body: const Text('Are you sure you want to finish this workout?'),
-          actions: [
-            FButton(
-              style: FButtonStyle.ghost(),
-              onPress: () => Navigator.pop(context, false),
-              child: const Text('Cancel'),
-            ),
-            FButton(
-              onPress: () => Navigator.pop(context, true),
-              child: const Text('Finish'),
-            ),
-          ],
-        ),
+        title: 'Finish Workout?',
+        message: 'Are you sure you want to finish this workout?',
+        confirmLabel: 'Finish',
       );
 
-      if (confirm == true && context.mounted) {
+      if (confirm && context.mounted) {
         await ref.read(activeSessionProvider.notifier).finishSession();
         if (context.mounted) {
           context.go('/');
@@ -131,31 +117,15 @@ class TrackerScreen extends HookConsumerWidget {
     }
 
     Future<void> discardWorkout() async {
-      final confirm = await showFDialog<bool>(
+      final confirm = await showConfirmDialog(
         context: context,
-        builder: (context, style, animation) => FDialog(
-          style: style, // ignore: implicit_call_tearoffs
-          animation: animation,
-          direction: Axis.horizontal,
-          title: const Text('Discard Workout?'),
-          body: const Text(
-              'Are you sure you want to discard this workout? All progress will be lost.'),
-          actions: [
-            FButton(
-              style: FButtonStyle.ghost(),
-              onPress: () => Navigator.pop(context, false),
-              child: const Text('Cancel'),
-            ),
-            FButton(
-              style: FButtonStyle.destructive(),
-              onPress: () => Navigator.pop(context, true),
-              child: const Text('Discard'),
-            ),
-          ],
-        ),
+        title: 'Discard Workout?',
+        message: 'Are you sure you want to discard this workout? All progress will be lost.',
+        confirmLabel: 'Discard',
+        isDestructive: true,
       );
 
-      if (confirm == true && context.mounted) {
+      if (confirm && context.mounted) {
         await ref.read(activeSessionProvider.notifier).abandonSession();
         if (context.mounted) {
           context.go('/');
@@ -363,75 +333,8 @@ class TrackerScreen extends HookConsumerWidget {
                     ),
                   ),
 
-                  // Exercises
-                  if (isSuperset)
-                    Container(
-                      decoration: const BoxDecoration(
-                        border: Border(
-                          left: BorderSide(
-                            color: AppColors.supersetBorder,
-                            width: 3,
-                          ),
-                        ),
-                      ),
-                      margin: const EdgeInsets.only(left: 4),
-                      padding: const EdgeInsets.only(left: 12),
-                      child: Column(
-                        children: exercises.map((exercise) {
-                          return TrackerSectionCard(
-                            exercise: exercise,
-                            onSetCompleted: (setId, weight, reps, timeSeconds) {
-                              // Fire-and-forget for instant UI update
-                              ref
-                                  .read(activeSessionProvider.notifier)
-                                  .completeSet(
-                                    sessionSetId: setId,
-                                    weightKg: weight,
-                                    reps: reps,
-                                    timeSeconds: timeSeconds,
-                                    toggle: true,
-                                  );
-                            },
-                            onAddSet: () {
-                              ref
-                                  .read(activeSessionProvider.notifier)
-                                  .addSet(sessionExerciseId: exercise.id);
-                            },
-                            onSetDeleted: (setId) {
-                              ref.read(activeSessionProvider.notifier).deleteSet(sessionSetId: setId);
-                            },
-                            onDeleteExercise: () => _confirmDeleteExercise(context, ref, exercise),
-                          );
-                        }).toList(),
-                      ),
-                    )
-                  else
-                    ...exercises.map((exercise) {
-                      return TrackerSectionCard(
-                        exercise: exercise,
-                        onSetCompleted: (setId, weight, reps, timeSeconds) {
-                          // Fire-and-forget for instant UI update
-                          ref
-                              .read(activeSessionProvider.notifier)
-                              .completeSet(
-                                sessionSetId: setId,
-                                weightKg: weight,
-                                reps: reps,
-                                timeSeconds: timeSeconds,
-                                toggle: true,
-                              );
-                        },
-                        onAddSet: () {
-                          ref
-                              .read(activeSessionProvider.notifier)
-                              .addSet(sessionExerciseId: exercise.id);
-                        },
-                        onSetDeleted: (setId) {
-                          ref.read(activeSessionProvider.notifier).deleteSet(sessionSetId: setId);
-                        },
-                        onDeleteExercise: () => _confirmDeleteExercise(context, ref, exercise),
-                      );
-                    }),
+                  // Exercises - build cards once, conditionally wrap
+                  ..._buildExerciseCards(context, ref, exercises, isSuperset),
                 ],
               );
             },
@@ -467,6 +370,51 @@ class TrackerScreen extends HookConsumerWidget {
         ),
       ],
     );
+  }
+
+  List<Widget> _buildExerciseCards(
+    BuildContext context,
+    WidgetRef ref,
+    List<SessionExerciseModel> exercises,
+    bool isSuperset,
+  ) {
+    final cards = exercises.map((exercise) {
+      return TrackerSectionCard(
+        exercise: exercise,
+        onSetCompleted: (setId, weight, reps, timeSeconds) {
+          ref.read(activeSessionProvider.notifier).completeSet(
+                sessionSetId: setId,
+                weightKg: weight,
+                reps: reps,
+                timeSeconds: timeSeconds,
+                toggle: true,
+              );
+        },
+        onAddSet: () {
+          ref.read(activeSessionProvider.notifier).addSet(sessionExerciseId: exercise.id);
+        },
+        onSetDeleted: (setId) {
+          ref.read(activeSessionProvider.notifier).deleteSet(sessionSetId: setId);
+        },
+        onDeleteExercise: () => _confirmDeleteExercise(context, ref, exercise),
+      );
+    }).toList();
+
+    if (isSuperset) {
+      return [
+        Container(
+          decoration: const BoxDecoration(
+            border: Border(
+              left: BorderSide(color: AppColors.supersetBorder, width: 3),
+            ),
+          ),
+          margin: const EdgeInsets.only(left: 4),
+          padding: const EdgeInsets.only(left: 12),
+          child: Column(children: cards),
+        ),
+      ];
+    }
+    return cards;
   }
 
   void _showAddExerciseModal(BuildContext context, WidgetRef ref, String sectionName) {
@@ -528,59 +476,29 @@ class TrackerScreen extends HookConsumerWidget {
   }
 
   Future<void> _confirmDeleteExercise(BuildContext context, WidgetRef ref, SessionExerciseModel exercise) async {
-    final confirm = await showFDialog<bool>(
+    final confirm = await showConfirmDialog(
       context: context,
-      builder: (context, style, animation) => FDialog(
-        style: style,
-        animation: animation,
-        direction: Axis.horizontal,
-        title: const Text('Delete Exercise?'),
-        body: Text('Are you sure you want to delete "${exercise.exerciseName}"?'),
-        actions: [
-          FButton(
-            style: FButtonStyle.ghost(),
-            onPress: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
-          ),
-          FButton(
-            style: FButtonStyle.destructive(),
-            onPress: () => Navigator.pop(context, true),
-            child: const Text('Delete'),
-          ),
-        ],
-      ),
+      title: 'Delete Exercise?',
+      message: 'Are you sure you want to delete "${exercise.exerciseName}"?',
+      confirmLabel: 'Delete',
+      isDestructive: true,
     );
 
-    if (confirm == true) {
+    if (confirm) {
       ref.read(activeSessionProvider.notifier).deleteExercise(sessionExerciseId: exercise.id);
     }
   }
 
   Future<void> _confirmDeleteSection(BuildContext context, WidgetRef ref, String sectionName) async {
-    final confirm = await showFDialog<bool>(
+    final confirm = await showConfirmDialog(
       context: context,
-      builder: (context, style, animation) => FDialog(
-        style: style,
-        animation: animation,
-        direction: Axis.horizontal,
-        title: const Text('Delete Section?'),
-        body: Text('Are you sure you want to delete the "$sectionName" section and all its exercises?'),
-        actions: [
-          FButton(
-            style: FButtonStyle.ghost(),
-            onPress: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
-          ),
-          FButton(
-            style: FButtonStyle.destructive(),
-            onPress: () => Navigator.pop(context, true),
-            child: const Text('Delete'),
-          ),
-        ],
-      ),
+      title: 'Delete Section?',
+      message: 'Are you sure you want to delete the "$sectionName" section and all its exercises?',
+      confirmLabel: 'Delete',
+      isDestructive: true,
     );
 
-    if (confirm == true) {
+    if (confirm) {
       ref.read(activeSessionProvider.notifier).deleteSection(sectionName: sectionName);
     }
   }

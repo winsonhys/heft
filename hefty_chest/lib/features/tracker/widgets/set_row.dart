@@ -3,6 +3,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:forui/forui.dart';
 
 import '../../../shared/theme/app_colors.dart';
+import '../../../shared/utils/formatters.dart';
 import '../models/session_models.dart';
 
 /// Individual set row with editable inputs
@@ -20,12 +21,6 @@ class SetRow extends HookWidget {
     this.onDelete,
   });
 
-  String _formatTime(int seconds) {
-    final mins = seconds ~/ 60;
-    final secs = seconds % 60;
-    return '$mins:${secs.toString().padLeft(2, '0')}';
-  }
-
   int? _parseTime(String value) {
     if (value.isEmpty) return null;
     if (value.contains(':')) {
@@ -42,7 +37,7 @@ class SetRow extends HookWidget {
   String _formatPR() {
     if (isTimeBased) {
       if (set.targetTimeSeconds > 0) {
-        return _formatTime(set.targetTimeSeconds);
+        return formatDuration(set.targetTimeSeconds);
       }
       return '-';
     }
@@ -63,14 +58,14 @@ class SetRow extends HookWidget {
       text: set.reps > 0 ? set.reps.toString() : '',
     );
     final timeController = useTextEditingController(
-      text: set.timeSeconds > 0 ? _formatTime(set.timeSeconds) : '',
+      text: set.timeSeconds > 0 ? formatDuration(set.timeSeconds) : '',
     );
 
     // Sync controllers when set.id changes (replaces didUpdateWidget)
     useEffect(() {
       weightController.text = set.weightKg > 0 ? set.weightKg.toStringAsFixed(0) : '';
       repsController.text = set.reps > 0 ? set.reps.toString() : '';
-      timeController.text = set.timeSeconds > 0 ? _formatTime(set.timeSeconds) : '';
+      timeController.text = set.timeSeconds > 0 ? formatDuration(set.timeSeconds) : '';
       return null;
     }, [set.id]);
 

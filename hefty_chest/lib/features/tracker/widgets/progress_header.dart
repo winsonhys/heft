@@ -11,18 +11,10 @@ class ProgressHeader extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final session = ref.watch(activeSessionProvider).value;
+    if (session == null) return const SizedBox.shrink();
 
-    // Compute progress from exercises
-    int totalSets = 0;
-    int completedSets = 0;
-    if (session != null) {
-      for (final exercise in session.exercises) {
-        for (final set in exercise.sets) {
-          totalSets++;
-          if (set.isCompleted) completedSets++;
-        }
-      }
-    }
+    final totalSets = session.totalSets;
+    final completedSets = session.completedSets;
     final progress = totalSets > 0 ? completedSets / totalSets : 0.0;
     final percentage = (progress * 100).toInt();
 
