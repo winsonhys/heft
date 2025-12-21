@@ -3,8 +3,6 @@ package handlers_test
 import (
 	"context"
 	"errors"
-	"net/http"
-	"net/http/httptest"
 	"testing"
 	"time"
 
@@ -13,26 +11,12 @@ import (
 	"github.com/stretchr/testify/require"
 
 	heftv1 "github.com/heftyback/gen/heft/v1"
-	"github.com/heftyback/gen/heft/v1/heftv1connect"
 	"github.com/heftyback/internal/auth"
 	"github.com/heftyback/internal/handlers"
 	"github.com/heftyback/internal/repository"
 	"github.com/heftyback/internal/testutil"
 )
 
-func setupProgramTest(t *testing.T, mockProgramRepo *testutil.MockProgramRepository, mockWorkoutRepo *testutil.MockWorkoutRepository) heftv1connect.ProgramServiceClient {
-	t.Helper()
-
-	handler := handlers.NewProgramHandler(mockProgramRepo, mockWorkoutRepo)
-	mux := http.NewServeMux()
-	path, h := heftv1connect.NewProgramServiceHandler(handler)
-	mux.Handle(path, h)
-
-	server := httptest.NewServer(mux)
-	t.Cleanup(server.Close)
-
-	return heftv1connect.NewProgramServiceClient(server.Client(), server.URL)
-}
 
 func TestProgramHandler_ListPrograms(t *testing.T) {
 	tests := []struct {
@@ -160,14 +144,14 @@ func TestProgramHandler_ListPrograms(t *testing.T) {
 			mockWorkoutRepo := &testutil.MockWorkoutRepository{}
 			tt.setupMock(mockProgramRepo, mockWorkoutRepo)
 
-			client := setupProgramTest(t, mockProgramRepo, mockWorkoutRepo)
+			handler := handlers.NewProgramHandler(mockProgramRepo, mockWorkoutRepo)
 
 			ctx := context.Background()
 			if tt.withAuth {
 				ctx = auth.ContextWithUserID(ctx, tt.userID)
 			}
 
-			resp, err := client.ListPrograms(ctx, connect.NewRequest(tt.request))
+			resp, err := handler.ListPrograms(ctx, connect.NewRequest(tt.request))
 
 			if tt.wantErr {
 				require.Error(t, err)
@@ -282,14 +266,14 @@ func TestProgramHandler_GetProgram(t *testing.T) {
 			mockWorkoutRepo := &testutil.MockWorkoutRepository{}
 			tt.setupMock(mockProgramRepo, mockWorkoutRepo)
 
-			client := setupProgramTest(t, mockProgramRepo, mockWorkoutRepo)
+			handler := handlers.NewProgramHandler(mockProgramRepo, mockWorkoutRepo)
 
 			ctx := context.Background()
 			if tt.withAuth {
 				ctx = auth.ContextWithUserID(ctx, tt.userID)
 			}
 
-			resp, err := client.GetProgram(ctx, connect.NewRequest(tt.request))
+			resp, err := handler.GetProgram(ctx, connect.NewRequest(tt.request))
 
 			if tt.wantErr {
 				require.Error(t, err)
@@ -460,14 +444,14 @@ func TestProgramHandler_CreateProgram(t *testing.T) {
 			mockWorkoutRepo := &testutil.MockWorkoutRepository{}
 			tt.setupMock(mockProgramRepo, mockWorkoutRepo)
 
-			client := setupProgramTest(t, mockProgramRepo, mockWorkoutRepo)
+			handler := handlers.NewProgramHandler(mockProgramRepo, mockWorkoutRepo)
 
 			ctx := context.Background()
 			if tt.withAuth {
 				ctx = auth.ContextWithUserID(ctx, tt.userID)
 			}
 
-			resp, err := client.CreateProgram(ctx, connect.NewRequest(tt.request))
+			resp, err := handler.CreateProgram(ctx, connect.NewRequest(tt.request))
 
 			if tt.wantErr {
 				require.Error(t, err)
@@ -553,14 +537,14 @@ func TestProgramHandler_DeleteProgram(t *testing.T) {
 			mockWorkoutRepo := &testutil.MockWorkoutRepository{}
 			tt.setupMock(mockProgramRepo, mockWorkoutRepo)
 
-			client := setupProgramTest(t, mockProgramRepo, mockWorkoutRepo)
+			handler := handlers.NewProgramHandler(mockProgramRepo, mockWorkoutRepo)
 
 			ctx := context.Background()
 			if tt.withAuth {
 				ctx = auth.ContextWithUserID(ctx, tt.userID)
 			}
 
-			resp, err := client.DeleteProgram(ctx, connect.NewRequest(tt.request))
+			resp, err := handler.DeleteProgram(ctx, connect.NewRequest(tt.request))
 
 			if tt.wantErr {
 				require.Error(t, err)
@@ -662,14 +646,14 @@ func TestProgramHandler_SetActiveProgram(t *testing.T) {
 			mockWorkoutRepo := &testutil.MockWorkoutRepository{}
 			tt.setupMock(mockProgramRepo, mockWorkoutRepo)
 
-			client := setupProgramTest(t, mockProgramRepo, mockWorkoutRepo)
+			handler := handlers.NewProgramHandler(mockProgramRepo, mockWorkoutRepo)
 
 			ctx := context.Background()
 			if tt.withAuth {
 				ctx = auth.ContextWithUserID(ctx, tt.userID)
 			}
 
-			resp, err := client.SetActiveProgram(ctx, connect.NewRequest(tt.request))
+			resp, err := handler.SetActiveProgram(ctx, connect.NewRequest(tt.request))
 
 			if tt.wantErr {
 				require.Error(t, err)
@@ -811,14 +795,14 @@ func TestProgramHandler_GetTodayWorkout(t *testing.T) {
 			mockWorkoutRepo := &testutil.MockWorkoutRepository{}
 			tt.setupMock(mockProgramRepo, mockWorkoutRepo)
 
-			client := setupProgramTest(t, mockProgramRepo, mockWorkoutRepo)
+			handler := handlers.NewProgramHandler(mockProgramRepo, mockWorkoutRepo)
 
 			ctx := context.Background()
 			if tt.withAuth {
 				ctx = auth.ContextWithUserID(ctx, tt.userID)
 			}
 
-			resp, err := client.GetTodayWorkout(ctx, connect.NewRequest(tt.request))
+			resp, err := handler.GetTodayWorkout(ctx, connect.NewRequest(tt.request))
 
 			if tt.wantErr {
 				require.Error(t, err)
@@ -911,14 +895,14 @@ func TestProgramHandler_UpdateProgram(t *testing.T) {
 			mockWorkoutRepo := &testutil.MockWorkoutRepository{}
 			tt.setupMock(mockProgramRepo, mockWorkoutRepo)
 
-			client := setupProgramTest(t, mockProgramRepo, mockWorkoutRepo)
+			handler := handlers.NewProgramHandler(mockProgramRepo, mockWorkoutRepo)
 
 			ctx := context.Background()
 			if tt.withAuth {
 				ctx = auth.ContextWithUserID(ctx, tt.userID)
 			}
 
-			resp, err := client.UpdateProgram(ctx, connect.NewRequest(tt.request))
+			resp, err := handler.UpdateProgram(ctx, connect.NewRequest(tt.request))
 
 			if tt.wantErr {
 				require.Error(t, err)

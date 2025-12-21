@@ -225,28 +225,32 @@ const SyncSessionRequest$json = {
   '2': [
     {'1': 'session_id', '3': 1, '4': 1, '5': 9, '10': 'sessionId'},
     {'1': 'sets', '3': 2, '4': 3, '5': 11, '6': '.heft.v1.SyncSetData', '10': 'sets'},
+    {'1': 'exercises', '3': 3, '4': 3, '5': 11, '6': '.heft.v1.SyncExerciseData', '10': 'exercises'},
   ],
 };
 
 /// Descriptor for `SyncSessionRequest`. Decode as a `google.protobuf.DescriptorProto`.
 final $typed_data.Uint8List syncSessionRequestDescriptor = $convert.base64Decode(
     'ChJTeW5jU2Vzc2lvblJlcXVlc3QSHQoKc2Vzc2lvbl9pZBgBIAEoCVIJc2Vzc2lvbklkEigKBH'
-    'NldHMYAiADKAsyFC5oZWZ0LnYxLlN5bmNTZXREYXRhUgRzZXRz');
+    'NldHMYAiADKAsyFC5oZWZ0LnYxLlN5bmNTZXREYXRhUgRzZXRzEjcKCWV4ZXJjaXNlcxgDIAMo'
+    'CzIZLmhlZnQudjEuU3luY0V4ZXJjaXNlRGF0YVIJZXhlcmNpc2Vz');
 
 @$core.Deprecated('Use syncSetDataDescriptor instead')
 const SyncSetData$json = {
   '1': 'SyncSetData',
   '2': [
-    {'1': 'set_id', '3': 1, '4': 1, '5': 9, '10': 'setId'},
-    {'1': 'weight_kg', '3': 2, '4': 1, '5': 1, '9': 0, '10': 'weightKg', '17': true},
-    {'1': 'reps', '3': 3, '4': 1, '5': 5, '9': 1, '10': 'reps', '17': true},
-    {'1': 'time_seconds', '3': 4, '4': 1, '5': 5, '9': 2, '10': 'timeSeconds', '17': true},
-    {'1': 'distance_m', '3': 5, '4': 1, '5': 1, '9': 3, '10': 'distanceM', '17': true},
+    {'1': 'id', '3': 1, '4': 1, '5': 9, '9': 0, '10': 'id'},
+    {'1': 'session_exercise_id', '3': 9, '4': 1, '5': 9, '9': 0, '10': 'sessionExerciseId'},
+    {'1': 'weight_kg', '3': 2, '4': 1, '5': 1, '9': 1, '10': 'weightKg', '17': true},
+    {'1': 'reps', '3': 3, '4': 1, '5': 5, '9': 2, '10': 'reps', '17': true},
+    {'1': 'time_seconds', '3': 4, '4': 1, '5': 5, '9': 3, '10': 'timeSeconds', '17': true},
+    {'1': 'distance_m', '3': 5, '4': 1, '5': 1, '9': 4, '10': 'distanceM', '17': true},
     {'1': 'is_completed', '3': 6, '4': 1, '5': 8, '10': 'isCompleted'},
-    {'1': 'rpe', '3': 7, '4': 1, '5': 1, '9': 4, '10': 'rpe', '17': true},
-    {'1': 'notes', '3': 8, '4': 1, '5': 9, '9': 5, '10': 'notes', '17': true},
+    {'1': 'rpe', '3': 7, '4': 1, '5': 1, '9': 5, '10': 'rpe', '17': true},
+    {'1': 'notes', '3': 8, '4': 1, '5': 9, '9': 6, '10': 'notes', '17': true},
   ],
   '8': [
+    {'1': 'set_identifier'},
     {'1': '_weight_kg'},
     {'1': '_reps'},
     {'1': '_time_seconds'},
@@ -258,12 +262,49 @@ const SyncSetData$json = {
 
 /// Descriptor for `SyncSetData`. Decode as a `google.protobuf.DescriptorProto`.
 final $typed_data.Uint8List syncSetDataDescriptor = $convert.base64Decode(
-    'CgtTeW5jU2V0RGF0YRIVCgZzZXRfaWQYASABKAlSBXNldElkEiAKCXdlaWdodF9rZxgCIAEoAU'
-    'gAUgh3ZWlnaHRLZ4gBARIXCgRyZXBzGAMgASgFSAFSBHJlcHOIAQESJgoMdGltZV9zZWNvbmRz'
-    'GAQgASgFSAJSC3RpbWVTZWNvbmRziAEBEiIKCmRpc3RhbmNlX20YBSABKAFIA1IJZGlzdGFuY2'
-    'VNiAEBEiEKDGlzX2NvbXBsZXRlZBgGIAEoCFILaXNDb21wbGV0ZWQSFQoDcnBlGAcgASgBSARS'
-    'A3JwZYgBARIZCgVub3RlcxgIIAEoCUgFUgVub3Rlc4gBAUIMCgpfd2VpZ2h0X2tnQgcKBV9yZX'
-    'BzQg8KDV90aW1lX3NlY29uZHNCDQoLX2Rpc3RhbmNlX21CBgoEX3JwZUIICgZfbm90ZXM=');
+    'CgtTeW5jU2V0RGF0YRIQCgJpZBgBIAEoCUgAUgJpZBIwChNzZXNzaW9uX2V4ZXJjaXNlX2lkGA'
+    'kgASgJSABSEXNlc3Npb25FeGVyY2lzZUlkEiAKCXdlaWdodF9rZxgCIAEoAUgBUgh3ZWlnaHRL'
+    'Z4gBARIXCgRyZXBzGAMgASgFSAJSBHJlcHOIAQESJgoMdGltZV9zZWNvbmRzGAQgASgFSANSC3'
+    'RpbWVTZWNvbmRziAEBEiIKCmRpc3RhbmNlX20YBSABKAFIBFIJZGlzdGFuY2VNiAEBEiEKDGlz'
+    'X2NvbXBsZXRlZBgGIAEoCFILaXNDb21wbGV0ZWQSFQoDcnBlGAcgASgBSAVSA3JwZYgBARIZCg'
+    'Vub3RlcxgIIAEoCUgGUgVub3Rlc4gBAUIQCg5zZXRfaWRlbnRpZmllckIMCgpfd2VpZ2h0X2tn'
+    'QgcKBV9yZXBzQg8KDV90aW1lX3NlY29uZHNCDQoLX2Rpc3RhbmNlX21CBgoEX3JwZUIICgZfbm'
+    '90ZXM=');
+
+@$core.Deprecated('Use syncExerciseDataDescriptor instead')
+const SyncExerciseData$json = {
+  '1': 'SyncExerciseData',
+  '2': [
+    {'1': 'id', '3': 1, '4': 1, '5': 9, '9': 0, '10': 'id'},
+    {'1': 'new_exercise', '3': 2, '4': 1, '5': 11, '6': '.heft.v1.NewExerciseData', '9': 0, '10': 'newExercise'},
+  ],
+  '8': [
+    {'1': 'exercise_identifier'},
+  ],
+};
+
+/// Descriptor for `SyncExerciseData`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List syncExerciseDataDescriptor = $convert.base64Decode(
+    'ChBTeW5jRXhlcmNpc2VEYXRhEhAKAmlkGAEgASgJSABSAmlkEj0KDG5ld19leGVyY2lzZRgCIA'
+    'EoCzIYLmhlZnQudjEuTmV3RXhlcmNpc2VEYXRhSABSC25ld0V4ZXJjaXNlQhUKE2V4ZXJjaXNl'
+    'X2lkZW50aWZpZXI=');
+
+@$core.Deprecated('Use newExerciseDataDescriptor instead')
+const NewExerciseData$json = {
+  '1': 'NewExerciseData',
+  '2': [
+    {'1': 'exercise_id', '3': 1, '4': 1, '5': 9, '10': 'exerciseId'},
+    {'1': 'display_order', '3': 2, '4': 1, '5': 5, '10': 'displayOrder'},
+    {'1': 'section_name', '3': 3, '4': 1, '5': 9, '10': 'sectionName'},
+    {'1': 'num_sets', '3': 4, '4': 1, '5': 5, '10': 'numSets'},
+  ],
+};
+
+/// Descriptor for `NewExerciseData`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List newExerciseDataDescriptor = $convert.base64Decode(
+    'Cg9OZXdFeGVyY2lzZURhdGESHwoLZXhlcmNpc2VfaWQYASABKAlSCmV4ZXJjaXNlSWQSIwoNZG'
+    'lzcGxheV9vcmRlchgCIAEoBVIMZGlzcGxheU9yZGVyEiEKDHNlY3Rpb25fbmFtZRgDIAEoCVIL'
+    'c2VjdGlvbk5hbWUSGQoIbnVtX3NldHMYBCABKAVSB251bVNldHM=');
 
 @$core.Deprecated('Use syncSessionResponseDescriptor instead')
 const SyncSessionResponse$json = {
@@ -278,41 +319,6 @@ const SyncSessionResponse$json = {
 final $typed_data.Uint8List syncSessionResponseDescriptor = $convert.base64Decode(
     'ChNTeW5jU2Vzc2lvblJlc3BvbnNlEioKB3Nlc3Npb24YASABKAsyEC5oZWZ0LnYxLlNlc3Npb2'
     '5SB3Nlc3Npb24SGAoHc3VjY2VzcxgCIAEoCFIHc3VjY2Vzcw==');
-
-@$core.Deprecated('Use addExerciseRequestDescriptor instead')
-const AddExerciseRequest$json = {
-  '1': 'AddExerciseRequest',
-  '2': [
-    {'1': 'session_id', '3': 1, '4': 1, '5': 9, '10': 'sessionId'},
-    {'1': 'exercise_id', '3': 2, '4': 1, '5': 9, '10': 'exerciseId'},
-    {'1': 'display_order', '3': 3, '4': 1, '5': 5, '10': 'displayOrder'},
-    {'1': 'section_name', '3': 4, '4': 1, '5': 9, '9': 0, '10': 'sectionName', '17': true},
-    {'1': 'num_sets', '3': 5, '4': 1, '5': 5, '10': 'numSets'},
-  ],
-  '8': [
-    {'1': '_section_name'},
-  ],
-};
-
-/// Descriptor for `AddExerciseRequest`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List addExerciseRequestDescriptor = $convert.base64Decode(
-    'ChJBZGRFeGVyY2lzZVJlcXVlc3QSHQoKc2Vzc2lvbl9pZBgBIAEoCVIJc2Vzc2lvbklkEh8KC2'
-    'V4ZXJjaXNlX2lkGAIgASgJUgpleGVyY2lzZUlkEiMKDWRpc3BsYXlfb3JkZXIYAyABKAVSDGRp'
-    'c3BsYXlPcmRlchImCgxzZWN0aW9uX25hbWUYBCABKAlIAFILc2VjdGlvbk5hbWWIAQESGQoIbn'
-    'VtX3NldHMYBSABKAVSB251bVNldHNCDwoNX3NlY3Rpb25fbmFtZQ==');
-
-@$core.Deprecated('Use addExerciseResponseDescriptor instead')
-const AddExerciseResponse$json = {
-  '1': 'AddExerciseResponse',
-  '2': [
-    {'1': 'exercise', '3': 1, '4': 1, '5': 11, '6': '.heft.v1.SessionExercise', '10': 'exercise'},
-  ],
-};
-
-/// Descriptor for `AddExerciseResponse`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List addExerciseResponseDescriptor = $convert.base64Decode(
-    'ChNBZGRFeGVyY2lzZVJlc3BvbnNlEjQKCGV4ZXJjaXNlGAEgASgLMhguaGVmdC52MS5TZXNzaW'
-    '9uRXhlcmNpc2VSCGV4ZXJjaXNl');
 
 @$core.Deprecated('Use finishSessionRequestDescriptor instead')
 const FinishSessionRequest$json = {
@@ -413,7 +419,6 @@ const $core.Map<$core.String, $core.dynamic> SessionServiceBase$json = {
     {'1': 'StartSession', '2': '.heft.v1.StartSessionRequest', '3': '.heft.v1.StartSessionResponse'},
     {'1': 'GetSession', '2': '.heft.v1.GetSessionRequest', '3': '.heft.v1.GetSessionResponse'},
     {'1': 'SyncSession', '2': '.heft.v1.SyncSessionRequest', '3': '.heft.v1.SyncSessionResponse'},
-    {'1': 'AddExercise', '2': '.heft.v1.AddExerciseRequest', '3': '.heft.v1.AddExerciseResponse'},
     {'1': 'FinishSession', '2': '.heft.v1.FinishSessionRequest', '3': '.heft.v1.FinishSessionResponse'},
     {'1': 'AbandonSession', '2': '.heft.v1.AbandonSessionRequest', '3': '.heft.v1.AbandonSessionResponse'},
     {'1': 'ListSessions', '2': '.heft.v1.ListSessionsRequest', '3': '.heft.v1.ListSessionsResponse'},
@@ -432,9 +437,9 @@ const $core.Map<$core.String, $core.Map<$core.String, $core.dynamic>> SessionSer
   '.heft.v1.GetSessionResponse': GetSessionResponse$json,
   '.heft.v1.SyncSessionRequest': SyncSessionRequest$json,
   '.heft.v1.SyncSetData': SyncSetData$json,
+  '.heft.v1.SyncExerciseData': SyncExerciseData$json,
+  '.heft.v1.NewExerciseData': NewExerciseData$json,
   '.heft.v1.SyncSessionResponse': SyncSessionResponse$json,
-  '.heft.v1.AddExerciseRequest': AddExerciseRequest$json,
-  '.heft.v1.AddExerciseResponse': AddExerciseResponse$json,
   '.heft.v1.FinishSessionRequest': FinishSessionRequest$json,
   '.heft.v1.FinishSessionResponse': FinishSessionResponse$json,
   '.heft.v1.AbandonSessionRequest': AbandonSessionRequest$json,
@@ -452,10 +457,9 @@ final $typed_data.Uint8List sessionServiceDescriptor = $convert.base64Decode(
     'JlcXVlc3QaHS5oZWZ0LnYxLlN0YXJ0U2Vzc2lvblJlc3BvbnNlEkUKCkdldFNlc3Npb24SGi5o'
     'ZWZ0LnYxLkdldFNlc3Npb25SZXF1ZXN0GhsuaGVmdC52MS5HZXRTZXNzaW9uUmVzcG9uc2USSA'
     'oLU3luY1Nlc3Npb24SGy5oZWZ0LnYxLlN5bmNTZXNzaW9uUmVxdWVzdBocLmhlZnQudjEuU3lu'
-    'Y1Nlc3Npb25SZXNwb25zZRJICgtBZGRFeGVyY2lzZRIbLmhlZnQudjEuQWRkRXhlcmNpc2VSZX'
-    'F1ZXN0GhwuaGVmdC52MS5BZGRFeGVyY2lzZVJlc3BvbnNlEk4KDUZpbmlzaFNlc3Npb24SHS5o'
-    'ZWZ0LnYxLkZpbmlzaFNlc3Npb25SZXF1ZXN0Gh4uaGVmdC52MS5GaW5pc2hTZXNzaW9uUmVzcG'
-    '9uc2USUQoOQWJhbmRvblNlc3Npb24SHi5oZWZ0LnYxLkFiYW5kb25TZXNzaW9uUmVxdWVzdBof'
-    'LmhlZnQudjEuQWJhbmRvblNlc3Npb25SZXNwb25zZRJLCgxMaXN0U2Vzc2lvbnMSHC5oZWZ0Ln'
-    'YxLkxpc3RTZXNzaW9uc1JlcXVlc3QaHS5oZWZ0LnYxLkxpc3RTZXNzaW9uc1Jlc3BvbnNl');
+    'Y1Nlc3Npb25SZXNwb25zZRJOCg1GaW5pc2hTZXNzaW9uEh0uaGVmdC52MS5GaW5pc2hTZXNzaW'
+    '9uUmVxdWVzdBoeLmhlZnQudjEuRmluaXNoU2Vzc2lvblJlc3BvbnNlElEKDkFiYW5kb25TZXNz'
+    'aW9uEh4uaGVmdC52MS5BYmFuZG9uU2Vzc2lvblJlcXVlc3QaHy5oZWZ0LnYxLkFiYW5kb25TZX'
+    'NzaW9uUmVzcG9uc2USSwoMTGlzdFNlc3Npb25zEhwuaGVmdC52MS5MaXN0U2Vzc2lvbnNSZXF1'
+    'ZXN0Gh0uaGVmdC52MS5MaXN0U2Vzc2lvbnNSZXNwb25zZQ==');
 

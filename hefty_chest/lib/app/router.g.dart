@@ -7,44 +7,56 @@ part of 'router.dart';
 // **************************************************************************
 
 List<RouteBase> get $appRoutes => [
+  $mainShellRoute,
   $authRoute,
-  $homeRoute,
-  $profileRoute,
-  $progressRoute,
-  $calendarRoute,
   $newSessionRoute,
   $resumeSessionRoute,
+  $historyDetailRoute,
   $workoutBuilderRoute,
   $editWorkoutRoute,
   $programBuilderRoute,
   $editProgramRoute,
 ];
 
-RouteBase get $authRoute =>
-    GoRouteData.$route(path: '/auth', factory: $AuthRoute._fromState);
+RouteBase get $mainShellRoute => StatefulShellRouteData.$route(
+  factory: $MainShellRouteExtension._fromState,
+  branches: [
+    StatefulShellBranchData.$branch(
+      routes: [GoRouteData.$route(path: '/', factory: $HomeRoute._fromState)],
+    ),
+    StatefulShellBranchData.$branch(
+      routes: [
+        GoRouteData.$route(path: '/history', factory: $HistoryRoute._fromState),
+      ],
+    ),
+    StatefulShellBranchData.$branch(
+      routes: [
+        GoRouteData.$route(
+          path: '/progress',
+          factory: $ProgressRoute._fromState,
+        ),
+      ],
+    ),
+    StatefulShellBranchData.$branch(
+      routes: [
+        GoRouteData.$route(
+          path: '/calendar',
+          factory: $CalendarRoute._fromState,
+        ),
+      ],
+    ),
+    StatefulShellBranchData.$branch(
+      routes: [
+        GoRouteData.$route(path: '/profile', factory: $ProfileRoute._fromState),
+      ],
+    ),
+  ],
+);
 
-mixin $AuthRoute on GoRouteData {
-  static AuthRoute _fromState(GoRouterState state) => const AuthRoute();
-
-  @override
-  String get location => GoRouteData.$location('/auth');
-
-  @override
-  void go(BuildContext context) => context.go(location);
-
-  @override
-  Future<T?> push<T>(BuildContext context) => context.push<T>(location);
-
-  @override
-  void pushReplacement(BuildContext context) =>
-      context.pushReplacement(location);
-
-  @override
-  void replace(BuildContext context) => context.replace(location);
+extension $MainShellRouteExtension on MainShellRoute {
+  static MainShellRoute _fromState(GoRouterState state) =>
+      const MainShellRoute();
 }
-
-RouteBase get $homeRoute =>
-    GoRouteData.$route(path: '/', factory: $HomeRoute._fromState);
 
 mixin $HomeRoute on GoRouteData {
   static HomeRoute _fromState(GoRouterState state) => const HomeRoute();
@@ -66,14 +78,11 @@ mixin $HomeRoute on GoRouteData {
   void replace(BuildContext context) => context.replace(location);
 }
 
-RouteBase get $profileRoute =>
-    GoRouteData.$route(path: '/profile', factory: $ProfileRoute._fromState);
-
-mixin $ProfileRoute on GoRouteData {
-  static ProfileRoute _fromState(GoRouterState state) => const ProfileRoute();
+mixin $HistoryRoute on GoRouteData {
+  static HistoryRoute _fromState(GoRouterState state) => const HistoryRoute();
 
   @override
-  String get location => GoRouteData.$location('/profile');
+  String get location => GoRouteData.$location('/history');
 
   @override
   void go(BuildContext context) => context.go(location);
@@ -88,9 +97,6 @@ mixin $ProfileRoute on GoRouteData {
   @override
   void replace(BuildContext context) => context.replace(location);
 }
-
-RouteBase get $progressRoute =>
-    GoRouteData.$route(path: '/progress', factory: $ProgressRoute._fromState);
 
 mixin $ProgressRoute on GoRouteData {
   static ProgressRoute _fromState(GoRouterState state) => const ProgressRoute();
@@ -112,14 +118,54 @@ mixin $ProgressRoute on GoRouteData {
   void replace(BuildContext context) => context.replace(location);
 }
 
-RouteBase get $calendarRoute =>
-    GoRouteData.$route(path: '/calendar', factory: $CalendarRoute._fromState);
-
 mixin $CalendarRoute on GoRouteData {
   static CalendarRoute _fromState(GoRouterState state) => const CalendarRoute();
 
   @override
   String get location => GoRouteData.$location('/calendar');
+
+  @override
+  void go(BuildContext context) => context.go(location);
+
+  @override
+  Future<T?> push<T>(BuildContext context) => context.push<T>(location);
+
+  @override
+  void pushReplacement(BuildContext context) =>
+      context.pushReplacement(location);
+
+  @override
+  void replace(BuildContext context) => context.replace(location);
+}
+
+mixin $ProfileRoute on GoRouteData {
+  static ProfileRoute _fromState(GoRouterState state) => const ProfileRoute();
+
+  @override
+  String get location => GoRouteData.$location('/profile');
+
+  @override
+  void go(BuildContext context) => context.go(location);
+
+  @override
+  Future<T?> push<T>(BuildContext context) => context.push<T>(location);
+
+  @override
+  void pushReplacement(BuildContext context) =>
+      context.pushReplacement(location);
+
+  @override
+  void replace(BuildContext context) => context.replace(location);
+}
+
+RouteBase get $authRoute =>
+    GoRouteData.$route(path: '/auth', factory: $AuthRoute._fromState);
+
+mixin $AuthRoute on GoRouteData {
+  static AuthRoute _fromState(GoRouterState state) => const AuthRoute();
+
+  @override
+  String get location => GoRouteData.$location('/auth');
 
   @override
   void go(BuildContext context) => context.go(location);
@@ -178,6 +224,35 @@ mixin $ResumeSessionRoute on GoRouteData {
   @override
   String get location =>
       GoRouteData.$location('/session/${Uri.encodeComponent(_self.sessionId)}');
+
+  @override
+  void go(BuildContext context) => context.go(location);
+
+  @override
+  Future<T?> push<T>(BuildContext context) => context.push<T>(location);
+
+  @override
+  void pushReplacement(BuildContext context) =>
+      context.pushReplacement(location);
+
+  @override
+  void replace(BuildContext context) => context.replace(location);
+}
+
+RouteBase get $historyDetailRoute => GoRouteData.$route(
+  path: '/history/:sessionId',
+  factory: $HistoryDetailRoute._fromState,
+);
+
+mixin $HistoryDetailRoute on GoRouteData {
+  static HistoryDetailRoute _fromState(GoRouterState state) =>
+      HistoryDetailRoute(sessionId: state.pathParameters['sessionId']!);
+
+  HistoryDetailRoute get _self => this as HistoryDetailRoute;
+
+  @override
+  String get location =>
+      GoRouteData.$location('/history/${Uri.encodeComponent(_self.sessionId)}');
 
   @override
   void go(BuildContext context) => context.go(location);

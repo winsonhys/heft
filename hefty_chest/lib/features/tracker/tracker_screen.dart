@@ -9,10 +9,11 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import '../../shared/theme/app_colors.dart';
 import '../../shared/utils/formatters.dart';
 import '../../shared/widgets/floating_session_widget.dart';
+import '../workout_builder/widgets/exercise_search_modal.dart';
 import 'models/session_models.dart';
 import 'providers/session_providers.dart';
 import 'widgets/progress_header.dart';
-import 'widgets/exercise_card.dart';
+import 'widgets/tracker_section_card.dart';
 import 'widgets/rest_timer_sheet.dart';
 
 /// Tracker screen for active workout session
@@ -129,6 +130,39 @@ class TrackerScreen extends HookConsumerWidget {
       }
     }
 
+    Future<void> discardWorkout() async {
+      final confirm = await showFDialog<bool>(
+        context: context,
+        builder: (context, style, animation) => FDialog(
+          style: style, // ignore: implicit_call_tearoffs
+          animation: animation,
+          direction: Axis.horizontal,
+          title: const Text('Discard Workout?'),
+          body: const Text(
+              'Are you sure you want to discard this workout? All progress will be lost.'),
+          actions: [
+            FButton(
+              style: FButtonStyle.ghost(),
+              onPress: () => Navigator.pop(context, false),
+              child: const Text('Cancel'),
+            ),
+            FButton(
+              style: FButtonStyle.destructive(),
+              onPress: () => Navigator.pop(context, true),
+              child: const Text('Discard'),
+            ),
+          ],
+        ),
+      );
+
+      if (confirm == true && context.mounted) {
+        await ref.read(activeSessionProvider.notifier).abandonSession();
+        if (context.mounted) {
+          context.go('/');
+        }
+      }
+    }
+
     return Stack(
       children: [
         FScaffold(
@@ -136,9 +170,11 @@ class TrackerScreen extends HookConsumerWidget {
             title: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Text(
-                  'Workout',
-                  style: TextStyle(
+                Text(
+                  sessionAsync.value?.name.isNotEmpty == true
+                      ? sessionAsync.value!.name
+                      : 'Workout',
+                  style: const TextStyle(
                     fontSize: 17,
                     fontWeight: FontWeight.w600,
                     color: AppColors.textPrimary,
@@ -163,6 +199,10 @@ class TrackerScreen extends HookConsumerWidget {
             ],
             suffixes: [
               FHeaderAction(
+                icon: const Icon(Icons.close, color: AppColors.accentRed),
+                onPress: discardWorkout,
+              ),
+              FHeaderAction(
                 icon: const Icon(Icons.check, color: AppColors.accentGreen),
                 onPress: finishWorkout,
               ),
@@ -170,7 +210,7 @@ class TrackerScreen extends HookConsumerWidget {
           ),
           child: isLoading.value
               ? const Center(
-                  child: FProgress(),
+                  child: FCircularProgress.loader(),
                 )
               : sessionAsync.when(
                   data: (session) {
@@ -180,7 +220,7 @@ class TrackerScreen extends HookConsumerWidget {
                     return _buildSessionContent(context, ref, session);
                   },
                   loading: () => const Center(
-                    child: FProgress(),
+                    child: FCircularProgress.loader(),
                   ),
                   error: (error, _) => Center(
                     child: Column(
@@ -269,10 +309,13 @@ class TrackerScreen extends HookConsumerWidget {
 
         // Exercise List
         Expanded(
-          child: ListView.builder(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            itemCount: exercisesBySection.length,
-            itemBuilder: (context, sectionIndex) {
+          child: Column(
+            children: [
+              Expanded(
+                child: ListView.builder(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  itemCount: exercisesBySection.length,
+                  itemBuilder: (context, sectionIndex) {
               final sectionName = exercisesBySection.keys.elementAt(sectionIndex);
               final exercises = exercisesBySection[sectionName]!;
               final isSuperset = exercises.length > 1 &&
@@ -283,14 +326,27 @@ class TrackerScreen extends HookConsumerWidget {
                 children: [
                   // Section Header
                   Padding(
-                    padding: EdgeInsets.fromLTRB(4, sectionIndex == 0 ? 0 : 20, 0, 12),
-                    child: Text(
-                      sectionName,
-                      style: const TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.textPrimary,
-                      ),
+                    padding: EdgeInsets.fromLTRB(4, sectionIndex == 0 ? 0 : 20, 4, 12),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          sectionName,
+                          style: const TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.textPrimary,
+                          ),
+                        ),
+                        GestureDetector(
+                          onTap: () => _showAddExerciseModal(context, ref, sectionName),
+                          child: const Icon(
+                            Icons.add_circle_outline,
+                            color: AppColors.textSecondary,
+                            size: 22,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
 
@@ -309,7 +365,7 @@ class TrackerScreen extends HookConsumerWidget {
                       padding: const EdgeInsets.only(left: 12),
                       child: Column(
                         children: exercises.map((exercise) {
-                          return ExerciseCard(
+                          return TrackerSectionCard(
                             exercise: exercise,
                             onSetCompleted: (setId, weight, reps, timeSeconds) {
                               // Fire-and-forget for instant UI update
@@ -323,13 +379,18 @@ class TrackerScreen extends HookConsumerWidget {
                                     toggle: true,
                                   );
                             },
+                            onAddSet: () {
+                              ref
+                                  .read(activeSessionProvider.notifier)
+                                  .addSet(sessionExerciseId: exercise.id);
+                            },
                           );
                         }).toList(),
                       ),
                     )
                   else
                     ...exercises.map((exercise) {
-                      return ExerciseCard(
+                      return TrackerSectionCard(
                         exercise: exercise,
                         onSetCompleted: (setId, weight, reps, timeSeconds) {
                           // Fire-and-forget for instant UI update
@@ -343,14 +404,105 @@ class TrackerScreen extends HookConsumerWidget {
                                 toggle: true,
                               );
                         },
+                        onAddSet: () {
+                          ref
+                              .read(activeSessionProvider.notifier)
+                              .addSet(sessionExerciseId: exercise.id);
+                        },
                       );
                     }),
                 ],
               );
             },
+                ),
+              ),
+              // Add Section button
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+                child: GestureDetector(
+                  onTap: () => _showAddSectionFlow(context, ref),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    decoration: BoxDecoration(
+                      border: Border.all(color: AppColors.borderColor),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.add, color: AppColors.textSecondary, size: 20),
+                        SizedBox(width: 8),
+                        Text(
+                          'Add Section',
+                          style: TextStyle(color: AppColors.textSecondary),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
       ],
     );
+  }
+
+  void _showAddExerciseModal(BuildContext context, WidgetRef ref, String sectionName) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: AppColors.bgCard,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => ExerciseSearchModal(
+        onSelect: (exercise) {
+          ref.read(activeSessionProvider.notifier).addExercise(
+            exerciseId: exercise.id,
+            exerciseName: exercise.name,
+            exerciseType: exercise.exerciseType,
+            sectionName: sectionName,
+          );
+          Navigator.pop(context);
+        },
+      ),
+    );
+  }
+
+  void _showAddSectionFlow(BuildContext context, WidgetRef ref) async {
+    // Step 1: Get section name via dialog
+    final sectionNameController = TextEditingController();
+    final sectionName = await showFDialog<String>(
+      context: context,
+      builder: (context, style, animation) {
+        return FDialog(
+          style: style, // ignore: implicit_call_tearoffs
+          animation: animation,
+          title: const Text('New Section'),
+          body: FTextField(
+            control: .managed(controller: sectionNameController),
+            hint: 'Section name',
+            autofocus: true,
+          ),
+          actions: [
+            FButton(
+              style: FButtonStyle.ghost(),
+              onPress: () => Navigator.pop(context),
+              child: const Text('Cancel'),
+            ),
+            FButton(
+              onPress: () => Navigator.pop(context, sectionNameController.text.trim()),
+              child: const Text('Next'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (sectionName == null || sectionName.isEmpty || !context.mounted) return;
+
+    // Step 2: Show exercise picker with new section name
+    _showAddExerciseModal(context, ref, sectionName);
   }
 }

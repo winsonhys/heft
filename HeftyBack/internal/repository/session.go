@@ -20,7 +20,7 @@ type WorkoutSession struct {
 	StartedAt          time.Time
 	CompletedAt        *time.Time
 	DurationSeconds    *int
-	TotalSets          int
+	TotalSets          int // Computed from session_sets, not stored in DB
 	CompletedSets      int
 	Notes              *string
 	CreatedAt          time.Time
@@ -80,14 +80,14 @@ func (r *SessionRepository) Create(ctx context.Context, userID string, workoutTe
 		INSERT INTO workout_sessions (user_id, workout_template_id, program_id, program_day_number, name)
 		VALUES ($1, $2, $3, $4, $5)
 		RETURNING id, user_id, workout_template_id, program_id, program_day_number, name,
-		          status::text, started_at, completed_at, duration_seconds, total_sets, completed_sets,
+		          status::text, started_at, completed_at, duration_seconds, completed_sets,
 		          notes, created_at, updated_at
 	`
 
 	var s WorkoutSession
 	err := r.pool.QueryRow(ctx, query, userID, workoutTemplateID, programID, programDayNumber, name).Scan(
 		&s.ID, &s.UserID, &s.WorkoutTemplateID, &s.ProgramID, &s.ProgramDayNumber, &s.Name,
-		&s.Status, &s.StartedAt, &s.CompletedAt, &s.DurationSeconds, &s.TotalSets, &s.CompletedSets,
+		&s.Status, &s.StartedAt, &s.CompletedAt, &s.DurationSeconds, &s.CompletedSets,
 		&s.Notes, &s.CreatedAt, &s.UpdatedAt,
 	)
 	if err != nil {
@@ -101,7 +101,7 @@ func (r *SessionRepository) Create(ctx context.Context, userID string, workoutTe
 func (r *SessionRepository) GetByID(ctx context.Context, id, userID string) (*WorkoutSession, error) {
 	query := `
 		SELECT id, user_id, workout_template_id, program_id, program_day_number, name,
-		       status::text, started_at, completed_at, duration_seconds, total_sets, completed_sets,
+		       status::text, started_at, completed_at, duration_seconds, completed_sets,
 		       notes, created_at, updated_at
 		FROM workout_sessions
 		WHERE id = $1 AND user_id = $2
@@ -110,7 +110,7 @@ func (r *SessionRepository) GetByID(ctx context.Context, id, userID string) (*Wo
 	var s WorkoutSession
 	err := r.pool.QueryRow(ctx, query, id, userID).Scan(
 		&s.ID, &s.UserID, &s.WorkoutTemplateID, &s.ProgramID, &s.ProgramDayNumber, &s.Name,
-		&s.Status, &s.StartedAt, &s.CompletedAt, &s.DurationSeconds, &s.TotalSets, &s.CompletedSets,
+		&s.Status, &s.StartedAt, &s.CompletedAt, &s.DurationSeconds, &s.CompletedSets,
 		&s.Notes, &s.CreatedAt, &s.UpdatedAt,
 	)
 	if err != nil {
@@ -259,7 +259,7 @@ func (r *SessionRepository) AddSet(ctx context.Context, sessionExerciseID string
 	return &s, nil
 }
 
-// SyncSets batch updates all sets in a session with their current state
+// SyncSets batch updates existing sets and creates new sets in a session
 func (r *SessionRepository) SyncSets(ctx context.Context, sessionID string, sets []SyncSetInput) error {
 	if len(sets) == 0 {
 		return nil
@@ -271,30 +271,52 @@ func (r *SessionRepository) SyncSets(ctx context.Context, sessionID string, sets
 	}
 	defer tx.Rollback(ctx)
 
-	// Update each set
 	for _, set := range sets {
-		query := `
-			UPDATE session_sets
-			SET weight_kg = COALESCE($2, weight_kg),
-			    reps = COALESCE($3, reps),
-			    time_seconds = COALESCE($4, time_seconds),
-			    distance_m = COALESCE($5, distance_m),
-			    is_completed = $6,
-			    completed_at = CASE
-			        WHEN $6 AND NOT is_completed THEN CURRENT_TIMESTAMP
-			        WHEN NOT $6 THEN NULL
-			        ELSE completed_at
-			    END,
-			    rpe = COALESCE($7, rpe),
-			    notes = COALESCE($8, notes),
-			    updated_at = CURRENT_TIMESTAMP
-			WHERE id = $1
-		`
-		_, err := tx.Exec(ctx, query,
-			set.SetID, set.WeightKg, set.Reps, set.TimeSeconds,
-			set.DistanceM, set.IsCompleted, set.RPE, set.Notes)
-		if err != nil {
-			return err
+		if set.SetID != nil && *set.SetID != "" {
+			// Update existing set
+			query := `
+				UPDATE session_sets
+				SET weight_kg = COALESCE($2, weight_kg),
+				    reps = COALESCE($3, reps),
+				    time_seconds = COALESCE($4, time_seconds),
+				    distance_m = COALESCE($5, distance_m),
+				    is_completed = $6,
+				    completed_at = CASE
+				        WHEN $6 AND NOT is_completed THEN CURRENT_TIMESTAMP
+				        WHEN NOT $6 THEN NULL
+				        ELSE completed_at
+				    END,
+				    rpe = COALESCE($7, rpe),
+				    notes = COALESCE($8, notes),
+				    updated_at = CURRENT_TIMESTAMP
+				WHERE id = $1
+			`
+			_, err := tx.Exec(ctx, query,
+				*set.SetID, set.WeightKg, set.Reps, set.TimeSeconds,
+				set.DistanceM, set.IsCompleted, set.RPE, set.Notes)
+			if err != nil {
+				return err
+			}
+		} else if set.SessionExerciseID != nil && *set.SessionExerciseID != "" {
+			// Create new set - get max set_number and add 1
+			var maxSetNumber int
+			err := tx.QueryRow(ctx, `
+				SELECT COALESCE(MAX(set_number), 0) FROM session_sets WHERE session_exercise_id = $1
+			`, *set.SessionExerciseID).Scan(&maxSetNumber)
+			if err != nil {
+				return err
+			}
+
+			query := `
+				INSERT INTO session_sets (session_exercise_id, set_number, weight_kg, reps, time_seconds, distance_m, is_completed, rpe, notes)
+				VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+			`
+			_, err = tx.Exec(ctx, query,
+				*set.SessionExerciseID, maxSetNumber+1, set.WeightKg, set.Reps, set.TimeSeconds,
+				set.DistanceM, set.IsCompleted, set.RPE, set.Notes)
+			if err != nil {
+				return err
+			}
 		}
 	}
 
@@ -336,14 +358,14 @@ func (r *SessionRepository) FinishSession(ctx context.Context, id, userID string
 		    updated_at = CURRENT_TIMESTAMP
 		WHERE id = $1 AND user_id = $2
 		RETURNING id, user_id, workout_template_id, program_id, program_day_number, name,
-		          status::text, started_at, completed_at, duration_seconds, total_sets, completed_sets,
+		          status::text, started_at, completed_at, duration_seconds, completed_sets,
 		          notes, created_at, updated_at
 	`
 
 	var s WorkoutSession
 	err = tx.QueryRow(ctx, query, id, userID, notes).Scan(
 		&s.ID, &s.UserID, &s.WorkoutTemplateID, &s.ProgramID, &s.ProgramDayNumber, &s.Name,
-		&s.Status, &s.StartedAt, &s.CompletedAt, &s.DurationSeconds, &s.TotalSets, &s.CompletedSets,
+		&s.Status, &s.StartedAt, &s.CompletedAt, &s.DurationSeconds, &s.CompletedSets,
 		&s.Notes, &s.CreatedAt, &s.UpdatedAt,
 	)
 	if err != nil {
@@ -514,15 +536,21 @@ func (r *SessionRepository) List(ctx context.Context, userID string, status *str
 	}
 
 	query := `
-		SELECT id, user_id, workout_template_id, program_id, program_day_number, name,
-		       status::text, started_at, completed_at, duration_seconds, total_sets, completed_sets,
-		       notes, created_at, updated_at
-		FROM workout_sessions
-		WHERE user_id = $1
-		  AND ($2::text IS NULL OR status::text = $2)
-		  AND ($3::timestamp IS NULL OR started_at >= $3)
-		  AND ($4::timestamp IS NULL OR started_at <= $4)
-		ORDER BY started_at DESC
+		SELECT ws.id, ws.user_id, ws.workout_template_id, ws.program_id, ws.program_day_number, ws.name,
+		       ws.status::text, ws.started_at, ws.completed_at, ws.duration_seconds,
+		       COALESCE((
+		           SELECT COUNT(ss.id)
+		           FROM session_sets ss
+		           JOIN session_exercises se ON ss.session_exercise_id = se.id
+		           WHERE se.session_id = ws.id
+		       ), 0) as total_sets,
+		       ws.completed_sets, ws.notes, ws.created_at, ws.updated_at
+		FROM workout_sessions ws
+		WHERE ws.user_id = $1
+		  AND ($2::text IS NULL OR ws.status::text = $2)
+		  AND ($3::timestamp IS NULL OR ws.started_at >= $3)
+		  AND ($4::timestamp IS NULL OR ws.started_at <= $4)
+		ORDER BY ws.started_at DESC
 		LIMIT $5 OFFSET $6
 	`
 

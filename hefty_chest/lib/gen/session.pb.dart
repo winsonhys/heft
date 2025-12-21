@@ -1123,6 +1123,7 @@ class SyncSessionRequest extends $pb.GeneratedMessage {
   factory SyncSessionRequest({
     $core.String? sessionId,
     $core.Iterable<SyncSetData>? sets,
+    $core.Iterable<SyncExerciseData>? exercises,
   }) {
     final $result = create();
     if (sessionId != null) {
@@ -1130,6 +1131,9 @@ class SyncSessionRequest extends $pb.GeneratedMessage {
     }
     if (sets != null) {
       $result.sets.addAll(sets);
+    }
+    if (exercises != null) {
+      $result.exercises.addAll(exercises);
     }
     return $result;
   }
@@ -1140,6 +1144,7 @@ class SyncSessionRequest extends $pb.GeneratedMessage {
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'SyncSessionRequest', package: const $pb.PackageName(_omitMessageNames ? '' : 'heft.v1'), createEmptyInstance: create)
     ..aOS(1, _omitFieldNames ? '' : 'sessionId')
     ..pc<SyncSetData>(2, _omitFieldNames ? '' : 'sets', $pb.PbFieldType.PM, subBuilder: SyncSetData.create)
+    ..pc<SyncExerciseData>(3, _omitFieldNames ? '' : 'exercises', $pb.PbFieldType.PM, subBuilder: SyncExerciseData.create)
     ..hasRequiredFields = false
   ;
 
@@ -1175,11 +1180,20 @@ class SyncSessionRequest extends $pb.GeneratedMessage {
 
   @$pb.TagNumber(2)
   $core.List<SyncSetData> get sets => $_getList(1);
+
+  @$pb.TagNumber(3)
+  $core.List<SyncExerciseData> get exercises => $_getList(2);
+}
+
+enum SyncSetData_SetIdentifier {
+  id, 
+  sessionExerciseId, 
+  notSet
 }
 
 class SyncSetData extends $pb.GeneratedMessage {
   factory SyncSetData({
-    $core.String? setId,
+    $core.String? id,
     $core.double? weightKg,
     $core.int? reps,
     $core.int? timeSeconds,
@@ -1187,10 +1201,11 @@ class SyncSetData extends $pb.GeneratedMessage {
     $core.bool? isCompleted,
     $core.double? rpe,
     $core.String? notes,
+    $core.String? sessionExerciseId,
   }) {
     final $result = create();
-    if (setId != null) {
-      $result.setId = setId;
+    if (id != null) {
+      $result.id = id;
     }
     if (weightKg != null) {
       $result.weightKg = weightKg;
@@ -1213,14 +1228,23 @@ class SyncSetData extends $pb.GeneratedMessage {
     if (notes != null) {
       $result.notes = notes;
     }
+    if (sessionExerciseId != null) {
+      $result.sessionExerciseId = sessionExerciseId;
+    }
     return $result;
   }
   SyncSetData._() : super();
   factory SyncSetData.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
   factory SyncSetData.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
 
+  static const $core.Map<$core.int, SyncSetData_SetIdentifier> _SyncSetData_SetIdentifierByTag = {
+    1 : SyncSetData_SetIdentifier.id,
+    9 : SyncSetData_SetIdentifier.sessionExerciseId,
+    0 : SyncSetData_SetIdentifier.notSet
+  };
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'SyncSetData', package: const $pb.PackageName(_omitMessageNames ? '' : 'heft.v1'), createEmptyInstance: create)
-    ..aOS(1, _omitFieldNames ? '' : 'setId')
+    ..oo(0, [1, 9])
+    ..aOS(1, _omitFieldNames ? '' : 'id')
     ..a<$core.double>(2, _omitFieldNames ? '' : 'weightKg', $pb.PbFieldType.OD)
     ..a<$core.int>(3, _omitFieldNames ? '' : 'reps', $pb.PbFieldType.O3)
     ..a<$core.int>(4, _omitFieldNames ? '' : 'timeSeconds', $pb.PbFieldType.O3)
@@ -1228,6 +1252,7 @@ class SyncSetData extends $pb.GeneratedMessage {
     ..aOB(6, _omitFieldNames ? '' : 'isCompleted')
     ..a<$core.double>(7, _omitFieldNames ? '' : 'rpe', $pb.PbFieldType.OD)
     ..aOS(8, _omitFieldNames ? '' : 'notes')
+    ..aOS(9, _omitFieldNames ? '' : 'sessionExerciseId')
     ..hasRequiredFields = false
   ;
 
@@ -1252,14 +1277,17 @@ class SyncSetData extends $pb.GeneratedMessage {
   static SyncSetData getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<SyncSetData>(create);
   static SyncSetData? _defaultInstance;
 
+  SyncSetData_SetIdentifier whichSetIdentifier() => _SyncSetData_SetIdentifierByTag[$_whichOneof(0)]!;
+  void clearSetIdentifier() => clearField($_whichOneof(0));
+
   @$pb.TagNumber(1)
-  $core.String get setId => $_getSZ(0);
+  $core.String get id => $_getSZ(0);
   @$pb.TagNumber(1)
-  set setId($core.String v) { $_setString(0, v); }
+  set id($core.String v) { $_setString(0, v); }
   @$pb.TagNumber(1)
-  $core.bool hasSetId() => $_has(0);
+  $core.bool hasId() => $_has(0);
   @$pb.TagNumber(1)
-  void clearSetId() => clearField(1);
+  void clearId() => clearField(1);
 
   @$pb.TagNumber(2)
   $core.double get weightKg => $_getN(1);
@@ -1323,6 +1351,188 @@ class SyncSetData extends $pb.GeneratedMessage {
   $core.bool hasNotes() => $_has(7);
   @$pb.TagNumber(8)
   void clearNotes() => clearField(8);
+
+  @$pb.TagNumber(9)
+  $core.String get sessionExerciseId => $_getSZ(8);
+  @$pb.TagNumber(9)
+  set sessionExerciseId($core.String v) { $_setString(8, v); }
+  @$pb.TagNumber(9)
+  $core.bool hasSessionExerciseId() => $_has(8);
+  @$pb.TagNumber(9)
+  void clearSessionExerciseId() => clearField(9);
+}
+
+enum SyncExerciseData_ExerciseIdentifier {
+  id, 
+  newExercise, 
+  notSet
+}
+
+class SyncExerciseData extends $pb.GeneratedMessage {
+  factory SyncExerciseData({
+    $core.String? id,
+    NewExerciseData? newExercise,
+  }) {
+    final $result = create();
+    if (id != null) {
+      $result.id = id;
+    }
+    if (newExercise != null) {
+      $result.newExercise = newExercise;
+    }
+    return $result;
+  }
+  SyncExerciseData._() : super();
+  factory SyncExerciseData.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
+  factory SyncExerciseData.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
+
+  static const $core.Map<$core.int, SyncExerciseData_ExerciseIdentifier> _SyncExerciseData_ExerciseIdentifierByTag = {
+    1 : SyncExerciseData_ExerciseIdentifier.id,
+    2 : SyncExerciseData_ExerciseIdentifier.newExercise,
+    0 : SyncExerciseData_ExerciseIdentifier.notSet
+  };
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'SyncExerciseData', package: const $pb.PackageName(_omitMessageNames ? '' : 'heft.v1'), createEmptyInstance: create)
+    ..oo(0, [1, 2])
+    ..aOS(1, _omitFieldNames ? '' : 'id')
+    ..aOM<NewExerciseData>(2, _omitFieldNames ? '' : 'newExercise', subBuilder: NewExerciseData.create)
+    ..hasRequiredFields = false
+  ;
+
+  @$core.Deprecated(
+  'Using this can add significant overhead to your binary. '
+  'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+  'Will be removed in next major version')
+  SyncExerciseData clone() => SyncExerciseData()..mergeFromMessage(this);
+  @$core.Deprecated(
+  'Using this can add significant overhead to your binary. '
+  'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+  'Will be removed in next major version')
+  SyncExerciseData copyWith(void Function(SyncExerciseData) updates) => super.copyWith((message) => updates(message as SyncExerciseData)) as SyncExerciseData;
+
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static SyncExerciseData create() => SyncExerciseData._();
+  SyncExerciseData createEmptyInstance() => create();
+  static $pb.PbList<SyncExerciseData> createRepeated() => $pb.PbList<SyncExerciseData>();
+  @$core.pragma('dart2js:noInline')
+  static SyncExerciseData getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<SyncExerciseData>(create);
+  static SyncExerciseData? _defaultInstance;
+
+  SyncExerciseData_ExerciseIdentifier whichExerciseIdentifier() => _SyncExerciseData_ExerciseIdentifierByTag[$_whichOneof(0)]!;
+  void clearExerciseIdentifier() => clearField($_whichOneof(0));
+
+  @$pb.TagNumber(1)
+  $core.String get id => $_getSZ(0);
+  @$pb.TagNumber(1)
+  set id($core.String v) { $_setString(0, v); }
+  @$pb.TagNumber(1)
+  $core.bool hasId() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearId() => clearField(1);
+
+  @$pb.TagNumber(2)
+  NewExerciseData get newExercise => $_getN(1);
+  @$pb.TagNumber(2)
+  set newExercise(NewExerciseData v) { setField(2, v); }
+  @$pb.TagNumber(2)
+  $core.bool hasNewExercise() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearNewExercise() => clearField(2);
+  @$pb.TagNumber(2)
+  NewExerciseData ensureNewExercise() => $_ensure(1);
+}
+
+class NewExerciseData extends $pb.GeneratedMessage {
+  factory NewExerciseData({
+    $core.String? exerciseId,
+    $core.int? displayOrder,
+    $core.String? sectionName,
+    $core.int? numSets,
+  }) {
+    final $result = create();
+    if (exerciseId != null) {
+      $result.exerciseId = exerciseId;
+    }
+    if (displayOrder != null) {
+      $result.displayOrder = displayOrder;
+    }
+    if (sectionName != null) {
+      $result.sectionName = sectionName;
+    }
+    if (numSets != null) {
+      $result.numSets = numSets;
+    }
+    return $result;
+  }
+  NewExerciseData._() : super();
+  factory NewExerciseData.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
+  factory NewExerciseData.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'NewExerciseData', package: const $pb.PackageName(_omitMessageNames ? '' : 'heft.v1'), createEmptyInstance: create)
+    ..aOS(1, _omitFieldNames ? '' : 'exerciseId')
+    ..a<$core.int>(2, _omitFieldNames ? '' : 'displayOrder', $pb.PbFieldType.O3)
+    ..aOS(3, _omitFieldNames ? '' : 'sectionName')
+    ..a<$core.int>(4, _omitFieldNames ? '' : 'numSets', $pb.PbFieldType.O3)
+    ..hasRequiredFields = false
+  ;
+
+  @$core.Deprecated(
+  'Using this can add significant overhead to your binary. '
+  'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+  'Will be removed in next major version')
+  NewExerciseData clone() => NewExerciseData()..mergeFromMessage(this);
+  @$core.Deprecated(
+  'Using this can add significant overhead to your binary. '
+  'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+  'Will be removed in next major version')
+  NewExerciseData copyWith(void Function(NewExerciseData) updates) => super.copyWith((message) => updates(message as NewExerciseData)) as NewExerciseData;
+
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static NewExerciseData create() => NewExerciseData._();
+  NewExerciseData createEmptyInstance() => create();
+  static $pb.PbList<NewExerciseData> createRepeated() => $pb.PbList<NewExerciseData>();
+  @$core.pragma('dart2js:noInline')
+  static NewExerciseData getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<NewExerciseData>(create);
+  static NewExerciseData? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.String get exerciseId => $_getSZ(0);
+  @$pb.TagNumber(1)
+  set exerciseId($core.String v) { $_setString(0, v); }
+  @$pb.TagNumber(1)
+  $core.bool hasExerciseId() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearExerciseId() => clearField(1);
+
+  @$pb.TagNumber(2)
+  $core.int get displayOrder => $_getIZ(1);
+  @$pb.TagNumber(2)
+  set displayOrder($core.int v) { $_setSignedInt32(1, v); }
+  @$pb.TagNumber(2)
+  $core.bool hasDisplayOrder() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearDisplayOrder() => clearField(2);
+
+  @$pb.TagNumber(3)
+  $core.String get sectionName => $_getSZ(2);
+  @$pb.TagNumber(3)
+  set sectionName($core.String v) { $_setString(2, v); }
+  @$pb.TagNumber(3)
+  $core.bool hasSectionName() => $_has(2);
+  @$pb.TagNumber(3)
+  void clearSectionName() => clearField(3);
+
+  @$pb.TagNumber(4)
+  $core.int get numSets => $_getIZ(3);
+  @$pb.TagNumber(4)
+  set numSets($core.int v) { $_setSignedInt32(3, v); }
+  @$pb.TagNumber(4)
+  $core.bool hasNumSets() => $_has(3);
+  @$pb.TagNumber(4)
+  void clearNumSets() => clearField(4);
 }
 
 class SyncSessionResponse extends $pb.GeneratedMessage {
@@ -1389,165 +1599,6 @@ class SyncSessionResponse extends $pb.GeneratedMessage {
   $core.bool hasSuccess() => $_has(1);
   @$pb.TagNumber(2)
   void clearSuccess() => clearField(2);
-}
-
-/// AddExercise
-class AddExerciseRequest extends $pb.GeneratedMessage {
-  factory AddExerciseRequest({
-    $core.String? sessionId,
-    $core.String? exerciseId,
-    $core.int? displayOrder,
-    $core.String? sectionName,
-    $core.int? numSets,
-  }) {
-    final $result = create();
-    if (sessionId != null) {
-      $result.sessionId = sessionId;
-    }
-    if (exerciseId != null) {
-      $result.exerciseId = exerciseId;
-    }
-    if (displayOrder != null) {
-      $result.displayOrder = displayOrder;
-    }
-    if (sectionName != null) {
-      $result.sectionName = sectionName;
-    }
-    if (numSets != null) {
-      $result.numSets = numSets;
-    }
-    return $result;
-  }
-  AddExerciseRequest._() : super();
-  factory AddExerciseRequest.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
-  factory AddExerciseRequest.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
-
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'AddExerciseRequest', package: const $pb.PackageName(_omitMessageNames ? '' : 'heft.v1'), createEmptyInstance: create)
-    ..aOS(1, _omitFieldNames ? '' : 'sessionId')
-    ..aOS(2, _omitFieldNames ? '' : 'exerciseId')
-    ..a<$core.int>(3, _omitFieldNames ? '' : 'displayOrder', $pb.PbFieldType.O3)
-    ..aOS(4, _omitFieldNames ? '' : 'sectionName')
-    ..a<$core.int>(5, _omitFieldNames ? '' : 'numSets', $pb.PbFieldType.O3)
-    ..hasRequiredFields = false
-  ;
-
-  @$core.Deprecated(
-  'Using this can add significant overhead to your binary. '
-  'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
-  'Will be removed in next major version')
-  AddExerciseRequest clone() => AddExerciseRequest()..mergeFromMessage(this);
-  @$core.Deprecated(
-  'Using this can add significant overhead to your binary. '
-  'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
-  'Will be removed in next major version')
-  AddExerciseRequest copyWith(void Function(AddExerciseRequest) updates) => super.copyWith((message) => updates(message as AddExerciseRequest)) as AddExerciseRequest;
-
-  $pb.BuilderInfo get info_ => _i;
-
-  @$core.pragma('dart2js:noInline')
-  static AddExerciseRequest create() => AddExerciseRequest._();
-  AddExerciseRequest createEmptyInstance() => create();
-  static $pb.PbList<AddExerciseRequest> createRepeated() => $pb.PbList<AddExerciseRequest>();
-  @$core.pragma('dart2js:noInline')
-  static AddExerciseRequest getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<AddExerciseRequest>(create);
-  static AddExerciseRequest? _defaultInstance;
-
-  @$pb.TagNumber(1)
-  $core.String get sessionId => $_getSZ(0);
-  @$pb.TagNumber(1)
-  set sessionId($core.String v) { $_setString(0, v); }
-  @$pb.TagNumber(1)
-  $core.bool hasSessionId() => $_has(0);
-  @$pb.TagNumber(1)
-  void clearSessionId() => clearField(1);
-
-  @$pb.TagNumber(2)
-  $core.String get exerciseId => $_getSZ(1);
-  @$pb.TagNumber(2)
-  set exerciseId($core.String v) { $_setString(1, v); }
-  @$pb.TagNumber(2)
-  $core.bool hasExerciseId() => $_has(1);
-  @$pb.TagNumber(2)
-  void clearExerciseId() => clearField(2);
-
-  @$pb.TagNumber(3)
-  $core.int get displayOrder => $_getIZ(2);
-  @$pb.TagNumber(3)
-  set displayOrder($core.int v) { $_setSignedInt32(2, v); }
-  @$pb.TagNumber(3)
-  $core.bool hasDisplayOrder() => $_has(2);
-  @$pb.TagNumber(3)
-  void clearDisplayOrder() => clearField(3);
-
-  @$pb.TagNumber(4)
-  $core.String get sectionName => $_getSZ(3);
-  @$pb.TagNumber(4)
-  set sectionName($core.String v) { $_setString(3, v); }
-  @$pb.TagNumber(4)
-  $core.bool hasSectionName() => $_has(3);
-  @$pb.TagNumber(4)
-  void clearSectionName() => clearField(4);
-
-  @$pb.TagNumber(5)
-  $core.int get numSets => $_getIZ(4);
-  @$pb.TagNumber(5)
-  set numSets($core.int v) { $_setSignedInt32(4, v); }
-  @$pb.TagNumber(5)
-  $core.bool hasNumSets() => $_has(4);
-  @$pb.TagNumber(5)
-  void clearNumSets() => clearField(5);
-}
-
-class AddExerciseResponse extends $pb.GeneratedMessage {
-  factory AddExerciseResponse({
-    SessionExercise? exercise,
-  }) {
-    final $result = create();
-    if (exercise != null) {
-      $result.exercise = exercise;
-    }
-    return $result;
-  }
-  AddExerciseResponse._() : super();
-  factory AddExerciseResponse.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
-  factory AddExerciseResponse.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
-
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'AddExerciseResponse', package: const $pb.PackageName(_omitMessageNames ? '' : 'heft.v1'), createEmptyInstance: create)
-    ..aOM<SessionExercise>(1, _omitFieldNames ? '' : 'exercise', subBuilder: SessionExercise.create)
-    ..hasRequiredFields = false
-  ;
-
-  @$core.Deprecated(
-  'Using this can add significant overhead to your binary. '
-  'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
-  'Will be removed in next major version')
-  AddExerciseResponse clone() => AddExerciseResponse()..mergeFromMessage(this);
-  @$core.Deprecated(
-  'Using this can add significant overhead to your binary. '
-  'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
-  'Will be removed in next major version')
-  AddExerciseResponse copyWith(void Function(AddExerciseResponse) updates) => super.copyWith((message) => updates(message as AddExerciseResponse)) as AddExerciseResponse;
-
-  $pb.BuilderInfo get info_ => _i;
-
-  @$core.pragma('dart2js:noInline')
-  static AddExerciseResponse create() => AddExerciseResponse._();
-  AddExerciseResponse createEmptyInstance() => create();
-  static $pb.PbList<AddExerciseResponse> createRepeated() => $pb.PbList<AddExerciseResponse>();
-  @$core.pragma('dart2js:noInline')
-  static AddExerciseResponse getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<AddExerciseResponse>(create);
-  static AddExerciseResponse? _defaultInstance;
-
-  @$pb.TagNumber(1)
-  SessionExercise get exercise => $_getN(0);
-  @$pb.TagNumber(1)
-  set exercise(SessionExercise v) { setField(1, v); }
-  @$pb.TagNumber(1)
-  $core.bool hasExercise() => $_has(0);
-  @$pb.TagNumber(1)
-  void clearExercise() => clearField(1);
-  @$pb.TagNumber(1)
-  SessionExercise ensureExercise() => $_ensure(0);
 }
 
 /// FinishSession
@@ -1935,9 +1986,6 @@ class SessionServiceApi {
   ;
   $async.Future<SyncSessionResponse> syncSession($pb.ClientContext? ctx, SyncSessionRequest request) =>
     _client.invoke<SyncSessionResponse>(ctx, 'SessionService', 'SyncSession', request, SyncSessionResponse())
-  ;
-  $async.Future<AddExerciseResponse> addExercise($pb.ClientContext? ctx, AddExerciseRequest request) =>
-    _client.invoke<AddExerciseResponse>(ctx, 'SessionService', 'AddExercise', request, AddExerciseResponse())
   ;
   $async.Future<FinishSessionResponse> finishSession($pb.ClientContext? ctx, FinishSessionRequest request) =>
     _client.invoke<FinishSessionResponse>(ctx, 'SessionService', 'FinishSession', request, FinishSessionResponse())

@@ -89,7 +89,7 @@ void main() {
       final syncRequest = SyncSessionRequest()
         ..sessionId = sessionId
         ..sets.add(SyncSetData()
-          ..setId = firstSet.id
+          ..id = firstSet.id
           ..weightKg = 50.0
           ..reps = 10
           ..isCompleted = true);
@@ -126,7 +126,7 @@ void main() {
       final syncRequest = SyncSessionRequest()
         ..sessionId = sessionId
         ..sets.add(SyncSetData()
-          ..setId = firstSet.id
+          ..id = firstSet.id
           ..weightKg = 55.0
           ..reps = 8
           ..isCompleted = false);
@@ -273,7 +273,7 @@ void main() {
       final syncRequest = SyncSessionRequest()
         ..sessionId = sessionId
         ..sets.add(SyncSetData()
-          ..setId = setId
+          ..id = setId
           ..weightKg = 100.0
           ..reps = 5
           ..isCompleted = true);
@@ -387,7 +387,7 @@ void main() {
       for (final exercise in session.exercises) {
         for (final set in exercise.sets) {
           syncSets.add(SyncSetData()
-            ..setId = set.id
+            ..id = set.id
             ..weightKg = 60.0
             ..reps = 10
             ..isCompleted = true);
@@ -413,12 +413,18 @@ void main() {
       // Note: Cannot delete workout as completed session references it
     });
 
-    test('adds exercise to session', () async {
+    test('adds exercise to session via sync', () async {
       // Create workout and start session
       final workoutId = await TestData.createWorkoutWithExercise();
       final sessionId = await TestData.startSession(
         workoutTemplateId: workoutId,
       );
+
+      // Get initial session state
+      final getResponse = await sessionClient.getSession(
+        GetSessionRequest()..id = sessionId,
+      );
+      final initialExerciseCount = getResponse.session.exercises.length;
 
       // Get another exercise to add
       final exercisesResponse = await exerciseClient.listExercises(
@@ -426,21 +432,172 @@ void main() {
       );
       final newExerciseId = exercisesResponse.exercises[1].id;
 
-      // Add exercise
-      final request = AddExerciseRequest()
-        ..sessionId = sessionId
-        
-        ..exerciseId = newExerciseId
-        ..displayOrder = 2
-        ..numSets = 3;
+      // Add exercise via sync - use SyncExerciseData with NewExerciseData
+      final syncResponse = await sessionClient.syncSession(
+        SyncSessionRequest()
+          ..sessionId = sessionId
+          ..exercises.add(SyncExerciseData()
+            ..newExercise = (NewExerciseData()
+              ..exerciseId = newExerciseId
+              ..displayOrder = initialExerciseCount
+              ..sectionName = 'Main'
+              ..numSets = 3)),
+      );
 
-      final response = await sessionClient.addExercise(request);
+      expect(syncResponse.success, isTrue);
 
-      expect(response.exercise, isNotNull);
-      expect(response.exercise.exerciseId, equals(newExerciseId));
-      expect(response.exercise.sets, hasLength(3));
+      // Verify the new exercise was created
+      expect(
+        syncResponse.session.exercises.length,
+        equals(initialExerciseCount + 1),
+      );
+
+      // Find the new exercise
+      final newExercise = syncResponse.session.exercises.firstWhere(
+        (e) => e.exerciseId == newExerciseId,
+      );
+      expect(newExercise.id, isNotEmpty);
+      expect(newExercise.exerciseId, equals(newExerciseId));
+      expect(newExercise.sets, hasLength(3));
+      expect(newExercise.sectionName, equals('Main'));
 
       // Clean up - use deleteWorkoutSafe as abandoned sessions still reference workout
+      await TestData.abandonSession(sessionId);
+      await TestData.deleteWorkoutSafe(workoutId);
+    });
+
+    test('adds new set to exercise via sync', () async {
+      // Create workout and start session
+      final workoutId = await TestData.createWorkoutWithExercise();
+      final sessionId = await TestData.startSession(
+        workoutTemplateId: workoutId,
+      );
+
+      // Get session to find exercise ID and initial set count
+      final getResponse = await sessionClient.getSession(
+        GetSessionRequest()..id = sessionId,
+      );
+      final exercise = getResponse.session.exercises.first;
+      final initialSetCount = exercise.sets.length;
+      expect(initialSetCount, greaterThan(0));
+
+      // Add a new set via sync - use sessionExerciseId (not id) for new sets
+      final syncResponse = await sessionClient.syncSession(
+        SyncSessionRequest()
+          ..sessionId = sessionId
+          ..sets.add(SyncSetData()
+            ..sessionExerciseId = exercise.id // Use sessionExerciseId for new sets
+            ..weightKg = 50.0
+            ..reps = 10
+            ..isCompleted = false),
+      );
+
+      expect(syncResponse.success, isTrue);
+
+      // Verify the new set was created
+      final updatedExercise = syncResponse.session.exercises
+          .firstWhere((e) => e.id == exercise.id);
+      expect(updatedExercise.sets.length, equals(initialSetCount + 1));
+
+      // Verify the new set has a real ID and correct values
+      final newSet = updatedExercise.sets.last;
+      expect(newSet.id, isNotEmpty);
+      expect(newSet.setNumber, equals(initialSetCount + 1));
+      expect(newSet.weightKg, equals(50.0));
+      expect(newSet.reps, equals(10));
+      expect(newSet.isCompleted, isFalse);
+
+      // Clean up
+      await TestData.abandonSession(sessionId);
+      await TestData.deleteWorkoutSafe(workoutId);
+    });
+
+    test('adds exercise with new section name via sync', () async {
+      // Create workout and start session
+      final workoutId = await TestData.createWorkoutWithExercise();
+      final sessionId = await TestData.startSession(
+        workoutTemplateId: workoutId,
+      );
+
+      // Get initial session state
+      final getResponse = await sessionClient.getSession(
+        GetSessionRequest()..id = sessionId,
+      );
+      final initialExerciseCount = getResponse.session.exercises.length;
+
+      // Get an exercise to add
+      final exercisesResponse = await exerciseClient.listExercises(
+        ListExercisesRequest(),
+      );
+      final newExerciseId = exercisesResponse.exercises[1].id;
+
+      // Add exercise with NEW section name via sync
+      final syncResponse = await sessionClient.syncSession(
+        SyncSessionRequest()
+          ..sessionId = sessionId
+          ..exercises.add(SyncExerciseData()
+            ..newExercise = (NewExerciseData()
+              ..exerciseId = newExerciseId
+              ..displayOrder = initialExerciseCount
+              ..sectionName = 'My Custom Section'
+              ..numSets = 3)),
+      );
+
+      expect(syncResponse.success, isTrue);
+      expect(
+        syncResponse.session.exercises.length,
+        equals(initialExerciseCount + 1),
+      );
+
+      // Find the new exercise and verify section name
+      final newExercise = syncResponse.session.exercises.firstWhere(
+        (e) => e.exerciseId == newExerciseId,
+      );
+      expect(newExercise.sectionName, equals('My Custom Section'));
+      expect(newExercise.sets, hasLength(3));
+
+      // Clean up
+      await TestData.abandonSession(sessionId);
+      await TestData.deleteWorkoutSafe(workoutId);
+    });
+
+    test('new section persists after GetSession', () async {
+      // Create workout and start session
+      final workoutId = await TestData.createWorkoutWithExercise();
+      final sessionId = await TestData.startSession(
+        workoutTemplateId: workoutId,
+      );
+
+      // Get an exercise to add
+      final exercisesResponse = await exerciseClient.listExercises(
+        ListExercisesRequest(),
+      );
+      final newExerciseId = exercisesResponse.exercises[1].id;
+
+      // Add exercise with new section name
+      await sessionClient.syncSession(
+        SyncSessionRequest()
+          ..sessionId = sessionId
+          ..exercises.add(SyncExerciseData()
+            ..newExercise = (NewExerciseData()
+              ..exerciseId = newExerciseId
+              ..displayOrder = 1
+              ..sectionName = 'Persisted Section'
+              ..numSets = 2)),
+      );
+
+      // Verify via separate GetSession call (not sync response)
+      final getResponse = await sessionClient.getSession(
+        GetSessionRequest()..id = sessionId,
+      );
+
+      final exercise = getResponse.session.exercises.firstWhere(
+        (e) => e.exerciseId == newExerciseId,
+      );
+      expect(exercise.sectionName, equals('Persisted Section'));
+      expect(exercise.sets, hasLength(2));
+
+      // Clean up
       await TestData.abandonSession(sessionId);
       await TestData.deleteWorkoutSafe(workoutId);
     });

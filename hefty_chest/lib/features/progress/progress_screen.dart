@@ -3,8 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:forui/forui.dart';
 
 import '../../shared/theme/app_colors.dart';
-import '../../shared/widgets/bottom_nav_bar.dart';
-import '../../app/router.dart';
 import 'providers/progress_providers.dart';
 import 'widgets/summary_cards_row.dart';
 import 'widgets/weekly_activity_chart.dart';
@@ -14,23 +12,6 @@ import 'widgets/exercise_progress_section.dart';
 /// Progress screen displaying analytics and workout statistics
 class ProgressScreen extends ConsumerWidget {
   const ProgressScreen({super.key});
-
-  void _handleNavTap(BuildContext context, int index) {
-    switch (index) {
-      case NavIndex.home:
-        context.goHome();
-        break;
-      case NavIndex.progress:
-        // Already on progress
-        break;
-      case NavIndex.calendar:
-        context.goCalendar();
-        break;
-      case NavIndex.profile:
-        context.goProfile();
-        break;
-    }
-  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -48,10 +29,6 @@ class ProgressScreen extends ConsumerWidget {
             color: AppColors.textPrimary,
           ),
         ),
-      ),
-      footer: BottomNavBar(
-        selectedIndex: NavIndex.progress,
-        onTap: (index) => _handleNavTap(context, index),
       ),
       child: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(horizontal: 20),

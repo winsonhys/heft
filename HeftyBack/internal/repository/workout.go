@@ -15,7 +15,7 @@ type WorkoutTemplate struct {
 	Name                     string
 	Description              *string
 	TotalExercises           int
-	TotalSets                int
+	TotalSets                int // Computed from exercise_target_sets, not stored in DB
 	EstimatedDurationMinutes *int
 	IsArchived               bool
 	CreatedAt                time.Time

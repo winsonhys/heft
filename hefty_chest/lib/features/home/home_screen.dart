@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:forui/forui.dart';
 
 import '../../shared/theme/app_colors.dart';
-import '../../shared/widgets/bottom_nav_bar.dart';
 import '../../app/router.dart';
 import '../tracker/providers/session_providers.dart';
 import 'providers/home_providers.dart';
@@ -13,23 +12,6 @@ import 'widgets/workout_card.dart';
 /// Home screen displaying workout list and quick stats
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
-
-  void _handleNavTap(BuildContext context, int index) {
-    switch (index) {
-      case NavIndex.home:
-        // Already on home
-        break;
-      case NavIndex.progress:
-        context.goProgress();
-        break;
-      case NavIndex.calendar:
-        context.goCalendar();
-        break;
-      case NavIndex.profile:
-        context.goProfile();
-        break;
-    }
-  }
 
   Future<void> _startWorkout(
     BuildContext context,
@@ -128,10 +110,6 @@ class HomeScreen extends ConsumerWidget {
               ],
             ),
           ),
-          footer: BottomNavBar(
-            selectedIndex: NavIndex.home,
-            onTap: (index) => _handleNavTap(context, index),
-          ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -207,7 +185,7 @@ class HomeScreen extends ConsumerWidget {
                     );
                   },
                   loading: () => const Center(
-                    child: FProgress(),
+                    child: FCircularProgress.loader(),
                   ),
                   error: (error, _) => Center(
                     child: Column(
@@ -240,10 +218,10 @@ class HomeScreen extends ConsumerWidget {
             ],
           ),
         ),
-        // FAB - positioned above bottom nav
+        // FAB
         Positioned(
           right: 20,
-          bottom: 100,
+          bottom: 20,
           child: Container(
             width: 56,
             height: 56,

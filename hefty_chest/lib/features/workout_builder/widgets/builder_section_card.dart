@@ -9,8 +9,8 @@ import 'drop_zone.dart';
 import 'exercise_item.dart';
 import 'rest_item.dart';
 
-/// Card displaying a workout section with exercises and rests
-class SectionCard extends HookWidget {
+/// Card displaying a workout section with exercises and rests for builder
+class BuilderSectionCard extends HookWidget {
   final BuilderSection section;
   final VoidCallback onToggleSuperset;
   final VoidCallback onDelete;
@@ -22,7 +22,7 @@ class SectionCard extends HookWidget {
   final VoidCallback? onDragEnd;
   final bool isDragging;
 
-  const SectionCard({
+  const BuilderSectionCard({
     super.key,
     required this.section,
     required this.onToggleSuperset,

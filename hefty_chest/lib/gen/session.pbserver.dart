@@ -24,7 +24,6 @@ abstract class SessionServiceBase extends $pb.GeneratedService {
   $async.Future<$7.StartSessionResponse> startSession($pb.ServerContext ctx, $7.StartSessionRequest request);
   $async.Future<$7.GetSessionResponse> getSession($pb.ServerContext ctx, $7.GetSessionRequest request);
   $async.Future<$7.SyncSessionResponse> syncSession($pb.ServerContext ctx, $7.SyncSessionRequest request);
-  $async.Future<$7.AddExerciseResponse> addExercise($pb.ServerContext ctx, $7.AddExerciseRequest request);
   $async.Future<$7.FinishSessionResponse> finishSession($pb.ServerContext ctx, $7.FinishSessionRequest request);
   $async.Future<$7.AbandonSessionResponse> abandonSession($pb.ServerContext ctx, $7.AbandonSessionRequest request);
   $async.Future<$7.ListSessionsResponse> listSessions($pb.ServerContext ctx, $7.ListSessionsRequest request);
@@ -34,7 +33,6 @@ abstract class SessionServiceBase extends $pb.GeneratedService {
       case 'StartSession': return $7.StartSessionRequest();
       case 'GetSession': return $7.GetSessionRequest();
       case 'SyncSession': return $7.SyncSessionRequest();
-      case 'AddExercise': return $7.AddExerciseRequest();
       case 'FinishSession': return $7.FinishSessionRequest();
       case 'AbandonSession': return $7.AbandonSessionRequest();
       case 'ListSessions': return $7.ListSessionsRequest();
@@ -47,7 +45,6 @@ abstract class SessionServiceBase extends $pb.GeneratedService {
       case 'StartSession': return this.startSession(ctx, request as $7.StartSessionRequest);
       case 'GetSession': return this.getSession(ctx, request as $7.GetSessionRequest);
       case 'SyncSession': return this.syncSession(ctx, request as $7.SyncSessionRequest);
-      case 'AddExercise': return this.addExercise(ctx, request as $7.AddExerciseRequest);
       case 'FinishSession': return this.finishSession(ctx, request as $7.FinishSessionRequest);
       case 'AbandonSession': return this.abandonSession(ctx, request as $7.AbandonSessionRequest);
       case 'ListSessions': return this.listSessions(ctx, request as $7.ListSessionsRequest);

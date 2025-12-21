@@ -4,7 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:forui/forui.dart';
 import 'package:hefty_chest/features/workout_builder/workout_builder_screen.dart';
 import 'package:hefty_chest/features/workout_builder/providers/workout_builder_providers.dart';
-import 'package:hefty_chest/features/workout_builder/widgets/section_card.dart';
+import 'package:hefty_chest/features/workout_builder/widgets/builder_section_card.dart';
 
 /// Test notifier that provides controlled state without making API calls
 class TestWorkoutBuilder extends WorkoutBuilder {
@@ -140,8 +140,8 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      // Verify SectionCard widgets are rendered
-      expect(find.byType(SectionCard), findsNWidgets(2));
+      // Verify BuilderSectionCard widgets are rendered
+      expect(find.byType(BuilderSectionCard), findsNWidgets(2));
 
       // Verify section names are displayed
       expect(find.text('Warmup'), findsOneWidget);
@@ -178,7 +178,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // Initially no sections
-      expect(find.byType(SectionCard), findsNothing);
+      expect(find.byType(BuilderSectionCard), findsNothing);
 
       // Find and tap the Add Section button
       final addSectionFinder = find.text('Add Section');
@@ -188,7 +188,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // Now there should be one section
-      expect(find.byType(SectionCard), findsOneWidget);
+      expect(find.byType(BuilderSectionCard), findsOneWidget);
     });
 
     testWidgets('displays single section with correct structure',
@@ -211,7 +211,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // Verify section card is rendered
-      expect(find.byType(SectionCard), findsOneWidget);
+      expect(find.byType(BuilderSectionCard), findsOneWidget);
 
       // Verify section name
       expect(find.text('Push Day'), findsOneWidget);
@@ -247,8 +247,8 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      // Verify exactly 3 SectionCard widgets
-      expect(find.byType(SectionCard), findsNWidgets(3));
+      // Verify exactly 3 BuilderSectionCard widgets
+      expect(find.byType(BuilderSectionCard), findsNWidgets(3));
     });
   });
 }

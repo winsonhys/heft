@@ -24,18 +24,25 @@ sealed class SessionModel with _$SessionModel {
   }) = _SessionModel;
 
   /// Convert from protobuf Session
-  factory SessionModel.fromProto(Session pb) => SessionModel(
-        id: pb.id,
-        workoutTemplateId: pb.workoutTemplateId,
-        name: pb.name,
-        exercises: pb.exercises.map(SessionExerciseModel.fromProto).toList(),
-        completedSets: pb.completedSets,
-        totalSets: pb.totalSets,
-        durationSeconds: pb.durationSeconds,
-        startedAt: pb.hasStartedAt() ? pb.startedAt.toDateTime() : null,
-        completedAt: pb.hasCompletedAt() ? pb.completedAt.toDateTime() : null,
-        notes: pb.notes,
-      );
+  factory SessionModel.fromProto(Session pb) {
+    final exercises = pb.exercises.map(SessionExerciseModel.fromProto).toList();
+
+    // Always compute totalSets from exercises (don't rely on stored value)
+    final totalSets = exercises.fold(0, (sum, ex) => sum + ex.sets.length);
+
+    return SessionModel(
+      id: pb.id,
+      workoutTemplateId: pb.workoutTemplateId,
+      name: pb.name,
+      exercises: exercises,
+      completedSets: pb.completedSets,
+      totalSets: totalSets,
+      durationSeconds: pb.durationSeconds,
+      startedAt: pb.hasStartedAt() ? pb.startedAt.toDateTime() : null,
+      completedAt: pb.hasCompletedAt() ? pb.completedAt.toDateTime() : null,
+      notes: pb.notes,
+    );
+  }
 }
 
 /// Immutable session exercise model

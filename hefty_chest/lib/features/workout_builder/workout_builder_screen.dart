@@ -7,7 +7,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import '../../shared/theme/app_colors.dart';
 import 'providers/workout_builder_providers.dart';
 import 'widgets/draggable_builder_item.dart';
-import 'widgets/section_card.dart';
+import 'widgets/builder_section_card.dart';
 import 'widgets/exercise_search_modal.dart';
 
 /// Workout builder screen for creating and editing workouts
@@ -89,7 +89,7 @@ class WorkoutBuilderScreen extends HookConsumerWidget {
       ),
       child: isLoading.value
           ? const Center(
-              child: FProgress(),
+              child: FCircularProgress.loader(),
             )
           : SingleChildScrollView(
               padding: const EdgeInsets.all(20),
@@ -109,7 +109,7 @@ class WorkoutBuilderScreen extends HookConsumerWidget {
 
                   // Sections
                   ...state.sections.map((section) {
-                    return SectionCard(
+                    return BuilderSectionCard(
                       key: ValueKey(section.id),
                       section: section,
                       isDragging: isDragging.value,

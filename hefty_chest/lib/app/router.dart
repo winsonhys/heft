@@ -9,29 +9,82 @@ import '../features/profile/profile_screen.dart';
 import '../features/tracker/tracker_screen.dart';
 import '../features/progress/progress_screen.dart';
 import '../features/calendar/calendar_screen.dart';
+import '../features/history/history_screen.dart';
+import '../features/history/session_detail_screen.dart';
 import '../features/workout_builder/workout_builder_screen.dart';
 import '../features/program_builder/program_builder_screen.dart';
+import '../shared/widgets/scaffold_with_nav_bar.dart';
 
 part 'router.g.dart';
 
 // =============================================================================
-// Type-Safe Route Definitions
+// Global Navigator Keys
 // =============================================================================
 
-/// Auth route - login screen
-@TypedGoRoute<AuthRoute>(path: '/auth')
-@immutable
-class AuthRoute extends GoRouteData with $AuthRoute {
-  const AuthRoute();
+final _rootNavigatorKey = GlobalKey<NavigatorState>();
+
+// =============================================================================
+// Shell Route (Bottom Navigation with State Preservation)
+// =============================================================================
+
+@TypedStatefulShellRoute<MainShellRoute>(
+  branches: [
+    TypedStatefulShellBranch<HomeBranch>(
+      routes: [TypedGoRoute<HomeRoute>(path: '/')],
+    ),
+    TypedStatefulShellBranch<HistoryBranch>(
+      routes: [TypedGoRoute<HistoryRoute>(path: '/history')],
+    ),
+    TypedStatefulShellBranch<ProgressBranch>(
+      routes: [TypedGoRoute<ProgressRoute>(path: '/progress')],
+    ),
+    TypedStatefulShellBranch<CalendarBranch>(
+      routes: [TypedGoRoute<CalendarRoute>(path: '/calendar')],
+    ),
+    TypedStatefulShellBranch<ProfileBranch>(
+      routes: [TypedGoRoute<ProfileRoute>(path: '/profile')],
+    ),
+  ],
+)
+class MainShellRoute extends StatefulShellRouteData {
+  const MainShellRoute();
 
   @override
-  Widget build(BuildContext context, GoRouterState state) {
-    return const AuthScreen();
+  Widget builder(
+    BuildContext context,
+    GoRouterState state,
+    StatefulNavigationShell navigationShell,
+  ) {
+    return ScaffoldWithNavBar(navigationShell: navigationShell);
   }
 }
 
+// Shell Branches
+class HomeBranch extends StatefulShellBranchData {
+  const HomeBranch();
+}
+
+class HistoryBranch extends StatefulShellBranchData {
+  const HistoryBranch();
+}
+
+class ProgressBranch extends StatefulShellBranchData {
+  const ProgressBranch();
+}
+
+class CalendarBranch extends StatefulShellBranchData {
+  const CalendarBranch();
+}
+
+class ProfileBranch extends StatefulShellBranchData {
+  const ProfileBranch();
+}
+
+// =============================================================================
+// Tab Routes (Inside Shell)
+// =============================================================================
+
 /// Home route - main screen with workout list
-@TypedGoRoute<HomeRoute>(path: '/')
 @immutable
 class HomeRoute extends GoRouteData with $HomeRoute {
   const HomeRoute();
@@ -42,20 +95,18 @@ class HomeRoute extends GoRouteData with $HomeRoute {
   }
 }
 
-/// Profile route - user settings and stats
-@TypedGoRoute<ProfileRoute>(path: '/profile')
+/// History route - completed workout history
 @immutable
-class ProfileRoute extends GoRouteData with $ProfileRoute {
-  const ProfileRoute();
+class HistoryRoute extends GoRouteData with $HistoryRoute {
+  const HistoryRoute();
 
   @override
   Widget build(BuildContext context, GoRouterState state) {
-    return const ProfileScreen();
+    return const HistoryScreen();
   }
 }
 
 /// Progress route - analytics dashboard
-@TypedGoRoute<ProgressRoute>(path: '/progress')
 @immutable
 class ProgressRoute extends GoRouteData with $ProgressRoute {
   const ProgressRoute();
@@ -67,7 +118,6 @@ class ProgressRoute extends GoRouteData with $ProgressRoute {
 }
 
 /// Calendar route - workout calendar view
-@TypedGoRoute<CalendarRoute>(path: '/calendar')
 @immutable
 class CalendarRoute extends GoRouteData with $CalendarRoute {
   const CalendarRoute();
@@ -75,6 +125,33 @@ class CalendarRoute extends GoRouteData with $CalendarRoute {
   @override
   Widget build(BuildContext context, GoRouterState state) {
     return const CalendarScreen();
+  }
+}
+
+/// Profile route - user settings and stats
+@immutable
+class ProfileRoute extends GoRouteData with $ProfileRoute {
+  const ProfileRoute();
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) {
+    return const ProfileScreen();
+  }
+}
+
+// =============================================================================
+// Non-Shell Routes (Full Screen, No Bottom Nav)
+// =============================================================================
+
+/// Auth route - login screen
+@TypedGoRoute<AuthRoute>(path: '/auth')
+@immutable
+class AuthRoute extends GoRouteData with $AuthRoute {
+  const AuthRoute();
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) {
+    return const AuthScreen();
   }
 }
 
@@ -103,6 +180,20 @@ class ResumeSessionRoute extends GoRouteData with $ResumeSessionRoute {
   @override
   Widget build(BuildContext context, GoRouterState state) {
     return TrackerScreen(sessionId: sessionId);
+  }
+}
+
+/// History detail route - view completed session details
+@TypedGoRoute<HistoryDetailRoute>(path: '/history/:sessionId')
+@immutable
+class HistoryDetailRoute extends GoRouteData with $HistoryDetailRoute {
+  final String sessionId;
+
+  const HistoryDetailRoute({required this.sessionId});
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) {
+    return SessionDetailScreen(sessionId: sessionId);
   }
 }
 
@@ -165,6 +256,7 @@ class EditProgramRoute extends GoRouteData with $EditProgramRoute {
 /// Creates the app router with auth-aware redirect
 GoRouter createAppRouter(WidgetRef ref) {
   return GoRouter(
+    navigatorKey: _rootNavigatorKey,
     initialLocation: '/',
     debugLogDiagnostics: true,
     routes: $appRoutes,
@@ -198,7 +290,6 @@ GoRouter createAppRouter(WidgetRef ref) {
   );
 }
 
-
 // =============================================================================
 // Navigation Extensions for BuildContext
 // =============================================================================
@@ -207,6 +298,13 @@ GoRouter createAppRouter(WidgetRef ref) {
 extension NavigationExtension on BuildContext {
   /// Navigate to home screen
   void goHome() => const HomeRoute().go(this);
+
+  /// Navigate to history screen
+  void goHistory() => const HistoryRoute().go(this);
+
+  /// Navigate to history detail screen
+  void goHistoryDetail({required String sessionId}) =>
+      HistoryDetailRoute(sessionId: sessionId).push(this);
 
   /// Navigate to profile screen
   void goProfile() => const ProfileRoute().go(this);

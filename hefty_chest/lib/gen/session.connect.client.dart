@@ -63,24 +63,6 @@ extension type SessionServiceClient (connect.Transport _transport) {
     );
   }
 
-  /// Add an exercise to the session
-  Future<session.AddExerciseResponse> addExercise(
-    session.AddExerciseRequest input, {
-    connect.Headers? headers,
-    connect.AbortSignal? signal,
-    Function(connect.Headers)? onHeader,
-    Function(connect.Headers)? onTrailer,
-  }) {
-    return connect.Client(_transport).unary(
-      specs.SessionService.addExercise,
-      input,
-      signal: signal,
-      headers: headers,
-      onHeader: onHeader,
-      onTrailer: onTrailer,
-    );
-  }
-
   /// Finish the workout session
   Future<session.FinishSessionResponse> finishSession(
     session.FinishSessionRequest input, {

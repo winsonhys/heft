@@ -105,7 +105,7 @@ final class FloatingWidgetVisibleProvider
 }
 
 String _$floatingWidgetVisibleHash() =>
-    r'cfcfe1e77fb93673119a203964439e478ca14754';
+    r'5e5efaede4cc5bbfaabaaf8caa0b5821bd7114db';
 
 /// Controls floating widget visibility (hidden on tracker screen)
 

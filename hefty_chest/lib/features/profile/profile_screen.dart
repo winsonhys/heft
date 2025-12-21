@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:forui/forui.dart';
 
 import '../../shared/theme/app_colors.dart';
-import '../../shared/widgets/bottom_nav_bar.dart';
 import '../../app/router.dart';
 import 'providers/profile_providers.dart';
 import 'widgets/stats_grid.dart';
@@ -12,23 +11,6 @@ import 'widgets/settings_card.dart';
 /// Profile screen displaying user info and settings
 class ProfileScreen extends ConsumerWidget {
   const ProfileScreen({super.key});
-
-  void _handleNavTap(BuildContext context, int index) {
-    switch (index) {
-      case NavIndex.home:
-        context.goHome();
-        break;
-      case NavIndex.progress:
-        context.goProgress();
-        break;
-      case NavIndex.calendar:
-        context.goCalendar();
-        break;
-      case NavIndex.profile:
-        // Already on profile
-        break;
-    }
-  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -48,10 +30,6 @@ class ProfileScreen extends ConsumerWidget {
         prefixes: [
           FHeaderAction.back(onPress: () => context.goHome()),
         ],
-      ),
-      footer: BottomNavBar(
-        selectedIndex: NavIndex.profile,
-        onTap: (index) => _handleNavTap(context, index),
       ),
       child: userAsync.when(
         data: (user) => SingleChildScrollView(
@@ -114,7 +92,7 @@ class ProfileScreen extends ConsumerWidget {
           ),
         ),
         loading: () => const Center(
-          child: FProgress(),
+          child: FCircularProgress.loader(),
         ),
         error: (error, _) => Center(
           child: Column(

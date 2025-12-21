@@ -110,7 +110,7 @@ class ProgramBuilderScreen extends HookConsumerWidget {
       ),
       child: isLoading.value
           ? const Center(
-              child: FProgress(),
+              child: FCircularProgress.loader(),
             )
           : SingleChildScrollView(
               padding: const EdgeInsets.all(20),

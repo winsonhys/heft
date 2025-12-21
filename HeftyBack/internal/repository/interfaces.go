@@ -26,14 +26,15 @@ type ExerciseRepositoryInterface interface {
 
 // SyncSetInput represents input data for syncing a set
 type SyncSetInput struct {
-	SetID       string
-	WeightKg    *float64
-	Reps        *int
-	TimeSeconds *int
-	DistanceM   *float64
-	IsCompleted bool
-	RPE         *float64
-	Notes       *string
+	SetID             *string  // nil/empty = new set
+	SessionExerciseID *string  // Required for new sets
+	WeightKg          *float64
+	Reps              *int
+	TimeSeconds       *int
+	DistanceM         *float64
+	IsCompleted       bool
+	RPE               *float64
+	Notes             *string
 }
 
 // SessionRepositoryInterface defines the contract for session data access

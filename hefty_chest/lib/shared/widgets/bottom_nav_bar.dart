@@ -4,9 +4,10 @@ import 'package:forui/forui.dart';
 /// Navigation item indices
 class NavIndex {
   static const home = 0;
-  static const progress = 1;
-  static const calendar = 2;
-  static const profile = 3;
+  static const history = 1;
+  static const progress = 2;
+  static const calendar = 3;
+  static const profile = 4;
 }
 
 /// Shared bottom navigation bar widget using ForUI
@@ -29,6 +30,10 @@ class BottomNavBar extends StatelessWidget {
         FBottomNavigationBarItem(
           icon: const Icon(Icons.home_outlined),
           label: const Text('Home'),
+        ),
+        FBottomNavigationBarItem(
+          icon: const Icon(Icons.history),
+          label: const Text('History'),
         ),
         FBottomNavigationBarItem(
           icon: const Icon(Icons.bar_chart_outlined),

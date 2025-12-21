@@ -153,12 +153,40 @@ func (h *SessionHandler) SyncSession(ctx context.Context, req *connect.Request[h
 		return nil, connect.NewError(connect.CodeNotFound, errors.New("session not found"))
 	}
 
+	// Process new exercises first (so sets can reference them)
+	for _, exerciseData := range req.Msg.Exercises {
+		if newEx := exerciseData.GetNewExercise(); newEx != nil {
+			var sectionName *string
+			if newEx.SectionName != "" {
+				sectionName = &newEx.SectionName
+			}
+
+			exercise, err := h.sessionRepo.AddExercise(ctx, req.Msg.SessionId, newEx.ExerciseId, int(newEx.DisplayOrder), sectionName)
+			if err != nil {
+				return nil, handleDBError(err)
+			}
+
+			// Create N empty sets for the new exercise
+			numSets := int(newEx.NumSets)
+			if numSets <= 0 {
+				numSets = 3 // Default to 3 sets
+			}
+			for i := 1; i <= numSets; i++ {
+				_, err := h.sessionRepo.AddSet(ctx, exercise.ID, i, nil, nil, nil, false)
+				if err != nil {
+					return nil, handleDBError(err)
+				}
+			}
+		}
+	}
+
 	// Convert proto sets to repository input
 	sets := make([]repository.SyncSetInput, len(req.Msg.Sets))
 	for i, s := range req.Msg.Sets {
 		var weightKg, distanceM, rpe *float64
 		var reps, timeSeconds *int
 		var notes *string
+		var setID, sessionExerciseID *string
 
 		if s.WeightKg != nil {
 			weightKg = s.WeightKg
@@ -181,15 +209,24 @@ func (h *SessionHandler) SyncSession(ctx context.Context, req *connect.Request[h
 			notes = s.Notes
 		}
 
+		// Handle oneof: either existing set ID or session_exercise_id for new sets
+		if id := s.GetId(); id != "" {
+			setID = &id
+		}
+		if seID := s.GetSessionExerciseId(); seID != "" {
+			sessionExerciseID = &seID
+		}
+
 		sets[i] = repository.SyncSetInput{
-			SetID:       s.SetId,
-			WeightKg:    weightKg,
-			Reps:        reps,
-			TimeSeconds: timeSeconds,
-			DistanceM:   distanceM,
-			IsCompleted: s.IsCompleted,
-			RPE:         rpe,
-			Notes:       notes,
+			SetID:             setID,
+			SessionExerciseID: sessionExerciseID,
+			WeightKg:          weightKg,
+			Reps:              reps,
+			TimeSeconds:       timeSeconds,
+			DistanceM:         distanceM,
+			IsCompleted:       s.IsCompleted,
+			RPE:               rpe,
+			Notes:             notes,
 		}
 	}
 
@@ -208,61 +245,6 @@ func (h *SessionHandler) SyncSession(ctx context.Context, req *connect.Request[h
 	return connect.NewResponse(&heftv1.SyncSessionResponse{
 		Session: sessionToProto(session),
 		Success: true,
-	}), nil
-}
-
-// AddExercise adds an exercise to the session
-func (h *SessionHandler) AddExercise(ctx context.Context, req *connect.Request[heftv1.AddExerciseRequest]) (*connect.Response[heftv1.AddExerciseResponse], error) {
-	userID, ok := auth.UserIDFromContext(ctx)
-	if !ok {
-		return nil, connect.NewError(connect.CodeUnauthenticated, errors.New("not authenticated"))
-	}
-	if req.Msg.SessionId == "" || req.Msg.ExerciseId == "" {
-		return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("session_id and exercise_id are required"))
-	}
-
-	var sectionName *string
-	if req.Msg.SectionName != nil {
-		sectionName = req.Msg.SectionName
-	}
-
-	exercise, err := h.sessionRepo.AddExercise(ctx, req.Msg.SessionId, req.Msg.ExerciseId, int(req.Msg.DisplayOrder), sectionName)
-	if err != nil {
-		return nil, handleDBError(err)
-	}
-
-	// Add sets
-	numSets := int(req.Msg.NumSets)
-	if numSets <= 0 {
-		numSets = 3
-	}
-	for i := 1; i <= numSets; i++ {
-		_, err := h.sessionRepo.AddSet(ctx, exercise.ID, i, nil, nil, nil, false)
-		if err != nil {
-			return nil, handleDBError(err)
-		}
-	}
-
-	// Reload exercise with sets
-	session, err := h.sessionRepo.GetByID(ctx, req.Msg.SessionId, userID)
-	if err != nil {
-		return nil, handleDBError(err)
-	}
-
-	var reloadedExercise *repository.SessionExercise
-	for _, e := range session.Exercises {
-		if e.ID == exercise.ID {
-			reloadedExercise = e
-			break
-		}
-	}
-
-	if reloadedExercise == nil {
-		return nil, connect.NewError(connect.CodeInternal, errors.New("failed to reload exercise"))
-	}
-
-	return connect.NewResponse(&heftv1.AddExerciseResponse{
-		Exercise: sessionExerciseToProto(reloadedExercise),
 	}), nil
 }
 
@@ -381,12 +363,18 @@ func (h *SessionHandler) ListSessions(ctx context.Context, req *connect.Request[
 
 // Helper functions
 func sessionToProto(s *repository.WorkoutSession) *heftv1.Session {
+	// Compute total_sets from exercises
+	var totalSets int32
+	for _, e := range s.Exercises {
+		totalSets += int32(len(e.Sets))
+	}
+
 	session := &heftv1.Session{
 		Id:            s.ID,
 		UserId:        s.UserID,
 		Status:        stringToWorkoutStatus(s.Status),
 		StartedAt:     timestamppb.New(s.StartedAt),
-		TotalSets:     int32(s.TotalSets),
+		TotalSets:     totalSets,
 		CompletedSets: int32(s.CompletedSets),
 		CreatedAt:     timestamppb.New(s.CreatedAt),
 		UpdatedAt:     timestamppb.New(s.UpdatedAt),

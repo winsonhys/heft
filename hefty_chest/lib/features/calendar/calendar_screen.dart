@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:forui/forui.dart';
 
 import '../../shared/theme/app_colors.dart';
-import '../../shared/widgets/bottom_nav_bar.dart';
 import '../../app/router.dart';
 import 'providers/calendar_providers.dart';
 import 'widgets/month_header.dart';
@@ -13,23 +12,6 @@ import 'widgets/upcoming_list.dart';
 /// Calendar screen for workout scheduling
 class CalendarScreen extends ConsumerWidget {
   const CalendarScreen({super.key});
-
-  void _handleNavTap(BuildContext context, int index) {
-    switch (index) {
-      case NavIndex.home:
-        context.goHome();
-        break;
-      case NavIndex.progress:
-        context.goProgress();
-        break;
-      case NavIndex.calendar:
-        // Already on calendar
-        break;
-      case NavIndex.profile:
-        context.goProfile();
-        break;
-    }
-  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -52,10 +34,6 @@ class CalendarScreen extends ConsumerWidget {
             onPress: () => context.goProgramBuilder(),
           ),
         ],
-      ),
-      footer: BottomNavBar(
-        selectedIndex: NavIndex.calendar,
-        onTap: (index) => _handleNavTap(context, index),
       ),
       child: SingleChildScrollView(
         child: Column(

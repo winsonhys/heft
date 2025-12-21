@@ -39,8 +39,15 @@ class FloatingWidgetVisible extends _$FloatingWidgetVisible {
   @override
   bool build() => true;
 
-  void hide() => state = false;
-  void show() => state = true;
+  void hide() {
+    if (!ref.mounted) return;
+    state = false;
+  }
+
+  void show() {
+    if (!ref.mounted) return;
+    state = true;
+  }
 }
 
 /// Floating widget showing active session progress

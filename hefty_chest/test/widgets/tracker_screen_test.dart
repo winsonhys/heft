@@ -2,12 +2,18 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:forui/forui.dart';
+import 'package:go_router/go_router.dart';
+import 'package:hefty_chest/features/tracker/tracker_screen.dart';
 import 'package:hefty_chest/features/tracker/widgets/progress_header.dart';
-import 'package:hefty_chest/features/tracker/widgets/exercise_card.dart';
+import 'package:hefty_chest/features/tracker/widgets/tracker_section_card.dart';
 import 'package:hefty_chest/features/tracker/widgets/rest_timer_sheet.dart';
 import 'package:hefty_chest/features/tracker/models/session_models.dart';
 import 'package:hefty_chest/features/tracker/providers/session_providers.dart';
+import 'package:hefty_chest/features/workout_builder/providers/workout_builder_providers.dart';
+import 'package:hefty_chest/features/workout_builder/widgets/exercise_search_modal.dart';
+import 'package:hefty_chest/shared/widgets/floating_session_widget.dart';
 import 'package:hefty_chest/gen/common.pbenum.dart';
+import 'package:hefty_chest/gen/exercise.pb.dart' as pb;
 
 /// Mock ActiveSession notifier for testing
 class MockActiveSession extends ActiveSession {
@@ -195,14 +201,14 @@ void main() {
     });
   });
 
-  group('ExerciseCard', () {
+  group('TrackerSectionCard', () {
     testWidgets('displays exercise name', (tester) async {
       final exercise = createMockExercise(exerciseName: 'Deadlift');
 
       await tester.pumpWidget(
         wrapWithTheme(
           SingleChildScrollView(
-            child: ExerciseCard(
+            child: TrackerSectionCard(
               exercise: exercise,
               onSetCompleted: (_, _, _, _) {},
             ),
@@ -229,7 +235,7 @@ void main() {
       await tester.pumpWidget(
         wrapWithTheme(
           SingleChildScrollView(
-            child: ExerciseCard(
+            child: TrackerSectionCard(
               exercise: exercise,
               onSetCompleted: (_, _, _, _) {},
             ),
@@ -261,7 +267,7 @@ void main() {
       await tester.pumpWidget(
         wrapWithTheme(
           SingleChildScrollView(
-            child: ExerciseCard(
+            child: TrackerSectionCard(
               exercise: exercise,
               onSetCompleted: (_, _, _, _) {},
             ),
@@ -289,7 +295,7 @@ void main() {
       await tester.pumpWidget(
         wrapWithTheme(
           SingleChildScrollView(
-            child: ExerciseCard(
+            child: TrackerSectionCard(
               exercise: exercise,
               onSetCompleted: (_, _, _, _) {},
             ),
@@ -322,7 +328,7 @@ void main() {
       await tester.pumpWidget(
         wrapWithTheme(
           SingleChildScrollView(
-            child: ExerciseCard(
+            child: TrackerSectionCard(
               exercise: exercise,
               onSetCompleted: (_, _, _, _) {},
             ),
@@ -349,7 +355,7 @@ void main() {
       await tester.pumpWidget(
         wrapWithTheme(
           SingleChildScrollView(
-            child: ExerciseCard(
+            child: TrackerSectionCard(
               exercise: exercise,
               onSetCompleted: (_, _, _, _) {},
             ),
@@ -375,7 +381,7 @@ void main() {
       await tester.pumpWidget(
         wrapWithTheme(
           SingleChildScrollView(
-            child: ExerciseCard(
+            child: TrackerSectionCard(
               exercise: exercise,
               onSetCompleted: (_, _, _, _) {},
             ),
@@ -383,23 +389,104 @@ void main() {
         ),
       );
 
-      // Initially expanded - should show table header
+      // Initially expanded - FCollapsible value should be 1.0
+      var collapsible = tester.widget<FCollapsible>(find.byType(FCollapsible));
+      expect(collapsible.value, equals(1.0));
       expect(find.text('SET'), findsOneWidget);
-      expect(find.text('Add Set'), findsOneWidget);
 
       // Tap to collapse
       await tester.tap(find.text('Bench Press'));
       await tester.pumpAndSettle();
 
-      // Should be collapsed - no table header
-      expect(find.text('SET'), findsNothing);
-      expect(find.text('Add Set'), findsNothing);
+      // Should be collapsed - FCollapsible value should be 0.0
+      collapsible = tester.widget<FCollapsible>(find.byType(FCollapsible));
+      expect(collapsible.value, equals(0.0));
 
       // Tap to expand again
       await tester.tap(find.text('Bench Press'));
       await tester.pumpAndSettle();
 
-      // Should be expanded again
+      // Should be expanded again - FCollapsible value should be 1.0
+      collapsible = tester.widget<FCollapsible>(find.byType(FCollapsible));
+      expect(collapsible.value, equals(1.0));
+    });
+
+    testWidgets('uses FCollapsible for smooth expand/collapse animation', (tester) async {
+      final exercise = createMockExercise(
+        sets: [
+          const SessionSetModel(
+            id: 'set-1',
+            setNumber: 1,
+            isCompleted: false,
+          ),
+        ],
+      );
+
+      await tester.pumpWidget(
+        wrapWithTheme(
+          SingleChildScrollView(
+            child: TrackerSectionCard(
+              exercise: exercise,
+              onSetCompleted: (_, _, _, _) {},
+            ),
+          ),
+        ),
+      );
+
+      // Verify FCollapsible is used and starts expanded
+      expect(find.byType(FCollapsible), findsOneWidget);
+      var collapsible = tester.widget<FCollapsible>(find.byType(FCollapsible));
+      expect(collapsible.value, equals(1.0));
+
+      // Tap to start collapse animation
+      await tester.tap(find.text('Bench Press'));
+
+      // Pump a frame to start the animation
+      await tester.pump();
+
+      // Pump partial duration (animation is 200ms, so 100ms should be mid-animation)
+      await tester.pump(const Duration(milliseconds: 100));
+
+      // Content should be animating (FCollapsible value between 0 and 1)
+      collapsible = tester.widget<FCollapsible>(find.byType(FCollapsible));
+      expect(collapsible.value, lessThan(1.0));
+      expect(collapsible.value, greaterThan(0.0));
+
+      // Complete animation
+      await tester.pumpAndSettle();
+
+      // Verify fully collapsed
+      collapsible = tester.widget<FCollapsible>(find.byType(FCollapsible));
+      expect(collapsible.value, equals(0.0));
+    });
+
+    testWidgets('starts expanded by default with FCollapsible value 1.0', (tester) async {
+      final exercise = createMockExercise(
+        sets: [
+          const SessionSetModel(
+            id: 'set-1',
+            setNumber: 1,
+            isCompleted: false,
+          ),
+        ],
+      );
+
+      await tester.pumpWidget(
+        wrapWithTheme(
+          SingleChildScrollView(
+            child: TrackerSectionCard(
+              exercise: exercise,
+              onSetCompleted: (_, _, _, _) {},
+            ),
+          ),
+        ),
+      );
+
+      // Verify starts expanded (FCollapsible value = 1.0)
+      final collapsible = tester.widget<FCollapsible>(find.byType(FCollapsible));
+      expect(collapsible.value, equals(1.0));
+
+      // Content should be visible
       expect(find.text('SET'), findsOneWidget);
       expect(find.text('Add Set'), findsOneWidget);
     });
@@ -418,7 +505,7 @@ void main() {
       await tester.pumpWidget(
         wrapWithTheme(
           SingleChildScrollView(
-            child: ExerciseCard(
+            child: TrackerSectionCard(
               exercise: exercise,
               onSetCompleted: (_, _, _, _) {},
             ),
@@ -444,7 +531,7 @@ void main() {
       await tester.pumpWidget(
         wrapWithTheme(
           SingleChildScrollView(
-            child: ExerciseCard(
+            child: TrackerSectionCard(
               exercise: exercise,
               onSetCompleted: (_, _, _, _) {},
             ),
@@ -492,7 +579,7 @@ void main() {
       await tester.pumpWidget(
         wrapWithTheme(
           SingleChildScrollView(
-            child: ExerciseCard(
+            child: TrackerSectionCard(
               exercise: exercise,
               onSetCompleted: (_, _, _, _) {},
             ),
@@ -501,7 +588,7 @@ void main() {
       );
 
       // The exercise card should render without errors with multiple sets
-      expect(find.byType(ExerciseCard), findsOneWidget);
+      expect(find.byType(TrackerSectionCard), findsOneWidget);
       expect(find.text('Bench Press'), findsOneWidget);
     });
 
@@ -519,7 +606,7 @@ void main() {
       await tester.pumpWidget(
         wrapWithTheme(
           SingleChildScrollView(
-            child: ExerciseCard(
+            child: TrackerSectionCard(
               exercise: exercise,
               onSetCompleted: (_, _, _, _) {},
             ),
@@ -527,10 +614,10 @@ void main() {
         ),
       );
 
-      // Find the main container of ExerciseCard
+      // Find the main container of TrackerSectionCard
       final exerciseCardContainer = tester.widget<Container>(
         find.descendant(
-          of: find.byType(ExerciseCard),
+          of: find.byType(TrackerSectionCard),
           matching: find.byType(Container).first,
         ),
       );
@@ -540,7 +627,7 @@ void main() {
     });
   });
 
-  group('ExerciseCard - Different Exercise Types', () {
+  group('TrackerSectionCard - Different Exercise Types', () {
     testWidgets('weight_reps exercise shows KG and REPS columns',
         (tester) async {
       final exercise = createMockExercise(
@@ -557,7 +644,7 @@ void main() {
       await tester.pumpWidget(
         wrapWithTheme(
           SingleChildScrollView(
-            child: ExerciseCard(
+            child: TrackerSectionCard(
               exercise: exercise,
               onSetCompleted: (_, _, _, _) {},
             ),
@@ -585,7 +672,7 @@ void main() {
       await tester.pumpWidget(
         wrapWithTheme(
           SingleChildScrollView(
-            child: ExerciseCard(
+            child: TrackerSectionCard(
               exercise: exercise,
               onSetCompleted: (_, _, _, _) {},
             ),
@@ -760,4 +847,433 @@ void main() {
       expect(find.text('2:05'), findsOneWidget);
     });
   });
+
+  group('TrackerScreen Add Section flow', () {
+    /// Mock notifier that tracks addExercise calls
+    late TrackingActiveSession trackingNotifier;
+    late SessionModel mockSession;
+
+    setUp(() {
+      mockSession = SessionModel(
+        id: 'test-session',
+        workoutTemplateId: 'test-workout',
+        name: 'Test Workout',
+        exercises: [
+          const SessionExerciseModel(
+            id: 'ex-1',
+            exerciseId: 'exercise-1',
+            exerciseName: 'Bench Press',
+            sectionName: 'Main',
+            exerciseType: ExerciseType.EXERCISE_TYPE_WEIGHT_REPS,
+            sets: [
+              SessionSetModel(id: 'set-1', setNumber: 1),
+            ],
+          ),
+        ],
+        completedSets: 0,
+        totalSets: 1,
+      );
+      trackingNotifier = TrackingActiveSession(mockSession);
+    });
+
+    Widget createTrackerWidget() {
+      return ProviderScope(
+        overrides: [
+          activeSessionProvider.overrideWith(() => trackingNotifier),
+          exerciseListProvider.overrideWith((ref) async => [
+            pb.Exercise()
+              ..id = 'ex-1'
+              ..name = 'Squat'
+              ..exerciseType = ExerciseType.EXERCISE_TYPE_WEIGHT_REPS,
+            pb.Exercise()
+              ..id = 'ex-2'
+              ..name = 'Deadlift'
+              ..exerciseType = ExerciseType.EXERCISE_TYPE_WEIGHT_REPS,
+          ]),
+          floatingWidgetVisibleProvider.overrideWith(SafeFloatingWidgetVisible.new),
+        ],
+        child: MaterialApp(
+          home: FTheme(
+            data: FThemes.zinc.dark,
+            child: const TrackerScreen(sessionId: 'test-session'),
+          ),
+        ),
+      );
+    }
+
+    testWidgets('renders Add Section button at bottom', (tester) async {
+      await tester.pumpWidget(createTrackerWidget());
+      await tester.pumpAndSettle();
+
+      expect(find.text('Add Section'), findsOneWidget);
+    });
+
+    testWidgets('tapping Add Section opens dialog', (tester) async {
+      await tester.pumpWidget(createTrackerWidget());
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Add Section'));
+      await tester.pumpAndSettle();
+
+      // Dialog title should appear
+      expect(find.text('New Section'), findsOneWidget);
+      expect(find.text('Cancel'), findsOneWidget);
+      expect(find.text('Next'), findsOneWidget);
+    });
+
+    testWidgets('Cancel closes dialog without opening modal', (tester) async {
+      await tester.pumpWidget(createTrackerWidget());
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Add Section'));
+      await tester.pumpAndSettle();
+
+      // Dialog should be open
+      expect(find.text('New Section'), findsOneWidget);
+
+      // Tap Cancel
+      await tester.tap(find.text('Cancel'));
+      await tester.pumpAndSettle();
+
+      // Dialog should be closed
+      expect(find.text('New Section'), findsNothing);
+      // Modal should not open
+      expect(find.byType(ExerciseSearchModal), findsNothing);
+    });
+
+    testWidgets('entering name and Next opens exercise modal', (tester) async {
+      await tester.pumpWidget(createTrackerWidget());
+      await tester.pumpAndSettle();
+
+      // Open Add Section dialog
+      await tester.tap(find.text('Add Section'));
+      await tester.pumpAndSettle();
+
+      // Find the TextField with 'Section name' hint (from FTextField)
+      // Since there may be multiple TextFields, find the one near "New Section" title
+      final textFields = find.byType(TextField);
+      expect(textFields, findsWidgets);
+
+      // Enter text in the last TextField (the one in the dialog)
+      await tester.enterText(textFields.last, 'My Custom Section');
+      await tester.pumpAndSettle();
+
+      // Tap Next
+      await tester.tap(find.text('Next'));
+      await tester.pumpAndSettle();
+
+      // Exercise modal should open
+      expect(find.byType(ExerciseSearchModal), findsOneWidget);
+    });
+  });
+
+  group('TrackerScreen Add Exercise to Section', () {
+    late TrackingActiveSession trackingNotifier;
+    late SessionModel mockSession;
+
+    setUp(() {
+      mockSession = SessionModel(
+        id: 'test-session',
+        workoutTemplateId: 'test-workout',
+        name: 'Test Workout',
+        exercises: [
+          const SessionExerciseModel(
+            id: 'ex-1',
+            exerciseId: 'exercise-1',
+            exerciseName: 'Bench Press',
+            sectionName: 'Main',
+            exerciseType: ExerciseType.EXERCISE_TYPE_WEIGHT_REPS,
+            sets: [
+              SessionSetModel(id: 'set-1', setNumber: 1),
+            ],
+          ),
+        ],
+        completedSets: 0,
+        totalSets: 1,
+      );
+      trackingNotifier = TrackingActiveSession(mockSession);
+    });
+
+    Widget createTrackerWidget() {
+      return ProviderScope(
+        overrides: [
+          activeSessionProvider.overrideWith(() => trackingNotifier),
+          exerciseListProvider.overrideWith((ref) async => [
+            pb.Exercise()
+              ..id = 'ex-1'
+              ..name = 'Squat'
+              ..exerciseType = ExerciseType.EXERCISE_TYPE_WEIGHT_REPS,
+            pb.Exercise()
+              ..id = 'ex-2'
+              ..name = 'Deadlift'
+              ..exerciseType = ExerciseType.EXERCISE_TYPE_WEIGHT_REPS,
+          ]),
+          floatingWidgetVisibleProvider.overrideWith(SafeFloatingWidgetVisible.new),
+        ],
+        child: MaterialApp(
+          home: FTheme(
+            data: FThemes.zinc.dark,
+            child: const TrackerScreen(sessionId: 'test-session'),
+          ),
+        ),
+      );
+    }
+
+    testWidgets('section header shows + button', (tester) async {
+      await tester.pumpWidget(createTrackerWidget());
+      await tester.pumpAndSettle();
+
+      // Should find the add_circle_outline icon in section header
+      expect(find.byIcon(Icons.add_circle_outline), findsOneWidget);
+    });
+
+    testWidgets('tapping + opens exercise modal', (tester) async {
+      await tester.pumpWidget(createTrackerWidget());
+      await tester.pumpAndSettle();
+
+      // Tap the + button
+      await tester.tap(find.byIcon(Icons.add_circle_outline));
+      await tester.pumpAndSettle();
+
+      // Exercise modal should open
+      expect(find.byType(ExerciseSearchModal), findsOneWidget);
+    });
+  });
+
+  // Title and Discard tests
+  group('TrackerScreen Title', () {
+    late TrackingActiveSession trackingNotifier;
+
+    Widget createTrackerWidget(SessionModel session) {
+      trackingNotifier = TrackingActiveSession(session);
+      return ProviderScope(
+        overrides: [
+          activeSessionProvider.overrideWith(() => trackingNotifier),
+          floatingWidgetVisibleProvider.overrideWith(SafeFloatingWidgetVisible.new),
+        ],
+        child: MaterialApp(
+          home: FTheme(
+            data: FThemes.zinc.dark,
+            child: FToaster(
+              child: const TrackerScreen(sessionId: 'test-session'),
+            ),
+          ),
+        ),
+      );
+    }
+
+    testWidgets('shows workout name in title', (tester) async {
+      final session = SessionModel(
+        id: 'test-session',
+        workoutTemplateId: 'test-workout',
+        name: 'Push Day',
+        exercises: const [
+          SessionExerciseModel(
+            id: 'ex-1',
+            exerciseId: 'exercise-1',
+            exerciseName: 'Bench Press',
+            sectionName: 'Main',
+            exerciseType: ExerciseType.EXERCISE_TYPE_WEIGHT_REPS,
+            sets: [SessionSetModel(id: 'set-1', setNumber: 1)],
+          ),
+        ],
+        completedSets: 0,
+        totalSets: 1,
+      );
+
+      await tester.pumpWidget(createTrackerWidget(session));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Push Day'), findsOneWidget);
+    });
+
+    testWidgets('shows fallback title when name empty', (tester) async {
+      final session = SessionModel(
+        id: 'test-session',
+        workoutTemplateId: 'test-workout',
+        name: '',
+        exercises: const [
+          SessionExerciseModel(
+            id: 'ex-1',
+            exerciseId: 'exercise-1',
+            exerciseName: 'Bench Press',
+            sectionName: 'Main',
+            exerciseType: ExerciseType.EXERCISE_TYPE_WEIGHT_REPS,
+            sets: [SessionSetModel(id: 'set-1', setNumber: 1)],
+          ),
+        ],
+        completedSets: 0,
+        totalSets: 1,
+      );
+
+      await tester.pumpWidget(createTrackerWidget(session));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Workout'), findsOneWidget);
+    });
+  });
+
+  group('TrackerScreen Discard Workout', () {
+    late TrackingActiveSession trackingNotifier;
+
+    Widget createTrackerWidget(SessionModel session) {
+      trackingNotifier = TrackingActiveSession(session);
+      final router = GoRouter(
+        initialLocation: '/session/test-session',
+        routes: [
+          GoRoute(
+            path: '/',
+            builder: (context, state) => const Scaffold(body: Text('Home')),
+          ),
+          GoRoute(
+            path: '/session/:sessionId',
+            builder: (context, state) => const TrackerScreen(sessionId: 'test-session'),
+          ),
+        ],
+      );
+      return ProviderScope(
+        overrides: [
+          activeSessionProvider.overrideWith(() => trackingNotifier),
+          floatingWidgetVisibleProvider.overrideWith(SafeFloatingWidgetVisible.new),
+        ],
+        child: MaterialApp.router(
+          routerConfig: router,
+          builder: (context, child) => FTheme(
+            data: FThemes.zinc.dark,
+            child: FToaster(child: child!),
+          ),
+        ),
+      );
+    }
+
+    SessionModel createTestSession() {
+      return const SessionModel(
+        id: 'test-session',
+        workoutTemplateId: 'test-workout',
+        name: 'Test Workout',
+        exercises: [
+          SessionExerciseModel(
+            id: 'ex-1',
+            exerciseId: 'exercise-1',
+            exerciseName: 'Bench Press',
+            sectionName: 'Main',
+            exerciseType: ExerciseType.EXERCISE_TYPE_WEIGHT_REPS,
+            sets: [SessionSetModel(id: 'set-1', setNumber: 1)],
+          ),
+        ],
+        completedSets: 0,
+        totalSets: 1,
+      );
+    }
+
+    testWidgets('shows X discard button in header', (tester) async {
+      await tester.pumpWidget(createTrackerWidget(createTestSession()));
+      await tester.pumpAndSettle();
+
+      expect(find.byIcon(Icons.close), findsOneWidget);
+    });
+
+    testWidgets('tapping X shows discard confirmation dialog', (tester) async {
+      await tester.pumpWidget(createTrackerWidget(createTestSession()));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byIcon(Icons.close));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Discard Workout?'), findsOneWidget);
+      expect(find.text('Cancel'), findsOneWidget);
+      expect(find.text('Discard'), findsOneWidget);
+    });
+
+    testWidgets('Cancel in discard dialog does not abandon session', (tester) async {
+      await tester.pumpWidget(createTrackerWidget(createTestSession()));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byIcon(Icons.close));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Discard Workout?'), findsOneWidget);
+
+      await tester.tap(find.text('Cancel'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Discard Workout?'), findsNothing);
+      expect(trackingNotifier.abandonSessionCalled, isFalse);
+    });
+
+    testWidgets('Discard in dialog calls abandonSession', (tester) async {
+      await tester.pumpWidget(createTrackerWidget(createTestSession()));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byIcon(Icons.close));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Discard'));
+      await tester.pumpAndSettle();
+
+      expect(trackingNotifier.abandonSessionCalled, isTrue);
+    });
+  });
+}
+
+/// Mock ActiveSession notifier that tracks addExercise calls
+class TrackingActiveSession extends ActiveSession {
+  final SessionModel _session;
+  final List<Map<String, dynamic>> addExerciseCalls = [];
+  bool abandonSessionCalled = false;
+
+  TrackingActiveSession(this._session);
+
+  @override
+  AsyncValue<SessionModel?> build() => AsyncValue.data(_session);
+
+  @override
+  Future<SessionModel?> loadSession({required String sessionId}) async {
+    state = AsyncValue.data(_session);
+    return _session;
+  }
+
+  @override
+  void addExercise({
+    required String exerciseId,
+    required String exerciseName,
+    required ExerciseType exerciseType,
+    required String sectionName,
+    int numSets = 3,
+  }) {
+    addExerciseCalls.add({
+      'exerciseId': exerciseId,
+      'exerciseName': exerciseName,
+      'exerciseType': exerciseType,
+      'sectionName': sectionName,
+      'numSets': numSets,
+    });
+  }
+
+  @override
+  Future<void> abandonSession() async {
+    abandonSessionCalled = true;
+    state = const AsyncValue.data(null);
+  }
+}
+
+/// Safe mock for FloatingWidgetVisible that handles disposal gracefully
+class SafeFloatingWidgetVisible extends FloatingWidgetVisible {
+  bool _isMounted = true;
+
+  @override
+  bool build() {
+    ref.onDispose(() => _isMounted = false);
+    return true;
+  }
+
+  @override
+  void hide() {
+    if (_isMounted) state = false;
+  }
+
+  @override
+  void show() {
+    if (_isMounted) state = true;
+  }
 }

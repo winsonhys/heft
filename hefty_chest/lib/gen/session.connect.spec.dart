@@ -35,14 +35,6 @@ abstract final class SessionService {
     session.SyncSessionResponse.new,
   );
 
-  /// Add an exercise to the session
-  static const addExercise = connect.Spec(
-    '/$name/AddExercise',
-    connect.StreamType.unary,
-    session.AddExerciseRequest.new,
-    session.AddExerciseResponse.new,
-  );
-
   /// Finish the workout session
   static const finishSession = connect.Spec(
     '/$name/FinishSession',

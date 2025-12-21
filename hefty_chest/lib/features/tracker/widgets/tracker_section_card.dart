@@ -6,26 +6,61 @@ import '../../../gen/common.pbenum.dart';
 import '../models/session_models.dart';
 import 'set_row.dart';
 
-/// Expandable exercise card with sets table
-class ExerciseCard extends StatefulWidget {
+/// Expandable section card with sets table for tracker
+class TrackerSectionCard extends StatefulWidget {
   final SessionExerciseModel exercise;
   final Function(String setId, double? weight, int? reps, int? timeSeconds) onSetCompleted;
+  final VoidCallback? onAddSet;
 
-  const ExerciseCard({
+  const TrackerSectionCard({
     super.key,
     required this.exercise,
     required this.onSetCompleted,
+    this.onAddSet,
   });
 
   @override
-  State<ExerciseCard> createState() => _ExerciseCardState();
+  State<TrackerSectionCard> createState() => _TrackerSectionCardState();
 }
 
-class _ExerciseCardState extends State<ExerciseCard> {
+class _TrackerSectionCardState extends State<TrackerSectionCard> with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+  late final Animation<double> _animation;
   bool _isExpanded = true;
 
   bool get _isTimeBased {
     return widget.exercise.exerciseType == ExerciseType.EXERCISE_TYPE_TIME;
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      duration: const Duration(milliseconds: 200),
+      vsync: this,
+      value: 1.0, // Start expanded
+    );
+    _animation = CurvedAnimation(
+      parent: _controller,
+      curve: Curves.easeInOut,
+    );
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _toggle() {
+    setState(() {
+      _isExpanded = !_isExpanded;
+      if (_isExpanded) {
+        _controller.forward();
+      } else {
+        _controller.reverse();
+      }
+    });
   }
 
   @override
@@ -41,7 +76,7 @@ class _ExerciseCardState extends State<ExerciseCard> {
         children: [
           // Header
           GestureDetector(
-            onTap: () => setState(() => _isExpanded = !_isExpanded),
+            onTap: _toggle,
             child: Container(
               padding: const EdgeInsets.all(16),
               child: Row(
@@ -75,65 +110,73 @@ class _ExerciseCardState extends State<ExerciseCard> {
             ),
           ),
 
-          // Expanded content
-          if (_isExpanded) ...[
-            // Notes/description
-            if (widget.exercise.notes.isNotEmpty)
-              Container(
-                margin: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: AppColors.bgCardInner,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Text(
-                  widget.exercise.notes,
-                  style: const TextStyle(
-                    fontSize: 13,
-                    color: AppColors.textSecondary,
-                    height: 1.4,
+          // Expanded content with FCollapsible
+          AnimatedBuilder(
+            animation: _animation,
+            builder: (context, child) => FCollapsible(
+              value: _animation.value,
+              child: child!,
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Notes/description
+                if (widget.exercise.notes.isNotEmpty)
+                  Container(
+                    margin: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: AppColors.bgCardInner,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      widget.exercise.notes,
+                      style: const TextStyle(
+                        fontSize: 13,
+                        color: AppColors.textSecondary,
+                        height: 1.4,
+                      ),
+                    ),
+                  ),
+
+                // Sets table
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+                  child: Column(
+                    children: [
+                      // Header row
+                      _buildTableHeader(),
+
+                      // Set rows
+                      ...widget.exercise.sets.map((set) => SetRow(
+                        key: ValueKey(set.id.isNotEmpty ? set.id : 'new-set-${set.setNumber}'),
+                        set: set,
+                        isTimeBased: _isTimeBased,
+                        onComplete: widget.onSetCompleted,
+                      )),
+                    ],
                   ),
                 ),
-              ),
 
-            // Sets table
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-              child: Column(
-                children: [
-                  // Header row
-                  _buildTableHeader(),
-
-                  // Set rows
-                  ...widget.exercise.sets.map((set) => SetRow(
-                    key: ValueKey(set.id),
-                    set: set,
-                    isTimeBased: _isTimeBased,
-                    onComplete: widget.onSetCompleted,
-                  )),
-                ],
-              ),
-            ),
-
-            // Add set button
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              child: FButton(
-                style: FButtonStyle.ghost(),
-                onPress: () {
-                  // TODO: Add set functionality
-                },
-                child: const Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Icons.add, size: 16),
-                    SizedBox(width: 4),
-                    Text('Add Set'),
-                  ],
+                // Add set button
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  child: FButton(
+                    style: FButtonStyle.ghost(),
+                    onPress: widget.onAddSet,
+                    child: const Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.add, size: 16),
+                        SizedBox(width: 4),
+                        Text('Add Set'),
+                      ],
+                    ),
+                  ),
                 ),
-              ),
+              ],
             ),
-          ],
+          ),
         ],
       ),
     );

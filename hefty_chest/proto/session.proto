@@ -16,9 +16,6 @@ service SessionService {
   // Sync full session state (periodic sync from client)
   rpc SyncSession(SyncSessionRequest) returns (SyncSessionResponse);
 
-  // Add an exercise to the session
-  rpc AddExercise(AddExerciseRequest) returns (AddExerciseResponse);
-
   // Finish the workout session
   rpc FinishSession(FinishSessionRequest) returns (FinishSessionResponse);
 
@@ -126,10 +123,15 @@ message GetSessionResponse {
 message SyncSessionRequest {
   string session_id = 1;
   repeated SyncSetData sets = 2;
+  repeated SyncExerciseData exercises = 3;  // For adding new exercises
 }
 
 message SyncSetData {
-  string set_id = 1;
+  // Either existing set ID or session_exercise_id for new sets
+  oneof set_identifier {
+    string id = 1;                  // For existing sets - update this set
+    string session_exercise_id = 9; // For new sets - create in this exercise
+  }
   optional double weight_kg = 2;
   optional int32 reps = 3;
   optional int32 time_seconds = 4;
@@ -139,22 +141,24 @@ message SyncSetData {
   optional string notes = 8;
 }
 
+message SyncExerciseData {
+  // Either existing session_exercise ID or new exercise details
+  oneof exercise_identifier {
+    string id = 1;                    // For existing exercises (future use)
+    NewExerciseData new_exercise = 2; // For new exercises
+  }
+}
+
+message NewExerciseData {
+  string exercise_id = 1;       // Reference to exercise library
+  int32 display_order = 2;
+  string section_name = 3;
+  int32 num_sets = 4;           // How many empty sets to create (default 3)
+}
+
 message SyncSessionResponse {
   Session session = 1;
   bool success = 2;
-}
-
-// AddExercise
-message AddExerciseRequest {
-  string session_id = 1;
-  string exercise_id = 2;
-  int32 display_order = 3;
-  optional string section_name = 4;
-  int32 num_sets = 5;
-}
-
-message AddExerciseResponse {
-  SessionExercise exercise = 1;
 }
 
 // FinishSession

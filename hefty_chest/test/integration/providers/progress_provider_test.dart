@@ -186,7 +186,7 @@ void main() {
       for (final exercise in sessionResponse.session.exercises) {
         for (final set in exercise.sets) {
           syncSets.add(SyncSetData()
-            ..setId = set.id
+            ..id = set.id
             ..weightKg = 50.0
             ..reps = 10
             ..isCompleted = true);

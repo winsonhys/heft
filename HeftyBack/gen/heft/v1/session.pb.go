@@ -779,6 +779,7 @@ type SyncSessionRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	SessionId     string                 `protobuf:"bytes,1,opt,name=session_id,json=sessionId,proto3" json:"session_id,omitempty"`
 	Sets          []*SyncSetData         `protobuf:"bytes,2,rep,name=sets,proto3" json:"sets,omitempty"`
+	Exercises     []*SyncExerciseData    `protobuf:"bytes,3,rep,name=exercises,proto3" json:"exercises,omitempty"` // For adding new exercises
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -827,16 +828,29 @@ func (x *SyncSessionRequest) GetSets() []*SyncSetData {
 	return nil
 }
 
+func (x *SyncSessionRequest) GetExercises() []*SyncExerciseData {
+	if x != nil {
+		return x.Exercises
+	}
+	return nil
+}
+
 type SyncSetData struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	SetId         string                 `protobuf:"bytes,1,opt,name=set_id,json=setId,proto3" json:"set_id,omitempty"`
-	WeightKg      *float64               `protobuf:"fixed64,2,opt,name=weight_kg,json=weightKg,proto3,oneof" json:"weight_kg,omitempty"`
-	Reps          *int32                 `protobuf:"varint,3,opt,name=reps,proto3,oneof" json:"reps,omitempty"`
-	TimeSeconds   *int32                 `protobuf:"varint,4,opt,name=time_seconds,json=timeSeconds,proto3,oneof" json:"time_seconds,omitempty"`
-	DistanceM     *float64               `protobuf:"fixed64,5,opt,name=distance_m,json=distanceM,proto3,oneof" json:"distance_m,omitempty"`
-	IsCompleted   bool                   `protobuf:"varint,6,opt,name=is_completed,json=isCompleted,proto3" json:"is_completed,omitempty"`
-	Rpe           *float64               `protobuf:"fixed64,7,opt,name=rpe,proto3,oneof" json:"rpe,omitempty"`
-	Notes         *string                `protobuf:"bytes,8,opt,name=notes,proto3,oneof" json:"notes,omitempty"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Either existing set ID or session_exercise_id for new sets
+	//
+	// Types that are valid to be assigned to SetIdentifier:
+	//
+	//	*SyncSetData_Id
+	//	*SyncSetData_SessionExerciseId
+	SetIdentifier isSyncSetData_SetIdentifier `protobuf_oneof:"set_identifier"`
+	WeightKg      *float64                    `protobuf:"fixed64,2,opt,name=weight_kg,json=weightKg,proto3,oneof" json:"weight_kg,omitempty"`
+	Reps          *int32                      `protobuf:"varint,3,opt,name=reps,proto3,oneof" json:"reps,omitempty"`
+	TimeSeconds   *int32                      `protobuf:"varint,4,opt,name=time_seconds,json=timeSeconds,proto3,oneof" json:"time_seconds,omitempty"`
+	DistanceM     *float64                    `protobuf:"fixed64,5,opt,name=distance_m,json=distanceM,proto3,oneof" json:"distance_m,omitempty"`
+	IsCompleted   bool                        `protobuf:"varint,6,opt,name=is_completed,json=isCompleted,proto3" json:"is_completed,omitempty"`
+	Rpe           *float64                    `protobuf:"fixed64,7,opt,name=rpe,proto3,oneof" json:"rpe,omitempty"`
+	Notes         *string                     `protobuf:"bytes,8,opt,name=notes,proto3,oneof" json:"notes,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -871,9 +885,27 @@ func (*SyncSetData) Descriptor() ([]byte, []int) {
 	return file_heft_v1_session_proto_rawDescGZIP(), []int{9}
 }
 
-func (x *SyncSetData) GetSetId() string {
+func (x *SyncSetData) GetSetIdentifier() isSyncSetData_SetIdentifier {
 	if x != nil {
-		return x.SetId
+		return x.SetIdentifier
+	}
+	return nil
+}
+
+func (x *SyncSetData) GetId() string {
+	if x != nil {
+		if x, ok := x.SetIdentifier.(*SyncSetData_Id); ok {
+			return x.Id
+		}
+	}
+	return ""
+}
+
+func (x *SyncSetData) GetSessionExerciseId() string {
+	if x != nil {
+		if x, ok := x.SetIdentifier.(*SyncSetData_SessionExerciseId); ok {
+			return x.SessionExerciseId
+		}
 	}
 	return ""
 }
@@ -927,6 +959,174 @@ func (x *SyncSetData) GetNotes() string {
 	return ""
 }
 
+type isSyncSetData_SetIdentifier interface {
+	isSyncSetData_SetIdentifier()
+}
+
+type SyncSetData_Id struct {
+	Id string `protobuf:"bytes,1,opt,name=id,proto3,oneof"` // For existing sets - update this set
+}
+
+type SyncSetData_SessionExerciseId struct {
+	SessionExerciseId string `protobuf:"bytes,9,opt,name=session_exercise_id,json=sessionExerciseId,proto3,oneof"` // For new sets - create in this exercise
+}
+
+func (*SyncSetData_Id) isSyncSetData_SetIdentifier() {}
+
+func (*SyncSetData_SessionExerciseId) isSyncSetData_SetIdentifier() {}
+
+type SyncExerciseData struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Either existing session_exercise ID or new exercise details
+	//
+	// Types that are valid to be assigned to ExerciseIdentifier:
+	//
+	//	*SyncExerciseData_Id
+	//	*SyncExerciseData_NewExercise
+	ExerciseIdentifier isSyncExerciseData_ExerciseIdentifier `protobuf_oneof:"exercise_identifier"`
+	unknownFields      protoimpl.UnknownFields
+	sizeCache          protoimpl.SizeCache
+}
+
+func (x *SyncExerciseData) Reset() {
+	*x = SyncExerciseData{}
+	mi := &file_heft_v1_session_proto_msgTypes[10]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SyncExerciseData) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SyncExerciseData) ProtoMessage() {}
+
+func (x *SyncExerciseData) ProtoReflect() protoreflect.Message {
+	mi := &file_heft_v1_session_proto_msgTypes[10]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SyncExerciseData.ProtoReflect.Descriptor instead.
+func (*SyncExerciseData) Descriptor() ([]byte, []int) {
+	return file_heft_v1_session_proto_rawDescGZIP(), []int{10}
+}
+
+func (x *SyncExerciseData) GetExerciseIdentifier() isSyncExerciseData_ExerciseIdentifier {
+	if x != nil {
+		return x.ExerciseIdentifier
+	}
+	return nil
+}
+
+func (x *SyncExerciseData) GetId() string {
+	if x != nil {
+		if x, ok := x.ExerciseIdentifier.(*SyncExerciseData_Id); ok {
+			return x.Id
+		}
+	}
+	return ""
+}
+
+func (x *SyncExerciseData) GetNewExercise() *NewExerciseData {
+	if x != nil {
+		if x, ok := x.ExerciseIdentifier.(*SyncExerciseData_NewExercise); ok {
+			return x.NewExercise
+		}
+	}
+	return nil
+}
+
+type isSyncExerciseData_ExerciseIdentifier interface {
+	isSyncExerciseData_ExerciseIdentifier()
+}
+
+type SyncExerciseData_Id struct {
+	Id string `protobuf:"bytes,1,opt,name=id,proto3,oneof"` // For existing exercises (future use)
+}
+
+type SyncExerciseData_NewExercise struct {
+	NewExercise *NewExerciseData `protobuf:"bytes,2,opt,name=new_exercise,json=newExercise,proto3,oneof"` // For new exercises
+}
+
+func (*SyncExerciseData_Id) isSyncExerciseData_ExerciseIdentifier() {}
+
+func (*SyncExerciseData_NewExercise) isSyncExerciseData_ExerciseIdentifier() {}
+
+type NewExerciseData struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	ExerciseId    string                 `protobuf:"bytes,1,opt,name=exercise_id,json=exerciseId,proto3" json:"exercise_id,omitempty"` // Reference to exercise library
+	DisplayOrder  int32                  `protobuf:"varint,2,opt,name=display_order,json=displayOrder,proto3" json:"display_order,omitempty"`
+	SectionName   string                 `protobuf:"bytes,3,opt,name=section_name,json=sectionName,proto3" json:"section_name,omitempty"`
+	NumSets       int32                  `protobuf:"varint,4,opt,name=num_sets,json=numSets,proto3" json:"num_sets,omitempty"` // How many empty sets to create (default 3)
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *NewExerciseData) Reset() {
+	*x = NewExerciseData{}
+	mi := &file_heft_v1_session_proto_msgTypes[11]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *NewExerciseData) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*NewExerciseData) ProtoMessage() {}
+
+func (x *NewExerciseData) ProtoReflect() protoreflect.Message {
+	mi := &file_heft_v1_session_proto_msgTypes[11]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use NewExerciseData.ProtoReflect.Descriptor instead.
+func (*NewExerciseData) Descriptor() ([]byte, []int) {
+	return file_heft_v1_session_proto_rawDescGZIP(), []int{11}
+}
+
+func (x *NewExerciseData) GetExerciseId() string {
+	if x != nil {
+		return x.ExerciseId
+	}
+	return ""
+}
+
+func (x *NewExerciseData) GetDisplayOrder() int32 {
+	if x != nil {
+		return x.DisplayOrder
+	}
+	return 0
+}
+
+func (x *NewExerciseData) GetSectionName() string {
+	if x != nil {
+		return x.SectionName
+	}
+	return ""
+}
+
+func (x *NewExerciseData) GetNumSets() int32 {
+	if x != nil {
+		return x.NumSets
+	}
+	return 0
+}
+
 type SyncSessionResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Session       *Session               `protobuf:"bytes,1,opt,name=session,proto3" json:"session,omitempty"`
@@ -937,7 +1137,7 @@ type SyncSessionResponse struct {
 
 func (x *SyncSessionResponse) Reset() {
 	*x = SyncSessionResponse{}
-	mi := &file_heft_v1_session_proto_msgTypes[10]
+	mi := &file_heft_v1_session_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -949,7 +1149,7 @@ func (x *SyncSessionResponse) String() string {
 func (*SyncSessionResponse) ProtoMessage() {}
 
 func (x *SyncSessionResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_heft_v1_session_proto_msgTypes[10]
+	mi := &file_heft_v1_session_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -962,7 +1162,7 @@ func (x *SyncSessionResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SyncSessionResponse.ProtoReflect.Descriptor instead.
 func (*SyncSessionResponse) Descriptor() ([]byte, []int) {
-	return file_heft_v1_session_proto_rawDescGZIP(), []int{10}
+	return file_heft_v1_session_proto_rawDescGZIP(), []int{12}
 }
 
 func (x *SyncSessionResponse) GetSession() *Session {
@@ -977,127 +1177,6 @@ func (x *SyncSessionResponse) GetSuccess() bool {
 		return x.Success
 	}
 	return false
-}
-
-// AddExercise
-type AddExerciseRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	SessionId     string                 `protobuf:"bytes,1,opt,name=session_id,json=sessionId,proto3" json:"session_id,omitempty"`
-	ExerciseId    string                 `protobuf:"bytes,2,opt,name=exercise_id,json=exerciseId,proto3" json:"exercise_id,omitempty"`
-	DisplayOrder  int32                  `protobuf:"varint,3,opt,name=display_order,json=displayOrder,proto3" json:"display_order,omitempty"`
-	SectionName   *string                `protobuf:"bytes,4,opt,name=section_name,json=sectionName,proto3,oneof" json:"section_name,omitempty"`
-	NumSets       int32                  `protobuf:"varint,5,opt,name=num_sets,json=numSets,proto3" json:"num_sets,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *AddExerciseRequest) Reset() {
-	*x = AddExerciseRequest{}
-	mi := &file_heft_v1_session_proto_msgTypes[11]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *AddExerciseRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*AddExerciseRequest) ProtoMessage() {}
-
-func (x *AddExerciseRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_heft_v1_session_proto_msgTypes[11]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use AddExerciseRequest.ProtoReflect.Descriptor instead.
-func (*AddExerciseRequest) Descriptor() ([]byte, []int) {
-	return file_heft_v1_session_proto_rawDescGZIP(), []int{11}
-}
-
-func (x *AddExerciseRequest) GetSessionId() string {
-	if x != nil {
-		return x.SessionId
-	}
-	return ""
-}
-
-func (x *AddExerciseRequest) GetExerciseId() string {
-	if x != nil {
-		return x.ExerciseId
-	}
-	return ""
-}
-
-func (x *AddExerciseRequest) GetDisplayOrder() int32 {
-	if x != nil {
-		return x.DisplayOrder
-	}
-	return 0
-}
-
-func (x *AddExerciseRequest) GetSectionName() string {
-	if x != nil && x.SectionName != nil {
-		return *x.SectionName
-	}
-	return ""
-}
-
-func (x *AddExerciseRequest) GetNumSets() int32 {
-	if x != nil {
-		return x.NumSets
-	}
-	return 0
-}
-
-type AddExerciseResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Exercise      *SessionExercise       `protobuf:"bytes,1,opt,name=exercise,proto3" json:"exercise,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *AddExerciseResponse) Reset() {
-	*x = AddExerciseResponse{}
-	mi := &file_heft_v1_session_proto_msgTypes[12]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *AddExerciseResponse) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*AddExerciseResponse) ProtoMessage() {}
-
-func (x *AddExerciseResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_heft_v1_session_proto_msgTypes[12]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use AddExerciseResponse.ProtoReflect.Descriptor instead.
-func (*AddExerciseResponse) Descriptor() ([]byte, []int) {
-	return file_heft_v1_session_proto_rawDescGZIP(), []int{12}
-}
-
-func (x *AddExerciseResponse) GetExercise() *SessionExercise {
-	if x != nil {
-		return x.Exercise
-	}
-	return nil
 }
 
 // FinishSession
@@ -1506,42 +1585,44 @@ const file_heft_v1_session_proto_rawDesc = "" +
 	"\x11GetSessionRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\"@\n" +
 	"\x12GetSessionResponse\x12*\n" +
-	"\asession\x18\x01 \x01(\v2\x10.heft.v1.SessionR\asession\"]\n" +
+	"\asession\x18\x01 \x01(\v2\x10.heft.v1.SessionR\asession\"\x96\x01\n" +
 	"\x12SyncSessionRequest\x12\x1d\n" +
 	"\n" +
 	"session_id\x18\x01 \x01(\tR\tsessionId\x12(\n" +
-	"\x04sets\x18\x02 \x03(\v2\x14.heft.v1.SyncSetDataR\x04sets\"\xc9\x02\n" +
-	"\vSyncSetData\x12\x15\n" +
-	"\x06set_id\x18\x01 \x01(\tR\x05setId\x12 \n" +
-	"\tweight_kg\x18\x02 \x01(\x01H\x00R\bweightKg\x88\x01\x01\x12\x17\n" +
-	"\x04reps\x18\x03 \x01(\x05H\x01R\x04reps\x88\x01\x01\x12&\n" +
-	"\ftime_seconds\x18\x04 \x01(\x05H\x02R\vtimeSeconds\x88\x01\x01\x12\"\n" +
+	"\x04sets\x18\x02 \x03(\v2\x14.heft.v1.SyncSetDataR\x04sets\x127\n" +
+	"\texercises\x18\x03 \x03(\v2\x19.heft.v1.SyncExerciseDataR\texercises\"\x88\x03\n" +
+	"\vSyncSetData\x12\x10\n" +
+	"\x02id\x18\x01 \x01(\tH\x00R\x02id\x120\n" +
+	"\x13session_exercise_id\x18\t \x01(\tH\x00R\x11sessionExerciseId\x12 \n" +
+	"\tweight_kg\x18\x02 \x01(\x01H\x01R\bweightKg\x88\x01\x01\x12\x17\n" +
+	"\x04reps\x18\x03 \x01(\x05H\x02R\x04reps\x88\x01\x01\x12&\n" +
+	"\ftime_seconds\x18\x04 \x01(\x05H\x03R\vtimeSeconds\x88\x01\x01\x12\"\n" +
 	"\n" +
-	"distance_m\x18\x05 \x01(\x01H\x03R\tdistanceM\x88\x01\x01\x12!\n" +
+	"distance_m\x18\x05 \x01(\x01H\x04R\tdistanceM\x88\x01\x01\x12!\n" +
 	"\fis_completed\x18\x06 \x01(\bR\visCompleted\x12\x15\n" +
-	"\x03rpe\x18\a \x01(\x01H\x04R\x03rpe\x88\x01\x01\x12\x19\n" +
-	"\x05notes\x18\b \x01(\tH\x05R\x05notes\x88\x01\x01B\f\n" +
+	"\x03rpe\x18\a \x01(\x01H\x05R\x03rpe\x88\x01\x01\x12\x19\n" +
+	"\x05notes\x18\b \x01(\tH\x06R\x05notes\x88\x01\x01B\x10\n" +
+	"\x0eset_identifierB\f\n" +
 	"\n" +
 	"_weight_kgB\a\n" +
 	"\x05_repsB\x0f\n" +
 	"\r_time_secondsB\r\n" +
 	"\v_distance_mB\x06\n" +
 	"\x04_rpeB\b\n" +
-	"\x06_notes\"[\n" +
+	"\x06_notes\"z\n" +
+	"\x10SyncExerciseData\x12\x10\n" +
+	"\x02id\x18\x01 \x01(\tH\x00R\x02id\x12=\n" +
+	"\fnew_exercise\x18\x02 \x01(\v2\x18.heft.v1.NewExerciseDataH\x00R\vnewExerciseB\x15\n" +
+	"\x13exercise_identifier\"\x95\x01\n" +
+	"\x0fNewExerciseData\x12\x1f\n" +
+	"\vexercise_id\x18\x01 \x01(\tR\n" +
+	"exerciseId\x12#\n" +
+	"\rdisplay_order\x18\x02 \x01(\x05R\fdisplayOrder\x12!\n" +
+	"\fsection_name\x18\x03 \x01(\tR\vsectionName\x12\x19\n" +
+	"\bnum_sets\x18\x04 \x01(\x05R\anumSets\"[\n" +
 	"\x13SyncSessionResponse\x12*\n" +
 	"\asession\x18\x01 \x01(\v2\x10.heft.v1.SessionR\asession\x12\x18\n" +
-	"\asuccess\x18\x02 \x01(\bR\asuccess\"\xcd\x01\n" +
-	"\x12AddExerciseRequest\x12\x1d\n" +
-	"\n" +
-	"session_id\x18\x01 \x01(\tR\tsessionId\x12\x1f\n" +
-	"\vexercise_id\x18\x02 \x01(\tR\n" +
-	"exerciseId\x12#\n" +
-	"\rdisplay_order\x18\x03 \x01(\x05R\fdisplayOrder\x12&\n" +
-	"\fsection_name\x18\x04 \x01(\tH\x00R\vsectionName\x88\x01\x01\x12\x19\n" +
-	"\bnum_sets\x18\x05 \x01(\x05R\anumSetsB\x0f\n" +
-	"\r_section_name\"K\n" +
-	"\x13AddExerciseResponse\x124\n" +
-	"\bexercise\x18\x01 \x01(\v2\x18.heft.v1.SessionExerciseR\bexercise\"K\n" +
+	"\asuccess\x18\x02 \x01(\bR\asuccess\"K\n" +
 	"\x14FinishSessionRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x19\n" +
 	"\x05notes\x18\x02 \x01(\tH\x00R\x05notes\x88\x01\x01B\b\n" +
@@ -1567,13 +1648,12 @@ const file_heft_v1_session_proto_rawDesc = "" +
 	"\bsessions\x18\x01 \x03(\v2\x17.heft.v1.SessionSummaryR\bsessions\x12;\n" +
 	"\n" +
 	"pagination\x18\x02 \x01(\v2\x1b.heft.v1.PaginationResponseR\n" +
-	"pagination2\xa8\x04\n" +
+	"pagination2\xde\x03\n" +
 	"\x0eSessionService\x12K\n" +
 	"\fStartSession\x12\x1c.heft.v1.StartSessionRequest\x1a\x1d.heft.v1.StartSessionResponse\x12E\n" +
 	"\n" +
 	"GetSession\x12\x1a.heft.v1.GetSessionRequest\x1a\x1b.heft.v1.GetSessionResponse\x12H\n" +
-	"\vSyncSession\x12\x1b.heft.v1.SyncSessionRequest\x1a\x1c.heft.v1.SyncSessionResponse\x12H\n" +
-	"\vAddExercise\x12\x1b.heft.v1.AddExerciseRequest\x1a\x1c.heft.v1.AddExerciseResponse\x12N\n" +
+	"\vSyncSession\x12\x1b.heft.v1.SyncSessionRequest\x1a\x1c.heft.v1.SyncSessionResponse\x12N\n" +
 	"\rFinishSession\x12\x1d.heft.v1.FinishSessionRequest\x1a\x1e.heft.v1.FinishSessionResponse\x12Q\n" +
 	"\x0eAbandonSession\x12\x1e.heft.v1.AbandonSessionRequest\x1a\x1f.heft.v1.AbandonSessionResponse\x12K\n" +
 	"\fListSessions\x12\x1c.heft.v1.ListSessionsRequest\x1a\x1d.heft.v1.ListSessionsResponseB\x81\x01\n" +
@@ -1603,9 +1683,9 @@ var file_heft_v1_session_proto_goTypes = []any{
 	(*GetSessionResponse)(nil),     // 7: heft.v1.GetSessionResponse
 	(*SyncSessionRequest)(nil),     // 8: heft.v1.SyncSessionRequest
 	(*SyncSetData)(nil),            // 9: heft.v1.SyncSetData
-	(*SyncSessionResponse)(nil),    // 10: heft.v1.SyncSessionResponse
-	(*AddExerciseRequest)(nil),     // 11: heft.v1.AddExerciseRequest
-	(*AddExerciseResponse)(nil),    // 12: heft.v1.AddExerciseResponse
+	(*SyncExerciseData)(nil),       // 10: heft.v1.SyncExerciseData
+	(*NewExerciseData)(nil),        // 11: heft.v1.NewExerciseData
+	(*SyncSessionResponse)(nil),    // 12: heft.v1.SyncSessionResponse
 	(*FinishSessionRequest)(nil),   // 13: heft.v1.FinishSessionRequest
 	(*FinishSessionResponse)(nil),  // 14: heft.v1.FinishSessionResponse
 	(*AbandonSessionRequest)(nil),  // 15: heft.v1.AbandonSessionRequest
@@ -1634,32 +1714,31 @@ var file_heft_v1_session_proto_depIdxs = []int32{
 	0,  // 12: heft.v1.StartSessionResponse.session:type_name -> heft.v1.Session
 	0,  // 13: heft.v1.GetSessionResponse.session:type_name -> heft.v1.Session
 	9,  // 14: heft.v1.SyncSessionRequest.sets:type_name -> heft.v1.SyncSetData
-	0,  // 15: heft.v1.SyncSessionResponse.session:type_name -> heft.v1.Session
-	1,  // 16: heft.v1.AddExerciseResponse.exercise:type_name -> heft.v1.SessionExercise
-	0,  // 17: heft.v1.FinishSessionResponse.session:type_name -> heft.v1.Session
-	19, // 18: heft.v1.ListSessionsRequest.status:type_name -> heft.v1.WorkoutStatus
-	22, // 19: heft.v1.ListSessionsRequest.pagination:type_name -> heft.v1.PaginationRequest
-	3,  // 20: heft.v1.ListSessionsResponse.sessions:type_name -> heft.v1.SessionSummary
-	23, // 21: heft.v1.ListSessionsResponse.pagination:type_name -> heft.v1.PaginationResponse
-	4,  // 22: heft.v1.SessionService.StartSession:input_type -> heft.v1.StartSessionRequest
-	6,  // 23: heft.v1.SessionService.GetSession:input_type -> heft.v1.GetSessionRequest
-	8,  // 24: heft.v1.SessionService.SyncSession:input_type -> heft.v1.SyncSessionRequest
-	11, // 25: heft.v1.SessionService.AddExercise:input_type -> heft.v1.AddExerciseRequest
+	10, // 15: heft.v1.SyncSessionRequest.exercises:type_name -> heft.v1.SyncExerciseData
+	11, // 16: heft.v1.SyncExerciseData.new_exercise:type_name -> heft.v1.NewExerciseData
+	0,  // 17: heft.v1.SyncSessionResponse.session:type_name -> heft.v1.Session
+	0,  // 18: heft.v1.FinishSessionResponse.session:type_name -> heft.v1.Session
+	19, // 19: heft.v1.ListSessionsRequest.status:type_name -> heft.v1.WorkoutStatus
+	22, // 20: heft.v1.ListSessionsRequest.pagination:type_name -> heft.v1.PaginationRequest
+	3,  // 21: heft.v1.ListSessionsResponse.sessions:type_name -> heft.v1.SessionSummary
+	23, // 22: heft.v1.ListSessionsResponse.pagination:type_name -> heft.v1.PaginationResponse
+	4,  // 23: heft.v1.SessionService.StartSession:input_type -> heft.v1.StartSessionRequest
+	6,  // 24: heft.v1.SessionService.GetSession:input_type -> heft.v1.GetSessionRequest
+	8,  // 25: heft.v1.SessionService.SyncSession:input_type -> heft.v1.SyncSessionRequest
 	13, // 26: heft.v1.SessionService.FinishSession:input_type -> heft.v1.FinishSessionRequest
 	15, // 27: heft.v1.SessionService.AbandonSession:input_type -> heft.v1.AbandonSessionRequest
 	17, // 28: heft.v1.SessionService.ListSessions:input_type -> heft.v1.ListSessionsRequest
 	5,  // 29: heft.v1.SessionService.StartSession:output_type -> heft.v1.StartSessionResponse
 	7,  // 30: heft.v1.SessionService.GetSession:output_type -> heft.v1.GetSessionResponse
-	10, // 31: heft.v1.SessionService.SyncSession:output_type -> heft.v1.SyncSessionResponse
-	12, // 32: heft.v1.SessionService.AddExercise:output_type -> heft.v1.AddExerciseResponse
-	14, // 33: heft.v1.SessionService.FinishSession:output_type -> heft.v1.FinishSessionResponse
-	16, // 34: heft.v1.SessionService.AbandonSession:output_type -> heft.v1.AbandonSessionResponse
-	18, // 35: heft.v1.SessionService.ListSessions:output_type -> heft.v1.ListSessionsResponse
-	29, // [29:36] is the sub-list for method output_type
-	22, // [22:29] is the sub-list for method input_type
-	22, // [22:22] is the sub-list for extension type_name
-	22, // [22:22] is the sub-list for extension extendee
-	0,  // [0:22] is the sub-list for field type_name
+	12, // 31: heft.v1.SessionService.SyncSession:output_type -> heft.v1.SyncSessionResponse
+	14, // 32: heft.v1.SessionService.FinishSession:output_type -> heft.v1.FinishSessionResponse
+	16, // 33: heft.v1.SessionService.AbandonSession:output_type -> heft.v1.AbandonSessionResponse
+	18, // 34: heft.v1.SessionService.ListSessions:output_type -> heft.v1.ListSessionsResponse
+	29, // [29:35] is the sub-list for method output_type
+	23, // [23:29] is the sub-list for method input_type
+	23, // [23:23] is the sub-list for extension type_name
+	23, // [23:23] is the sub-list for extension extendee
+	0,  // [0:23] is the sub-list for field type_name
 }
 
 func init() { file_heft_v1_session_proto_init() }
@@ -1670,8 +1749,14 @@ func file_heft_v1_session_proto_init() {
 	file_heft_v1_common_proto_init()
 	file_heft_v1_session_proto_msgTypes[2].OneofWrappers = []any{}
 	file_heft_v1_session_proto_msgTypes[4].OneofWrappers = []any{}
-	file_heft_v1_session_proto_msgTypes[9].OneofWrappers = []any{}
-	file_heft_v1_session_proto_msgTypes[11].OneofWrappers = []any{}
+	file_heft_v1_session_proto_msgTypes[9].OneofWrappers = []any{
+		(*SyncSetData_Id)(nil),
+		(*SyncSetData_SessionExerciseId)(nil),
+	}
+	file_heft_v1_session_proto_msgTypes[10].OneofWrappers = []any{
+		(*SyncExerciseData_Id)(nil),
+		(*SyncExerciseData_NewExercise)(nil),
+	}
 	file_heft_v1_session_proto_msgTypes[13].OneofWrappers = []any{}
 	file_heft_v1_session_proto_msgTypes[17].OneofWrappers = []any{}
 	type x struct{}

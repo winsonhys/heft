@@ -52,7 +52,7 @@ class _HeftyChestAppState extends ConsumerState<HeftyChestApp> {
           data: heftDarkTheme,
           child: const FScaffold(
             child: Center(
-              child: FProgress(),
+              child: FCircularProgress.loader(),
             ),
           ),
         ),
@@ -115,13 +115,15 @@ class _AppShellState extends ConsumerState<_AppShell> {
     final currentPath = widget.router.routerDelegate.currentConfiguration.uri.path;
     final isAuthScreen = currentPath.startsWith('/auth');
 
-    return Stack(
-      children: [
-        widget.child,
-        // Show floating session widget on all screens except auth
-        // (FloatingSessionWidget handles hiding itself on tracker screen internally)
-        if (!isAuthScreen) FloatingSessionWidget(router: widget.router),
-      ],
+    return FToaster(
+      child: Stack(
+        children: [
+          widget.child,
+          // Show floating session widget on all screens except auth
+          // (FloatingSessionWidget handles hiding itself on tracker screen internally)
+          if (!isAuthScreen) FloatingSessionWidget(router: widget.router),
+        ],
+      ),
     );
   }
 }

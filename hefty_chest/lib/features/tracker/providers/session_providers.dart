@@ -19,6 +19,7 @@ class ActiveSession extends _$ActiveSession {
   Timer? _syncTimer;
   bool _hasPendingChanges = false;
   SyncStatus _syncStatus = SyncStatus.synced;
+  final List<_PendingExercise> _pendingExercises = [];
 
   @override
   AsyncValue<SessionModel?> build() {
@@ -54,18 +55,38 @@ class ActiveSession extends _$ActiveSession {
     _syncStatus = SyncStatus.syncing;
 
     try {
+      // Build exercises array for new exercises
+      final exercises = <SyncExerciseData>[];
+      for (final pending in _pendingExercises) {
+        exercises.add(SyncExerciseData()
+          ..newExercise = (NewExerciseData()
+            ..exerciseId = pending.exerciseId
+            ..displayOrder = pending.displayOrder
+            ..sectionName = pending.sectionName
+            ..numSets = pending.numSets));
+      }
+
       // Build sync request with all sets
       final sets = <SyncSetData>[];
       for (final exercise in session.exercises) {
+        // Skip sets for exercises with empty IDs (new exercises - sets will be created by server)
+        if (exercise.id.isEmpty) continue;
+
         for (final set in exercise.sets) {
           final syncSet = SyncSetData()
-            ..setId = set.id
             ..isCompleted = set.isCompleted
             ..weightKg = set.weightKg
             ..reps = set.reps
             ..timeSeconds = set.timeSeconds
             ..distanceM = set.distanceM
             ..rpe = set.rpe;
+
+          // Use oneof: existing sets have ID, new sets use sessionExerciseId
+          if (set.id.isNotEmpty) {
+            syncSet.id = set.id;
+          } else {
+            syncSet.sessionExerciseId = exercise.id;
+          }
 
           if (set.notes.isNotEmpty) {
             syncSet.notes = set.notes;
@@ -77,15 +98,23 @@ class ActiveSession extends _$ActiveSession {
 
       final request = SyncSessionRequest()
         ..sessionId = session.id
-        ..sets.addAll(sets);
+        ..sets.addAll(sets)
+        ..exercises.addAll(exercises);
 
-      await sessionClient.syncSession(request);
+      final response = await sessionClient.syncSession(request);
+
+      // Clear pending exercises since they're now on server
+      _pendingExercises.clear();
+
+      // Update local state with server response (gets real IDs for new sets and exercises)
+      final updatedSession = SessionModel.fromProto(response.session);
+      state = AsyncValue.data(updatedSession);
 
       _hasPendingChanges = false;
       _syncStatus = SyncStatus.synced;
 
-      // Update local backup (convert to protobuf for storage)
-      await SessionStorage.saveSession(session.toProto());
+      // Update local backup with server state (includes real IDs)
+      await SessionStorage.saveSession(response.session);
     } catch (e) {
       _syncStatus = SyncStatus.error;
       // Keep _hasPendingChanges = true so we retry on next tick
@@ -143,36 +172,6 @@ class ActiveSession extends _$ActiveSession {
         return null;
       }
       state = AsyncValue.error(e, st);
-      return null;
-    }
-  }
-
-  /// Recover session from local backup
-  Future<SessionModel?> recoverFromBackup() async {
-    try {
-      final backup = await SessionStorage.loadSession();
-      if (backup == null) return null;
-
-      // Verify session still exists on server
-      final request = GetSessionRequest()..id = backup.id;
-      try {
-        final response = await sessionClient.getSession(request);
-
-        // Server has data - use server version
-        final sessionModel = SessionModel.fromProto(response.session);
-        state = AsyncValue.data(sessionModel);
-        await SessionStorage.saveSession(response.session);
-        _startSyncTimer();
-        return sessionModel;
-      } catch (e) {
-        // Server error - use backup as fallback
-        final backupModel = SessionModel.fromProto(backup);
-        state = AsyncValue.data(backupModel);
-        _hasPendingChanges = true;
-        _startSyncTimer();
-        return backupModel;
-      }
-    } catch (e) {
       return null;
     }
   }
@@ -295,6 +294,101 @@ class ActiveSession extends _$ActiveSession {
     );
   }
 
+  /// Add a new set to an exercise (local-first, synced via timer)
+  void addSet({required String sessionExerciseId}) {
+    final currentSession = state.value;
+    if (currentSession == null) return;
+
+    // Find the exercise and create a new set
+    final updatedSession = currentSession.copyWith(
+      exercises: currentSession.exercises.map((exercise) {
+        if (exercise.id != sessionExerciseId) return exercise;
+
+        // Create new set with empty ID (will be assigned by server on sync)
+        final newSetNumber = exercise.sets.length + 1;
+        final newSet = SessionSetModel(
+          id: '', // Empty ID indicates new set
+          setNumber: newSetNumber,
+        );
+
+        return exercise.copyWith(
+          sets: [...exercise.sets, newSet],
+        );
+      }).toList(),
+    );
+
+    // Recalculate totalSets
+    final newTotalSets =
+        updatedSession.exercises.fold(0, (sum, ex) => sum + ex.sets.length);
+    final finalSession = updatedSession.copyWith(totalSets: newTotalSets);
+
+    // Mark changes and update state
+    _hasPendingChanges = true;
+    _syncStatus = SyncStatus.pending;
+    state = AsyncValue.data(finalSession);
+
+    // Save to local backup immediately
+    SessionStorage.saveSession(finalSession.toProto());
+  }
+
+  /// Add a new exercise to the session (local-first, synced via timer)
+  void addExercise({
+    required String exerciseId,
+    required String exerciseName,
+    required ExerciseType exerciseType,
+    required String sectionName,
+    int numSets = 3,
+  }) {
+    final currentSession = state.value;
+    if (currentSession == null) return;
+
+    // Calculate display order (add at end)
+    final displayOrder = currentSession.exercises.length;
+
+    // Create local exercise with empty ID (indicates new exercise)
+    final newExercise = SessionExerciseModel(
+      id: '', // Empty ID = new exercise
+      exerciseId: exerciseId,
+      exerciseName: exerciseName,
+      exerciseType: exerciseType,
+      displayOrder: displayOrder,
+      sectionName: sectionName,
+      sets: List.generate(
+        numSets,
+        (i) => SessionSetModel(
+          id: '', // Empty ID = new set
+          setNumber: i + 1,
+        ),
+      ),
+    );
+
+    // Add to pending exercises list for sync
+    _pendingExercises.add(_PendingExercise(
+      exerciseId: exerciseId,
+      displayOrder: displayOrder,
+      sectionName: sectionName,
+      numSets: numSets,
+    ));
+
+    // Update state with new exercise
+    final updatedExercises = [...currentSession.exercises, newExercise];
+    final newTotalSets =
+        updatedExercises.fold(0, (sum, ex) => sum + ex.sets.length);
+
+    final updatedSession = currentSession.copyWith(
+      exercises: updatedExercises,
+      totalSets: newTotalSets,
+    );
+
+    // Mark changes and update state
+    _hasPendingChanges = true;
+    _syncStatus = SyncStatus.pending;
+    state = AsyncValue.data(updatedSession);
+
+    // Save to local backup immediately
+    SessionStorage.saveSession(updatedSession.toProto());
+  }
+
   /// Finish the session
   Future<void> finishSession() async {
     final currentSession = state.value;
@@ -392,4 +486,19 @@ Future<SessionModel?> hasActiveSession(Ref ref) async {
   final getRequest = GetSessionRequest()..id = response.sessions.first.id;
   final sessionResponse = await sessionClient.getSession(getRequest);
   return SessionModel.fromProto(sessionResponse.session);
+}
+
+/// Internal class to track pending exercises for sync
+class _PendingExercise {
+  final String exerciseId;
+  final int displayOrder;
+  final String sectionName;
+  final int numSets;
+
+  _PendingExercise({
+    required this.exerciseId,
+    required this.displayOrder,
+    required this.sectionName,
+    required this.numSets,
+  });
 }
