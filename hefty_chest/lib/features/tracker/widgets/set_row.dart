@@ -10,12 +10,14 @@ class SetRow extends HookWidget {
   final SessionSetModel set;
   final bool isTimeBased;
   final Function(String setId, double? weight, int? reps, int? timeSeconds) onComplete;
+  final VoidCallback? onDelete;
 
   const SetRow({
     super.key,
     required this.set,
     this.isTimeBased = false,
     required this.onComplete,
+    this.onDelete,
   });
 
   String _formatTime(int seconds) {
@@ -193,15 +195,32 @@ class SetRow extends HookWidget {
           // More button
           SizedBox(
             width: 28,
-            child: GestureDetector(
-              onTap: () {
-                // TODO: Show context menu
-              },
-              child: const Icon(
+            child: PopupMenuButton<String>(
+              padding: EdgeInsets.zero,
+              iconSize: 18,
+              icon: const Icon(
                 Icons.more_vert,
                 size: 18,
                 color: AppColors.textMuted,
               ),
+              color: AppColors.bgCard,
+              onSelected: (value) {
+                if (value == 'delete' && onDelete != null) {
+                  onDelete!();
+                }
+              },
+              itemBuilder: (context) => [
+                const PopupMenuItem(
+                  value: 'delete',
+                  child: Row(
+                    children: [
+                      Icon(Icons.delete_outline, size: 18, color: AppColors.accentRed),
+                      SizedBox(width: 8),
+                      Text('Delete', style: TextStyle(color: AppColors.accentRed)),
+                    ],
+                  ),
+                ),
+              ],
             ),
           ),
         ],

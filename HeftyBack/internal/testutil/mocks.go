@@ -105,14 +105,16 @@ func (m *MockExerciseRepository) Search(ctx context.Context, query string, userI
 
 // MockSessionRepository is a mock implementation of SessionRepositoryInterface
 type MockSessionRepository struct {
-	CreateFunc         func(ctx context.Context, userID string, workoutTemplateID, programID *string, programDayNumber *int, name *string) (*repository.WorkoutSession, error)
-	GetByIDFunc        func(ctx context.Context, id, userID string) (*repository.WorkoutSession, error)
-	AddExerciseFunc    func(ctx context.Context, sessionID, exerciseID string, displayOrder int, sectionName *string) (*repository.SessionExercise, error)
-	AddSetFunc         func(ctx context.Context, sessionExerciseID string, setNumber int, targetWeightKg *float64, targetReps, targetTimeSeconds *int, isBodyweight bool) (*repository.SessionSet, error)
-	SyncSetsFunc       func(ctx context.Context, sessionID string, sets []repository.SyncSetInput) error
-	FinishSessionFunc  func(ctx context.Context, id, userID string, notes *string) (*repository.WorkoutSession, error)
-	AbandonSessionFunc func(ctx context.Context, id, userID string) error
-	ListFunc           func(ctx context.Context, userID string, status *string, startDate, endDate *time.Time, limit, offset int) ([]*repository.WorkoutSession, int, error)
+	CreateFunc          func(ctx context.Context, userID string, workoutTemplateID, programID *string, programDayNumber *int, name *string) (*repository.WorkoutSession, error)
+	GetByIDFunc         func(ctx context.Context, id, userID string) (*repository.WorkoutSession, error)
+	AddExerciseFunc     func(ctx context.Context, sessionID, exerciseID string, displayOrder int, sectionName *string) (*repository.SessionExercise, error)
+	AddSetFunc          func(ctx context.Context, sessionExerciseID string, setNumber int, targetWeightKg *float64, targetReps, targetTimeSeconds *int, isBodyweight bool) (*repository.SessionSet, error)
+	SyncSetsFunc        func(ctx context.Context, sessionID string, sets []repository.SyncSetInput) error
+	DeleteSetsFunc      func(ctx context.Context, sessionID string, setIDs []string) error
+	DeleteExercisesFunc func(ctx context.Context, sessionID string, exerciseIDs []string) error
+	FinishSessionFunc   func(ctx context.Context, id, userID string, notes *string) (*repository.WorkoutSession, error)
+	AbandonSessionFunc  func(ctx context.Context, id, userID string) error
+	ListFunc            func(ctx context.Context, userID string, status *string, startDate, endDate *time.Time, limit, offset int) ([]*repository.WorkoutSession, int, error)
 }
 
 func (m *MockSessionRepository) Create(ctx context.Context, userID string, workoutTemplateID, programID *string, programDayNumber *int, name *string) (*repository.WorkoutSession, error) {
@@ -146,6 +148,20 @@ func (m *MockSessionRepository) AddSet(ctx context.Context, sessionExerciseID st
 func (m *MockSessionRepository) SyncSets(ctx context.Context, sessionID string, sets []repository.SyncSetInput) error {
 	if m.SyncSetsFunc != nil {
 		return m.SyncSetsFunc(ctx, sessionID, sets)
+	}
+	return nil
+}
+
+func (m *MockSessionRepository) DeleteSets(ctx context.Context, sessionID string, setIDs []string) error {
+	if m.DeleteSetsFunc != nil {
+		return m.DeleteSetsFunc(ctx, sessionID, setIDs)
+	}
+	return nil
+}
+
+func (m *MockSessionRepository) DeleteExercises(ctx context.Context, sessionID string, exerciseIDs []string) error {
+	if m.DeleteExercisesFunc != nil {
+		return m.DeleteExercisesFunc(ctx, sessionID, exerciseIDs)
 	}
 	return nil
 }

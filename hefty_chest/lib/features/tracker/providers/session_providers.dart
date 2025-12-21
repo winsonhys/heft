@@ -20,6 +20,8 @@ class ActiveSession extends _$ActiveSession {
   bool _hasPendingChanges = false;
   SyncStatus _syncStatus = SyncStatus.synced;
   final List<_PendingExercise> _pendingExercises = [];
+  final List<String> _deletedSetIds = [];
+  final List<String> _deletedExerciseIds = [];
 
   @override
   AsyncValue<SessionModel?> build() {
@@ -99,12 +101,16 @@ class ActiveSession extends _$ActiveSession {
       final request = SyncSessionRequest()
         ..sessionId = session.id
         ..sets.addAll(sets)
-        ..exercises.addAll(exercises);
+        ..exercises.addAll(exercises)
+        ..deletedSetIds.addAll(_deletedSetIds)
+        ..deletedExerciseIds.addAll(_deletedExerciseIds);
 
       final response = await sessionClient.syncSession(request);
 
-      // Clear pending exercises since they're now on server
+      // Clear pending lists since they're now on server
       _pendingExercises.clear();
+      _deletedSetIds.clear();
+      _deletedExerciseIds.clear();
 
       // Update local state with server response (gets real IDs for new sets and exercises)
       final updatedSession = SessionModel.fromProto(response.session);
@@ -378,6 +384,164 @@ class ActiveSession extends _$ActiveSession {
     final updatedSession = currentSession.copyWith(
       exercises: updatedExercises,
       totalSets: newTotalSets,
+    );
+
+    // Mark changes and update state
+    _hasPendingChanges = true;
+    _syncStatus = SyncStatus.pending;
+    state = AsyncValue.data(updatedSession);
+
+    // Save to local backup immediately
+    SessionStorage.saveSession(updatedSession.toProto());
+  }
+
+  /// Delete a set from an exercise (local-first, synced via timer)
+  void deleteSet({required String sessionSetId}) {
+    final currentSession = state.value;
+    if (currentSession == null) return;
+
+    // Track if we found and removed the set
+    bool found = false;
+    bool wasCompleted = false;
+
+    // Remove the set from the exercise
+    final updatedSession = currentSession.copyWith(
+      exercises: currentSession.exercises.map((exercise) {
+        final setToRemove = exercise.sets.where((s) => s.id == sessionSetId).firstOrNull;
+        if (setToRemove == null) return exercise;
+
+        found = true;
+        wasCompleted = setToRemove.isCompleted;
+
+        // Add to deletion list if it has a real ID (not a new unsaved set)
+        if (sessionSetId.isNotEmpty) {
+          _deletedSetIds.add(sessionSetId);
+        }
+
+        // Remove the set and renumber remaining sets
+        final remainingSets = exercise.sets.where((s) => s.id != sessionSetId).toList();
+        return exercise.copyWith(
+          sets: remainingSets.asMap().entries.map((entry) {
+            return entry.value.copyWith(setNumber: entry.key + 1);
+          }).toList(),
+        );
+      }).toList(),
+    );
+
+    if (found) {
+      // Recalculate totals
+      final newTotalSets = updatedSession.exercises.fold(0, (sum, ex) => sum + ex.sets.length);
+      final newCompletedSets = wasCompleted
+          ? (updatedSession.completedSets - 1).clamp(0, newTotalSets)
+          : updatedSession.completedSets.clamp(0, newTotalSets);
+
+      final finalSession = updatedSession.copyWith(
+        totalSets: newTotalSets,
+        completedSets: newCompletedSets,
+      );
+
+      // Mark changes and update state
+      _hasPendingChanges = true;
+      _syncStatus = SyncStatus.pending;
+      state = AsyncValue.data(finalSession);
+
+      // Save to local backup immediately
+      SessionStorage.saveSession(finalSession.toProto());
+    }
+  }
+
+  /// Delete an exercise from the session (local-first, synced via timer)
+  void deleteExercise({required String sessionExerciseId}) {
+    final currentSession = state.value;
+    if (currentSession == null) return;
+
+    // Find the exercise to delete
+    final exerciseToDelete = currentSession.exercises
+        .where((e) => e.id == sessionExerciseId)
+        .firstOrNull;
+
+    if (exerciseToDelete == null) return;
+
+    // Add to deletion list if it has a real ID
+    if (sessionExerciseId.isNotEmpty) {
+      _deletedExerciseIds.add(sessionExerciseId);
+    }
+
+    // Calculate sets being removed
+    final setsToRemove = exerciseToDelete.sets.length;
+    final completedSetsToRemove = exerciseToDelete.sets.where((s) => s.isCompleted).length;
+
+    // Remove the exercise and reorder remaining
+    final remainingExercises = currentSession.exercises
+        .where((e) => e.id != sessionExerciseId)
+        .toList();
+
+    final reorderedExercises = remainingExercises.asMap().entries.map((entry) {
+      return entry.value.copyWith(displayOrder: entry.key);
+    }).toList();
+
+    // Recalculate totals
+    final newTotalSets = currentSession.totalSets - setsToRemove;
+    final newCompletedSets = (currentSession.completedSets - completedSetsToRemove).clamp(0, newTotalSets);
+
+    final updatedSession = currentSession.copyWith(
+      exercises: reorderedExercises,
+      totalSets: newTotalSets,
+      completedSets: newCompletedSets,
+    );
+
+    // Mark changes and update state
+    _hasPendingChanges = true;
+    _syncStatus = SyncStatus.pending;
+    state = AsyncValue.data(updatedSession);
+
+    // Save to local backup immediately
+    SessionStorage.saveSession(updatedSession.toProto());
+  }
+
+  /// Delete all exercises in a section (local-first, synced via timer)
+  void deleteSection({required String sectionName}) {
+    final currentSession = state.value;
+    if (currentSession == null) return;
+
+    // Find all exercises in this section
+    final exercisesToDelete = currentSession.exercises
+        .where((e) => e.sectionName == sectionName)
+        .toList();
+
+    if (exercisesToDelete.isEmpty) return;
+
+    // Add all exercise IDs to deletion list (if they have real IDs)
+    for (final exercise in exercisesToDelete) {
+      if (exercise.id.isNotEmpty) {
+        _deletedExerciseIds.add(exercise.id);
+      }
+    }
+
+    // Calculate sets being removed
+    final setsToRemove = exercisesToDelete.fold(0, (sum, ex) => sum + ex.sets.length);
+    final completedSetsToRemove = exercisesToDelete.fold(
+      0,
+      (sum, ex) => sum + ex.sets.where((s) => s.isCompleted).length,
+    );
+
+    // Remove all exercises in this section and reorder remaining
+    final remainingExercises = currentSession.exercises
+        .where((e) => e.sectionName != sectionName)
+        .toList();
+
+    final reorderedExercises = remainingExercises.asMap().entries.map((entry) {
+      return entry.value.copyWith(displayOrder: entry.key);
+    }).toList();
+
+    // Recalculate totals
+    final newTotalSets = currentSession.totalSets - setsToRemove;
+    final newCompletedSets = (currentSession.completedSets - completedSetsToRemove).clamp(0, newTotalSets);
+
+    final updatedSession = currentSession.copyWith(
+      exercises: reorderedExercises,
+      totalSets: newTotalSets,
+      completedSets: newCompletedSets,
     );
 
     // Mark changes and update state

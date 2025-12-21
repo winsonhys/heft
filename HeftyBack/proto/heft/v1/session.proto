@@ -124,6 +124,8 @@ message SyncSessionRequest {
   string session_id = 1;
   repeated SyncSetData sets = 2;
   repeated SyncExerciseData exercises = 3;  // For adding new exercises
+  repeated string deleted_set_ids = 4;      // IDs of sets to delete
+  repeated string deleted_exercise_ids = 5; // IDs of exercises to delete (cascades to sets)
 }
 
 message SyncSetData {

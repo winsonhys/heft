@@ -518,6 +518,40 @@ func (r *SessionRepository) AbandonSession(ctx context.Context, id, userID strin
 	return err
 }
 
+// DeleteSets deletes sets by IDs (validates they belong to the session)
+func (r *SessionRepository) DeleteSets(ctx context.Context, sessionID string, setIDs []string) error {
+	if len(setIDs) == 0 {
+		return nil
+	}
+
+	// Delete sets that belong to this session's exercises
+	query := `
+		DELETE FROM session_sets
+		WHERE id = ANY($1)
+		  AND session_exercise_id IN (
+		      SELECT id FROM session_exercises WHERE session_id = $2
+		  )
+	`
+	_, err := r.pool.Exec(ctx, query, setIDs, sessionID)
+	return err
+}
+
+// DeleteExercises deletes exercises by IDs (validates they belong to the session)
+// Sets are deleted via CASCADE
+func (r *SessionRepository) DeleteExercises(ctx context.Context, sessionID string, exerciseIDs []string) error {
+	if len(exerciseIDs) == 0 {
+		return nil
+	}
+
+	query := `
+		DELETE FROM session_exercises
+		WHERE id = ANY($1)
+		  AND session_id = $2
+	`
+	_, err := r.pool.Exec(ctx, query, exerciseIDs, sessionID)
+	return err
+}
+
 // List retrieves sessions for a user
 func (r *SessionRepository) List(ctx context.Context, userID string, status *string, startDate, endDate *time.Time, limit, offset int) ([]*WorkoutSession, int, error) {
 	countQuery := `

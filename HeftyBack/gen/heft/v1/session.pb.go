@@ -776,12 +776,14 @@ func (x *GetSessionResponse) GetSession() *Session {
 
 // SyncSession - Periodic full session state sync
 type SyncSessionRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	SessionId     string                 `protobuf:"bytes,1,opt,name=session_id,json=sessionId,proto3" json:"session_id,omitempty"`
-	Sets          []*SyncSetData         `protobuf:"bytes,2,rep,name=sets,proto3" json:"sets,omitempty"`
-	Exercises     []*SyncExerciseData    `protobuf:"bytes,3,rep,name=exercises,proto3" json:"exercises,omitempty"` // For adding new exercises
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state              protoimpl.MessageState `protogen:"open.v1"`
+	SessionId          string                 `protobuf:"bytes,1,opt,name=session_id,json=sessionId,proto3" json:"session_id,omitempty"`
+	Sets               []*SyncSetData         `protobuf:"bytes,2,rep,name=sets,proto3" json:"sets,omitempty"`
+	Exercises          []*SyncExerciseData    `protobuf:"bytes,3,rep,name=exercises,proto3" json:"exercises,omitempty"`                                               // For adding new exercises
+	DeletedSetIds      []string               `protobuf:"bytes,4,rep,name=deleted_set_ids,json=deletedSetIds,proto3" json:"deleted_set_ids,omitempty"`                // IDs of sets to delete
+	DeletedExerciseIds []string               `protobuf:"bytes,5,rep,name=deleted_exercise_ids,json=deletedExerciseIds,proto3" json:"deleted_exercise_ids,omitempty"` // IDs of exercises to delete (cascades to sets)
+	unknownFields      protoimpl.UnknownFields
+	sizeCache          protoimpl.SizeCache
 }
 
 func (x *SyncSessionRequest) Reset() {
@@ -831,6 +833,20 @@ func (x *SyncSessionRequest) GetSets() []*SyncSetData {
 func (x *SyncSessionRequest) GetExercises() []*SyncExerciseData {
 	if x != nil {
 		return x.Exercises
+	}
+	return nil
+}
+
+func (x *SyncSessionRequest) GetDeletedSetIds() []string {
+	if x != nil {
+		return x.DeletedSetIds
+	}
+	return nil
+}
+
+func (x *SyncSessionRequest) GetDeletedExerciseIds() []string {
+	if x != nil {
+		return x.DeletedExerciseIds
 	}
 	return nil
 }
@@ -1585,12 +1601,14 @@ const file_heft_v1_session_proto_rawDesc = "" +
 	"\x11GetSessionRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\"@\n" +
 	"\x12GetSessionResponse\x12*\n" +
-	"\asession\x18\x01 \x01(\v2\x10.heft.v1.SessionR\asession\"\x96\x01\n" +
+	"\asession\x18\x01 \x01(\v2\x10.heft.v1.SessionR\asession\"\xf0\x01\n" +
 	"\x12SyncSessionRequest\x12\x1d\n" +
 	"\n" +
 	"session_id\x18\x01 \x01(\tR\tsessionId\x12(\n" +
 	"\x04sets\x18\x02 \x03(\v2\x14.heft.v1.SyncSetDataR\x04sets\x127\n" +
-	"\texercises\x18\x03 \x03(\v2\x19.heft.v1.SyncExerciseDataR\texercises\"\x88\x03\n" +
+	"\texercises\x18\x03 \x03(\v2\x19.heft.v1.SyncExerciseDataR\texercises\x12&\n" +
+	"\x0fdeleted_set_ids\x18\x04 \x03(\tR\rdeletedSetIds\x120\n" +
+	"\x14deleted_exercise_ids\x18\x05 \x03(\tR\x12deletedExerciseIds\"\x88\x03\n" +
 	"\vSyncSetData\x12\x10\n" +
 	"\x02id\x18\x01 \x01(\tH\x00R\x02id\x120\n" +
 	"\x13session_exercise_id\x18\t \x01(\tH\x00R\x11sessionExerciseId\x12 \n" +

@@ -230,6 +230,20 @@ func (h *SessionHandler) SyncSession(ctx context.Context, req *connect.Request[h
 		}
 	}
 
+	// Process deletions first (before sync to avoid conflicts)
+	if len(req.Msg.DeletedSetIds) > 0 {
+		err = h.sessionRepo.DeleteSets(ctx, req.Msg.SessionId, req.Msg.DeletedSetIds)
+		if err != nil {
+			return nil, handleDBError(err)
+		}
+	}
+	if len(req.Msg.DeletedExerciseIds) > 0 {
+		err = h.sessionRepo.DeleteExercises(ctx, req.Msg.SessionId, req.Msg.DeletedExerciseIds)
+		if err != nil {
+			return nil, handleDBError(err)
+		}
+	}
+
 	// Perform sync
 	err = h.sessionRepo.SyncSets(ctx, req.Msg.SessionId, sets)
 	if err != nil {

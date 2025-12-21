@@ -226,6 +226,8 @@ const SyncSessionRequest$json = {
     {'1': 'session_id', '3': 1, '4': 1, '5': 9, '10': 'sessionId'},
     {'1': 'sets', '3': 2, '4': 3, '5': 11, '6': '.heft.v1.SyncSetData', '10': 'sets'},
     {'1': 'exercises', '3': 3, '4': 3, '5': 11, '6': '.heft.v1.SyncExerciseData', '10': 'exercises'},
+    {'1': 'deleted_set_ids', '3': 4, '4': 3, '5': 9, '10': 'deletedSetIds'},
+    {'1': 'deleted_exercise_ids', '3': 5, '4': 3, '5': 9, '10': 'deletedExerciseIds'},
   ],
 };
 
@@ -233,7 +235,9 @@ const SyncSessionRequest$json = {
 final $typed_data.Uint8List syncSessionRequestDescriptor = $convert.base64Decode(
     'ChJTeW5jU2Vzc2lvblJlcXVlc3QSHQoKc2Vzc2lvbl9pZBgBIAEoCVIJc2Vzc2lvbklkEigKBH'
     'NldHMYAiADKAsyFC5oZWZ0LnYxLlN5bmNTZXREYXRhUgRzZXRzEjcKCWV4ZXJjaXNlcxgDIAMo'
-    'CzIZLmhlZnQudjEuU3luY0V4ZXJjaXNlRGF0YVIJZXhlcmNpc2Vz');
+    'CzIZLmhlZnQudjEuU3luY0V4ZXJjaXNlRGF0YVIJZXhlcmNpc2VzEiYKD2RlbGV0ZWRfc2V0X2'
+    'lkcxgEIAMoCVINZGVsZXRlZFNldElkcxIwChRkZWxldGVkX2V4ZXJjaXNlX2lkcxgFIAMoCVIS'
+    'ZGVsZXRlZEV4ZXJjaXNlSWRz');
 
 @$core.Deprecated('Use syncSetDataDescriptor instead')
 const SyncSetData$json = {

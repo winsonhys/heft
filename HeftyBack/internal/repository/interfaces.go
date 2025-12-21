@@ -44,6 +44,8 @@ type SessionRepositoryInterface interface {
 	AddExercise(ctx context.Context, sessionID, exerciseID string, displayOrder int, sectionName *string) (*SessionExercise, error)
 	AddSet(ctx context.Context, sessionExerciseID string, setNumber int, targetWeightKg *float64, targetReps, targetTimeSeconds *int, isBodyweight bool) (*SessionSet, error)
 	SyncSets(ctx context.Context, sessionID string, sets []SyncSetInput) error
+	DeleteSets(ctx context.Context, sessionID string, setIDs []string) error
+	DeleteExercises(ctx context.Context, sessionID string, exerciseIDs []string) error
 	FinishSession(ctx context.Context, id, userID string, notes *string) (*WorkoutSession, error)
 	AbandonSession(ctx context.Context, id, userID string) error
 	List(ctx context.Context, userID string, status *string, startDate, endDate *time.Time, limit, offset int) ([]*WorkoutSession, int, error)

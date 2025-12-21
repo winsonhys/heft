@@ -1124,6 +1124,8 @@ class SyncSessionRequest extends $pb.GeneratedMessage {
     $core.String? sessionId,
     $core.Iterable<SyncSetData>? sets,
     $core.Iterable<SyncExerciseData>? exercises,
+    $core.Iterable<$core.String>? deletedSetIds,
+    $core.Iterable<$core.String>? deletedExerciseIds,
   }) {
     final $result = create();
     if (sessionId != null) {
@@ -1135,6 +1137,12 @@ class SyncSessionRequest extends $pb.GeneratedMessage {
     if (exercises != null) {
       $result.exercises.addAll(exercises);
     }
+    if (deletedSetIds != null) {
+      $result.deletedSetIds.addAll(deletedSetIds);
+    }
+    if (deletedExerciseIds != null) {
+      $result.deletedExerciseIds.addAll(deletedExerciseIds);
+    }
     return $result;
   }
   SyncSessionRequest._() : super();
@@ -1145,6 +1153,8 @@ class SyncSessionRequest extends $pb.GeneratedMessage {
     ..aOS(1, _omitFieldNames ? '' : 'sessionId')
     ..pc<SyncSetData>(2, _omitFieldNames ? '' : 'sets', $pb.PbFieldType.PM, subBuilder: SyncSetData.create)
     ..pc<SyncExerciseData>(3, _omitFieldNames ? '' : 'exercises', $pb.PbFieldType.PM, subBuilder: SyncExerciseData.create)
+    ..pPS(4, _omitFieldNames ? '' : 'deletedSetIds')
+    ..pPS(5, _omitFieldNames ? '' : 'deletedExerciseIds')
     ..hasRequiredFields = false
   ;
 
@@ -1183,6 +1193,12 @@ class SyncSessionRequest extends $pb.GeneratedMessage {
 
   @$pb.TagNumber(3)
   $core.List<SyncExerciseData> get exercises => $_getList(2);
+
+  @$pb.TagNumber(4)
+  $core.List<$core.String> get deletedSetIds => $_getList(3);
+
+  @$pb.TagNumber(5)
+  $core.List<$core.String> get deletedExerciseIds => $_getList(4);
 }
 
 enum SyncSetData_SetIdentifier {

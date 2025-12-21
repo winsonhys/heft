@@ -11,12 +11,16 @@ class TrackerSectionCard extends StatefulWidget {
   final SessionExerciseModel exercise;
   final Function(String setId, double? weight, int? reps, int? timeSeconds) onSetCompleted;
   final VoidCallback? onAddSet;
+  final Function(String setId)? onSetDeleted;
+  final VoidCallback? onDeleteExercise;
 
   const TrackerSectionCard({
     super.key,
     required this.exercise,
     required this.onSetCompleted,
     this.onAddSet,
+    this.onSetDeleted,
+    this.onDeleteExercise,
   });
 
   @override
@@ -92,18 +96,32 @@ class _TrackerSectionCardState extends State<TrackerSectionCard> with SingleTick
                       ),
                     ),
                   ),
-                  GestureDetector(
-                    onTap: () {
-                      // TODO: Show exercise options menu
-                    },
-                    child: const Padding(
-                      padding: EdgeInsets.all(4),
-                      child: Icon(
-                        Icons.more_vert,
-                        size: 18,
-                        color: AppColors.textMuted,
-                      ),
+                  PopupMenuButton<String>(
+                    padding: EdgeInsets.zero,
+                    iconSize: 18,
+                    icon: const Icon(
+                      Icons.more_vert,
+                      size: 18,
+                      color: AppColors.textMuted,
                     ),
+                    color: AppColors.bgCard,
+                    onSelected: (value) {
+                      if (value == 'delete' && widget.onDeleteExercise != null) {
+                        widget.onDeleteExercise!();
+                      }
+                    },
+                    itemBuilder: (context) => [
+                      const PopupMenuItem(
+                        value: 'delete',
+                        child: Row(
+                          children: [
+                            Icon(Icons.delete_outline, size: 18, color: AppColors.accentRed),
+                            SizedBox(width: 8),
+                            Text('Delete Exercise', style: TextStyle(color: AppColors.accentRed)),
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
@@ -153,6 +171,9 @@ class _TrackerSectionCardState extends State<TrackerSectionCard> with SingleTick
                         set: set,
                         isTimeBased: _isTimeBased,
                         onComplete: widget.onSetCompleted,
+                        onDelete: widget.onSetDeleted != null
+                            ? () => widget.onSetDeleted!(set.id)
+                            : null,
                       )),
                     ],
                   ),

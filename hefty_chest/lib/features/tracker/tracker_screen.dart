@@ -338,13 +338,26 @@ class TrackerScreen extends HookConsumerWidget {
                             color: AppColors.textPrimary,
                           ),
                         ),
-                        GestureDetector(
-                          onTap: () => _showAddExerciseModal(context, ref, sectionName),
-                          child: const Icon(
-                            Icons.add_circle_outline,
-                            color: AppColors.textSecondary,
-                            size: 22,
-                          ),
+                        Row(
+                          children: [
+                            GestureDetector(
+                              onTap: () => _showAddExerciseModal(context, ref, sectionName),
+                              child: const Icon(
+                                Icons.add_circle_outline,
+                                color: AppColors.textSecondary,
+                                size: 22,
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            GestureDetector(
+                              onTap: () => _confirmDeleteSection(context, ref, sectionName),
+                              child: const Icon(
+                                Icons.delete_outline,
+                                color: AppColors.textMuted,
+                                size: 20,
+                              ),
+                            ),
+                          ],
                         ),
                       ],
                     ),
@@ -384,6 +397,10 @@ class TrackerScreen extends HookConsumerWidget {
                                   .read(activeSessionProvider.notifier)
                                   .addSet(sessionExerciseId: exercise.id);
                             },
+                            onSetDeleted: (setId) {
+                              ref.read(activeSessionProvider.notifier).deleteSet(sessionSetId: setId);
+                            },
+                            onDeleteExercise: () => _confirmDeleteExercise(context, ref, exercise),
                           );
                         }).toList(),
                       ),
@@ -409,6 +426,10 @@ class TrackerScreen extends HookConsumerWidget {
                               .read(activeSessionProvider.notifier)
                               .addSet(sessionExerciseId: exercise.id);
                         },
+                        onSetDeleted: (setId) {
+                          ref.read(activeSessionProvider.notifier).deleteSet(sessionSetId: setId);
+                        },
+                        onDeleteExercise: () => _confirmDeleteExercise(context, ref, exercise),
                       );
                     }),
                 ],
@@ -504,5 +525,63 @@ class TrackerScreen extends HookConsumerWidget {
 
     // Step 2: Show exercise picker with new section name
     _showAddExerciseModal(context, ref, sectionName);
+  }
+
+  Future<void> _confirmDeleteExercise(BuildContext context, WidgetRef ref, SessionExerciseModel exercise) async {
+    final confirm = await showFDialog<bool>(
+      context: context,
+      builder: (context, style, animation) => FDialog(
+        style: style,
+        animation: animation,
+        direction: Axis.horizontal,
+        title: const Text('Delete Exercise?'),
+        body: Text('Are you sure you want to delete "${exercise.exerciseName}"?'),
+        actions: [
+          FButton(
+            style: FButtonStyle.ghost(),
+            onPress: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          FButton(
+            style: FButtonStyle.destructive(),
+            onPress: () => Navigator.pop(context, true),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm == true) {
+      ref.read(activeSessionProvider.notifier).deleteExercise(sessionExerciseId: exercise.id);
+    }
+  }
+
+  Future<void> _confirmDeleteSection(BuildContext context, WidgetRef ref, String sectionName) async {
+    final confirm = await showFDialog<bool>(
+      context: context,
+      builder: (context, style, animation) => FDialog(
+        style: style,
+        animation: animation,
+        direction: Axis.horizontal,
+        title: const Text('Delete Section?'),
+        body: Text('Are you sure you want to delete the "$sectionName" section and all its exercises?'),
+        actions: [
+          FButton(
+            style: FButtonStyle.ghost(),
+            onPress: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          FButton(
+            style: FButtonStyle.destructive(),
+            onPress: () => Navigator.pop(context, true),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm == true) {
+      ref.read(activeSessionProvider.notifier).deleteSection(sectionName: sectionName);
+    }
   }
 }
