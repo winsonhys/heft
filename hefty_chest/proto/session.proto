@@ -57,6 +57,7 @@ message SessionExercise {
   string section_name = 7;
   string notes = 8;
   repeated SessionSet sets = 9;
+  optional string superset_id = 10;  // Exercises with same ID are in same superset
 }
 
 // Session set
@@ -156,6 +157,7 @@ message NewExerciseData {
   int32 display_order = 2;
   string section_name = 3;
   int32 num_sets = 4;           // How many empty sets to create (default 3)
+  optional string superset_id = 5;   // For adding to existing superset group
 }
 
 message SyncSessionResponse {

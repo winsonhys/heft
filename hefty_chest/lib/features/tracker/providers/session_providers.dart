@@ -60,12 +60,15 @@ class ActiveSession extends _$ActiveSession {
       // Build exercises array for new exercises
       final exercises = <SyncExerciseData>[];
       for (final pending in _pendingExercises) {
-        exercises.add(SyncExerciseData()
-          ..newExercise = (NewExerciseData()
-            ..exerciseId = pending.exerciseId
-            ..displayOrder = pending.displayOrder
-            ..sectionName = pending.sectionName
-            ..numSets = pending.numSets));
+        final newExData = NewExerciseData()
+          ..exerciseId = pending.exerciseId
+          ..displayOrder = pending.displayOrder
+          ..sectionName = pending.sectionName
+          ..numSets = pending.numSets;
+        if (pending.supersetId != null) {
+          newExData.supersetId = pending.supersetId!;
+        }
+        exercises.add(SyncExerciseData()..newExercise = newExData);
       }
 
       // Build sync request with all sets
@@ -344,6 +347,7 @@ class ActiveSession extends _$ActiveSession {
     required ExerciseType exerciseType,
     required String sectionName,
     int numSets = 3,
+    String? supersetId,
   }) {
     final currentSession = state.value;
     if (currentSession == null) return;
@@ -359,6 +363,7 @@ class ActiveSession extends _$ActiveSession {
       exerciseType: exerciseType,
       displayOrder: displayOrder,
       sectionName: sectionName,
+      supersetId: supersetId,
       sets: List.generate(
         numSets,
         (i) => SessionSetModel(
@@ -374,6 +379,7 @@ class ActiveSession extends _$ActiveSession {
       displayOrder: displayOrder,
       sectionName: sectionName,
       numSets: numSets,
+      supersetId: supersetId,
     ));
 
     // Update state with new exercise
@@ -658,11 +664,13 @@ class _PendingExercise {
   final int displayOrder;
   final String sectionName;
   final int numSets;
+  final String? supersetId;
 
   _PendingExercise({
     required this.exerciseId,
     required this.displayOrder,
     required this.sectionName,
     required this.numSets,
+    this.supersetId,
   });
 }

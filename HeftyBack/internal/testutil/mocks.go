@@ -107,7 +107,7 @@ func (m *MockExerciseRepository) Search(ctx context.Context, query string, userI
 type MockSessionRepository struct {
 	CreateFunc          func(ctx context.Context, userID string, workoutTemplateID, programID *string, programDayNumber *int, name *string) (*repository.WorkoutSession, error)
 	GetByIDFunc         func(ctx context.Context, id, userID string) (*repository.WorkoutSession, error)
-	AddExerciseFunc     func(ctx context.Context, sessionID, exerciseID string, displayOrder int, sectionName *string) (*repository.SessionExercise, error)
+	AddExerciseFunc     func(ctx context.Context, sessionID, exerciseID string, displayOrder int, sectionName, supersetID *string) (*repository.SessionExercise, error)
 	AddSetFunc          func(ctx context.Context, sessionExerciseID string, setNumber int, targetWeightKg *float64, targetReps, targetTimeSeconds *int, isBodyweight bool) (*repository.SessionSet, error)
 	SyncSetsFunc        func(ctx context.Context, sessionID string, sets []repository.SyncSetInput) error
 	DeleteSetsFunc      func(ctx context.Context, sessionID string, setIDs []string) error
@@ -131,9 +131,9 @@ func (m *MockSessionRepository) GetByID(ctx context.Context, id, userID string) 
 	return nil, nil
 }
 
-func (m *MockSessionRepository) AddExercise(ctx context.Context, sessionID, exerciseID string, displayOrder int, sectionName *string) (*repository.SessionExercise, error) {
+func (m *MockSessionRepository) AddExercise(ctx context.Context, sessionID, exerciseID string, displayOrder int, sectionName, supersetID *string) (*repository.SessionExercise, error) {
 	if m.AddExerciseFunc != nil {
-		return m.AddExerciseFunc(ctx, sessionID, exerciseID, displayOrder, sectionName)
+		return m.AddExerciseFunc(ctx, sessionID, exerciseID, displayOrder, sectionName, supersetID)
 	}
 	return nil, nil
 }

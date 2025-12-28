@@ -288,8 +288,8 @@ class TrackerScreen extends HookConsumerWidget {
                   itemBuilder: (context, sectionIndex) {
               final sectionName = exercisesBySection.keys.elementAt(sectionIndex);
               final exercises = exercisesBySection[sectionName]!;
-              final isSuperset = exercises.length > 1 &&
-                  sectionName.toLowerCase().contains('superset');
+              // Check if any exercise in this section has a superset_id
+              final isSuperset = exercises.any((e) => e.supersetId != null);
 
               return Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -300,13 +300,35 @@ class TrackerScreen extends HookConsumerWidget {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text(
-                          sectionName,
-                          style: const TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.textPrimary,
-                          ),
+                        Row(
+                          children: [
+                            Text(
+                              sectionName,
+                              style: const TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.w600,
+                                color: AppColors.textPrimary,
+                              ),
+                            ),
+                            if (isSuperset) ...[
+                              const SizedBox(width: 8),
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                decoration: BoxDecoration(
+                                  color: AppColors.accentBlue,
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: const Text(
+                                  'Superset',
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w500,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ],
                         ),
                         Row(
                           children: [

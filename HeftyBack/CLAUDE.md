@@ -4,7 +4,7 @@
 
 | Component | Technology |
 |-----------|------------|
-| Language | Go 1.23 |
+| Language | Go 1.25 |
 | API Framework | Connect-RPC (connectrpc.com/connect v1.16.0) |
 | Database | PostgreSQL via Supabase |
 | DB Driver | pgx v5 (github.com/jackc/pgx/v5) |
@@ -163,10 +163,7 @@ mux.Handle(heftv1connect.NewExerciseServiceHandler(exerciseHandler))
 ## Services
 
 ### AuthService
-- `Register(email, password)` → New user with JWT token
-- `Login(email, password)` → JWT token pair (access + refresh)
-- `RefreshToken(refresh_token)` → New access token
-- `Logout(refresh_token)` → Success
+- `Login(email)` → JWT token + user (creates new user if doesn't exist)
 
 ### UserService
 - `GetProfile(user_id)` → User profile data
@@ -184,9 +181,11 @@ mux.Handle(heftv1connect.NewExerciseServiceHandler(exerciseHandler))
 - `SearchExercises(query, limit)` → Matching exercises
 
 ### WorkoutService
-- `ListWorkouts(user_id, pagination)` → Workout templates
+- `ListWorkouts(pagination)` → Workout templates
 - `GetWorkout(workout_id)` → Full workout with sections/sets
-- `CreateWorkout(user_id, name, description)` → New template
+- `CreateWorkout(name, description)` → New template
+- `UpdateWorkout(workout_id, name, description, sections)` → Updated workout
+- `DuplicateWorkout(workout_id, new_name?)` → Duplicated workout with new ID
 - `DeleteWorkout(workout_id)` → Success
 - `AddSection(workout_id, name, is_superset)` → New section
 - `AddSectionItem(section_id, exercise_id | rest_duration)` → New item
@@ -202,19 +201,24 @@ mux.Handle(heftv1connect.NewExerciseServiceHandler(exerciseHandler))
 - `DeleteProgram(program_id)` → Success
 
 ### SessionService
-- `StartSession(workout_template_id, program_id?)` → New session
+- `StartSession(workout_template_id, program_id?)` → New session (returns 409 AlreadyExists if user has active session)
 - `GetSession(session_id)` → Session with exercises/sets
-- `SyncSession(session_id, exercises, sets)` → Synced session state (replaces CompleteSet/UpdateSet)
+- `SyncSession(session_id, sets, exercises, deleted_set_ids, deleted_exercise_ids)` → Synced session
+  - `sets`: List of `SyncSetInput` using oneof pattern (`existing_set_id` OR `new_set` with temp ID)
+  - `exercises`: List of new exercises to add (with `superset_id` support)
+  - `deleted_set_ids`: IDs of sets to remove
+  - `deleted_exercise_ids`: IDs of exercises to remove
 - `FinishSession(session_id, notes)` → Completed session
 - `AbandonSession(session_id)` → Abandoned session
-- `ListSessionHistory(pagination)` → Session history
+- `ListSessions(pagination)` → Session history
 
 ### ProgressService
-- `GetDashboard(user_id)` → Overview stats
-- `GetWeeklyActivity(user_id, week_start)` → Weekly calendar
-- `GetPersonalRecords(user_id, pagination)` → PRs list
-- `GetExerciseProgress(user_id, exercise_id)` → Exercise-specific progress
-- `GetStreak(user_id)` → Current workout streak
+- `GetDashboardStats()` → Overview stats (total workouts, current streak, etc.)
+- `GetCalendarMonth(year, month)` → Monthly workout activity
+- `GetWeeklyActivity(week_start)` → Weekly calendar
+- `GetPersonalRecords(pagination)` → PRs list
+- `GetExerciseProgress(exercise_id)` → Exercise-specific progress
+- `GetStreak()` → Current workout streak
 
 ## Commands (Makefile)
 
@@ -412,8 +416,16 @@ func (m *MockUserRepository) GetProfile(ctx context.Context, userID string) (*re
 
 **Workout Sessions:**
 - `workout_sessions` - id, user_id, workout_template_id, status (in_progress|completed|abandoned), started_at, completed_at
-- `session_exercises` - session_id, exercise_id, display_order
+- `session_exercises` - session_id, exercise_id, display_order, superset_id (UUID grouping exercises in same superset)
 - `session_sets` - session_exercise_id, set_number, weight_kg, reps, is_completed, rpe
+
+### Superset Support
+
+The `superset_id` field in `session_exercises` groups exercises that belong to the same superset:
+- When a workout section is marked as `is_superset = true`, all its exercises share a `superset_id`
+- The `superset_id` is a UUID generated when starting a session from a template
+- Exercises with the same `superset_id` should be performed in alternating sets
+- Used by frontend to display superset badges and grouping
 
 **Progress Tracking:**
 - `personal_records` - user_id, exercise_id, weight_kg, reps, one_rep_max_kg, achieved_at
@@ -506,6 +518,7 @@ func (h *UserHandler) GetProfile(ctx context.Context, req *connect.Request[heftv
 - `CodePermissionDenied` (403) - User doesn't exist in DB (FK violation)
 - `CodeInvalidArgument` (400) - Missing required fields
 - `CodeNotFound` (404) - Resource not found
+- `CodeAlreadyExists` (409) - Resource already exists (e.g., user has active session)
 - `CodeInternal` (500) - Other database errors
 
 ### User ID Extraction from JWT
@@ -553,6 +566,34 @@ err := r.pool.QueryRow(ctx, `
     SELECT * FROM workout_templates WHERE id = $1
 `, workoutID).Scan(...)
 ```
+
+## Middleware
+
+Located in `internal/middleware/`:
+
+### Auth Middleware (`auth.go`)
+JWT authentication interceptor that:
+- Validates Bearer tokens from `Authorization` header
+- Extracts user ID from JWT claims and adds to context
+- Skips auth for public endpoints (Login)
+
+### Logging Middleware (`logging.go`)
+Request logging with method, duration, and status.
+
+Registration in `cmd/server/main.go`:
+```go
+interceptors := connect.WithInterceptors(
+    middleware.NewLoggingInterceptor(),
+    middleware.NewAuthInterceptor(jwtSecret, publicPaths),
+)
+```
+
+## Test Reset Endpoint
+
+When `TEST_MODE=true`, a special endpoint is available:
+- `POST /test/reset` - Clears all user data from database
+- Used by integration tests to reset state between test runs
+- **Never enabled in production**
 
 ## Environment Variables
 

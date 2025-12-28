@@ -57,6 +57,7 @@ sealed class SessionExerciseModel with _$SessionExerciseModel {
     @Default(ExerciseType.EXERCISE_TYPE_UNSPECIFIED) ExerciseType exerciseType,
     @Default(0) int displayOrder,
     @Default('') String notes,
+    String? supersetId, // Exercises with same ID are in same superset
   }) = _SessionExerciseModel;
 
   /// Convert from protobuf SessionExercise
@@ -70,6 +71,7 @@ sealed class SessionExerciseModel with _$SessionExerciseModel {
         exerciseType: pb.exerciseType,
         displayOrder: pb.displayOrder,
         notes: pb.notes,
+        supersetId: pb.hasSupersetId() ? pb.supersetId : null,
       );
 }
 
@@ -147,6 +149,10 @@ extension SessionExerciseModelToProto on SessionExerciseModel {
       ..exerciseType = exerciseType
       ..displayOrder = displayOrder
       ..notes = notes;
+
+    if (supersetId != null) {
+      exercise.supersetId = supersetId!;
+    }
 
     exercise.sets.addAll(sets.map((s) => s.toProto()));
     return exercise;

@@ -14,7 +14,7 @@ This is a fitness platform that allows users to create workout templates, follow
 ┌─────────────────────────────────────────────────────────────┐
 │                    hefty_chest (Flutter)                     │
 │  ┌─────────────┐  ┌─────────────┐  ┌─────────────────────┐  │
-│  │   Riverpod  │  │  go_router  │  │  shadcn_flutter UI  │  │
+│  │   Riverpod  │  │  go_router  │  │     forui UI        │  │
 │  │   (State)   │  │  (Routing)  │  │    (Components)     │  │
 │  └──────┬──────┘  └─────────────┘  └─────────────────────┘  │
 │         │                                                    │
@@ -44,12 +44,12 @@ This is a fitness platform that allows users to create workout templates, follow
 
 | Component | Backend (HeftyBack) | Frontend (hefty_chest) |
 |-----------|---------------------|------------------------|
-| Language | Go 1.23 | Dart/Flutter 3.10.3+ |
-| API | Connect-RPC | Connect-RPC Client |
+| Language | Go 1.25 | Dart/Flutter 3.10.3+ |
+| API | Connect-RPC v1.16.0 | Connect-RPC v1.0.0 |
 | Database | PostgreSQL (Supabase) | - |
-| State Mgmt | - | Riverpod 3.0 |
-| UI | - | shadcn_flutter |
-| Routing | - | go_router |
+| State Mgmt | - | Riverpod 3.0 + Hooks |
+| UI | - | forui 0.17.0 |
+| Routing | - | go_router 17.0 |
 | Build Tool | Makefile | Flutter CLI |
 
 ## Communication Protocol
@@ -60,12 +60,14 @@ This is a fitness platform that allows users to create workout templates, follow
   - `HeftyBack/proto/heft/v1/*.proto`
   - `hefty_chest/proto/*.proto`
 - **Code Generation:** Buf CLI (`buf generate`)
-- **Backend URL:** `http://localhost:8080`
+- **Backend URL:**
+  - Debug: `http://localhost:8080`
+  - Release: `https://heft-backend.onrender.com`
 
 ## Quick Start
 
 ### Prerequisites
-- Go 1.23+
+- Go 1.25+
 - Flutter SDK 3.10.3+
 - PostgreSQL 15+ (or Supabase account)
 - Buf CLI (`brew install bufbuild/buf/buf`)
@@ -150,7 +152,7 @@ heft/
     ├── lib/
     │   ├── app/                # App config, router
     │   ├── core/               # RPC client, config
-    │   ├── features/           # Feature modules (7)
+    │   ├── features/           # Feature modules (9)
     │   ├── shared/             # Theme, widgets
     │   └── gen/                # Generated proto code
     ├── proto/                  # Proto definitions
@@ -163,13 +165,13 @@ The backend exposes 7 RPC services:
 
 | Service | Purpose | Key Operations |
 |---------|---------|----------------|
-| AuthService | Authentication | Register, Login, RefreshToken, Logout |
+| AuthService | Authentication | Login (handles both new/existing users) |
 | UserService | User management | GetProfile, UpdateSettings, LogWeight |
 | ExerciseService | Exercise library | ListExercises, SearchExercises, CreateExercise |
-| WorkoutService | Workout templates | CreateWorkout, AddSection, AddTargetSet |
+| WorkoutService | Workout templates | CreateWorkout, UpdateWorkout, DuplicateWorkout, AddSection |
 | ProgramService | Training programs | CreateProgram, AssignWorkout, SetActiveProgram |
-| SessionService | Live tracking | StartSession, CompleteSet, FinishSession |
-| ProgressService | Analytics | GetDashboard, GetPersonalRecords, GetStreak |
+| SessionService | Live tracking | StartSession, SyncSession, ListSessions, FinishSession |
+| ProgressService | Analytics | GetDashboardStats, GetCalendarMonth, GetPersonalRecords |
 
 ## Testing
 
@@ -234,7 +236,7 @@ make migrate-status                      # Check status
 
 ## Current Status (MVP)
 
-- Authentication: JWT-based auth via AuthService (Register, Login, RefreshToken)
-- Environment: Local development only
+- Authentication: JWT-based auth via AuthService (Login handles both new/existing users)
+- Environment: Local development + Production on Render
 - CI/CD: Not configured
 - Proto sync: Manual (files duplicated, not shared)

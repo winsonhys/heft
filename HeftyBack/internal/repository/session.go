@@ -38,6 +38,7 @@ type SessionExercise struct {
 	SectionItemID *string
 	DisplayOrder  int
 	SectionName   *string
+	SupersetID    *string
 	Notes         *string
 	CreatedAt     time.Time
 	Sets          []*SessionSet
@@ -134,7 +135,7 @@ func (r *SessionRepository) loadExercises(ctx context.Context, sessionID string)
 	query := `
 		SELECT se.id, se.session_id, se.exercise_id, e.name as exercise_name,
 		       e.exercise_type::text as exercise_type, se.section_item_id,
-		       se.display_order, se.section_name, se.notes, se.created_at
+		       se.display_order, se.section_name, se.superset_id, se.notes, se.created_at
 		FROM session_exercises se
 		JOIN exercises e ON se.exercise_id = e.id
 		WHERE se.session_id = $1
@@ -153,7 +154,7 @@ func (r *SessionRepository) loadExercises(ctx context.Context, sessionID string)
 		err := rows.Scan(
 			&e.ID, &e.SessionID, &e.ExerciseID, &e.ExerciseName,
 			&e.ExerciseType, &e.SectionItemID,
-			&e.DisplayOrder, &e.SectionName, &e.Notes, &e.CreatedAt,
+			&e.DisplayOrder, &e.SectionName, &e.SupersetID, &e.Notes, &e.CreatedAt,
 		)
 		if err != nil {
 			return nil, err
@@ -211,16 +212,16 @@ func (r *SessionRepository) loadSets(ctx context.Context, sessionExerciseID stri
 }
 
 // AddExercise adds an exercise to a session
-func (r *SessionRepository) AddExercise(ctx context.Context, sessionID, exerciseID string, displayOrder int, sectionName *string) (*SessionExercise, error) {
+func (r *SessionRepository) AddExercise(ctx context.Context, sessionID, exerciseID string, displayOrder int, sectionName, supersetID *string) (*SessionExercise, error) {
 	query := `
-		INSERT INTO session_exercises (session_id, exercise_id, display_order, section_name)
-		VALUES ($1, $2, $3, $4)
-		RETURNING id, session_id, exercise_id, section_item_id, display_order, section_name, notes, created_at
+		INSERT INTO session_exercises (session_id, exercise_id, display_order, section_name, superset_id)
+		VALUES ($1, $2, $3, $4, $5)
+		RETURNING id, session_id, exercise_id, section_item_id, display_order, section_name, superset_id, notes, created_at
 	`
 
 	var e SessionExercise
-	err := r.pool.QueryRow(ctx, query, sessionID, exerciseID, displayOrder, sectionName).Scan(
-		&e.ID, &e.SessionID, &e.ExerciseID, &e.SectionItemID, &e.DisplayOrder, &e.SectionName, &e.Notes, &e.CreatedAt,
+	err := r.pool.QueryRow(ctx, query, sessionID, exerciseID, displayOrder, sectionName, supersetID).Scan(
+		&e.ID, &e.SessionID, &e.ExerciseID, &e.SectionItemID, &e.DisplayOrder, &e.SectionName, &e.SupersetID, &e.Notes, &e.CreatedAt,
 	)
 	if err != nil {
 		return nil, err

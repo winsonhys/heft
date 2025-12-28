@@ -183,22 +183,14 @@ func TestProgressService_Integration_GetPersonalRecords(t *testing.T) {
 	t.Run("PRs created after completing sets", func(t *testing.T) {
 		ctx := context.Background()
 
-		// Get an exercise
-		exercisesReq := connect.NewRequest(&heftv1.ListExercisesRequest{
-			Pagination: &heftv1.PaginationRequest{
-				Page:     1,
-				PageSize: 1,
-			},
+		// Seed a test exercise
+		testExerciseID := testutil.SeedTestExercise(t, pool, testutil.TestExercise{
+			Name:         "PR Test Bench Press",
+			CategoryID:   testutil.ChestCategoryID,
+			ExerciseType: "weight_reps",
+			IsSystem:     false,
+			CreatedBy:    &userID,
 		})
-		exercisesReq.Header().Set("Authorization", ts.AuthHeader(userID))
-		exercisesResp, err := ts.ExerciseClient.ListExercises(ctx, exercisesReq)
-		if err != nil {
-			t.Fatalf("failed to list exercises: %v", err)
-		}
-		if len(exercisesResp.Msg.Exercises) == 0 {
-			t.Fatal("no exercises found")
-		}
-		exerciseID := exercisesResp.Msg.Exercises[0].Id
 
 		// Start a session
 		startReq := connect.NewRequest(&heftv1.StartSessionRequest{})
@@ -209,23 +201,34 @@ func TestProgressService_Integration_GetPersonalRecords(t *testing.T) {
 		}
 		sessionID := startResp.Msg.Session.Id
 
-		// Add exercise with 1 set
-		addExReq := connect.NewRequest(&heftv1.AddExerciseRequest{
-			SessionId:  sessionID,
-			ExerciseId: exerciseID,
-			NumSets:    1,
+		// Add exercise with 1 set via SyncSession
+		numSets := int32(1)
+		syncAddReq := connect.NewRequest(&heftv1.SyncSessionRequest{
+			SessionId: sessionID,
+			Exercises: []*heftv1.SyncExerciseData{
+				{
+					ExerciseIdentifier: &heftv1.SyncExerciseData_NewExercise{
+						NewExercise: &heftv1.NewExerciseData{
+							ExerciseId:   testExerciseID,
+							DisplayOrder: 1,
+							SectionName:  "Main",
+							NumSets:      numSets,
+						},
+					},
+				},
+			},
 		})
-		addExReq.Header().Set("Authorization", ts.AuthHeader(userID))
-		addExResp, err := ts.SessionClient.AddExercise(ctx, addExReq)
+		syncAddReq.Header().Set("Authorization", ts.AuthHeader(userID))
+		syncAddResp, err := ts.SessionClient.SyncSession(ctx, syncAddReq)
 		if err != nil {
-			t.Fatalf("failed to add exercise: %v", err)
+			t.Fatalf("failed to add exercise via sync: %v", err)
 		}
 
 		// Get set ID from the exercise response
-		if len(addExResp.Msg.Exercise.Sets) == 0 {
+		if len(syncAddResp.Msg.Session.Exercises) == 0 || len(syncAddResp.Msg.Session.Exercises[0].Sets) == 0 {
 			t.Fatal("expected at least one set to be created")
 		}
-		setID := addExResp.Msg.Exercise.Sets[0].Id
+		setID := syncAddResp.Msg.Session.Exercises[0].Sets[0].Id
 
 		weight := float64(150)
 		reps := int32(5)
@@ -233,10 +236,10 @@ func TestProgressService_Integration_GetPersonalRecords(t *testing.T) {
 			SessionId: sessionID,
 			Sets: []*heftv1.SyncSetData{
 				{
-					SetId:       setID,
-					WeightKg:    &weight,
-					Reps:        &reps,
-					IsCompleted: true,
+					SetIdentifier: &heftv1.SyncSetData_Id{Id: setID},
+					WeightKg:      &weight,
+					Reps:          &reps,
+					IsCompleted:   true,
 				},
 			},
 		})
@@ -373,35 +376,47 @@ func TestProgressService_Integration_GetExerciseProgress(t *testing.T) {
 		if err != nil {
 			t.Fatalf("failed to start session: %v", err)
 		}
+		sessionID := startResp.Msg.Session.Id
 
-		// Add exercise with 1 set
-		addExReq := connect.NewRequest(&heftv1.AddExerciseRequest{
-			SessionId:  startResp.Msg.Session.Id,
-			ExerciseId: exerciseID,
-			NumSets:    1,
+		// Add exercise with 1 set via SyncSession
+		numSets := int32(1)
+		syncAddReq := connect.NewRequest(&heftv1.SyncSessionRequest{
+			SessionId: sessionID,
+			Exercises: []*heftv1.SyncExerciseData{
+				{
+					ExerciseIdentifier: &heftv1.SyncExerciseData_NewExercise{
+						NewExercise: &heftv1.NewExerciseData{
+							ExerciseId:   exerciseID,
+							DisplayOrder: 1,
+							SectionName:  "Main",
+							NumSets:      numSets,
+						},
+					},
+				},
+			},
 		})
-		addExReq.Header().Set("Authorization", ts.AuthHeader(userID))
-		addExResp, err := ts.SessionClient.AddExercise(ctx, addExReq)
+		syncAddReq.Header().Set("Authorization", ts.AuthHeader(userID))
+		syncAddResp, err := ts.SessionClient.SyncSession(ctx, syncAddReq)
 		if err != nil {
-			t.Fatalf("failed to add exercise: %v", err)
+			t.Fatalf("failed to add exercise via sync: %v", err)
 		}
 
 		// Get set ID from exercise response
-		if len(addExResp.Msg.Exercise.Sets) == 0 {
+		if len(syncAddResp.Msg.Session.Exercises) == 0 || len(syncAddResp.Msg.Session.Exercises[0].Sets) == 0 {
 			t.Fatal("expected at least one set to be created")
 		}
-		setID := addExResp.Msg.Exercise.Sets[0].Id
+		setID := syncAddResp.Msg.Session.Exercises[0].Sets[0].Id
 
 		weight := float64(100)
 		reps := int32(10)
 		syncReq := connect.NewRequest(&heftv1.SyncSessionRequest{
-			SessionId: startResp.Msg.Session.Id,
+			SessionId: sessionID,
 			Sets: []*heftv1.SyncSetData{
 				{
-					SetId:       setID,
-					WeightKg:    &weight,
-					Reps:        &reps,
-					IsCompleted: true,
+					SetIdentifier: &heftv1.SyncSetData_Id{Id: setID},
+					WeightKg:      &weight,
+					Reps:          &reps,
+					IsCompleted:   true,
 				},
 			},
 		})
@@ -413,7 +428,7 @@ func TestProgressService_Integration_GetExerciseProgress(t *testing.T) {
 
 		// Finish session
 		finishReq := connect.NewRequest(&heftv1.FinishSessionRequest{
-			Id: startResp.Msg.Session.Id,
+			Id: sessionID,
 		})
 		finishReq.Header().Set("Authorization", ts.AuthHeader(userID))
 		_, err = ts.SessionClient.FinishSession(ctx, finishReq)

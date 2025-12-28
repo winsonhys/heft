@@ -298,7 +298,7 @@ as String,
 /// @nodoc
 mixin _$SessionExerciseModel {
 
- String get id; String get exerciseId; String get exerciseName; String get sectionName; List<SessionSetModel> get sets; ExerciseType get exerciseType; int get displayOrder; String get notes;
+ String get id; String get exerciseId; String get exerciseName; String get sectionName; List<SessionSetModel> get sets; ExerciseType get exerciseType; int get displayOrder; String get notes; String? get supersetId;
 /// Create a copy of SessionExerciseModel
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -309,16 +309,16 @@ $SessionExerciseModelCopyWith<SessionExerciseModel> get copyWith => _$SessionExe
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is SessionExerciseModel&&(identical(other.id, id) || other.id == id)&&(identical(other.exerciseId, exerciseId) || other.exerciseId == exerciseId)&&(identical(other.exerciseName, exerciseName) || other.exerciseName == exerciseName)&&(identical(other.sectionName, sectionName) || other.sectionName == sectionName)&&const DeepCollectionEquality().equals(other.sets, sets)&&(identical(other.exerciseType, exerciseType) || other.exerciseType == exerciseType)&&(identical(other.displayOrder, displayOrder) || other.displayOrder == displayOrder)&&(identical(other.notes, notes) || other.notes == notes));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SessionExerciseModel&&(identical(other.id, id) || other.id == id)&&(identical(other.exerciseId, exerciseId) || other.exerciseId == exerciseId)&&(identical(other.exerciseName, exerciseName) || other.exerciseName == exerciseName)&&(identical(other.sectionName, sectionName) || other.sectionName == sectionName)&&const DeepCollectionEquality().equals(other.sets, sets)&&(identical(other.exerciseType, exerciseType) || other.exerciseType == exerciseType)&&(identical(other.displayOrder, displayOrder) || other.displayOrder == displayOrder)&&(identical(other.notes, notes) || other.notes == notes)&&(identical(other.supersetId, supersetId) || other.supersetId == supersetId));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,id,exerciseId,exerciseName,sectionName,const DeepCollectionEquality().hash(sets),exerciseType,displayOrder,notes);
+int get hashCode => Object.hash(runtimeType,id,exerciseId,exerciseName,sectionName,const DeepCollectionEquality().hash(sets),exerciseType,displayOrder,notes,supersetId);
 
 @override
 String toString() {
-  return 'SessionExerciseModel(id: $id, exerciseId: $exerciseId, exerciseName: $exerciseName, sectionName: $sectionName, sets: $sets, exerciseType: $exerciseType, displayOrder: $displayOrder, notes: $notes)';
+  return 'SessionExerciseModel(id: $id, exerciseId: $exerciseId, exerciseName: $exerciseName, sectionName: $sectionName, sets: $sets, exerciseType: $exerciseType, displayOrder: $displayOrder, notes: $notes, supersetId: $supersetId)';
 }
 
 
@@ -329,7 +329,7 @@ abstract mixin class $SessionExerciseModelCopyWith<$Res>  {
   factory $SessionExerciseModelCopyWith(SessionExerciseModel value, $Res Function(SessionExerciseModel) _then) = _$SessionExerciseModelCopyWithImpl;
 @useResult
 $Res call({
- String id, String exerciseId, String exerciseName, String sectionName, List<SessionSetModel> sets, ExerciseType exerciseType, int displayOrder, String notes
+ String id, String exerciseId, String exerciseName, String sectionName, List<SessionSetModel> sets, ExerciseType exerciseType, int displayOrder, String notes, String? supersetId
 });
 
 
@@ -346,7 +346,7 @@ class _$SessionExerciseModelCopyWithImpl<$Res>
 
 /// Create a copy of SessionExerciseModel
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? exerciseId = null,Object? exerciseName = null,Object? sectionName = null,Object? sets = null,Object? exerciseType = null,Object? displayOrder = null,Object? notes = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? exerciseId = null,Object? exerciseName = null,Object? sectionName = null,Object? sets = null,Object? exerciseType = null,Object? displayOrder = null,Object? notes = null,Object? supersetId = freezed,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,exerciseId: null == exerciseId ? _self.exerciseId : exerciseId // ignore: cast_nullable_to_non_nullable
@@ -356,7 +356,8 @@ as String,sets: null == sets ? _self.sets : sets // ignore: cast_nullable_to_non
 as List<SessionSetModel>,exerciseType: null == exerciseType ? _self.exerciseType : exerciseType // ignore: cast_nullable_to_non_nullable
 as ExerciseType,displayOrder: null == displayOrder ? _self.displayOrder : displayOrder // ignore: cast_nullable_to_non_nullable
 as int,notes: null == notes ? _self.notes : notes // ignore: cast_nullable_to_non_nullable
-as String,
+as String,supersetId: freezed == supersetId ? _self.supersetId : supersetId // ignore: cast_nullable_to_non_nullable
+as String?,
   ));
 }
 
@@ -438,10 +439,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String exerciseId,  String exerciseName,  String sectionName,  List<SessionSetModel> sets,  ExerciseType exerciseType,  int displayOrder,  String notes)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String exerciseId,  String exerciseName,  String sectionName,  List<SessionSetModel> sets,  ExerciseType exerciseType,  int displayOrder,  String notes,  String? supersetId)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _SessionExerciseModel() when $default != null:
-return $default(_that.id,_that.exerciseId,_that.exerciseName,_that.sectionName,_that.sets,_that.exerciseType,_that.displayOrder,_that.notes);case _:
+return $default(_that.id,_that.exerciseId,_that.exerciseName,_that.sectionName,_that.sets,_that.exerciseType,_that.displayOrder,_that.notes,_that.supersetId);case _:
   return orElse();
 
 }
@@ -459,10 +460,10 @@ return $default(_that.id,_that.exerciseId,_that.exerciseName,_that.sectionName,_
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String exerciseId,  String exerciseName,  String sectionName,  List<SessionSetModel> sets,  ExerciseType exerciseType,  int displayOrder,  String notes)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String exerciseId,  String exerciseName,  String sectionName,  List<SessionSetModel> sets,  ExerciseType exerciseType,  int displayOrder,  String notes,  String? supersetId)  $default,) {final _that = this;
 switch (_that) {
 case _SessionExerciseModel():
-return $default(_that.id,_that.exerciseId,_that.exerciseName,_that.sectionName,_that.sets,_that.exerciseType,_that.displayOrder,_that.notes);}
+return $default(_that.id,_that.exerciseId,_that.exerciseName,_that.sectionName,_that.sets,_that.exerciseType,_that.displayOrder,_that.notes,_that.supersetId);}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -476,10 +477,10 @@ return $default(_that.id,_that.exerciseId,_that.exerciseName,_that.sectionName,_
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String exerciseId,  String exerciseName,  String sectionName,  List<SessionSetModel> sets,  ExerciseType exerciseType,  int displayOrder,  String notes)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String exerciseId,  String exerciseName,  String sectionName,  List<SessionSetModel> sets,  ExerciseType exerciseType,  int displayOrder,  String notes,  String? supersetId)?  $default,) {final _that = this;
 switch (_that) {
 case _SessionExerciseModel() when $default != null:
-return $default(_that.id,_that.exerciseId,_that.exerciseName,_that.sectionName,_that.sets,_that.exerciseType,_that.displayOrder,_that.notes);case _:
+return $default(_that.id,_that.exerciseId,_that.exerciseName,_that.sectionName,_that.sets,_that.exerciseType,_that.displayOrder,_that.notes,_that.supersetId);case _:
   return null;
 
 }
@@ -491,7 +492,7 @@ return $default(_that.id,_that.exerciseId,_that.exerciseName,_that.sectionName,_
 
 
 class _SessionExerciseModel implements SessionExerciseModel {
-  const _SessionExerciseModel({required this.id, required this.exerciseId, required this.exerciseName, required this.sectionName, required final  List<SessionSetModel> sets, this.exerciseType = ExerciseType.EXERCISE_TYPE_UNSPECIFIED, this.displayOrder = 0, this.notes = ''}): _sets = sets;
+  const _SessionExerciseModel({required this.id, required this.exerciseId, required this.exerciseName, required this.sectionName, required final  List<SessionSetModel> sets, this.exerciseType = ExerciseType.EXERCISE_TYPE_UNSPECIFIED, this.displayOrder = 0, this.notes = '', this.supersetId}): _sets = sets;
   
 
 @override final  String id;
@@ -508,6 +509,7 @@ class _SessionExerciseModel implements SessionExerciseModel {
 @override@JsonKey() final  ExerciseType exerciseType;
 @override@JsonKey() final  int displayOrder;
 @override@JsonKey() final  String notes;
+@override final  String? supersetId;
 
 /// Create a copy of SessionExerciseModel
 /// with the given fields replaced by the non-null parameter values.
@@ -519,16 +521,16 @@ _$SessionExerciseModelCopyWith<_SessionExerciseModel> get copyWith => __$Session
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SessionExerciseModel&&(identical(other.id, id) || other.id == id)&&(identical(other.exerciseId, exerciseId) || other.exerciseId == exerciseId)&&(identical(other.exerciseName, exerciseName) || other.exerciseName == exerciseName)&&(identical(other.sectionName, sectionName) || other.sectionName == sectionName)&&const DeepCollectionEquality().equals(other._sets, _sets)&&(identical(other.exerciseType, exerciseType) || other.exerciseType == exerciseType)&&(identical(other.displayOrder, displayOrder) || other.displayOrder == displayOrder)&&(identical(other.notes, notes) || other.notes == notes));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SessionExerciseModel&&(identical(other.id, id) || other.id == id)&&(identical(other.exerciseId, exerciseId) || other.exerciseId == exerciseId)&&(identical(other.exerciseName, exerciseName) || other.exerciseName == exerciseName)&&(identical(other.sectionName, sectionName) || other.sectionName == sectionName)&&const DeepCollectionEquality().equals(other._sets, _sets)&&(identical(other.exerciseType, exerciseType) || other.exerciseType == exerciseType)&&(identical(other.displayOrder, displayOrder) || other.displayOrder == displayOrder)&&(identical(other.notes, notes) || other.notes == notes)&&(identical(other.supersetId, supersetId) || other.supersetId == supersetId));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,id,exerciseId,exerciseName,sectionName,const DeepCollectionEquality().hash(_sets),exerciseType,displayOrder,notes);
+int get hashCode => Object.hash(runtimeType,id,exerciseId,exerciseName,sectionName,const DeepCollectionEquality().hash(_sets),exerciseType,displayOrder,notes,supersetId);
 
 @override
 String toString() {
-  return 'SessionExerciseModel(id: $id, exerciseId: $exerciseId, exerciseName: $exerciseName, sectionName: $sectionName, sets: $sets, exerciseType: $exerciseType, displayOrder: $displayOrder, notes: $notes)';
+  return 'SessionExerciseModel(id: $id, exerciseId: $exerciseId, exerciseName: $exerciseName, sectionName: $sectionName, sets: $sets, exerciseType: $exerciseType, displayOrder: $displayOrder, notes: $notes, supersetId: $supersetId)';
 }
 
 
@@ -539,7 +541,7 @@ abstract mixin class _$SessionExerciseModelCopyWith<$Res> implements $SessionExe
   factory _$SessionExerciseModelCopyWith(_SessionExerciseModel value, $Res Function(_SessionExerciseModel) _then) = __$SessionExerciseModelCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String exerciseId, String exerciseName, String sectionName, List<SessionSetModel> sets, ExerciseType exerciseType, int displayOrder, String notes
+ String id, String exerciseId, String exerciseName, String sectionName, List<SessionSetModel> sets, ExerciseType exerciseType, int displayOrder, String notes, String? supersetId
 });
 
 
@@ -556,7 +558,7 @@ class __$SessionExerciseModelCopyWithImpl<$Res>
 
 /// Create a copy of SessionExerciseModel
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? exerciseId = null,Object? exerciseName = null,Object? sectionName = null,Object? sets = null,Object? exerciseType = null,Object? displayOrder = null,Object? notes = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? exerciseId = null,Object? exerciseName = null,Object? sectionName = null,Object? sets = null,Object? exerciseType = null,Object? displayOrder = null,Object? notes = null,Object? supersetId = freezed,}) {
   return _then(_SessionExerciseModel(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,exerciseId: null == exerciseId ? _self.exerciseId : exerciseId // ignore: cast_nullable_to_non_nullable
@@ -566,7 +568,8 @@ as String,sets: null == sets ? _self._sets : sets // ignore: cast_nullable_to_no
 as List<SessionSetModel>,exerciseType: null == exerciseType ? _self.exerciseType : exerciseType // ignore: cast_nullable_to_non_nullable
 as ExerciseType,displayOrder: null == displayOrder ? _self.displayOrder : displayOrder // ignore: cast_nullable_to_non_nullable
 as int,notes: null == notes ? _self.notes : notes // ignore: cast_nullable_to_non_nullable
-as String,
+as String,supersetId: freezed == supersetId ? _self.supersetId : supersetId // ignore: cast_nullable_to_non_nullable
+as String?,
   ));
 }
 

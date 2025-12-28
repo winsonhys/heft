@@ -127,6 +127,8 @@ SessionModel createSessionWithSets(int completedSets, int totalSets) {
         sets: sets,
       ),
     ],
+    completedSets: completedSets,
+    totalSets: totalSets,
   );
 }
 
@@ -1214,6 +1216,185 @@ void main() {
       expect(trackingNotifier.abandonSessionCalled, isTrue);
     });
   });
+
+  group('Superset UI', () {
+    Widget createTrackerWidgetWithSession(SessionModel session) {
+      final trackingNotifier = TrackingActiveSession(session);
+      return ProviderScope(
+        overrides: [
+          activeSessionProvider.overrideWith(() => trackingNotifier),
+          floatingWidgetVisibleProvider.overrideWith(SafeFloatingWidgetVisible.new),
+        ],
+        child: MaterialApp(
+          home: FTheme(
+            data: FThemes.zinc.dark,
+            child: TrackerScreen(sessionId: session.id),
+          ),
+        ),
+      );
+    }
+
+    testWidgets('Superset badge appears when exercises have supersetId', (tester) async {
+      final supersetExercises = [
+        const SessionExerciseModel(
+          id: 'ex1',
+          exerciseId: 'exercise-1',
+          exerciseName: 'Bench Press',
+          sectionName: 'Chest Superset',
+          exerciseType: ExerciseType.EXERCISE_TYPE_WEIGHT_REPS,
+          sets: [SessionSetModel(id: 'set1', setNumber: 1)],
+          supersetId: 'superset-uuid-123', // Same superset ID
+        ),
+        const SessionExerciseModel(
+          id: 'ex2',
+          exerciseId: 'exercise-2',
+          exerciseName: 'Dumbbell Fly',
+          sectionName: 'Chest Superset',
+          exerciseType: ExerciseType.EXERCISE_TYPE_WEIGHT_REPS,
+          sets: [SessionSetModel(id: 'set2', setNumber: 1)],
+          supersetId: 'superset-uuid-123', // Same superset ID
+        ),
+      ];
+
+      final session = SessionModel(
+        id: 'test-session',
+        workoutTemplateId: 'test-workout',
+        name: 'Test Workout',
+        exercises: supersetExercises,
+      );
+
+      await tester.pumpWidget(createTrackerWidgetWithSession(session));
+      await tester.pumpAndSettle();
+
+      // Verify "Superset" badge appears
+      expect(find.text('Superset'), findsOneWidget);
+    });
+
+    testWidgets('Superset badge does NOT appear when exercises have no supersetId', (tester) async {
+      final normalExercises = [
+        const SessionExerciseModel(
+          id: 'ex1',
+          exerciseId: 'exercise-1',
+          exerciseName: 'Bench Press',
+          sectionName: 'Main Workout',
+          exerciseType: ExerciseType.EXERCISE_TYPE_WEIGHT_REPS,
+          sets: [SessionSetModel(id: 'set1', setNumber: 1)],
+          supersetId: null, // No superset
+        ),
+        const SessionExerciseModel(
+          id: 'ex2',
+          exerciseId: 'exercise-2',
+          exerciseName: 'Squats',
+          sectionName: 'Main Workout',
+          exerciseType: ExerciseType.EXERCISE_TYPE_WEIGHT_REPS,
+          sets: [SessionSetModel(id: 'set2', setNumber: 1)],
+          supersetId: null, // No superset
+        ),
+      ];
+
+      final session = SessionModel(
+        id: 'test-session',
+        workoutTemplateId: 'test-workout',
+        name: 'Test Workout',
+        exercises: normalExercises,
+      );
+
+      await tester.pumpWidget(createTrackerWidgetWithSession(session));
+      await tester.pumpAndSettle();
+
+      // Verify "Superset" badge does NOT appear
+      expect(find.text('Superset'), findsNothing);
+    });
+
+    testWidgets('Superset exercises are wrapped with left border', (tester) async {
+      final supersetExercises = [
+        const SessionExerciseModel(
+          id: 'ex1',
+          exerciseId: 'exercise-1',
+          exerciseName: 'Bench Press',
+          sectionName: 'Chest Superset',
+          exerciseType: ExerciseType.EXERCISE_TYPE_WEIGHT_REPS,
+          sets: [SessionSetModel(id: 'set1', setNumber: 1)],
+          supersetId: 'superset-uuid-123',
+        ),
+      ];
+
+      final session = SessionModel(
+        id: 'test-session',
+        workoutTemplateId: 'test-workout',
+        name: 'Test Workout',
+        exercises: supersetExercises,
+      );
+
+      await tester.pumpWidget(createTrackerWidgetWithSession(session));
+      await tester.pumpAndSettle();
+
+      // Verify container with superset border exists (3px left border)
+      final borderContainers = tester.widgetList<Container>(
+        find.byWidgetPredicate((widget) {
+          if (widget is! Container) return false;
+          final decoration = widget.decoration;
+          if (decoration is! BoxDecoration) return false;
+          final border = decoration.border;
+          if (border is! Border) return false;
+          return border.left.width == 3;
+        }),
+      );
+      expect(borderContainers.isNotEmpty, isTrue,
+          reason: 'Should have container with 3px superset left border');
+    });
+
+    testWidgets('Mixed sections show badge only for superset section', (tester) async {
+      final mixedExercises = [
+        // Normal section
+        const SessionExerciseModel(
+          id: 'ex1',
+          exerciseId: 'exercise-1',
+          exerciseName: 'Warm Up Exercise',
+          sectionName: 'Warm Up',
+          exerciseType: ExerciseType.EXERCISE_TYPE_WEIGHT_REPS,
+          sets: [SessionSetModel(id: 'set1', setNumber: 1)],
+          supersetId: null,
+        ),
+        // Superset section
+        const SessionExerciseModel(
+          id: 'ex2',
+          exerciseId: 'exercise-2',
+          exerciseName: 'Bench Press',
+          sectionName: 'Chest Superset',
+          exerciseType: ExerciseType.EXERCISE_TYPE_WEIGHT_REPS,
+          sets: [SessionSetModel(id: 'set2', setNumber: 1)],
+          supersetId: 'superset-uuid-123',
+        ),
+        const SessionExerciseModel(
+          id: 'ex3',
+          exerciseId: 'exercise-3',
+          exerciseName: 'Dumbbell Fly',
+          sectionName: 'Chest Superset',
+          exerciseType: ExerciseType.EXERCISE_TYPE_WEIGHT_REPS,
+          sets: [SessionSetModel(id: 'set3', setNumber: 1)],
+          supersetId: 'superset-uuid-123',
+        ),
+      ];
+
+      final session = SessionModel(
+        id: 'test-session',
+        workoutTemplateId: 'test-workout',
+        name: 'Test Workout',
+        exercises: mixedExercises,
+      );
+
+      await tester.pumpWidget(createTrackerWidgetWithSession(session));
+      await tester.pumpAndSettle();
+
+      // Should find exactly one Superset badge (for Chest Superset section)
+      expect(find.text('Superset'), findsOneWidget);
+
+      // Both section headers should exist
+      expect(find.text('Warm Up'), findsOneWidget);
+      expect(find.text('Chest Superset'), findsOneWidget);
+    });
+  });
 }
 
 /// Mock ActiveSession notifier that tracks addExercise calls
@@ -1240,6 +1421,7 @@ class TrackingActiveSession extends ActiveSession {
     required ExerciseType exerciseType,
     required String sectionName,
     int numSets = 3,
+    String? supersetId,
   }) {
     addExerciseCalls.add({
       'exerciseId': exerciseId,
@@ -1247,6 +1429,7 @@ class TrackingActiveSession extends ActiveSession {
       'exerciseType': exerciseType,
       'sectionName': sectionName,
       'numSets': numSets,
+      'supersetId': supersetId,
     });
   }
 

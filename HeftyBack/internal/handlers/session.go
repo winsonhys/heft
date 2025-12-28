@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"connectrpc.com/connect"
+	"github.com/google/uuid"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
 	heftv1 "github.com/heftyback/gen/heft/v1"
@@ -72,9 +73,16 @@ func (h *SessionHandler) StartSession(ctx context.Context, req *connect.Request[
 		if err == nil && workout != nil {
 			displayOrder := 0
 			for _, section := range workout.Sections {
+				// Generate a superset ID if section is a superset
+				var supersetID *string
+				if section.IsSuperset {
+					id := uuid.New().String()
+					supersetID = &id
+				}
+
 				for _, item := range section.Items {
 					if item.ItemType == "exercise" && item.ExerciseID != nil {
-						exercise, err := h.sessionRepo.AddExercise(ctx, session.ID, *item.ExerciseID, displayOrder, &section.Name)
+						exercise, err := h.sessionRepo.AddExercise(ctx, session.ID, *item.ExerciseID, displayOrder, &section.Name, supersetID)
 						if err != nil {
 							return nil, handleDBError(err)
 						}
@@ -161,7 +169,12 @@ func (h *SessionHandler) SyncSession(ctx context.Context, req *connect.Request[h
 				sectionName = &newEx.SectionName
 			}
 
-			exercise, err := h.sessionRepo.AddExercise(ctx, req.Msg.SessionId, newEx.ExerciseId, int(newEx.DisplayOrder), sectionName)
+			var supersetID *string
+			if newEx.SupersetId != nil && *newEx.SupersetId != "" {
+				supersetID = newEx.SupersetId
+			}
+
+			exercise, err := h.sessionRepo.AddExercise(ctx, req.Msg.SessionId, newEx.ExerciseId, int(newEx.DisplayOrder), sectionName, supersetID)
 			if err != nil {
 				return nil, handleDBError(err)
 			}
@@ -456,6 +469,9 @@ func sessionExerciseToProto(e *repository.SessionExercise) *heftv1.SessionExerci
 	}
 	if e.SectionName != nil {
 		se.SectionName = *e.SectionName
+	}
+	if e.SupersetID != nil {
+		se.SupersetId = e.SupersetID
 	}
 	if e.Notes != nil {
 		se.Notes = *e.Notes

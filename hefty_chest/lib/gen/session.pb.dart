@@ -293,6 +293,7 @@ class SessionExercise extends $pb.GeneratedMessage {
     $core.String? sectionName,
     $core.String? notes,
     $core.Iterable<SessionSet>? sets,
+    $core.String? supersetId,
   }) {
     final $result = create();
     if (id != null) {
@@ -322,6 +323,9 @@ class SessionExercise extends $pb.GeneratedMessage {
     if (sets != null) {
       $result.sets.addAll(sets);
     }
+    if (supersetId != null) {
+      $result.supersetId = supersetId;
+    }
     return $result;
   }
   SessionExercise._() : super();
@@ -338,6 +342,7 @@ class SessionExercise extends $pb.GeneratedMessage {
     ..aOS(7, _omitFieldNames ? '' : 'sectionName')
     ..aOS(8, _omitFieldNames ? '' : 'notes')
     ..pc<SessionSet>(9, _omitFieldNames ? '' : 'sets', $pb.PbFieldType.PM, subBuilder: SessionSet.create)
+    ..aOS(10, _omitFieldNames ? '' : 'supersetId')
     ..hasRequiredFields = false
   ;
 
@@ -436,6 +441,15 @@ class SessionExercise extends $pb.GeneratedMessage {
 
   @$pb.TagNumber(9)
   $core.List<SessionSet> get sets => $_getList(8);
+
+  @$pb.TagNumber(10)
+  $core.String get supersetId => $_getSZ(9);
+  @$pb.TagNumber(10)
+  set supersetId($core.String v) { $_setString(9, v); }
+  @$pb.TagNumber(10)
+  $core.bool hasSupersetId() => $_has(9);
+  @$pb.TagNumber(10)
+  void clearSupersetId() => clearField(10);
 }
 
 /// Session set
@@ -1465,6 +1479,7 @@ class NewExerciseData extends $pb.GeneratedMessage {
     $core.int? displayOrder,
     $core.String? sectionName,
     $core.int? numSets,
+    $core.String? supersetId,
   }) {
     final $result = create();
     if (exerciseId != null) {
@@ -1479,6 +1494,9 @@ class NewExerciseData extends $pb.GeneratedMessage {
     if (numSets != null) {
       $result.numSets = numSets;
     }
+    if (supersetId != null) {
+      $result.supersetId = supersetId;
+    }
     return $result;
   }
   NewExerciseData._() : super();
@@ -1490,6 +1508,7 @@ class NewExerciseData extends $pb.GeneratedMessage {
     ..a<$core.int>(2, _omitFieldNames ? '' : 'displayOrder', $pb.PbFieldType.O3)
     ..aOS(3, _omitFieldNames ? '' : 'sectionName')
     ..a<$core.int>(4, _omitFieldNames ? '' : 'numSets', $pb.PbFieldType.O3)
+    ..aOS(5, _omitFieldNames ? '' : 'supersetId')
     ..hasRequiredFields = false
   ;
 
@@ -1549,6 +1568,15 @@ class NewExerciseData extends $pb.GeneratedMessage {
   $core.bool hasNumSets() => $_has(3);
   @$pb.TagNumber(4)
   void clearNumSets() => clearField(4);
+
+  @$pb.TagNumber(5)
+  $core.String get supersetId => $_getSZ(4);
+  @$pb.TagNumber(5)
+  set supersetId($core.String v) { $_setString(4, v); }
+  @$pb.TagNumber(5)
+  $core.bool hasSupersetId() => $_has(4);
+  @$pb.TagNumber(5)
+  void clearSupersetId() => clearField(5);
 }
 
 class SyncSessionResponse extends $pb.GeneratedMessage {

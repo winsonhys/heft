@@ -8,7 +8,7 @@
 | Language | Dart |
 | State Management | Riverpod 3.0 + Flutter Hooks |
 | Routing | go_router with code generation |
-| UI Components | forui (FButton, FTextField, FProgress, etc.) |
+| UI Components | forui 0.17.0 (FButton, FTextField, FProgress, etc.) |
 | API Client | Connect-RPC |
 | Charts | fl_chart |
 
@@ -25,7 +25,7 @@ hefty_chest/
 │   ├── core/
 │   │   ├── client.dart              # RPC client setup & exports
 │   │   └── config.dart              # App configuration
-│   ├── features/                    # Feature modules (8 total)
+│   ├── features/                    # Feature modules (9 total)
 │   │   ├── auth/
 │   │   │   └── providers/
 │   │   │       └── auth_providers.dart
@@ -66,16 +66,26 @@ hefty_chest/
 │   │   │       ├── exercise_item.dart
 │   │   │       ├── set_row_editor.dart
 │   │   │       └── exercise_search_modal.dart
-│   │   └── program_builder/
+│   │   ├── program_builder/
 │   │       ├── program_builder_screen.dart
 │   │       ├── providers/
 │   │       └── widgets/
+│   │   └── history/
+│   │       ├── history_screen.dart
+│   │       ├── session_detail_screen.dart
+│   │       ├── providers/
+│   │       │   └── history_providers.dart
+│   │       └── widgets/
 │   ├── shared/
 │   │   ├── theme/
-│   │   │   └── app_colors.dart      # Color palette
+│   │   │   ├── app_colors.dart      # Color palette
+│   │   │   └── heft_theme.dart      # Custom FTheme with typography
 │   │   └── widgets/                 # Reusable widgets
 │   │       ├── floating_session_widget.dart  # Active session overlay
-│   │       └── bottom_nav_bar.dart  # Bottom navigation
+│   │       ├── bottom_nav_bar.dart  # Bottom navigation
+│   │       ├── confirm_dialog.dart  # FDialog-based confirmation
+│   │       ├── duration_picker.dart # Time picker widget
+│   │       └── scaffold_with_nav_bar.dart  # Shell route scaffold
 │   └── gen/                         # Generated proto code
 │       ├── *.pb.dart               # Message types
 │       ├── *.pbenum.dart           # Enums
@@ -270,10 +280,15 @@ The tracker feature uses freezed models for immutable session state:
 | Model | Purpose |
 |-------|---------|
 | `SessionModel` | Main session with exercises, progress counts |
-| `SessionExerciseModel` | Exercise within a session with sets |
+| `SessionExerciseModel` | Exercise within a session with sets, includes `supersetId` |
 | `SessionSetModel` | Individual set with weight, reps, completion |
 
 Location: `lib/features/tracker/models/session_models.dart`
+
+**Superset Support:**
+- `SessionExerciseModel.supersetId` - UUID grouping exercises in same superset
+- Exercises with matching `supersetId` display superset badge in tracker UI
+- Uses `AppColors.supersetBorder` for visual grouping
 
 These models provide:
 - Immutable state with `copyWith()` for updates
@@ -297,10 +312,38 @@ final updatedSession = session.copyWith(
 
 ## Routing (go_router)
 
-### Route Definitions
+### Shell Route Pattern
+
+The app uses `TypedStatefulShellRoute` for persistent bottom navigation with 5 branches:
 
 ```dart
 // router.dart
+@TypedStatefulShellRoute<MainShellRouteData>(
+  branches: [
+    TypedStatefulShellBranch<HomeBranchData>(routes: [...]),
+    TypedStatefulShellBranch<CalendarBranchData>(routes: [...]),
+    TypedStatefulShellBranch<ProgressBranchData>(routes: [...]),
+    TypedStatefulShellBranch<HistoryBranchData>(routes: [...]),
+    TypedStatefulShellBranch<ProfileBranchData>(routes: [...]),
+  ],
+)
+class MainShellRouteData extends StatefulShellRouteData {
+  const MainShellRouteData();
+
+  @override
+  Widget builder(context, state, navigationShell) =>
+    ScaffoldWithNavBar(navigationShell: navigationShell);
+}
+
+// Each branch maintains its own navigation stack
+class HomeBranchData extends StatefulShellBranchData {
+  const HomeBranchData();
+}
+```
+
+### Route Definitions
+
+```dart
 @TypedGoRoute<HomeRoute>(path: '/')
 class HomeRoute extends GoRouteData {
   const HomeRoute();
@@ -309,32 +352,15 @@ class HomeRoute extends GoRouteData {
   Widget build(BuildContext context, GoRouterState state) => const HomeScreen();
 }
 
-@TypedGoRoute<ProfileRoute>(path: '/profile')
-class ProfileRoute extends GoRouteData {
-  const ProfileRoute();
-
-  @override
-  Widget build(BuildContext context, GoRouterState state) => const ProfileScreen();
-}
-
-@TypedGoRoute<NewSessionRoute>(path: '/session')
-class NewSessionRoute extends GoRouteData {
-  final String workoutId;
-  const NewSessionRoute({required this.workoutId});
+@TypedGoRoute<TrackerRoute>(path: '/tracker')
+class TrackerRoute extends GoRouteData {
+  final String? workoutId;
+  final String? sessionId;
+  const TrackerRoute({this.workoutId, this.sessionId});
 
   @override
   Widget build(BuildContext context, GoRouterState state) =>
-    TrackerScreen(workoutId: workoutId);
-}
-
-@TypedGoRoute<ResumeSessionRoute>(path: '/session/:sessionId')
-class ResumeSessionRoute extends GoRouteData {
-  final String sessionId;
-  const ResumeSessionRoute({required this.sessionId});
-
-  @override
-  Widget build(BuildContext context, GoRouterState state) =>
-    TrackerScreen(sessionId: sessionId);
+    TrackerScreen(workoutId: workoutId, sessionId: sessionId);
 }
 ```
 
@@ -527,9 +553,12 @@ class AppColors {
 
   // Accents
   static const accentBlue = Color(0xFF4F5FFF);     // Primary blue
+  static const accentBlueHover = Color(0xFF6B7AFF); // Blue hover state
   static const accentGreen = Color(0xFF22C55E);    // Success green
   static const accentRed = Color(0xFFEF4444);      // Error red
   static const accentOrange = Color(0xFFF59E0B);   // Warning orange
+  static const accentPurple = Color(0xFF8B5CF6);   // Purple accent
+  static const accentCyan = Color(0xFF06B6D4);     // Cyan accent
 
   // Text
   static const textPrimary = Color(0xFFFFFFFF);    // White
@@ -538,6 +567,7 @@ class AppColors {
 
   // Border
   static const borderColor = Color(0xFF2D3548);    // Subtle border
+  static const supersetBorder = Color(0xFF8B5CF6); // Purple for superset grouping
 }
 ```
 
@@ -561,17 +591,38 @@ Container(
 )
 ```
 
+### Custom Theme (`heft_theme.dart`)
+
+Custom dark theme with typography system:
+
+```dart
+// lib/shared/theme/heft_theme.dart
+final heftDarkTheme = FThemeData(
+  colorScheme: FThemes.zinc.dark.colorScheme,
+  typography: FTypography(
+    xs: TextStyle(fontSize: 12, ...),   // Smallest
+    sm: TextStyle(fontSize: 14, ...),   // Small
+    base: TextStyle(fontSize: 16, ...),  // Default
+    lg: TextStyle(fontSize: 18, ...),   // Large
+    xl: TextStyle(fontSize: 20, ...),   // Extra large
+    xl2: TextStyle(fontSize: 24, ...),  // 2XL
+    // ... up to xl8
+  ),
+);
+```
+
 ### forui Components
 
 forui provides a consistent design system for the app. Set up the theme in app.dart:
 
 ```dart
 import 'package:forui/forui.dart';
+import 'package:hefty_chest/shared/theme/heft_theme.dart';
 
 // Theme setup in app.dart
 MaterialApp.router(
   builder: (context, child) => FTheme(
-    data: FThemes.zinc.dark,  // Dark theme
+    data: heftDarkTheme,  // Custom dark theme
     child: child!,
   ),
   routerConfig: _router,

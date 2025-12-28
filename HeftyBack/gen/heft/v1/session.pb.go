@@ -199,6 +199,7 @@ type SessionExercise struct {
 	SectionName   string                 `protobuf:"bytes,7,opt,name=section_name,json=sectionName,proto3" json:"section_name,omitempty"`
 	Notes         string                 `protobuf:"bytes,8,opt,name=notes,proto3" json:"notes,omitempty"`
 	Sets          []*SessionSet          `protobuf:"bytes,9,rep,name=sets,proto3" json:"sets,omitempty"`
+	SupersetId    *string                `protobuf:"bytes,10,opt,name=superset_id,json=supersetId,proto3,oneof" json:"superset_id,omitempty"` // Exercises with same ID are in same superset
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -294,6 +295,13 @@ func (x *SessionExercise) GetSets() []*SessionSet {
 		return x.Sets
 	}
 	return nil
+}
+
+func (x *SessionExercise) GetSupersetId() string {
+	if x != nil && x.SupersetId != nil {
+		return *x.SupersetId
+	}
+	return ""
 }
 
 // Session set
@@ -1080,7 +1088,8 @@ type NewExerciseData struct {
 	ExerciseId    string                 `protobuf:"bytes,1,opt,name=exercise_id,json=exerciseId,proto3" json:"exercise_id,omitempty"` // Reference to exercise library
 	DisplayOrder  int32                  `protobuf:"varint,2,opt,name=display_order,json=displayOrder,proto3" json:"display_order,omitempty"`
 	SectionName   string                 `protobuf:"bytes,3,opt,name=section_name,json=sectionName,proto3" json:"section_name,omitempty"`
-	NumSets       int32                  `protobuf:"varint,4,opt,name=num_sets,json=numSets,proto3" json:"num_sets,omitempty"` // How many empty sets to create (default 3)
+	NumSets       int32                  `protobuf:"varint,4,opt,name=num_sets,json=numSets,proto3" json:"num_sets,omitempty"`               // How many empty sets to create (default 3)
+	SupersetId    *string                `protobuf:"bytes,5,opt,name=superset_id,json=supersetId,proto3,oneof" json:"superset_id,omitempty"` // For adding to existing superset group
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1141,6 +1150,13 @@ func (x *NewExerciseData) GetNumSets() int32 {
 		return x.NumSets
 	}
 	return 0
+}
+
+func (x *NewExerciseData) GetSupersetId() string {
+	if x != nil && x.SupersetId != nil {
+		return *x.SupersetId
+	}
+	return ""
 }
 
 type SyncSessionResponse struct {
@@ -1529,7 +1545,7 @@ const file_heft_v1_session_proto_rawDesc = "" +
 	"\n" +
 	"created_at\x18\x0f \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\x129\n" +
 	"\n" +
-	"updated_at\x18\x10 \x01(\v2\x1a.google.protobuf.TimestampR\tupdatedAt\"\xc9\x02\n" +
+	"updated_at\x18\x10 \x01(\v2\x1a.google.protobuf.TimestampR\tupdatedAt\"\xff\x02\n" +
 	"\x0fSessionExercise\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1d\n" +
 	"\n" +
@@ -1541,7 +1557,11 @@ const file_heft_v1_session_proto_rawDesc = "" +
 	"\rdisplay_order\x18\x06 \x01(\x05R\fdisplayOrder\x12!\n" +
 	"\fsection_name\x18\a \x01(\tR\vsectionName\x12\x14\n" +
 	"\x05notes\x18\b \x01(\tR\x05notes\x12'\n" +
-	"\x04sets\x18\t \x03(\v2\x13.heft.v1.SessionSetR\x04sets\"\xac\x05\n" +
+	"\x04sets\x18\t \x03(\v2\x13.heft.v1.SessionSetR\x04sets\x12$\n" +
+	"\vsuperset_id\x18\n" +
+	" \x01(\tH\x00R\n" +
+	"supersetId\x88\x01\x01B\x0e\n" +
+	"\f_superset_id\"\xac\x05\n" +
 	"\n" +
 	"SessionSet\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12.\n" +
@@ -1631,13 +1651,16 @@ const file_heft_v1_session_proto_rawDesc = "" +
 	"\x10SyncExerciseData\x12\x10\n" +
 	"\x02id\x18\x01 \x01(\tH\x00R\x02id\x12=\n" +
 	"\fnew_exercise\x18\x02 \x01(\v2\x18.heft.v1.NewExerciseDataH\x00R\vnewExerciseB\x15\n" +
-	"\x13exercise_identifier\"\x95\x01\n" +
+	"\x13exercise_identifier\"\xcb\x01\n" +
 	"\x0fNewExerciseData\x12\x1f\n" +
 	"\vexercise_id\x18\x01 \x01(\tR\n" +
 	"exerciseId\x12#\n" +
 	"\rdisplay_order\x18\x02 \x01(\x05R\fdisplayOrder\x12!\n" +
 	"\fsection_name\x18\x03 \x01(\tR\vsectionName\x12\x19\n" +
-	"\bnum_sets\x18\x04 \x01(\x05R\anumSets\"[\n" +
+	"\bnum_sets\x18\x04 \x01(\x05R\anumSets\x12$\n" +
+	"\vsuperset_id\x18\x05 \x01(\tH\x00R\n" +
+	"supersetId\x88\x01\x01B\x0e\n" +
+	"\f_superset_id\"[\n" +
 	"\x13SyncSessionResponse\x12*\n" +
 	"\asession\x18\x01 \x01(\v2\x10.heft.v1.SessionR\asession\x12\x18\n" +
 	"\asuccess\x18\x02 \x01(\bR\asuccess\"K\n" +
@@ -1765,6 +1788,7 @@ func file_heft_v1_session_proto_init() {
 		return
 	}
 	file_heft_v1_common_proto_init()
+	file_heft_v1_session_proto_msgTypes[1].OneofWrappers = []any{}
 	file_heft_v1_session_proto_msgTypes[2].OneofWrappers = []any{}
 	file_heft_v1_session_proto_msgTypes[4].OneofWrappers = []any{}
 	file_heft_v1_session_proto_msgTypes[9].OneofWrappers = []any{
@@ -1775,6 +1799,7 @@ func file_heft_v1_session_proto_init() {
 		(*SyncExerciseData_Id)(nil),
 		(*SyncExerciseData_NewExercise)(nil),
 	}
+	file_heft_v1_session_proto_msgTypes[11].OneofWrappers = []any{}
 	file_heft_v1_session_proto_msgTypes[13].OneofWrappers = []any{}
 	file_heft_v1_session_proto_msgTypes[17].OneofWrappers = []any{}
 	type x struct{}

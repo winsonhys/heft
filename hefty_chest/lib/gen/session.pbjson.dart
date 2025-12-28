@@ -68,6 +68,10 @@ const SessionExercise$json = {
     {'1': 'section_name', '3': 7, '4': 1, '5': 9, '10': 'sectionName'},
     {'1': 'notes', '3': 8, '4': 1, '5': 9, '10': 'notes'},
     {'1': 'sets', '3': 9, '4': 3, '5': 11, '6': '.heft.v1.SessionSet', '10': 'sets'},
+    {'1': 'superset_id', '3': 10, '4': 1, '5': 9, '9': 0, '10': 'supersetId', '17': true},
+  ],
+  '8': [
+    {'1': '_superset_id'},
   ],
 };
 
@@ -78,7 +82,8 @@ final $typed_data.Uint8List sessionExerciseDescriptor = $convert.base64Decode(
     'YW1lGAQgASgJUgxleGVyY2lzZU5hbWUSOgoNZXhlcmNpc2VfdHlwZRgFIAEoDjIVLmhlZnQudj'
     'EuRXhlcmNpc2VUeXBlUgxleGVyY2lzZVR5cGUSIwoNZGlzcGxheV9vcmRlchgGIAEoBVIMZGlz'
     'cGxheU9yZGVyEiEKDHNlY3Rpb25fbmFtZRgHIAEoCVILc2VjdGlvbk5hbWUSFAoFbm90ZXMYCC'
-    'ABKAlSBW5vdGVzEicKBHNldHMYCSADKAsyEy5oZWZ0LnYxLlNlc3Npb25TZXRSBHNldHM=');
+    'ABKAlSBW5vdGVzEicKBHNldHMYCSADKAsyEy5oZWZ0LnYxLlNlc3Npb25TZXRSBHNldHMSJAoL'
+    'c3VwZXJzZXRfaWQYCiABKAlIAFIKc3VwZXJzZXRJZIgBAUIOCgxfc3VwZXJzZXRfaWQ=');
 
 @$core.Deprecated('Use sessionSetDescriptor instead')
 const SessionSet$json = {
@@ -301,6 +306,10 @@ const NewExerciseData$json = {
     {'1': 'display_order', '3': 2, '4': 1, '5': 5, '10': 'displayOrder'},
     {'1': 'section_name', '3': 3, '4': 1, '5': 9, '10': 'sectionName'},
     {'1': 'num_sets', '3': 4, '4': 1, '5': 5, '10': 'numSets'},
+    {'1': 'superset_id', '3': 5, '4': 1, '5': 9, '9': 0, '10': 'supersetId', '17': true},
+  ],
+  '8': [
+    {'1': '_superset_id'},
   ],
 };
 
@@ -308,7 +317,8 @@ const NewExerciseData$json = {
 final $typed_data.Uint8List newExerciseDataDescriptor = $convert.base64Decode(
     'Cg9OZXdFeGVyY2lzZURhdGESHwoLZXhlcmNpc2VfaWQYASABKAlSCmV4ZXJjaXNlSWQSIwoNZG'
     'lzcGxheV9vcmRlchgCIAEoBVIMZGlzcGxheU9yZGVyEiEKDHNlY3Rpb25fbmFtZRgDIAEoCVIL'
-    'c2VjdGlvbk5hbWUSGQoIbnVtX3NldHMYBCABKAVSB251bVNldHM=');
+    'c2VjdGlvbk5hbWUSGQoIbnVtX3NldHMYBCABKAVSB251bVNldHMSJAoLc3VwZXJzZXRfaWQYBS'
+    'ABKAlIAFIKc3VwZXJzZXRJZIgBAUIOCgxfc3VwZXJzZXRfaWQ=');
 
 @$core.Deprecated('Use syncSessionResponseDescriptor instead')
 const SyncSessionResponse$json = {

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:forui/forui.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 import '../../../shared/theme/app_colors.dart';
@@ -49,29 +50,20 @@ class ProgressHeader extends ConsumerWidget {
             ],
           ),
           const SizedBox(height: 12),
-          // Progress bar
-          Stack(
-            children: [
-              // Background
-              Container(
-                height: 8,
-                decoration: BoxDecoration(
-                  color: AppColors.bgCardInner,
-                  borderRadius: BorderRadius.circular(4),
-                ),
+          // Progress bar with animation
+          FDeterminateProgress(
+            value: progress.clamp(0.0, 1.0),
+            style: (style) => style.copyWith(
+              constraints: const BoxConstraints.tightFor(height: 8),
+              trackDecoration: BoxDecoration(
+                color: AppColors.bgCardInner,
+                borderRadius: BorderRadius.circular(4),
               ),
-              // Progress fill
-              FractionallySizedBox(
-                widthFactor: progress.clamp(0.0, 1.0),
-                child: Container(
-                  height: 8,
-                  decoration: BoxDecoration(
-                    color: AppColors.accentGreen,
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                ),
+              fillDecoration: BoxDecoration(
+                color: AppColors.accentGreen,
+                borderRadius: BorderRadius.circular(4),
               ),
-            ],
+            ),
           ),
           const SizedBox(height: 8),
           Text(
