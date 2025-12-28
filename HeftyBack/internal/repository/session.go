@@ -553,6 +553,30 @@ func (r *SessionRepository) DeleteExercises(ctx context.Context, sessionID strin
 	return err
 }
 
+// UpdateExerciseParams holds parameters for updating a session exercise
+type UpdateExerciseParams struct {
+	SectionName  *string
+	DisplayOrder *int
+	SupersetID   *string // Use empty string to clear superset
+}
+
+// UpdateExercise updates section_name, display_order, and superset_id for a session exercise
+func (r *SessionRepository) UpdateExercise(ctx context.Context, sessionID, exerciseID string, params UpdateExerciseParams) error {
+	query := `
+		UPDATE session_exercises
+		SET section_name = COALESCE($3, section_name),
+		    display_order = COALESCE($4, display_order),
+		    superset_id = CASE
+		        WHEN $5::text = '' THEN NULL
+		        WHEN $5::text IS NOT NULL THEN $5::uuid
+		        ELSE superset_id
+		    END
+		WHERE id = $1 AND session_id = $2
+	`
+	_, err := r.pool.Exec(ctx, query, exerciseID, sessionID, params.SectionName, params.DisplayOrder, params.SupersetID)
+	return err
+}
+
 // List retrieves sessions for a user
 func (r *SessionRepository) List(ctx context.Context, userID string, status *string, startDate, endDate *time.Time, limit, offset int) ([]*WorkoutSession, int, error) {
 	countQuery := `

@@ -13,6 +13,8 @@ import '../../shared/widgets/floating_session_widget.dart';
 import '../workout_builder/widgets/exercise_search_modal.dart';
 import 'models/session_models.dart';
 import 'providers/session_providers.dart';
+import 'widgets/draggable_exercise_card.dart';
+import 'widgets/exercise_drop_zone.dart';
 import 'widgets/progress_header.dart';
 import 'widgets/tracker_section_card.dart';
 import 'widgets/rest_timer_sheet.dart';
@@ -36,6 +38,7 @@ class TrackerScreen extends HookConsumerWidget {
     final nextExerciseName = useState('');
     final nextSetNumber = useState(1);
     final elapsedSeconds = useState(0);
+    final isDragging = useState(false);
 
     final sessionAsync = ref.watch(activeSessionProvider);
 
@@ -81,8 +84,11 @@ class TrackerScreen extends HookConsumerWidget {
         // Resume existing session
         await notifier.loadSession(sessionId: sessionId!);
       } else if (workoutTemplateId != null) {
-        // Start new session
+        // Start new session from template
         await notifier.startSession(workoutTemplateId: workoutTemplateId!);
+      } else {
+        // Start empty session
+        await notifier.startSession(name: 'Quick Workout');
       }
 
       if (context.mounted) {
@@ -133,6 +139,14 @@ class TrackerScreen extends HookConsumerWidget {
       }
     }
 
+    Future<void> goBackHome() async {
+      // Force sync any pending changes before leaving
+      await ref.read(activeSessionProvider.notifier).cleanup();
+      if (context.mounted) {
+        context.go('/');
+      }
+    }
+
     return Stack(
       children: [
         FScaffold(
@@ -165,16 +179,31 @@ class TrackerScreen extends HookConsumerWidget {
               ],
             ),
             prefixes: [
-              FHeaderAction.back(onPress: () => context.go('/')),
+              FHeaderAction.back(onPress: goBackHome),
             ],
             suffixes: [
-              FHeaderAction(
-                icon: const Icon(Icons.close, color: AppColors.accentRed),
-                onPress: discardWorkout,
+              GestureDetector(
+                onTap: discardWorkout,
+                child: const Text(
+                  'Discard',
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w500,
+                    color: AppColors.accentRed,
+                  ),
+                ),
               ),
-              FHeaderAction(
-                icon: const Icon(Icons.check, color: AppColors.accentGreen),
-                onPress: finishWorkout,
+              const SizedBox(width: 16),
+              GestureDetector(
+                onTap: finishWorkout,
+                child: const Text(
+                  'Finish',
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w500,
+                    color: AppColors.accentGreen,
+                  ),
+                ),
               ),
             ],
           ),
@@ -187,7 +216,7 @@ class TrackerScreen extends HookConsumerWidget {
                     if (session == null) {
                       return _buildNoSession(context);
                     }
-                    return _buildSessionContent(context, ref, session);
+                    return _buildSessionContent(context, ref, session, isDragging);
                   },
                   loading: () => const Center(
                     child: FCircularProgress.loader(),
@@ -264,7 +293,12 @@ class TrackerScreen extends HookConsumerWidget {
     );
   }
 
-  Widget _buildSessionContent(BuildContext context, WidgetRef ref, SessionModel session) {
+  Widget _buildSessionContent(
+    BuildContext context,
+    WidgetRef ref,
+    SessionModel session,
+    ValueNotifier<bool> isDragging,
+  ) {
     // Group exercises by section
     final exercisesBySection = <String, List<SessionExerciseModel>>{};
     for (final exercise in session.exercises) {
@@ -310,34 +344,68 @@ class TrackerScreen extends HookConsumerWidget {
                                 color: AppColors.textPrimary,
                               ),
                             ),
-                            if (isSuperset) ...[
-                              const SizedBox(width: 8),
-                              Container(
+                            const SizedBox(width: 8),
+                            GestureDetector(
+                              onTap: () {
+                                ref.read(activeSessionProvider.notifier).toggleSectionSuperset(
+                                  sectionName: sectionName,
+                                );
+                              },
+                              child: Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                                 decoration: BoxDecoration(
-                                  color: AppColors.accentBlue,
+                                  color: isSuperset
+                                      ? AppColors.accentPurple
+                                      : AppColors.bgPrimary,
                                   borderRadius: BorderRadius.circular(12),
+                                  border: isSuperset
+                                      ? null
+                                      : Border.all(color: AppColors.borderColor),
                                 ),
-                                child: const Text(
-                                  'Superset',
-                                  style: TextStyle(
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.w500,
-                                    color: Colors.white,
-                                  ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(
+                                      isSuperset ? Icons.link : Icons.link_off,
+                                      size: 12,
+                                      color: isSuperset ? Colors.white : AppColors.textMuted,
+                                    ),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      'Superset',
+                                      style: TextStyle(
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.w500,
+                                        color: isSuperset ? Colors.white : AppColors.textMuted,
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ),
-                            ],
+                            ),
                           ],
                         ),
                         Row(
                           children: [
                             GestureDetector(
                               onTap: () => _showAddExerciseModal(context, ref, sectionName),
-                              child: const Icon(
-                                Icons.add_circle_outline,
-                                color: AppColors.textSecondary,
-                                size: 22,
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                decoration: BoxDecoration(
+                                  color: AppColors.bgPrimary,
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: const Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(Icons.add, size: 14, color: AppColors.textMuted),
+                                    SizedBox(width: 4),
+                                    Text(
+                                      'Exercise',
+                                      style: TextStyle(fontSize: 12, color: AppColors.textMuted),
+                                    ),
+                                  ],
+                                ),
                               ),
                             ),
                             const SizedBox(width: 12),
@@ -356,37 +424,45 @@ class TrackerScreen extends HookConsumerWidget {
                   ),
 
                   // Exercises - build cards once, conditionally wrap
-                  ..._buildExerciseCards(context, ref, exercises, isSuperset),
+                  ..._buildExerciseCards(context, ref, exercises, isSuperset, sectionName, isDragging),
                 ],
               );
             },
                 ),
               ),
+              // New Section drop zone (only shown when dragging)
+              NewSectionDropZone(
+                isDragging: isDragging.value,
+                onAccept: (dragData) {
+                  _showNewSectionDialog(context, ref, dragData.exercise.id);
+                },
+              ),
               // Add Section button
-              Padding(
-                padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-                child: GestureDetector(
-                  onTap: () => _showAddSectionFlow(context, ref),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                    decoration: BoxDecoration(
-                      border: Border.all(color: AppColors.borderColor),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: const Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(Icons.add, color: AppColors.textSecondary, size: 20),
-                        SizedBox(width: 8),
-                        Text(
-                          'Add Section',
-                          style: TextStyle(color: AppColors.textSecondary),
-                        ),
-                      ],
+              if (!isDragging.value)
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+                  child: GestureDetector(
+                    onTap: () => _showAddSectionFlow(context, ref),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      decoration: BoxDecoration(
+                        border: Border.all(color: AppColors.borderColor),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: const Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.add, color: AppColors.textSecondary, size: 20),
+                          SizedBox(width: 8),
+                          Text(
+                            'Add Section',
+                            style: TextStyle(color: AppColors.textSecondary),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),
-              ),
             ],
           ),
         ),
@@ -399,9 +475,32 @@ class TrackerScreen extends HookConsumerWidget {
     WidgetRef ref,
     List<SessionExerciseModel> exercises,
     bool isSuperset,
+    String sectionName,
+    ValueNotifier<bool> isDragging,
   ) {
-    final cards = exercises.map((exercise) {
-      return TrackerSectionCard(
+    final widgets = <Widget>[];
+
+    for (int i = 0; i < exercises.length; i++) {
+      final exercise = exercises[i];
+
+      // Add drop zone before each exercise
+      widgets.add(
+        ExerciseDropZone(
+          sectionName: sectionName,
+          targetIndex: i,
+          isDragging: isDragging.value,
+          onAccept: (dragData) {
+            ref.read(activeSessionProvider.notifier).moveExercise(
+              exerciseId: dragData.exercise.id,
+              toSectionName: sectionName,
+              targetIndex: i,
+            );
+          },
+        ),
+      );
+
+      // Build the card
+      final card = TrackerSectionCard(
         exercise: exercise,
         onSetCompleted: (setId, weight, reps, timeSeconds) {
           ref.read(activeSessionProvider.notifier).completeSet(
@@ -420,7 +519,35 @@ class TrackerScreen extends HookConsumerWidget {
         },
         onDeleteExercise: () => _confirmDeleteExercise(context, ref, exercise),
       );
-    }).toList();
+
+      // Wrap with draggable
+      widgets.add(
+        DraggableExerciseCard(
+          exercise: exercise,
+          sectionName: sectionName,
+          index: i,
+          onDragStarted: () => isDragging.value = true,
+          onDragEnd: () => isDragging.value = false,
+          child: card,
+        ),
+      );
+    }
+
+    // Add drop zone after the last exercise
+    widgets.add(
+      ExerciseDropZone(
+        sectionName: sectionName,
+        targetIndex: exercises.length,
+        isDragging: isDragging.value,
+        onAccept: (dragData) {
+          ref.read(activeSessionProvider.notifier).moveExercise(
+            exerciseId: dragData.exercise.id,
+            toSectionName: sectionName,
+            targetIndex: exercises.length,
+          );
+        },
+      ),
+    );
 
     if (isSuperset) {
       return [
@@ -432,11 +559,11 @@ class TrackerScreen extends HookConsumerWidget {
           ),
           margin: const EdgeInsets.only(left: 4),
           padding: const EdgeInsets.only(left: 12),
-          child: Column(children: cards),
+          child: Column(children: widgets),
         ),
       ];
     }
-    return cards;
+    return widgets;
   }
 
   void _showAddExerciseModal(BuildContext context, WidgetRef ref, String sectionName) {
@@ -495,6 +622,43 @@ class TrackerScreen extends HookConsumerWidget {
 
     // Step 2: Show exercise picker with new section name
     _showAddExerciseModal(context, ref, sectionName);
+  }
+
+  void _showNewSectionDialog(BuildContext context, WidgetRef ref, String exerciseId) async {
+    final sectionNameController = TextEditingController();
+    final sectionName = await showFDialog<String>(
+      context: context,
+      builder: (context, style, animation) {
+        return FDialog(
+          style: style,
+          animation: animation,
+          title: const Text('New Section'),
+          body: FTextField(
+            control: .managed(controller: sectionNameController),
+            hint: 'Section name',
+            autofocus: true,
+          ),
+          actions: [
+            FButton(
+              style: FButtonStyle.ghost(),
+              onPress: () => Navigator.pop(context),
+              child: const Text('Cancel'),
+            ),
+            FButton(
+              onPress: () => Navigator.pop(context, sectionNameController.text.trim()),
+              child: const Text('Create'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (sectionName == null || sectionName.isEmpty) return;
+
+    ref.read(activeSessionProvider.notifier).createNewSectionWithExercise(
+      exerciseId: exerciseId,
+      sectionName: sectionName,
+    );
   }
 
   Future<void> _confirmDeleteExercise(BuildContext context, WidgetRef ref, SessionExerciseModel exercise) async {

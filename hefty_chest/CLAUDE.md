@@ -11,6 +11,7 @@
 | UI Components | forui 0.17.0 (FButton, FTextField, FProgress, etc.) |
 | API Client | Connect-RPC |
 | Charts | fl_chart |
+| Logging | logging 1.3.0 |
 
 ## Project Structure
 
@@ -24,7 +25,9 @@ hefty_chest/
 │   │   └── router.g.dart            # Generated router code
 │   ├── core/
 │   │   ├── client.dart              # RPC client setup & exports
-│   │   └── config.dart              # App configuration
+│   │   ├── config.dart              # App configuration
+│   │   ├── logging.dart             # Logging setup & pre-defined loggers
+│   │   └── session_storage.dart     # Local session backup
 │   ├── features/                    # Feature modules (9 total)
 │   │   ├── auth/
 │   │   │   └── providers/
@@ -538,6 +541,60 @@ class ActiveSession extends _$ActiveSession {
   }
 }
 ```
+
+## Logging
+
+The app uses the `logging` package with pre-defined loggers for each feature. Logging is initialized in `main.dart` before `runApp()`.
+
+### Setup (`lib/core/logging.dart`)
+
+```dart
+import '../core/logging.dart';
+
+// Available loggers - use the one matching your feature
+logAuth.info('Login successful');
+logSession.severe('Sync failed', error, stackTrace);
+logWorkout.fine('Saving workout');
+```
+
+### Pre-defined Loggers
+
+| Logger | Feature | Primary Use |
+|--------|---------|-------------|
+| `logAuth` | Authentication | Login, logout, token management |
+| `logSession` | Workout Tracker | Session sync, start/finish/abandon |
+| `logWorkout` | Workout Builder | Load/save workout templates |
+| `logProgram` | Program Builder | Load/save training programs |
+| `logProfile` | Profile | User settings updates |
+| `logProgress` | Progress | Stats and analytics fetches |
+| `logCalendar` | Calendar | Calendar data fetches |
+| `logHistory` | History | Session history fetches |
+| `logHome` | Home | Workout list, delete operations |
+| `logStorage` | Storage | Local session backup operations |
+
+### Log Levels
+
+| Level | Usage | Example |
+|-------|-------|---------|
+| **SEVERE** | All errors with stack traces | `log.severe('Sync failed', e, st)` |
+| **WARNING** | Recoverable issues, fallbacks | `log.warning('Using local backup')` |
+| **INFO** | Important operations | `log.info('Session started: $id')` |
+| **FINE** | Debug details | `log.fine('Set updated: $setId')` |
+
+### Output Format
+
+```
+[SEVERE ] 12:34:56.789 heft.session: Sync failed for session: abc123
+  Error: NetworkException: Connection timeout
+  Stack: #0 SessionClient.sync (...)
+```
+
+### Security Notes
+
+Never log:
+- Auth tokens or passwords
+- Full email addresses (mask: `email.replaceRange(3, email.indexOf('@'), '***')`)
+- Other PII
 
 ## Styling
 

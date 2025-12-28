@@ -2,6 +2,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../../core/client.dart';
+import '../../../core/logging.dart';
 import '../../home/providers/home_providers.dart';
 
 part 'workout_builder_providers.g.dart';
@@ -169,6 +170,7 @@ class WorkoutBuilder extends _$WorkoutBuilder {
   }
 
   Future<void> loadWorkout(String workoutId) async {
+    logWorkout.info('Loading workout: $workoutId');
     state = state.copyWith(isLoading: true);
     try {
       final request = GetWorkoutRequest()..id = workoutId;
@@ -221,7 +223,9 @@ class WorkoutBuilder extends _$WorkoutBuilder {
         sections: sections,
         isLoading: false,
       );
-    } catch (e) {
+      logWorkout.info('Workout loaded: ${workout.name} with ${sections.length} sections');
+    } catch (e, st) {
+      logWorkout.severe('Failed to load workout: $workoutId', e, st);
       state = state.copyWith(isLoading: false, error: e.toString());
     }
   }
@@ -522,10 +526,12 @@ class WorkoutBuilder extends _$WorkoutBuilder {
 
   Future<bool> saveWorkout() async {
     if (state.name.isEmpty) {
+      logWorkout.warning('Save rejected: empty workout name');
       state = state.copyWith(error: 'Please enter a workout name');
       return false;
     }
 
+    logWorkout.info('Saving workout: ${state.name}, isNew: ${state.id == null}');
     state = state.copyWith(isLoading: true);
 
     try {
@@ -592,9 +598,11 @@ class WorkoutBuilder extends _$WorkoutBuilder {
         ref.invalidate(workoutDetailProvider(state.id!));
       }
 
+      logWorkout.info('Workout ${state.id != null ? "updated" : "created"}: ${state.name}');
       state = state.copyWith(isLoading: false);
       return true;
-    } catch (e) {
+    } catch (e, st) {
+      logWorkout.severe('Failed to save workout: ${state.name}', e, st);
       state = state.copyWith(isLoading: false, error: e.toString());
       return false;
     }

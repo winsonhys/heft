@@ -1,6 +1,7 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../core/client.dart';
+import '../../../core/logging.dart';
 import '../../home/providers/home_providers.dart';
 
 part 'program_builder_providers.g.dart';
@@ -92,6 +93,7 @@ class ProgramBuilder extends _$ProgramBuilder {
   }
 
   Future<void> loadProgram(String programId) async {
+    logProgram.info('Loading program: $programId');
     state = state.copyWith(isLoading: true);
     try {
       final request = GetProgramRequest()..id = programId;
@@ -121,7 +123,9 @@ class ProgramBuilder extends _$ProgramBuilder {
         dayAssignments: assignments,
         isLoading: false,
       );
-    } catch (e) {
+      logProgram.info('Program loaded: ${program.name}');
+    } catch (e, st) {
+      logProgram.severe('Failed to load program: $programId', e, st);
       state = state.copyWith(isLoading: false, error: e.toString());
     }
   }
@@ -191,10 +195,12 @@ class ProgramBuilder extends _$ProgramBuilder {
 
   Future<bool> saveProgram() async {
     if (state.name.isEmpty) {
+      logProgram.warning('Save rejected: empty program name');
       state = state.copyWith(error: 'Please enter a program name');
       return false;
     }
 
+    logProgram.info('Saving program: ${state.name}, isNew: ${state.id == null}');
     state = state.copyWith(isLoading: true);
 
     try {
@@ -239,9 +245,11 @@ class ProgramBuilder extends _$ProgramBuilder {
       ref.invalidate(workoutsForProgramProvider);
       ref.invalidate(dashboardStatsProvider);
 
+      logProgram.info('Program ${state.id != null ? "updated" : "created"}: ${state.name}');
       state = state.copyWith(isLoading: false);
       return true;
-    } catch (e) {
+    } catch (e, st) {
+      logProgram.severe('Failed to save program: ${state.name}', e, st);
       state = state.copyWith(isLoading: false, error: e.toString());
       return false;
     }

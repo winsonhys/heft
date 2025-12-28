@@ -11,6 +11,7 @@ List<RouteBase> get $appRoutes => [
   $authRoute,
   $newSessionRoute,
   $resumeSessionRoute,
+  $emptySessionRoute,
   $historyDetailRoute,
   $workoutBuilderRoute,
   $editWorkoutRoute,
@@ -224,6 +225,32 @@ mixin $ResumeSessionRoute on GoRouteData {
   @override
   String get location =>
       GoRouteData.$location('/session/${Uri.encodeComponent(_self.sessionId)}');
+
+  @override
+  void go(BuildContext context) => context.go(location);
+
+  @override
+  Future<T?> push<T>(BuildContext context) => context.push<T>(location);
+
+  @override
+  void pushReplacement(BuildContext context) =>
+      context.pushReplacement(location);
+
+  @override
+  void replace(BuildContext context) => context.replace(location);
+}
+
+RouteBase get $emptySessionRoute => GoRouteData.$route(
+  path: '/session/empty',
+  factory: $EmptySessionRoute._fromState,
+);
+
+mixin $EmptySessionRoute on GoRouteData {
+  static EmptySessionRoute _fromState(GoRouterState state) =>
+      const EmptySessionRoute();
+
+  @override
+  String get location => GoRouteData.$location('/session/empty');
 
   @override
   void go(BuildContext context) => context.go(location);

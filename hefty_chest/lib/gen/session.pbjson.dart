@@ -286,6 +286,7 @@ const SyncExerciseData$json = {
   '2': [
     {'1': 'id', '3': 1, '4': 1, '5': 9, '9': 0, '10': 'id'},
     {'1': 'new_exercise', '3': 2, '4': 1, '5': 11, '6': '.heft.v1.NewExerciseData', '9': 0, '10': 'newExercise'},
+    {'1': 'update_exercise', '3': 3, '4': 1, '5': 11, '6': '.heft.v1.UpdateExerciseData', '9': 0, '10': 'updateExercise'},
   ],
   '8': [
     {'1': 'exercise_identifier'},
@@ -295,8 +296,32 @@ const SyncExerciseData$json = {
 /// Descriptor for `SyncExerciseData`. Decode as a `google.protobuf.DescriptorProto`.
 final $typed_data.Uint8List syncExerciseDataDescriptor = $convert.base64Decode(
     'ChBTeW5jRXhlcmNpc2VEYXRhEhAKAmlkGAEgASgJSABSAmlkEj0KDG5ld19leGVyY2lzZRgCIA'
-    'EoCzIYLmhlZnQudjEuTmV3RXhlcmNpc2VEYXRhSABSC25ld0V4ZXJjaXNlQhUKE2V4ZXJjaXNl'
-    'X2lkZW50aWZpZXI=');
+    'EoCzIYLmhlZnQudjEuTmV3RXhlcmNpc2VEYXRhSABSC25ld0V4ZXJjaXNlEkYKD3VwZGF0ZV9l'
+    'eGVyY2lzZRgDIAEoCzIbLmhlZnQudjEuVXBkYXRlRXhlcmNpc2VEYXRhSABSDnVwZGF0ZUV4ZX'
+    'JjaXNlQhUKE2V4ZXJjaXNlX2lkZW50aWZpZXI=');
+
+@$core.Deprecated('Use updateExerciseDataDescriptor instead')
+const UpdateExerciseData$json = {
+  '1': 'UpdateExerciseData',
+  '2': [
+    {'1': 'id', '3': 1, '4': 1, '5': 9, '10': 'id'},
+    {'1': 'section_name', '3': 2, '4': 1, '5': 9, '9': 0, '10': 'sectionName', '17': true},
+    {'1': 'display_order', '3': 3, '4': 1, '5': 5, '9': 1, '10': 'displayOrder', '17': true},
+    {'1': 'superset_id', '3': 4, '4': 1, '5': 9, '9': 2, '10': 'supersetId', '17': true},
+  ],
+  '8': [
+    {'1': '_section_name'},
+    {'1': '_display_order'},
+    {'1': '_superset_id'},
+  ],
+};
+
+/// Descriptor for `UpdateExerciseData`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List updateExerciseDataDescriptor = $convert.base64Decode(
+    'ChJVcGRhdGVFeGVyY2lzZURhdGESDgoCaWQYASABKAlSAmlkEiYKDHNlY3Rpb25fbmFtZRgCIA'
+    'EoCUgAUgtzZWN0aW9uTmFtZYgBARIoCg1kaXNwbGF5X29yZGVyGAMgASgFSAFSDGRpc3BsYXlP'
+    'cmRlcogBARIkCgtzdXBlcnNldF9pZBgEIAEoCUgCUgpzdXBlcnNldElkiAEBQg8KDV9zZWN0aW'
+    '9uX25hbWVCEAoOX2Rpc3BsYXlfb3JkZXJCDgoMX3N1cGVyc2V0X2lk');
 
 @$core.Deprecated('Use newExerciseDataDescriptor instead')
 const NewExerciseData$json = {
@@ -453,6 +478,7 @@ const $core.Map<$core.String, $core.Map<$core.String, $core.dynamic>> SessionSer
   '.heft.v1.SyncSetData': SyncSetData$json,
   '.heft.v1.SyncExerciseData': SyncExerciseData$json,
   '.heft.v1.NewExerciseData': NewExerciseData$json,
+  '.heft.v1.UpdateExerciseData': UpdateExerciseData$json,
   '.heft.v1.SyncSessionResponse': SyncSessionResponse$json,
   '.heft.v1.FinishSessionRequest': FinishSessionRequest$json,
   '.heft.v1.FinishSessionResponse': FinishSessionResponse$json,

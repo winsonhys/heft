@@ -4,6 +4,7 @@ import 'package:forui/forui.dart';
 
 import '../../shared/theme/app_colors.dart';
 import '../../app/router.dart';
+import '../../core/logging.dart';
 import '../tracker/providers/session_providers.dart';
 import 'providers/home_providers.dart';
 import 'widgets/quick_stats_row.dart';
@@ -67,10 +68,13 @@ class HomeScreen extends ConsumerWidget {
     );
 
     if (confirmed == true && context.mounted) {
+      logHome.info('Deleting workout: ${workout.id}');
       try {
         await deleteWorkout(workout.id);
         ref.invalidate(workoutListProvider);
-      } catch (e) {
+        logHome.info('Workout deleted: ${workout.id}');
+      } catch (e, st) {
+        logHome.severe('Failed to delete workout: ${workout.id}', e, st);
         if (context.mounted) {
           showFToast(
             context: context,
@@ -167,14 +171,16 @@ class HomeScreen extends ConsumerWidget {
               Expanded(
                 child: workoutsAsync.when(
                   data: (workouts) {
-                    if (workouts.isEmpty) {
-                      return _buildEmptyState();
-                    }
                     return ListView.builder(
                       padding: const EdgeInsets.symmetric(horizontal: 20),
-                      itemCount: workouts.length,
+                      itemCount: workouts.length + 1, // +1 for Quick Start card
                       itemBuilder: (context, index) {
-                        final workout = workouts[index];
+                        // First item is the Quick Start card
+                        if (index == 0) {
+                          return _buildQuickStartCard(context, ref);
+                        }
+                        // Offset by 1 for workout cards
+                        final workout = workouts[index - 1];
                         return WorkoutCard(
                           workout: workout,
                           onStart: () => _startWorkout(context, ref, workout.id),
@@ -246,43 +252,78 @@ class HomeScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildEmptyState() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
+  Future<void> _startEmptyWorkout(BuildContext context, WidgetRef ref) async {
+    // Check if there's already an active session
+    final activeSession = await ref.read(hasActiveSessionProvider.future);
+    if (activeSession != null) {
+      if (context.mounted) {
+        showFToast(
+          context: context,
+          title: const Text('Please finish your current workout first'),
+          icon: const Icon(Icons.warning_amber_rounded),
+        );
+      }
+      return;
+    }
+
+    if (context.mounted) {
+      context.goEmptySession();
+    }
+  }
+
+  Widget _buildQuickStartCard(BuildContext context, WidgetRef ref) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.bgCard,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppColors.borderColor),
+      ),
+      child: Row(
         children: [
           Container(
-            width: 64,
-            height: 64,
+            padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: AppColors.bgCard,
-              borderRadius: BorderRadius.circular(16),
+              color: AppColors.accentBlue.withValues(alpha: 0.15),
+              borderRadius: BorderRadius.circular(10),
             ),
             child: Icon(
-              Icons.fitness_center,
-              size: 32,
-              color: AppColors.textMuted,
+              Icons.add,
+              color: AppColors.accentBlue,
+              size: 24,
             ),
           ),
-          const SizedBox(height: 16),
-          Text(
-            'No workouts yet',
-            style: TextStyle(
-              fontSize: 17,
-              fontWeight: FontWeight.w600,
-              color: AppColors.textPrimary,
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Quick Start',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.textPrimary,
+                  ),
+                ),
+                Text(
+                  'Start an empty workout',
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: AppColors.textMuted,
+                  ),
+                ),
+              ],
             ),
           ),
-          const SizedBox(height: 4),
-          Text(
-            'Create your first workout to get started',
-            style: TextStyle(
-              fontSize: 14,
-              color: AppColors.textMuted,
-            ),
+          FButton(
+            onPress: () => _startEmptyWorkout(context, ref),
+            child: const Text('Start'),
           ),
         ],
       ),
     );
   }
+
 }

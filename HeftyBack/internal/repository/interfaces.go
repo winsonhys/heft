@@ -46,6 +46,7 @@ type SessionRepositoryInterface interface {
 	SyncSets(ctx context.Context, sessionID string, sets []SyncSetInput) error
 	DeleteSets(ctx context.Context, sessionID string, setIDs []string) error
 	DeleteExercises(ctx context.Context, sessionID string, exerciseIDs []string) error
+	UpdateExercise(ctx context.Context, sessionID, exerciseID string, params UpdateExerciseParams) error
 	FinishSession(ctx context.Context, id, userID string, notes *string) (*WorkoutSession, error)
 	AbandonSession(ctx context.Context, id, userID string) error
 	List(ctx context.Context, userID string, status *string, startDate, endDate *time.Time, limit, offset int) ([]*WorkoutSession, int, error)

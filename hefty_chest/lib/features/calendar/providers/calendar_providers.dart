@@ -1,6 +1,7 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../core/client.dart';
+import '../../../core/logging.dart';
 
 part 'calendar_providers.g.dart';
 
@@ -46,11 +47,13 @@ Future<CalendarData> currentCalendarData(Ref ref) async {
 /// Calendar month data provider
 @riverpod
 Future<CalendarData> calendarMonth(Ref ref, DateTime month) async {
+  logCalendar.fine('Fetching calendar for ${month.year}-${month.month.toString().padLeft(2, '0')}');
   final request = GetCalendarMonthRequest()
     ..year = month.year
     ..month = month.month;
 
   final response = await progressClient.getCalendarMonth(request);
+  logCalendar.fine('Calendar data fetched');
 
   // Extract upcoming items from today onwards
   final now = DateTime.now();
@@ -82,9 +85,11 @@ Future<CalendarData> calendarMonth(Ref ref, DateTime month) async {
 /// Provider for workouts available for scheduling
 @riverpod
 Future<List<WorkoutSummary>> workoutsForScheduling(Ref ref) async {
+  logCalendar.fine('Fetching workouts for scheduling');
   final request = ListWorkoutsRequest();
 
   final response = await workoutClient.listWorkouts(request);
+  logCalendar.fine('Fetched ${response.workouts.length} workouts for scheduling');
   return response.workouts;
 }
 

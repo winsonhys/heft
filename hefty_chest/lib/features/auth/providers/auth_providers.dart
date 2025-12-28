@@ -2,6 +2,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../core/client.dart';
+import '../../../core/logging.dart';
 import '../../../core/session_storage.dart';
 import '../../home/providers/home_providers.dart';
 import '../../profile/providers/profile_providers.dart';
@@ -56,22 +57,27 @@ class Auth extends _$Auth {
   }
 
   Future<void> _loadSavedAuth() async {
+    logAuth.fine('Loading saved auth from storage');
     try {
       final prefs = await SharedPreferences.getInstance();
       final token = prefs.getString(_tokenKey);
       final userId = prefs.getString(_userIdKey);
 
       if (token != null && userId != null) {
+        logAuth.info('Restored saved auth for user: $userId');
         state = AuthState(token: token, userId: userId);
       } else {
+        logAuth.fine('No saved auth found');
         state = const AuthState();
       }
-    } catch (e) {
+    } catch (e, st) {
+      logAuth.severe('Failed to load saved auth', e, st);
       state = const AuthState();
     }
   }
 
   Future<bool> login(String email) async {
+    logAuth.info('Login attempt for email: ${email.replaceRange(3, email.indexOf('@'), '***')}');
     state = state.copyWith(isLoading: true, clearError: true);
 
     try {
@@ -86,13 +92,15 @@ class Auth extends _$Auth {
       // Clear any stale session backup from previous user/database
       await SessionStorage.clearSession();
 
+      logAuth.info('Login successful for user: ${response.userId}');
       state = AuthState(
         token: response.token,
         userId: response.userId,
       );
 
       return true;
-    } catch (e) {
+    } catch (e, st) {
+      logAuth.severe('Login failed', e, st);
       state = state.copyWith(
         isLoading: false,
         error: 'Login failed: ${e.toString()}',
@@ -102,6 +110,7 @@ class Auth extends _$Auth {
   }
 
   Future<void> logout() async {
+    logAuth.info('User logout initiated');
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(_tokenKey);
     await prefs.remove(_userIdKey);
@@ -115,6 +124,7 @@ class Auth extends _$Auth {
     ref.invalidate(weeklyActivityProvider);
     ref.invalidate(personalRecordsProvider);
     ref.invalidate(hasActiveSessionProvider);
+    logAuth.info('User logged out, caches cleared');
   }
 }
 

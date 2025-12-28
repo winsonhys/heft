@@ -1,6 +1,7 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../core/client.dart';
+import '../../../core/logging.dart';
 
 part 'profile_providers.g.dart';
 
@@ -39,6 +40,7 @@ class UserSettings extends _$UserSettings {
     final currentUser = state.value;
     if (currentUser == null) return;
 
+    logProfile.info('Updating settings: usePounds=$usePounds, restTimer=$restTimerSeconds');
     state = const AsyncValue.loading();
     try {
       final request = UpdateSettingsRequest();
@@ -55,8 +57,10 @@ class UserSettings extends _$UserSettings {
 
       // Invalidate the profile provider so it refreshes
       ref.invalidate(userProfileProvider);
+      logProfile.info('Settings updated successfully');
     } catch (e, st) {
       state = AsyncValue.error(e, st);
+      logProfile.severe('Failed to update settings', e, st);
     }
   }
 }

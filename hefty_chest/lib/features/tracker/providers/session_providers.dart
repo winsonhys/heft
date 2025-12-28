@@ -1,8 +1,10 @@
 import 'dart:async';
 
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:uuid/uuid.dart';
 
 import '../../../core/client.dart';
+import '../../../core/logging.dart';
 import '../../../core/session_storage.dart';
 import '../../home/providers/home_providers.dart';
 import '../../progress/providers/progress_providers.dart';
@@ -22,6 +24,7 @@ class ActiveSession extends _$ActiveSession {
   final List<_PendingExercise> _pendingExercises = [];
   final List<String> _deletedSetIds = [];
   final List<String> _deletedExerciseIds = [];
+  final Set<String> _modifiedExerciseIds = {}; // Track exercises with updated properties
 
   @override
   AsyncValue<SessionModel?> build() {
@@ -54,12 +57,22 @@ class ActiveSession extends _$ActiveSession {
     final session = state.value;
     if (session == null || !_hasPendingChanges) return;
 
+    logSession.fine('Starting sync for session: ${session.id}');
     _syncStatus = SyncStatus.syncing;
 
     try {
-      // Build exercises array for new exercises
+      // Capture what we're syncing BEFORE the async call to avoid race conditions
+      // (user might delete something while sync is in progress)
+      final syncedExercises = List<_PendingExercise>.from(_pendingExercises);
+      final syncedDeletedSetIds = List<String>.from(_deletedSetIds);
+      final syncedDeletedExerciseIds = List<String>.from(_deletedExerciseIds);
+      final syncedModifiedExerciseIds = Set<String>.from(_modifiedExerciseIds);
+
+      // Build exercises array for new exercises and updates
       final exercises = <SyncExerciseData>[];
-      for (final pending in _pendingExercises) {
+
+      // Add new exercises
+      for (final pending in syncedExercises) {
         final newExData = NewExerciseData()
           ..exerciseId = pending.exerciseId
           ..displayOrder = pending.displayOrder
@@ -69,6 +82,27 @@ class ActiveSession extends _$ActiveSession {
           newExData.supersetId = pending.supersetId!;
         }
         exercises.add(SyncExerciseData()..newExercise = newExData);
+      }
+
+      // Add updates for modified existing exercises
+      for (final exerciseId in syncedModifiedExerciseIds) {
+        final exercise = session.exercises.firstWhere(
+          (e) => e.id == exerciseId,
+          orElse: () => const SessionExerciseModel(id: '', exerciseId: '', exerciseName: '', exerciseType: ExerciseType.EXERCISE_TYPE_UNSPECIFIED, displayOrder: 0, sectionName: '', sets: []),
+        );
+        if (exercise.id.isNotEmpty) {
+          final updateData = UpdateExerciseData()
+            ..id = exercise.id
+            ..sectionName = exercise.sectionName
+            ..displayOrder = exercise.displayOrder;
+          if (exercise.supersetId != null && exercise.supersetId!.isNotEmpty) {
+            updateData.supersetId = exercise.supersetId!;
+          } else {
+            // Empty string signals clearing the superset
+            updateData.supersetId = '';
+          }
+          exercises.add(SyncExerciseData()..updateExercise = updateData);
+        }
       }
 
       // Build sync request with all sets
@@ -105,38 +139,72 @@ class ActiveSession extends _$ActiveSession {
         ..sessionId = session.id
         ..sets.addAll(sets)
         ..exercises.addAll(exercises)
-        ..deletedSetIds.addAll(_deletedSetIds)
-        ..deletedExerciseIds.addAll(_deletedExerciseIds);
+        ..deletedSetIds.addAll(syncedDeletedSetIds)
+        ..deletedExerciseIds.addAll(syncedDeletedExerciseIds);
 
       final response = await sessionClient.syncSession(request);
 
-      // Clear pending lists since they're now on server
-      _pendingExercises.clear();
-      _deletedSetIds.clear();
-      _deletedExerciseIds.clear();
+      // Only remove items that were successfully synced (not ALL items)
+      // This prevents losing deletions that happened during the async call
+      _pendingExercises.removeWhere((e) => syncedExercises.contains(e));
+      _deletedSetIds.removeWhere((id) => syncedDeletedSetIds.contains(id));
+      _deletedExerciseIds.removeWhere((id) => syncedDeletedExerciseIds.contains(id));
+      _modifiedExerciseIds.removeWhere((id) => syncedModifiedExerciseIds.contains(id));
 
       // Update local state with server response (gets real IDs for new sets and exercises)
-      final updatedSession = SessionModel.fromProto(response.session);
+      var updatedSession = SessionModel.fromProto(response.session);
+
+      // Re-apply any deletions that happened during the sync
+      // The server response won't know about these yet
+      if (_deletedSetIds.isNotEmpty || _deletedExerciseIds.isNotEmpty) {
+        updatedSession = _applyPendingDeletions(updatedSession);
+      }
+
       state = AsyncValue.data(updatedSession);
 
-      _hasPendingChanges = false;
-      _syncStatus = SyncStatus.synced;
+      // Only mark as synced if no new changes accumulated during sync
+      _hasPendingChanges = _pendingExercises.isNotEmpty ||
+          _deletedSetIds.isNotEmpty ||
+          _deletedExerciseIds.isNotEmpty ||
+          _modifiedExerciseIds.isNotEmpty;
+      _syncStatus = _hasPendingChanges ? SyncStatus.pending : SyncStatus.synced;
 
-      // Update local backup with server state (includes real IDs)
-      await SessionStorage.saveSession(response.session);
-    } catch (e) {
+      // Update local backup with current state
+      await SessionStorage.saveSession(updatedSession.toProto());
+      logSession.info('Sync completed for session: ${session.id}');
+    } catch (e, st) {
+      logSession.severe('Sync failed for session: ${session.id}', e, st);
       _syncStatus = SyncStatus.error;
       // Keep _hasPendingChanges = true so we retry on next tick
     }
   }
 
-  /// Start a new session from a workout template
-  Future<SessionModel?> startSession({required String workoutTemplateId}) async {
+  /// Apply pending deletions to a session model
+  /// Used when server response doesn't reflect deletions made during sync
+  SessionModel _applyPendingDeletions(SessionModel session) {
+    return session.copyWith(
+      exercises: session.exercises
+          .where((e) => !_deletedExerciseIds.contains(e.id))
+          .map((e) => e.copyWith(
+                sets: e.sets.where((s) => !_deletedSetIds.contains(s.id)).toList(),
+              ))
+          .toList(),
+    );
+  }
+
+  /// Start a new session - either from template or empty
+  Future<SessionModel?> startSession({String? workoutTemplateId, String? name}) async {
+    logSession.info('Starting session - template: $workoutTemplateId, name: $name');
     try {
       state = const AsyncValue.loading();
 
-      final request = StartSessionRequest()
-        ..workoutTemplateId = workoutTemplateId;
+      final request = StartSessionRequest();
+      if (workoutTemplateId != null) {
+        request.workoutTemplateId = workoutTemplateId;
+      }
+      if (name != null) {
+        request.name = name;
+      }
 
       final response = await sessionClient.startSession(request);
       final sessionModel = SessionModel.fromProto(response.session);
@@ -149,37 +217,90 @@ class ActiveSession extends _$ActiveSession {
       // Refresh active session provider so floating widget updates immediately
       ref.invalidate(hasActiveSessionProvider);
 
+      logSession.info('Session started successfully: ${sessionModel.id}');
       return sessionModel;
     } catch (e, st) {
       if (e.toString().contains('disposed') ||
           e.toString().contains('UnmountedRefException')) {
+        logSession.fine('startSession cancelled - provider disposed');
         return null;
       }
+      logSession.severe('Failed to start session', e, st);
       state = AsyncValue.error(e, st);
       return null;
     }
   }
 
   /// Load an existing session (or recover from backup)
+  /// Compares local backup with server and uses whichever is newer
   Future<SessionModel?> loadSession({required String sessionId}) async {
+    logSession.info('Loading session: $sessionId');
     try {
       state = const AsyncValue.loading();
 
+      // Load both local backup and server session
+      final localBackup = await SessionStorage.loadSession();
+      final localTimestamp = await SessionStorage.getBackupTimestamp();
+
       final request = GetSessionRequest()..id = sessionId;
       final response = await sessionClient.getSession(request);
-      final sessionModel = SessionModel.fromProto(response.session);
-      state = AsyncValue.data(sessionModel);
+      final serverSession = SessionModel.fromProto(response.session);
 
-      // Save backup and start sync timer
-      await SessionStorage.saveSession(response.session);
+      // Determine which is newer
+      SessionModel sessionToUse;
+      bool needsSync = false;
+
+      if (localBackup != null &&
+          localBackup.id == sessionId &&
+          localTimestamp != null &&
+          serverSession.updatedAt != null) {
+        // Compare timestamps
+        if (localTimestamp.isAfter(serverSession.updatedAt!)) {
+          // Local is newer - use local backup
+          sessionToUse = SessionModel.fromProto(localBackup);
+          needsSync = true; // Need to sync local changes to server
+          logSession.warning('Local backup newer than server, will sync changes');
+        } else {
+          // Server is newer - use server
+          sessionToUse = serverSession;
+          // Update local backup with server data
+          await SessionStorage.saveSession(response.session);
+        }
+      } else {
+        // No matching local backup or no timestamps to compare - use server
+        sessionToUse = serverSession;
+        await SessionStorage.saveSession(response.session);
+      }
+
+      state = AsyncValue.data(sessionToUse);
       _startSyncTimer();
 
-      return sessionModel;
+      // If we used local backup, mark as pending to trigger sync
+      if (needsSync) {
+        _hasPendingChanges = true;
+        _syncStatus = SyncStatus.pending;
+      }
+
+      logSession.info('Session loaded: $sessionId');
+      return sessionToUse;
     } catch (e, st) {
+      // Network error - try to load from local backup
+      logSession.warning('Network error loading session, trying local backup');
+      final localBackup = await SessionStorage.loadSession();
+      if (localBackup != null && localBackup.id == sessionId) {
+        final sessionModel = SessionModel.fromProto(localBackup);
+        state = AsyncValue.data(sessionModel);
+        _startSyncTimer();
+        _hasPendingChanges = true; // Will try to sync when network is back
+        logSession.info('Recovered session from local backup: $sessionId');
+        return sessionModel;
+      }
+
       if (e.toString().contains('disposed') ||
           e.toString().contains('UnmountedRefException')) {
         return null;
       }
+      logSession.severe('Failed to load session: $sessionId', e, st);
       state = AsyncValue.error(e, st);
       return null;
     }
@@ -226,6 +347,7 @@ class ActiveSession extends _$ActiveSession {
     );
 
     if (found) {
+      logSession.fine('Set updated locally: $sessionSetId');
       // Update completed count using copyWith
       final finalSession = updatedSession.copyWith(
         completedSets: (updatedSession.completedSets + completedDelta)
@@ -352,6 +474,8 @@ class ActiveSession extends _$ActiveSession {
     final currentSession = state.value;
     if (currentSession == null) return;
 
+    logSession.fine('Adding exercise: $exerciseName to section: $sectionName');
+
     // Calculate display order (add at end)
     final displayOrder = currentSession.exercises.length;
 
@@ -461,6 +585,8 @@ class ActiveSession extends _$ActiveSession {
     final currentSession = state.value;
     if (currentSession == null) return;
 
+    logSession.fine('Deleting exercise: $sessionExerciseId');
+
     // Find the exercise to delete
     final exerciseToDelete = currentSession.exercises
         .where((e) => e.id == sessionExerciseId)
@@ -559,10 +685,145 @@ class ActiveSession extends _$ActiveSession {
     SessionStorage.saveSession(updatedSession.toProto());
   }
 
+  /// Move an exercise to a different section and/or position (local-first, synced via timer)
+  void moveExercise({
+    required String exerciseId,
+    required String toSectionName,
+    required int targetIndex,
+  }) {
+    final currentSession = state.value;
+    if (currentSession == null) return;
+
+    // Find the exercise to move
+    final exerciseIndex = currentSession.exercises.indexWhere((e) => e.id == exerciseId);
+    if (exerciseIndex == -1) return;
+
+    final exercise = currentSession.exercises[exerciseIndex];
+
+    // Track this exercise as modified (if it has a real ID)
+    if (exercise.id.isNotEmpty) {
+      _modifiedExerciseIds.add(exercise.id);
+    }
+
+    // Create updated exercise with new section name
+    final updatedExercise = exercise.copyWith(sectionName: toSectionName);
+
+    // Remove from current position and insert at target
+    final exercises = List<SessionExerciseModel>.from(currentSession.exercises);
+    exercises.removeAt(exerciseIndex);
+
+    // Adjust target index if needed (if moving from before target)
+    final adjustedIndex = exerciseIndex < targetIndex ? targetIndex - 1 : targetIndex;
+    final insertIndex = adjustedIndex.clamp(0, exercises.length);
+    exercises.insert(insertIndex, updatedExercise);
+
+    // Reorder displayOrder for all exercises
+    final reorderedExercises = exercises.asMap().entries.map((entry) {
+      return entry.value.copyWith(displayOrder: entry.key);
+    }).toList();
+
+    final updatedSession = currentSession.copyWith(exercises: reorderedExercises);
+
+    // Mark changes and update state
+    _hasPendingChanges = true;
+    _syncStatus = SyncStatus.pending;
+    state = AsyncValue.data(updatedSession);
+
+    // Save to local backup immediately
+    SessionStorage.saveSession(updatedSession.toProto());
+  }
+
+  /// Toggle superset for all exercises in a section (local-first, synced via timer)
+  void toggleSectionSuperset({required String sectionName}) {
+    final currentSession = state.value;
+    if (currentSession == null) return;
+
+    // Find all exercises in this section
+    final sectionExercises = currentSession.exercises
+        .where((e) => e.sectionName == sectionName)
+        .toList();
+
+    if (sectionExercises.isEmpty) return;
+
+    // Track all exercises in this section as modified (if they have real IDs)
+    for (final exercise in sectionExercises) {
+      if (exercise.id.isNotEmpty) {
+        _modifiedExerciseIds.add(exercise.id);
+      }
+    }
+
+    // Check if any exercise in this section has a superset ID
+    final hasSuperset = sectionExercises.any((e) => e.supersetId != null);
+
+    // If has superset, remove it; otherwise create new one
+    final newSupersetId = hasSuperset ? null : const Uuid().v4();
+
+    // Update all exercises in section with new supersetId
+    final updatedExercises = currentSession.exercises.map((exercise) {
+      if (exercise.sectionName != sectionName) return exercise;
+      return exercise.copyWith(supersetId: newSupersetId);
+    }).toList();
+
+    final updatedSession = currentSession.copyWith(exercises: updatedExercises);
+
+    // Mark changes and update state
+    _hasPendingChanges = true;
+    _syncStatus = SyncStatus.pending;
+    state = AsyncValue.data(updatedSession);
+
+    // Save to local backup immediately
+    SessionStorage.saveSession(updatedSession.toProto());
+  }
+
+  /// Create a new section and move an exercise into it (local-first, synced via timer)
+  void createNewSectionWithExercise({
+    required String exerciseId,
+    required String sectionName,
+  }) {
+    final currentSession = state.value;
+    if (currentSession == null) return;
+
+    // Find the exercise to move
+    final exerciseIndex = currentSession.exercises.indexWhere((e) => e.id == exerciseId);
+    if (exerciseIndex == -1) return;
+
+    final exercise = currentSession.exercises[exerciseIndex];
+
+    // Track this exercise as modified (if it has a real ID)
+    if (exercise.id.isNotEmpty) {
+      _modifiedExerciseIds.add(exercise.id);
+    }
+
+    // Update exercise with new section name
+    final updatedExercise = exercise.copyWith(sectionName: sectionName);
+
+    // Remove from current position and add at end
+    final exercises = List<SessionExerciseModel>.from(currentSession.exercises);
+    exercises.removeAt(exerciseIndex);
+    exercises.add(updatedExercise);
+
+    // Reorder displayOrder for all exercises
+    final reorderedExercises = exercises.asMap().entries.map((entry) {
+      return entry.value.copyWith(displayOrder: entry.key);
+    }).toList();
+
+    final updatedSession = currentSession.copyWith(exercises: reorderedExercises);
+
+    // Mark changes and update state
+    _hasPendingChanges = true;
+    _syncStatus = SyncStatus.pending;
+    state = AsyncValue.data(updatedSession);
+
+    // Save to local backup immediately
+    SessionStorage.saveSession(updatedSession.toProto());
+  }
+
   /// Finish the session
   Future<void> finishSession() async {
     final currentSession = state.value;
     if (currentSession == null) return;
+
+    logSession.info('Finishing session: ${currentSession.id}');
 
     // Stop sync timer
     _stopSyncTimer();
@@ -587,11 +848,13 @@ class ActiveSession extends _$ActiveSession {
       ref.invalidate(dashboardStatsProvider);
       // Refresh active session provider so floating widget updates immediately
       ref.invalidate(hasActiveSessionProvider);
+      logSession.info('Session finished successfully: ${currentSession.id}');
     } catch (e, st) {
       if (e.toString().contains('disposed') ||
           e.toString().contains('UnmountedRefException')) {
         return;
       }
+      logSession.severe('Failed to finish session: ${currentSession.id}', e, st);
       // Keep backup on error
       state = AsyncValue.error(e, st);
     }
@@ -601,6 +864,8 @@ class ActiveSession extends _$ActiveSession {
   Future<void> abandonSession() async {
     final currentSession = state.value;
     if (currentSession == null) return;
+
+    logSession.info('Abandoning session: ${currentSession.id}');
 
     _stopSyncTimer();
 
@@ -615,13 +880,25 @@ class ActiveSession extends _$ActiveSession {
 
       // Refresh active session provider so floating widget updates immediately
       ref.invalidate(hasActiveSessionProvider);
+      logSession.info('Session abandoned: ${currentSession.id}');
     } catch (e, st) {
       if (e.toString().contains('disposed') ||
           e.toString().contains('UnmountedRefException')) {
         return;
       }
+      logSession.severe('Failed to abandon session: ${currentSession.id}', e, st);
       state = AsyncValue.error(e, st);
     }
+  }
+
+  /// Force sync any pending changes and stop the timer
+  /// Call before navigating away from tracker screen
+  Future<void> cleanup() async {
+    logSession.fine('Cleanup initiated, forcing sync');
+    if (_hasPendingChanges) {
+      await _performSync();
+    }
+    _stopSyncTimer();
   }
 
   /// Clear current session

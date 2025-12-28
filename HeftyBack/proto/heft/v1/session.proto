@@ -147,9 +147,17 @@ message SyncSetData {
 message SyncExerciseData {
   // Either existing session_exercise ID or new exercise details
   oneof exercise_identifier {
-    string id = 1;                    // For existing exercises (future use)
-    NewExerciseData new_exercise = 2; // For new exercises
+    string id = 1;                        // For existing exercises (unused)
+    NewExerciseData new_exercise = 2;     // For new exercises
+    UpdateExerciseData update_exercise = 3; // For updating existing exercises
   }
+}
+
+message UpdateExerciseData {
+  string id = 1;                    // Session exercise ID to update
+  optional string section_name = 2;
+  optional int32 display_order = 3;
+  optional string superset_id = 4;  // Empty string = clear superset
 }
 
 message NewExerciseData {

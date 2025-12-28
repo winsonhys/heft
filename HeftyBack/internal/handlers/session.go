@@ -3,6 +3,7 @@ package handlers
 import (
 	"context"
 	"errors"
+	"log"
 	"time"
 
 	"connectrpc.com/connect"
@@ -61,6 +62,23 @@ func (h *SessionHandler) StartSession(ctx context.Context, req *connect.Request[
 		name = req.Msg.Name
 	}
 
+	// If based on template, get workout to use its name and exercises
+	var workout *repository.WorkoutTemplate
+	if workoutTemplateID != nil {
+		var err error
+		workout, err = h.workoutRepo.GetByID(ctx, *workoutTemplateID, userID)
+		if err != nil {
+			return nil, handleDBError(err)
+		}
+		if workout == nil {
+			return nil, connect.NewError(connect.CodeNotFound, errors.New("workout template not found"))
+		}
+		// Use workout name if not provided in request
+		if name == nil {
+			name = &workout.Name
+		}
+	}
+
 	// Create session
 	session, err := h.sessionRepo.Create(ctx, userID, workoutTemplateID, programID, programDayNumber, name)
 	if err != nil {
@@ -68,41 +86,38 @@ func (h *SessionHandler) StartSession(ctx context.Context, req *connect.Request[
 	}
 
 	// If based on template, populate exercises from template
-	if workoutTemplateID != nil {
-		workout, err := h.workoutRepo.GetByID(ctx, *workoutTemplateID, userID)
-		if err == nil && workout != nil {
-			displayOrder := 0
-			for _, section := range workout.Sections {
-				// Generate a superset ID if section is a superset
-				var supersetID *string
-				if section.IsSuperset {
-					id := uuid.New().String()
-					supersetID = &id
-				}
+	if workout != nil {
+		displayOrder := 0
+		for _, section := range workout.Sections {
+			// Generate a superset ID if section is a superset
+			var supersetID *string
+			if section.IsSuperset {
+				id := uuid.New().String()
+				supersetID = &id
+			}
 
-				for _, item := range section.Items {
-					if item.ItemType == "exercise" && item.ExerciseID != nil {
-						exercise, err := h.sessionRepo.AddExercise(ctx, session.ID, *item.ExerciseID, displayOrder, &section.Name, supersetID)
+			for _, item := range section.Items {
+				if item.ItemType == "exercise" && item.ExerciseID != nil {
+					exercise, err := h.sessionRepo.AddExercise(ctx, session.ID, *item.ExerciseID, displayOrder, &section.Name, supersetID)
+					if err != nil {
+						return nil, handleDBError(err)
+					}
+
+					// Add sets from template
+					for _, ts := range item.TargetSets {
+						var targetReps, targetTime *int
+						if ts.TargetReps != nil {
+							targetReps = ts.TargetReps
+						}
+						if ts.TargetTimeSeconds != nil {
+							targetTime = ts.TargetTimeSeconds
+						}
+						_, err := h.sessionRepo.AddSet(ctx, exercise.ID, ts.SetNumber, ts.TargetWeightKg, targetReps, targetTime, ts.IsBodyweight)
 						if err != nil {
 							return nil, handleDBError(err)
 						}
-
-						// Add sets from template
-						for _, ts := range item.TargetSets {
-							var targetReps, targetTime *int
-							if ts.TargetReps != nil {
-								targetReps = ts.TargetReps
-							}
-							if ts.TargetTimeSeconds != nil {
-								targetTime = ts.TargetTimeSeconds
-							}
-							_, err := h.sessionRepo.AddSet(ctx, exercise.ID, ts.SetNumber, ts.TargetWeightKg, targetReps, targetTime, ts.IsBodyweight)
-							if err != nil {
-								return nil, handleDBError(err)
-							}
-						}
-						displayOrder++
 					}
+					displayOrder++
 				}
 			}
 		}
@@ -161,7 +176,7 @@ func (h *SessionHandler) SyncSession(ctx context.Context, req *connect.Request[h
 		return nil, connect.NewError(connect.CodeNotFound, errors.New("session not found"))
 	}
 
-	// Process new exercises first (so sets can reference them)
+	// Process exercises: new exercises first, then updates
 	for _, exerciseData := range req.Msg.Exercises {
 		if newEx := exerciseData.GetNewExercise(); newEx != nil {
 			var sectionName *string
@@ -189,6 +204,25 @@ func (h *SessionHandler) SyncSession(ctx context.Context, req *connect.Request[h
 				if err != nil {
 					return nil, handleDBError(err)
 				}
+			}
+		} else if updateEx := exerciseData.GetUpdateExercise(); updateEx != nil {
+			// Process exercise updates (section_name, display_order, superset_id)
+			params := repository.UpdateExerciseParams{}
+
+			if updateEx.SectionName != nil {
+				params.SectionName = updateEx.SectionName
+			}
+			if updateEx.DisplayOrder != nil {
+				v := int(*updateEx.DisplayOrder)
+				params.DisplayOrder = &v
+			}
+			if updateEx.SupersetId != nil {
+				params.SupersetID = updateEx.SupersetId
+			}
+
+			err := h.sessionRepo.UpdateExercise(ctx, req.Msg.SessionId, updateEx.Id, params)
+			if err != nil {
+				return nil, handleDBError(err)
 			}
 		}
 	}
@@ -244,17 +278,22 @@ func (h *SessionHandler) SyncSession(ctx context.Context, req *connect.Request[h
 	}
 
 	// Process deletions first (before sync to avoid conflicts)
+	log.Printf("[SyncSession] Received deletedSetIds: %v", req.Msg.DeletedSetIds)
+	log.Printf("[SyncSession] Received deletedExerciseIds: %v", req.Msg.DeletedExerciseIds)
+
 	if len(req.Msg.DeletedSetIds) > 0 {
 		err = h.sessionRepo.DeleteSets(ctx, req.Msg.SessionId, req.Msg.DeletedSetIds)
 		if err != nil {
 			return nil, handleDBError(err)
 		}
+		log.Printf("[SyncSession] DeleteSets completed for IDs: %v", req.Msg.DeletedSetIds)
 	}
 	if len(req.Msg.DeletedExerciseIds) > 0 {
 		err = h.sessionRepo.DeleteExercises(ctx, req.Msg.SessionId, req.Msg.DeletedExerciseIds)
 		if err != nil {
 			return nil, handleDBError(err)
 		}
+		log.Printf("[SyncSession] DeleteExercises completed for IDs: %v", req.Msg.DeletedExerciseIds)
 	}
 
 	// Perform sync
@@ -267,6 +306,12 @@ func (h *SessionHandler) SyncSession(ctx context.Context, req *connect.Request[h
 	session, err = h.sessionRepo.GetByID(ctx, req.Msg.SessionId, userID)
 	if err != nil {
 		return nil, handleDBError(err)
+	}
+
+	// Log what we're returning
+	log.Printf("[SyncSession] Returning session with %d exercises", len(session.Exercises))
+	for _, ex := range session.Exercises {
+		log.Printf("[SyncSession]   Exercise %s has %d sets", ex.ID, len(ex.Sets))
 	}
 
 	return connect.NewResponse(&heftv1.SyncSessionResponse{

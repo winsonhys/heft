@@ -20,6 +20,7 @@ sealed class SessionModel with _$SessionModel {
     @Default(0) int durationSeconds,
     DateTime? startedAt,
     DateTime? completedAt,
+    DateTime? updatedAt,
     @Default('') String notes,
   }) = _SessionModel;
 
@@ -40,6 +41,7 @@ sealed class SessionModel with _$SessionModel {
       durationSeconds: pb.durationSeconds,
       startedAt: pb.hasStartedAt() ? pb.startedAt.toDateTime() : null,
       completedAt: pb.hasCompletedAt() ? pb.completedAt.toDateTime() : null,
+      updatedAt: pb.hasUpdatedAt() ? pb.updatedAt.toDateTime() : null,
       notes: pb.notes,
     );
   }

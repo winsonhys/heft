@@ -14,7 +14,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$SessionModel {
 
- String get id; String get workoutTemplateId; String get name; List<SessionExerciseModel> get exercises; int get completedSets; int get totalSets; int get durationSeconds; DateTime? get startedAt; DateTime? get completedAt; String get notes;
+ String get id; String get workoutTemplateId; String get name; List<SessionExerciseModel> get exercises; int get completedSets; int get totalSets; int get durationSeconds; DateTime? get startedAt; DateTime? get completedAt; DateTime? get updatedAt; String get notes;
 /// Create a copy of SessionModel
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -25,16 +25,16 @@ $SessionModelCopyWith<SessionModel> get copyWith => _$SessionModelCopyWithImpl<S
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is SessionModel&&(identical(other.id, id) || other.id == id)&&(identical(other.workoutTemplateId, workoutTemplateId) || other.workoutTemplateId == workoutTemplateId)&&(identical(other.name, name) || other.name == name)&&const DeepCollectionEquality().equals(other.exercises, exercises)&&(identical(other.completedSets, completedSets) || other.completedSets == completedSets)&&(identical(other.totalSets, totalSets) || other.totalSets == totalSets)&&(identical(other.durationSeconds, durationSeconds) || other.durationSeconds == durationSeconds)&&(identical(other.startedAt, startedAt) || other.startedAt == startedAt)&&(identical(other.completedAt, completedAt) || other.completedAt == completedAt)&&(identical(other.notes, notes) || other.notes == notes));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SessionModel&&(identical(other.id, id) || other.id == id)&&(identical(other.workoutTemplateId, workoutTemplateId) || other.workoutTemplateId == workoutTemplateId)&&(identical(other.name, name) || other.name == name)&&const DeepCollectionEquality().equals(other.exercises, exercises)&&(identical(other.completedSets, completedSets) || other.completedSets == completedSets)&&(identical(other.totalSets, totalSets) || other.totalSets == totalSets)&&(identical(other.durationSeconds, durationSeconds) || other.durationSeconds == durationSeconds)&&(identical(other.startedAt, startedAt) || other.startedAt == startedAt)&&(identical(other.completedAt, completedAt) || other.completedAt == completedAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.notes, notes) || other.notes == notes));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,id,workoutTemplateId,name,const DeepCollectionEquality().hash(exercises),completedSets,totalSets,durationSeconds,startedAt,completedAt,notes);
+int get hashCode => Object.hash(runtimeType,id,workoutTemplateId,name,const DeepCollectionEquality().hash(exercises),completedSets,totalSets,durationSeconds,startedAt,completedAt,updatedAt,notes);
 
 @override
 String toString() {
-  return 'SessionModel(id: $id, workoutTemplateId: $workoutTemplateId, name: $name, exercises: $exercises, completedSets: $completedSets, totalSets: $totalSets, durationSeconds: $durationSeconds, startedAt: $startedAt, completedAt: $completedAt, notes: $notes)';
+  return 'SessionModel(id: $id, workoutTemplateId: $workoutTemplateId, name: $name, exercises: $exercises, completedSets: $completedSets, totalSets: $totalSets, durationSeconds: $durationSeconds, startedAt: $startedAt, completedAt: $completedAt, updatedAt: $updatedAt, notes: $notes)';
 }
 
 
@@ -45,7 +45,7 @@ abstract mixin class $SessionModelCopyWith<$Res>  {
   factory $SessionModelCopyWith(SessionModel value, $Res Function(SessionModel) _then) = _$SessionModelCopyWithImpl;
 @useResult
 $Res call({
- String id, String workoutTemplateId, String name, List<SessionExerciseModel> exercises, int completedSets, int totalSets, int durationSeconds, DateTime? startedAt, DateTime? completedAt, String notes
+ String id, String workoutTemplateId, String name, List<SessionExerciseModel> exercises, int completedSets, int totalSets, int durationSeconds, DateTime? startedAt, DateTime? completedAt, DateTime? updatedAt, String notes
 });
 
 
@@ -62,7 +62,7 @@ class _$SessionModelCopyWithImpl<$Res>
 
 /// Create a copy of SessionModel
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? workoutTemplateId = null,Object? name = null,Object? exercises = null,Object? completedSets = null,Object? totalSets = null,Object? durationSeconds = null,Object? startedAt = freezed,Object? completedAt = freezed,Object? notes = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? workoutTemplateId = null,Object? name = null,Object? exercises = null,Object? completedSets = null,Object? totalSets = null,Object? durationSeconds = null,Object? startedAt = freezed,Object? completedAt = freezed,Object? updatedAt = freezed,Object? notes = null,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,workoutTemplateId: null == workoutTemplateId ? _self.workoutTemplateId : workoutTemplateId // ignore: cast_nullable_to_non_nullable
@@ -73,6 +73,7 @@ as int,totalSets: null == totalSets ? _self.totalSets : totalSets // ignore: cas
 as int,durationSeconds: null == durationSeconds ? _self.durationSeconds : durationSeconds // ignore: cast_nullable_to_non_nullable
 as int,startedAt: freezed == startedAt ? _self.startedAt : startedAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,completedAt: freezed == completedAt ? _self.completedAt : completedAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,updatedAt: freezed == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,notes: null == notes ? _self.notes : notes // ignore: cast_nullable_to_non_nullable
 as String,
   ));
@@ -156,10 +157,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String workoutTemplateId,  String name,  List<SessionExerciseModel> exercises,  int completedSets,  int totalSets,  int durationSeconds,  DateTime? startedAt,  DateTime? completedAt,  String notes)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String workoutTemplateId,  String name,  List<SessionExerciseModel> exercises,  int completedSets,  int totalSets,  int durationSeconds,  DateTime? startedAt,  DateTime? completedAt,  DateTime? updatedAt,  String notes)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _SessionModel() when $default != null:
-return $default(_that.id,_that.workoutTemplateId,_that.name,_that.exercises,_that.completedSets,_that.totalSets,_that.durationSeconds,_that.startedAt,_that.completedAt,_that.notes);case _:
+return $default(_that.id,_that.workoutTemplateId,_that.name,_that.exercises,_that.completedSets,_that.totalSets,_that.durationSeconds,_that.startedAt,_that.completedAt,_that.updatedAt,_that.notes);case _:
   return orElse();
 
 }
@@ -177,10 +178,10 @@ return $default(_that.id,_that.workoutTemplateId,_that.name,_that.exercises,_tha
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String workoutTemplateId,  String name,  List<SessionExerciseModel> exercises,  int completedSets,  int totalSets,  int durationSeconds,  DateTime? startedAt,  DateTime? completedAt,  String notes)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String workoutTemplateId,  String name,  List<SessionExerciseModel> exercises,  int completedSets,  int totalSets,  int durationSeconds,  DateTime? startedAt,  DateTime? completedAt,  DateTime? updatedAt,  String notes)  $default,) {final _that = this;
 switch (_that) {
 case _SessionModel():
-return $default(_that.id,_that.workoutTemplateId,_that.name,_that.exercises,_that.completedSets,_that.totalSets,_that.durationSeconds,_that.startedAt,_that.completedAt,_that.notes);}
+return $default(_that.id,_that.workoutTemplateId,_that.name,_that.exercises,_that.completedSets,_that.totalSets,_that.durationSeconds,_that.startedAt,_that.completedAt,_that.updatedAt,_that.notes);}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -194,10 +195,10 @@ return $default(_that.id,_that.workoutTemplateId,_that.name,_that.exercises,_tha
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String workoutTemplateId,  String name,  List<SessionExerciseModel> exercises,  int completedSets,  int totalSets,  int durationSeconds,  DateTime? startedAt,  DateTime? completedAt,  String notes)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String workoutTemplateId,  String name,  List<SessionExerciseModel> exercises,  int completedSets,  int totalSets,  int durationSeconds,  DateTime? startedAt,  DateTime? completedAt,  DateTime? updatedAt,  String notes)?  $default,) {final _that = this;
 switch (_that) {
 case _SessionModel() when $default != null:
-return $default(_that.id,_that.workoutTemplateId,_that.name,_that.exercises,_that.completedSets,_that.totalSets,_that.durationSeconds,_that.startedAt,_that.completedAt,_that.notes);case _:
+return $default(_that.id,_that.workoutTemplateId,_that.name,_that.exercises,_that.completedSets,_that.totalSets,_that.durationSeconds,_that.startedAt,_that.completedAt,_that.updatedAt,_that.notes);case _:
   return null;
 
 }
@@ -209,7 +210,7 @@ return $default(_that.id,_that.workoutTemplateId,_that.name,_that.exercises,_tha
 
 
 class _SessionModel implements SessionModel {
-  const _SessionModel({required this.id, required this.workoutTemplateId, required this.name, required final  List<SessionExerciseModel> exercises, this.completedSets = 0, this.totalSets = 0, this.durationSeconds = 0, this.startedAt, this.completedAt, this.notes = ''}): _exercises = exercises;
+  const _SessionModel({required this.id, required this.workoutTemplateId, required this.name, required final  List<SessionExerciseModel> exercises, this.completedSets = 0, this.totalSets = 0, this.durationSeconds = 0, this.startedAt, this.completedAt, this.updatedAt, this.notes = ''}): _exercises = exercises;
   
 
 @override final  String id;
@@ -227,6 +228,7 @@ class _SessionModel implements SessionModel {
 @override@JsonKey() final  int durationSeconds;
 @override final  DateTime? startedAt;
 @override final  DateTime? completedAt;
+@override final  DateTime? updatedAt;
 @override@JsonKey() final  String notes;
 
 /// Create a copy of SessionModel
@@ -239,16 +241,16 @@ _$SessionModelCopyWith<_SessionModel> get copyWith => __$SessionModelCopyWithImp
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SessionModel&&(identical(other.id, id) || other.id == id)&&(identical(other.workoutTemplateId, workoutTemplateId) || other.workoutTemplateId == workoutTemplateId)&&(identical(other.name, name) || other.name == name)&&const DeepCollectionEquality().equals(other._exercises, _exercises)&&(identical(other.completedSets, completedSets) || other.completedSets == completedSets)&&(identical(other.totalSets, totalSets) || other.totalSets == totalSets)&&(identical(other.durationSeconds, durationSeconds) || other.durationSeconds == durationSeconds)&&(identical(other.startedAt, startedAt) || other.startedAt == startedAt)&&(identical(other.completedAt, completedAt) || other.completedAt == completedAt)&&(identical(other.notes, notes) || other.notes == notes));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SessionModel&&(identical(other.id, id) || other.id == id)&&(identical(other.workoutTemplateId, workoutTemplateId) || other.workoutTemplateId == workoutTemplateId)&&(identical(other.name, name) || other.name == name)&&const DeepCollectionEquality().equals(other._exercises, _exercises)&&(identical(other.completedSets, completedSets) || other.completedSets == completedSets)&&(identical(other.totalSets, totalSets) || other.totalSets == totalSets)&&(identical(other.durationSeconds, durationSeconds) || other.durationSeconds == durationSeconds)&&(identical(other.startedAt, startedAt) || other.startedAt == startedAt)&&(identical(other.completedAt, completedAt) || other.completedAt == completedAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.notes, notes) || other.notes == notes));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,id,workoutTemplateId,name,const DeepCollectionEquality().hash(_exercises),completedSets,totalSets,durationSeconds,startedAt,completedAt,notes);
+int get hashCode => Object.hash(runtimeType,id,workoutTemplateId,name,const DeepCollectionEquality().hash(_exercises),completedSets,totalSets,durationSeconds,startedAt,completedAt,updatedAt,notes);
 
 @override
 String toString() {
-  return 'SessionModel(id: $id, workoutTemplateId: $workoutTemplateId, name: $name, exercises: $exercises, completedSets: $completedSets, totalSets: $totalSets, durationSeconds: $durationSeconds, startedAt: $startedAt, completedAt: $completedAt, notes: $notes)';
+  return 'SessionModel(id: $id, workoutTemplateId: $workoutTemplateId, name: $name, exercises: $exercises, completedSets: $completedSets, totalSets: $totalSets, durationSeconds: $durationSeconds, startedAt: $startedAt, completedAt: $completedAt, updatedAt: $updatedAt, notes: $notes)';
 }
 
 
@@ -259,7 +261,7 @@ abstract mixin class _$SessionModelCopyWith<$Res> implements $SessionModelCopyWi
   factory _$SessionModelCopyWith(_SessionModel value, $Res Function(_SessionModel) _then) = __$SessionModelCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String workoutTemplateId, String name, List<SessionExerciseModel> exercises, int completedSets, int totalSets, int durationSeconds, DateTime? startedAt, DateTime? completedAt, String notes
+ String id, String workoutTemplateId, String name, List<SessionExerciseModel> exercises, int completedSets, int totalSets, int durationSeconds, DateTime? startedAt, DateTime? completedAt, DateTime? updatedAt, String notes
 });
 
 
@@ -276,7 +278,7 @@ class __$SessionModelCopyWithImpl<$Res>
 
 /// Create a copy of SessionModel
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? workoutTemplateId = null,Object? name = null,Object? exercises = null,Object? completedSets = null,Object? totalSets = null,Object? durationSeconds = null,Object? startedAt = freezed,Object? completedAt = freezed,Object? notes = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? workoutTemplateId = null,Object? name = null,Object? exercises = null,Object? completedSets = null,Object? totalSets = null,Object? durationSeconds = null,Object? startedAt = freezed,Object? completedAt = freezed,Object? updatedAt = freezed,Object? notes = null,}) {
   return _then(_SessionModel(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,workoutTemplateId: null == workoutTemplateId ? _self.workoutTemplateId : workoutTemplateId // ignore: cast_nullable_to_non_nullable
@@ -287,6 +289,7 @@ as int,totalSets: null == totalSets ? _self.totalSets : totalSets // ignore: cas
 as int,durationSeconds: null == durationSeconds ? _self.durationSeconds : durationSeconds // ignore: cast_nullable_to_non_nullable
 as int,startedAt: freezed == startedAt ? _self.startedAt : startedAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,completedAt: freezed == completedAt ? _self.completedAt : completedAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,updatedAt: freezed == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,notes: null == notes ? _self.notes : notes // ignore: cast_nullable_to_non_nullable
 as String,
   ));

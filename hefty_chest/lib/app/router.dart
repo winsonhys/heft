@@ -183,6 +183,18 @@ class ResumeSessionRoute extends GoRouteData with $ResumeSessionRoute {
   }
 }
 
+/// Empty session route - start a workout without a template
+@TypedGoRoute<EmptySessionRoute>(path: '/session/empty')
+@immutable
+class EmptySessionRoute extends GoRouteData with $EmptySessionRoute {
+  const EmptySessionRoute();
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) {
+    return const TrackerScreen();
+  }
+}
+
 /// History detail route - view completed session details
 @TypedGoRoute<HistoryDetailRoute>(path: '/history/:sessionId')
 @immutable
@@ -322,6 +334,9 @@ extension NavigationExtension on BuildContext {
   /// Resume an existing workout session
   void goResumeSession({required String sessionId}) =>
       ResumeSessionRoute(sessionId: sessionId).push(this);
+
+  /// Start an empty workout session (no template)
+  void goEmptySession() => const EmptySessionRoute().push(this);
 
   /// Navigate to workout builder (create new)
   void goWorkoutBuilder() => const WorkoutBuilderRoute().push(this);
