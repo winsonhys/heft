@@ -36,6 +36,7 @@ const Session$json = {
     {'1': 'exercises', '3': 14, '4': 3, '5': 11, '6': '.heft.v1.SessionExercise', '10': 'exercises'},
     {'1': 'created_at', '3': 15, '4': 1, '5': 11, '6': '.google.protobuf.Timestamp', '10': 'createdAt'},
     {'1': 'updated_at', '3': 16, '4': 1, '5': 11, '6': '.google.protobuf.Timestamp', '10': 'updatedAt'},
+    {'1': 'rest_items', '3': 17, '4': 3, '5': 11, '6': '.heft.v1.SessionRestItem', '10': 'restItems'},
   ],
 };
 
@@ -53,7 +54,8 @@ final $typed_data.Uint8List sessionDescriptor = $convert.base64Decode(
     'MSNgoJZXhlcmNpc2VzGA4gAygLMhguaGVmdC52MS5TZXNzaW9uRXhlcmNpc2VSCWV4ZXJjaXNl'
     'cxI5CgpjcmVhdGVkX2F0GA8gASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcFIJY3JlYX'
     'RlZEF0EjkKCnVwZGF0ZWRfYXQYECABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wUgl1'
-    'cGRhdGVkQXQ=');
+    'cGRhdGVkQXQSNwoKcmVzdF9pdGVtcxgRIAMoCzIYLmhlZnQudjEuU2Vzc2lvblJlc3RJdGVtUg'
+    'lyZXN0SXRlbXM=');
 
 @$core.Deprecated('Use sessionExerciseDescriptor instead')
 const SessionExercise$json = {
@@ -104,6 +106,7 @@ const SessionSet$json = {
     {'1': 'target_time_seconds', '3': 13, '4': 1, '5': 5, '9': 6, '10': 'targetTimeSeconds', '17': true},
     {'1': 'rpe', '3': 14, '4': 1, '5': 1, '9': 7, '10': 'rpe', '17': true},
     {'1': 'notes', '3': 15, '4': 1, '5': 9, '10': 'notes'},
+    {'1': 'rest_duration_seconds', '3': 16, '4': 1, '5': 5, '9': 8, '10': 'restDurationSeconds', '17': true},
   ],
   '8': [
     {'1': '_weight_kg'},
@@ -114,6 +117,7 @@ const SessionSet$json = {
     {'1': '_target_reps'},
     {'1': '_target_time_seconds'},
     {'1': '_rpe'},
+    {'1': '_rest_duration_seconds'},
   ],
 };
 
@@ -129,9 +133,33 @@ final $typed_data.Uint8List sessionSetDescriptor = $convert.base64Decode(
     'dlaWdodF9rZxgLIAEoAUgEUg50YXJnZXRXZWlnaHRLZ4gBARIkCgt0YXJnZXRfcmVwcxgMIAEo'
     'BUgFUgp0YXJnZXRSZXBziAEBEjMKE3RhcmdldF90aW1lX3NlY29uZHMYDSABKAVIBlIRdGFyZ2'
     'V0VGltZVNlY29uZHOIAQESFQoDcnBlGA4gASgBSAdSA3JwZYgBARIUCgVub3RlcxgPIAEoCVIF'
-    'bm90ZXNCDAoKX3dlaWdodF9rZ0IHCgVfcmVwc0IPCg1fdGltZV9zZWNvbmRzQg0KC19kaXN0YW'
-    '5jZV9tQhMKEV90YXJnZXRfd2VpZ2h0X2tnQg4KDF90YXJnZXRfcmVwc0IWChRfdGFyZ2V0X3Rp'
-    'bWVfc2Vjb25kc0IGCgRfcnBl');
+    'bm90ZXMSNwoVcmVzdF9kdXJhdGlvbl9zZWNvbmRzGBAgASgFSAhSE3Jlc3REdXJhdGlvblNlY2'
+    '9uZHOIAQFCDAoKX3dlaWdodF9rZ0IHCgVfcmVwc0IPCg1fdGltZV9zZWNvbmRzQg0KC19kaXN0'
+    'YW5jZV9tQhMKEV90YXJnZXRfd2VpZ2h0X2tnQg4KDF90YXJnZXRfcmVwc0IWChRfdGFyZ2V0X3'
+    'RpbWVfc2Vjb25kc0IGCgRfcnBlQhgKFl9yZXN0X2R1cmF0aW9uX3NlY29uZHM=');
+
+@$core.Deprecated('Use sessionRestItemDescriptor instead')
+const SessionRestItem$json = {
+  '1': 'SessionRestItem',
+  '2': [
+    {'1': 'id', '3': 1, '4': 1, '5': 9, '10': 'id'},
+    {'1': 'session_id', '3': 2, '4': 1, '5': 9, '10': 'sessionId'},
+    {'1': 'display_order', '3': 3, '4': 1, '5': 5, '10': 'displayOrder'},
+    {'1': 'section_name', '3': 4, '4': 1, '5': 9, '10': 'sectionName'},
+    {'1': 'rest_duration_seconds', '3': 5, '4': 1, '5': 5, '10': 'restDurationSeconds'},
+    {'1': 'is_completed', '3': 6, '4': 1, '5': 8, '10': 'isCompleted'},
+    {'1': 'completed_at', '3': 7, '4': 1, '5': 11, '6': '.google.protobuf.Timestamp', '10': 'completedAt'},
+  ],
+};
+
+/// Descriptor for `SessionRestItem`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List sessionRestItemDescriptor = $convert.base64Decode(
+    'Cg9TZXNzaW9uUmVzdEl0ZW0SDgoCaWQYASABKAlSAmlkEh0KCnNlc3Npb25faWQYAiABKAlSCX'
+    'Nlc3Npb25JZBIjCg1kaXNwbGF5X29yZGVyGAMgASgFUgxkaXNwbGF5T3JkZXISIQoMc2VjdGlv'
+    'bl9uYW1lGAQgASgJUgtzZWN0aW9uTmFtZRIyChVyZXN0X2R1cmF0aW9uX3NlY29uZHMYBSABKA'
+    'VSE3Jlc3REdXJhdGlvblNlY29uZHMSIQoMaXNfY29tcGxldGVkGAYgASgIUgtpc0NvbXBsZXRl'
+    'ZBI9Cgxjb21wbGV0ZWRfYXQYByABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wUgtjb2'
+    '1wbGV0ZWRBdA==');
 
 @$core.Deprecated('Use sessionSummaryDescriptor instead')
 const SessionSummary$json = {
@@ -233,6 +261,7 @@ const SyncSessionRequest$json = {
     {'1': 'exercises', '3': 3, '4': 3, '5': 11, '6': '.heft.v1.SyncExerciseData', '10': 'exercises'},
     {'1': 'deleted_set_ids', '3': 4, '4': 3, '5': 9, '10': 'deletedSetIds'},
     {'1': 'deleted_exercise_ids', '3': 5, '4': 3, '5': 9, '10': 'deletedExerciseIds'},
+    {'1': 'rest_items', '3': 6, '4': 3, '5': 11, '6': '.heft.v1.SyncRestItemData', '10': 'restItems'},
   ],
 };
 
@@ -242,7 +271,22 @@ final $typed_data.Uint8List syncSessionRequestDescriptor = $convert.base64Decode
     'NldHMYAiADKAsyFC5oZWZ0LnYxLlN5bmNTZXREYXRhUgRzZXRzEjcKCWV4ZXJjaXNlcxgDIAMo'
     'CzIZLmhlZnQudjEuU3luY0V4ZXJjaXNlRGF0YVIJZXhlcmNpc2VzEiYKD2RlbGV0ZWRfc2V0X2'
     'lkcxgEIAMoCVINZGVsZXRlZFNldElkcxIwChRkZWxldGVkX2V4ZXJjaXNlX2lkcxgFIAMoCVIS'
-    'ZGVsZXRlZEV4ZXJjaXNlSWRz');
+    'ZGVsZXRlZEV4ZXJjaXNlSWRzEjgKCnJlc3RfaXRlbXMYBiADKAsyGS5oZWZ0LnYxLlN5bmNSZX'
+    'N0SXRlbURhdGFSCXJlc3RJdGVtcw==');
+
+@$core.Deprecated('Use syncRestItemDataDescriptor instead')
+const SyncRestItemData$json = {
+  '1': 'SyncRestItemData',
+  '2': [
+    {'1': 'id', '3': 1, '4': 1, '5': 9, '10': 'id'},
+    {'1': 'is_completed', '3': 2, '4': 1, '5': 8, '10': 'isCompleted'},
+  ],
+};
+
+/// Descriptor for `SyncRestItemData`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List syncRestItemDataDescriptor = $convert.base64Decode(
+    'ChBTeW5jUmVzdEl0ZW1EYXRhEg4KAmlkGAEgASgJUgJpZBIhCgxpc19jb21wbGV0ZWQYAiABKA'
+    'hSC2lzQ29tcGxldGVk');
 
 @$core.Deprecated('Use syncSetDataDescriptor instead')
 const SyncSetData$json = {
@@ -472,6 +516,7 @@ const $core.Map<$core.String, $core.Map<$core.String, $core.dynamic>> SessionSer
   '.google.protobuf.Timestamp': $1.Timestamp$json,
   '.heft.v1.SessionExercise': SessionExercise$json,
   '.heft.v1.SessionSet': SessionSet$json,
+  '.heft.v1.SessionRestItem': SessionRestItem$json,
   '.heft.v1.GetSessionRequest': GetSessionRequest$json,
   '.heft.v1.GetSessionResponse': GetSessionResponse$json,
   '.heft.v1.SyncSessionRequest': SyncSessionRequest$json,
@@ -479,6 +524,7 @@ const $core.Map<$core.String, $core.Map<$core.String, $core.dynamic>> SessionSer
   '.heft.v1.SyncExerciseData': SyncExerciseData$json,
   '.heft.v1.NewExerciseData': NewExerciseData$json,
   '.heft.v1.UpdateExerciseData': UpdateExerciseData$json,
+  '.heft.v1.SyncRestItemData': SyncRestItemData$json,
   '.heft.v1.SyncSessionResponse': SyncSessionResponse$json,
   '.heft.v1.FinishSessionRequest': FinishSessionRequest$json,
   '.heft.v1.FinishSessionResponse': FinishSessionResponse$json,

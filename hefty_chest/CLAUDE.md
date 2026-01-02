@@ -855,6 +855,27 @@ test/
         └── session_flow_test.dart
 ```
 
+### Auto-Dispose Provider Testing
+
+When testing providers with `isAutoDispose: true` (default for `@riverpod` generated providers), use `container.listen()` to keep the provider alive during async operations:
+
+```dart
+test('example with auto-dispose provider', () async {
+  // Keep provider alive during async operations
+  final subscription = container.listen(myAutoDisposeProvider, (_, __) {});
+
+  try {
+    final notifier = container.read(myAutoDisposeProvider.notifier);
+    await notifier.someAsyncMethod();
+    // ... assertions
+  } finally {
+    subscription.close();
+  }
+});
+```
+
+Without this, the provider may be disposed during `await` calls, causing methods to return null or throw disposal errors.
+
 ## Configuration (lib/core/config.dart)
 
 ```dart

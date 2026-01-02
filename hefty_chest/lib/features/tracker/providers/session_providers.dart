@@ -25,6 +25,7 @@ class ActiveSession extends _$ActiveSession {
   final List<String> _deletedSetIds = [];
   final List<String> _deletedExerciseIds = [];
   final Set<String> _modifiedExerciseIds = {}; // Track exercises with updated properties
+  final Set<String> _modifiedRestItemIds = {}; // Track rest items with updated completion
 
   @override
   AsyncValue<SessionModel?> build() {
@@ -135,12 +136,28 @@ class ActiveSession extends _$ActiveSession {
         }
       }
 
+      // Build rest items sync data
+      final syncedRestItemIds = Set<String>.from(_modifiedRestItemIds);
+      final restItems = <SyncRestItemData>[];
+      for (final restItemId in syncedRestItemIds) {
+        final restItem = session.restItems.firstWhere(
+          (ri) => ri.id == restItemId,
+          orElse: () => const SessionRestItemModel(id: '', displayOrder: 0, sectionName: '', restDurationSeconds: 0),
+        );
+        if (restItem.id.isNotEmpty) {
+          restItems.add(SyncRestItemData()
+            ..id = restItem.id
+            ..isCompleted = restItem.isCompleted);
+        }
+      }
+
       final request = SyncSessionRequest()
         ..sessionId = session.id
         ..sets.addAll(sets)
         ..exercises.addAll(exercises)
         ..deletedSetIds.addAll(syncedDeletedSetIds)
-        ..deletedExerciseIds.addAll(syncedDeletedExerciseIds);
+        ..deletedExerciseIds.addAll(syncedDeletedExerciseIds)
+        ..restItems.addAll(restItems);
 
       final response = await sessionClient.syncSession(request);
 
@@ -150,6 +167,7 @@ class ActiveSession extends _$ActiveSession {
       _deletedSetIds.removeWhere((id) => syncedDeletedSetIds.contains(id));
       _deletedExerciseIds.removeWhere((id) => syncedDeletedExerciseIds.contains(id));
       _modifiedExerciseIds.removeWhere((id) => syncedModifiedExerciseIds.contains(id));
+      _modifiedRestItemIds.removeWhere((id) => syncedRestItemIds.contains(id));
 
       // Update local state with server response (gets real IDs for new sets and exercises)
       var updatedSession = SessionModel.fromProto(response.session);
@@ -166,7 +184,8 @@ class ActiveSession extends _$ActiveSession {
       _hasPendingChanges = _pendingExercises.isNotEmpty ||
           _deletedSetIds.isNotEmpty ||
           _deletedExerciseIds.isNotEmpty ||
-          _modifiedExerciseIds.isNotEmpty;
+          _modifiedExerciseIds.isNotEmpty ||
+          _modifiedRestItemIds.isNotEmpty;
       _syncStatus = _hasPendingChanges ? SyncStatus.pending : SyncStatus.synced;
 
       // Update local backup with current state
@@ -408,6 +427,45 @@ class ActiveSession extends _$ActiveSession {
       isCompleted: false,
     );
     return false;
+  }
+
+  /// Complete/toggle a rest item (local-first)
+  void completeRestItem({
+    required String restItemId,
+    bool toggle = false,
+  }) {
+    final currentSession = state.value;
+    if (currentSession == null) return;
+
+    // Find current rest item state
+    final restItem = currentSession.restItems.firstWhere(
+      (ri) => ri.id == restItemId,
+      orElse: () => const SessionRestItemModel(id: '', displayOrder: 0, sectionName: '', restDurationSeconds: 0),
+    );
+    if (restItem.id.isEmpty) return;
+
+    // Determine new completion state
+    final newCompleted = toggle ? !restItem.isCompleted : true;
+
+    // Update rest item
+    final updatedRestItems = currentSession.restItems.map((ri) {
+      if (ri.id != restItemId) return ri;
+      return ri.copyWith(
+        isCompleted: newCompleted,
+        completedAt: newCompleted ? DateTime.now() : null,
+      );
+    }).toList();
+
+    final updatedSession = currentSession.copyWith(restItems: updatedRestItems);
+
+    // Track as modified for sync
+    _modifiedRestItemIds.add(restItemId);
+    _hasPendingChanges = true;
+    _syncStatus = SyncStatus.pending;
+    state = AsyncValue.data(updatedSession);
+
+    // Save to local backup
+    SessionStorage.saveSession(updatedSession.toProto());
   }
 
   /// Update a set without completing (local-first)
@@ -905,6 +963,54 @@ class ActiveSession extends _$ActiveSession {
   void clearSession() {
     _stopSyncTimer();
     state = const AsyncValue.data(null);
+  }
+
+  /// Returns info about the completed set's rest duration and next set info
+  ({int restDurationSeconds, String nextExerciseName, int nextSetNumber})?
+      getSetCompletionInfo(String completedSetId) {
+    final session = state.value;
+    if (session == null) return null;
+
+    // Find the completed set to get its rest duration
+    int restDuration = 0;
+    bool foundCompleted = false;
+
+    for (final exercise in session.exercises) {
+      for (int i = 0; i < exercise.sets.length; i++) {
+        final set = exercise.sets[i];
+
+        if (set.id == completedSetId) {
+          restDuration = set.restDurationSeconds;
+          foundCompleted = true;
+          continue;
+        }
+
+        // Find next incomplete set after the completed one
+        if (foundCompleted && !set.isCompleted) {
+          return (
+            restDurationSeconds: restDuration,
+            nextExerciseName: exercise.exerciseName,
+            nextSetNumber: i + 1,
+          );
+        }
+      }
+    }
+
+    // Check from beginning for any incomplete sets
+    for (final exercise in session.exercises) {
+      for (int i = 0; i < exercise.sets.length; i++) {
+        final set = exercise.sets[i];
+        if (!set.isCompleted) {
+          return (
+            restDurationSeconds: restDuration,
+            nextExerciseName: exercise.exerciseName,
+            nextSetNumber: i + 1,
+          );
+        }
+      }
+    }
+
+    return null; // All sets complete
   }
 }
 

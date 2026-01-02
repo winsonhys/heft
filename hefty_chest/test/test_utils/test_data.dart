@@ -142,4 +142,77 @@ class TestData {
 
     await sessionClient.abandonSession(request);
   }
+
+  /// Abandon any active session for the test user.
+  ///
+  /// Call this in setUp() or at the start of tests that need a clean slate.
+  /// Silently succeeds if no active session exists.
+  static Future<void> abandonAnyActiveSession() async {
+    try {
+      // List sessions to find any in-progress ones
+      final response = await sessionClient.listSessions(
+        ListSessionsRequest()
+          ..status = WorkoutStatus.WORKOUT_STATUS_IN_PROGRESS,
+      );
+
+      // Abandon each in-progress session
+      for (final session in response.sessions) {
+        try {
+          await sessionClient.abandonSession(
+            AbandonSessionRequest()..id = session.id,
+          );
+        } catch (_) {
+          // Ignore errors - session may have been finished/abandoned already
+        }
+      }
+    } catch (_) {
+      // Ignore errors - no sessions to abandon
+    }
+  }
+
+  /// Create a workout with one exercise and one rest item.
+  ///
+  /// Returns the workout ID. Useful for testing rest item functionality.
+  static Future<String> createWorkoutWithRestItem({
+    String name = 'Test Workout With Rest',
+    int restDurationSeconds = 90,
+  }) async {
+    // Get first exercise from list
+    final exercisesResponse = await exerciseClient.listExercises(
+      ListExercisesRequest(),
+    );
+    final exercise = exercisesResponse.exercises.first;
+
+    // Create workout section with exercise and rest item
+    final section = CreateWorkoutSection()
+      ..name = 'Main Set'
+      ..displayOrder = 1
+      ..isSuperset = false;
+
+    // Add exercise item
+    final exerciseItem = CreateSectionItem()
+      ..itemType = SectionItemType.SECTION_ITEM_TYPE_EXERCISE
+      ..displayOrder = 1
+      ..exerciseId = exercise.id;
+
+    // Add target sets for exercise
+    final set1 = CreateTargetSet()
+      ..setNumber = 1
+      ..targetWeightKg = 60.0
+      ..targetReps = 10;
+    exerciseItem.targetSets.add(set1);
+
+    // Add rest item
+    final restItem = CreateSectionItem()
+      ..itemType = SectionItemType.SECTION_ITEM_TYPE_REST
+      ..displayOrder = 2
+      ..restDurationSeconds = restDurationSeconds;
+
+    section.items.addAll([exerciseItem, restItem]);
+
+    return createTestWorkout(
+      name: name,
+      sections: [section],
+    );
+  }
 }

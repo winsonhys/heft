@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:forui/forui.dart';
@@ -21,6 +23,25 @@ class ExerciseSearchModal extends HookConsumerWidget {
     final searchController = useTextEditingController();
     final exercises = ref.watch(filteredExercisesProvider);
     final exercisesAsync = ref.watch(exerciseListProvider);
+    final debouncedQuery = useState('');
+
+    // Debounce timer for remote search
+    useEffect(() {
+      final query = ref.read(exerciseSearchQueryProvider);
+      if (query.isEmpty) {
+        debouncedQuery.value = '';
+        return null;
+      }
+      final timer = Timer(const Duration(milliseconds: 300), () {
+        debouncedQuery.value = query;
+      });
+      return timer.cancel;
+    }, [ref.watch(exerciseSearchQueryProvider)]);
+
+    // Watch remote search results when debounced query is set
+    final remoteSearchAsync = debouncedQuery.value.isNotEmpty
+        ? ref.watch(searchExercisesRemoteProvider(debouncedQuery.value))
+        : null;
 
     // Reset search query on mount (scheduled after build)
     useEffect(() {
@@ -85,7 +106,14 @@ class ExerciseSearchModal extends HookConsumerWidget {
                 ),
               ),
               data: (_) {
-                if (exercises.isEmpty) {
+                // Use remote results if available, otherwise local filtered
+                final displayExercises = remoteSearchAsync?.when(
+                  data: (remoteExercises) => remoteExercises,
+                  loading: () => exercises, // Show local while loading
+                  error: (_, _) => exercises, // Fallback to local on error
+                ) ?? exercises;
+
+                if (displayExercises.isEmpty) {
                   return Center(
                     child: Text(
                       'No exercises found',
@@ -95,9 +123,9 @@ class ExerciseSearchModal extends HookConsumerWidget {
                 }
                 return ListView.builder(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
-                  itemCount: exercises.length,
+                  itemCount: displayExercises.length,
                   itemBuilder: (context, index) {
-                    final exercise = exercises[index];
+                    final exercise = displayExercises[index];
                     return _ExerciseTile(
                       exercise: exercise,
                       onTap: () => onSelect(exercise),

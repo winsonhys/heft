@@ -3,7 +3,9 @@ package handlers
 import (
 	"context"
 	"errors"
+	"fmt"
 	"log"
+	"os"
 	"time"
 
 	"connectrpc.com/connect"
@@ -31,6 +33,8 @@ func NewSessionHandler(sessionRepo repository.SessionRepositoryInterface, workou
 
 // StartSession starts a new workout session
 func (h *SessionHandler) StartSession(ctx context.Context, req *connect.Request[heftv1.StartSessionRequest]) (*connect.Response[heftv1.StartSessionResponse], error) {
+	fmt.Fprintln(os.Stderr, "[StartSession] HANDLER CALLED VIA FMT - This should appear in logs")
+	fmt.Fprintf(os.Stderr, "[StartSession] Request: workoutTemplateId=%s\n", req.Msg.GetWorkoutTemplateId())
 	userID, ok := auth.UserIDFromContext(ctx)
 	if !ok {
 		return nil, connect.NewError(connect.CodeUnauthenticated, errors.New("not authenticated"))
@@ -87,7 +91,13 @@ func (h *SessionHandler) StartSession(ctx context.Context, req *connect.Request[
 
 	// If based on template, populate exercises from template
 	if workout != nil {
-		displayOrder := 0
+		// Debug: dump all section items
+		for _, section := range workout.Sections {
+			for _, item := range section.Items {
+				log.Printf("DEBUG ITEM: section=%s type=%q displayOrder=%d restDuration=%v exerciseID=%v",
+					section.Name, item.ItemType, item.DisplayOrder, item.RestDurationSeconds, item.ExerciseID)
+			}
+		}
 		for _, section := range workout.Sections {
 			// Generate a superset ID if section is a superset
 			var supersetID *string
@@ -97,8 +107,16 @@ func (h *SessionHandler) StartSession(ctx context.Context, req *connect.Request[
 			}
 
 			for _, item := range section.Items {
+				fmt.Fprintf(os.Stderr, "[StartSession] Processing item: type=%q (isExercise=%v isRest=%v) displayOrder=%d restDuration=%v exerciseID=%v\n",
+					item.ItemType,
+					item.ItemType == "exercise",
+					item.ItemType == "rest",
+					item.DisplayOrder,
+					item.RestDurationSeconds,
+					item.ExerciseID,
+				)
 				if item.ItemType == "exercise" && item.ExerciseID != nil {
-					exercise, err := h.sessionRepo.AddExercise(ctx, session.ID, *item.ExerciseID, displayOrder, &section.Name, supersetID)
+					exercise, err := h.sessionRepo.AddExercise(ctx, session.ID, *item.ExerciseID, item.DisplayOrder, &section.Name, supersetID)
 					if err != nil {
 						return nil, handleDBError(err)
 					}
@@ -112,12 +130,21 @@ func (h *SessionHandler) StartSession(ctx context.Context, req *connect.Request[
 						if ts.TargetTimeSeconds != nil {
 							targetTime = ts.TargetTimeSeconds
 						}
-						_, err := h.sessionRepo.AddSet(ctx, exercise.ID, ts.SetNumber, ts.TargetWeightKg, targetReps, targetTime, ts.IsBodyweight)
+						_, err := h.sessionRepo.AddSet(ctx, exercise.ID, ts.SetNumber, ts.TargetWeightKg, targetReps, targetTime, ts.RestDurationSeconds, ts.IsBodyweight)
 						if err != nil {
 							return nil, handleDBError(err)
 						}
 					}
-					displayOrder++
+				} else if item.ItemType == "rest" && item.RestDurationSeconds != nil {
+					fmt.Fprintf(os.Stderr, "[StartSession] Adding rest item with duration %d\n", *item.RestDurationSeconds)
+					// Add rest item from template
+					_, err := h.sessionRepo.AddRestItem(ctx, session.ID, item.DisplayOrder, &section.Name, *item.RestDurationSeconds)
+					if err != nil {
+						return nil, handleDBError(err)
+					}
+				} else {
+					fmt.Fprintf(os.Stderr, "[StartSession] SKIPPED item: type=%q restDuration=%v - neither exercise nor rest condition matched\n",
+						item.ItemType, item.RestDurationSeconds)
 				}
 			}
 		}
@@ -200,7 +227,7 @@ func (h *SessionHandler) SyncSession(ctx context.Context, req *connect.Request[h
 				numSets = 3 // Default to 3 sets
 			}
 			for i := 1; i <= numSets; i++ {
-				_, err := h.sessionRepo.AddSet(ctx, exercise.ID, i, nil, nil, nil, false)
+				_, err := h.sessionRepo.AddSet(ctx, exercise.ID, i, nil, nil, nil, nil, false)
 				if err != nil {
 					return nil, handleDBError(err)
 				}
@@ -300,6 +327,21 @@ func (h *SessionHandler) SyncSession(ctx context.Context, req *connect.Request[h
 	err = h.sessionRepo.SyncSets(ctx, req.Msg.SessionId, sets)
 	if err != nil {
 		return nil, handleDBError(err)
+	}
+
+	// Sync rest items if any
+	if len(req.Msg.RestItems) > 0 {
+		restItems := make([]repository.SyncRestItemInput, len(req.Msg.RestItems))
+		for i, ri := range req.Msg.RestItems {
+			restItems[i] = repository.SyncRestItemInput{
+				ID:          ri.Id,
+				IsCompleted: ri.IsCompleted,
+			}
+		}
+		err = h.sessionRepo.SyncRestItems(ctx, req.Msg.SessionId, restItems)
+		if err != nil {
+			return nil, handleDBError(err)
+		}
 	}
 
 	// Reload full session
@@ -479,6 +521,12 @@ func sessionToProto(s *repository.WorkoutSession) *heftv1.Session {
 	}
 	session.Exercises = exercises
 
+	restItems := make([]*heftv1.SessionRestItem, len(s.RestItems))
+	for i, ri := range s.RestItems {
+		restItems[i] = sessionRestItemToProto(ri)
+	}
+	session.RestItems = restItems
+
 	return session
 }
 
@@ -567,6 +615,10 @@ func sessionSetToProto(s *repository.SessionSet) *heftv1.SessionSet {
 		v := int32(*s.TargetTimeSeconds)
 		set.TargetTimeSeconds = &v
 	}
+	if s.RestDurationSeconds != nil {
+		v := int32(*s.RestDurationSeconds)
+		set.RestDurationSeconds = &v
+	}
 	if s.RPE != nil {
 		set.Rpe = s.RPE
 	}
@@ -574,6 +626,23 @@ func sessionSetToProto(s *repository.SessionSet) *heftv1.SessionSet {
 		set.Notes = *s.Notes
 	}
 	return set
+}
+
+func sessionRestItemToProto(ri *repository.SessionRestItem) *heftv1.SessionRestItem {
+	item := &heftv1.SessionRestItem{
+		Id:                  ri.ID,
+		SessionId:           ri.SessionID,
+		DisplayOrder:        int32(ri.DisplayOrder),
+		RestDurationSeconds: int32(ri.RestDurationSeconds),
+		IsCompleted:         ri.IsCompleted,
+	}
+	if ri.SectionName != nil {
+		item.SectionName = *ri.SectionName
+	}
+	if ri.CompletedAt != nil {
+		item.CompletedAt = timestamppb.New(*ri.CompletedAt)
+	}
+	return item
 }
 
 func workoutStatusToString(s heftv1.WorkoutStatus) string {

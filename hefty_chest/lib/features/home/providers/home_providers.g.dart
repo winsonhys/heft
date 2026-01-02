@@ -52,7 +52,7 @@ final class WorkoutListProvider
   }
 }
 
-String _$workoutListHash() => r'b8421099180a83bdbd9f4ab32a8382b27632bff8';
+String _$workoutListHash() => r'552d8bacbf0af642f882a329fa987e96038bff10';
 
 /// Provider for dashboard statistics
 
@@ -96,7 +96,7 @@ final class DashboardStatsProvider
   }
 }
 
-String _$dashboardStatsHash() => r'ee2a5be02a51c155ebf645632f088e14c81cbe96';
+String _$dashboardStatsHash() => r'514b9b91105bd678e94e7bd6248adc6f60d58901';
 
 /// Provider for a single workout detail
 

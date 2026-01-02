@@ -773,3 +773,440 @@ func TestSessionService_Integration_SupersetTracking(t *testing.T) {
 func intPtr(i int32) *int32 {
 	return &i
 }
+
+func TestSessionService_Integration_StartSession_CreatesRestItems(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping integration test in short mode")
+	}
+
+	pool := testutil.NewTestPool(t)
+	ts := testutil.NewTestServer(t, pool)
+
+	testUser := testutil.DefaultTestUser()
+	userID := testutil.SeedTestUser(t, pool, testUser)
+
+	// Seed a test exercise
+	exerciseID := testutil.SeedTestExercise(t, pool, testutil.TestExercise{
+		Name:         "Bench Press",
+		CategoryID:   testutil.ChestCategoryID,
+		ExerciseType: "weight_reps",
+		IsSystem:     false,
+		CreatedBy:    &userID,
+	})
+
+	t.Run("starting session from workout with rest item creates rest items", func(t *testing.T) {
+		ctx := context.Background()
+
+		// Create workout with an exercise followed by a rest item
+		restDuration := int32(90)
+		createReq := connect.NewRequest(&heftv1.CreateWorkoutRequest{
+			Name: "Workout With Rest",
+			Sections: []*heftv1.CreateWorkoutSection{
+				{
+					Name:         "Section A",
+					DisplayOrder: 1,
+					Items: []*heftv1.CreateSectionItem{
+						{
+							ItemType:     heftv1.SectionItemType_SECTION_ITEM_TYPE_EXERCISE,
+							DisplayOrder: 1,
+							ExerciseId:   &exerciseID,
+							TargetSets: []*heftv1.CreateTargetSet{
+								{SetNumber: 1, TargetReps: intPtr(10)},
+							},
+						},
+						{
+							ItemType:            heftv1.SectionItemType_SECTION_ITEM_TYPE_REST,
+							DisplayOrder:        2,
+							RestDurationSeconds: &restDuration,
+						},
+					},
+				},
+			},
+		})
+		createReq.Header().Set("Authorization", ts.AuthHeader(userID))
+		createResp, err := ts.WorkoutClient.CreateWorkout(ctx, createReq)
+		if err != nil {
+			t.Fatalf("failed to create workout: %v", err)
+		}
+		workoutID := createResp.Msg.Workout.Id
+
+		// Start session from workout
+		startReq := connect.NewRequest(&heftv1.StartSessionRequest{
+			WorkoutTemplateId: &workoutID,
+		})
+		startReq.Header().Set("Authorization", ts.AuthHeader(userID))
+		startResp, err := ts.SessionClient.StartSession(ctx, startReq)
+		if err != nil {
+			t.Fatalf("failed to start session: %v", err)
+		}
+
+		session := startResp.Msg.Session
+
+		// Verify rest items were created
+		if len(session.RestItems) != 1 {
+			t.Fatalf("expected 1 rest item, got %d", len(session.RestItems))
+		}
+
+		restItem := session.RestItems[0]
+		if restItem.RestDurationSeconds != restDuration {
+			t.Errorf("expected rest duration %d, got %d", restDuration, restItem.RestDurationSeconds)
+		}
+		if restItem.SectionName != "Section A" {
+			t.Errorf("expected section name 'Section A', got '%s'", restItem.SectionName)
+		}
+		if restItem.IsCompleted {
+			t.Error("expected rest item to not be completed initially")
+		}
+		if restItem.DisplayOrder != 2 {
+			t.Errorf("expected display order 2, got %d", restItem.DisplayOrder)
+		}
+
+		// Clean up
+		abandonReq := connect.NewRequest(&heftv1.AbandonSessionRequest{Id: session.Id})
+		abandonReq.Header().Set("Authorization", ts.AuthHeader(userID))
+		ts.SessionClient.AbandonSession(ctx, abandonReq)
+	})
+
+	t.Run("workout with multiple rest items creates all rest items", func(t *testing.T) {
+		ctx := context.Background()
+
+		restDuration60 := int32(60)
+		restDuration120 := int32(120)
+
+		// Create workout with multiple rest items across sections
+		createReq := connect.NewRequest(&heftv1.CreateWorkoutRequest{
+			Name: "Multi Rest Workout",
+			Sections: []*heftv1.CreateWorkoutSection{
+				{
+					Name:         "Section A",
+					DisplayOrder: 1,
+					Items: []*heftv1.CreateSectionItem{
+						{
+							ItemType:     heftv1.SectionItemType_SECTION_ITEM_TYPE_EXERCISE,
+							DisplayOrder: 1,
+							ExerciseId:   &exerciseID,
+							TargetSets: []*heftv1.CreateTargetSet{
+								{SetNumber: 1, TargetReps: intPtr(10)},
+							},
+						},
+						{
+							ItemType:            heftv1.SectionItemType_SECTION_ITEM_TYPE_REST,
+							DisplayOrder:        2,
+							RestDurationSeconds: &restDuration60,
+						},
+					},
+				},
+				{
+					Name:         "Section B",
+					DisplayOrder: 2,
+					Items: []*heftv1.CreateSectionItem{
+						{
+							ItemType:     heftv1.SectionItemType_SECTION_ITEM_TYPE_EXERCISE,
+							DisplayOrder: 1,
+							ExerciseId:   &exerciseID,
+							TargetSets: []*heftv1.CreateTargetSet{
+								{SetNumber: 1, TargetReps: intPtr(8)},
+							},
+						},
+						{
+							ItemType:            heftv1.SectionItemType_SECTION_ITEM_TYPE_REST,
+							DisplayOrder:        2,
+							RestDurationSeconds: &restDuration120,
+						},
+					},
+				},
+			},
+		})
+		createReq.Header().Set("Authorization", ts.AuthHeader(userID))
+		createResp, err := ts.WorkoutClient.CreateWorkout(ctx, createReq)
+		if err != nil {
+			t.Fatalf("failed to create workout: %v", err)
+		}
+		workoutID := createResp.Msg.Workout.Id
+
+		// Start session
+		startReq := connect.NewRequest(&heftv1.StartSessionRequest{
+			WorkoutTemplateId: &workoutID,
+		})
+		startReq.Header().Set("Authorization", ts.AuthHeader(userID))
+		startResp, err := ts.SessionClient.StartSession(ctx, startReq)
+		if err != nil {
+			t.Fatalf("failed to start session: %v", err)
+		}
+
+		session := startResp.Msg.Session
+
+		// Verify both rest items were created
+		if len(session.RestItems) != 2 {
+			t.Fatalf("expected 2 rest items, got %d", len(session.RestItems))
+		}
+
+		// Verify different durations
+		durations := map[int32]bool{}
+		for _, ri := range session.RestItems {
+			durations[ri.RestDurationSeconds] = true
+		}
+		if !durations[60] || !durations[120] {
+			t.Error("expected rest items with durations 60 and 120")
+		}
+
+		// Clean up
+		abandonReq := connect.NewRequest(&heftv1.AbandonSessionRequest{Id: session.Id})
+		abandonReq.Header().Set("Authorization", ts.AuthHeader(userID))
+		ts.SessionClient.AbandonSession(ctx, abandonReq)
+	})
+}
+
+func TestSessionService_Integration_SyncSession_CompletesRestItem(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping integration test in short mode")
+	}
+
+	pool := testutil.NewTestPool(t)
+	ts := testutil.NewTestServer(t, pool)
+
+	testUser := testutil.DefaultTestUser()
+	userID := testutil.SeedTestUser(t, pool, testUser)
+
+	// Seed a test exercise
+	exerciseID := testutil.SeedTestExercise(t, pool, testutil.TestExercise{
+		Name:         "Squat",
+		CategoryID:   testutil.LegsCategoryID,
+		ExerciseType: "weight_reps",
+		IsSystem:     false,
+		CreatedBy:    &userID,
+	})
+
+	t.Run("complete rest item via sync", func(t *testing.T) {
+		ctx := context.Background()
+
+		// Create workout with rest item
+		restDuration := int32(90)
+		createReq := connect.NewRequest(&heftv1.CreateWorkoutRequest{
+			Name: "Sync Rest Test",
+			Sections: []*heftv1.CreateWorkoutSection{
+				{
+					Name:         "Main",
+					DisplayOrder: 1,
+					Items: []*heftv1.CreateSectionItem{
+						{
+							ItemType:     heftv1.SectionItemType_SECTION_ITEM_TYPE_EXERCISE,
+							DisplayOrder: 1,
+							ExerciseId:   &exerciseID,
+							TargetSets: []*heftv1.CreateTargetSet{
+								{SetNumber: 1, TargetReps: intPtr(10)},
+							},
+						},
+						{
+							ItemType:            heftv1.SectionItemType_SECTION_ITEM_TYPE_REST,
+							DisplayOrder:        2,
+							RestDurationSeconds: &restDuration,
+						},
+					},
+				},
+			},
+		})
+		createReq.Header().Set("Authorization", ts.AuthHeader(userID))
+		createResp, err := ts.WorkoutClient.CreateWorkout(ctx, createReq)
+		if err != nil {
+			t.Fatalf("failed to create workout: %v", err)
+		}
+		workoutID := createResp.Msg.Workout.Id
+
+		// Start session
+		startReq := connect.NewRequest(&heftv1.StartSessionRequest{
+			WorkoutTemplateId: &workoutID,
+		})
+		startReq.Header().Set("Authorization", ts.AuthHeader(userID))
+		startResp, err := ts.SessionClient.StartSession(ctx, startReq)
+		if err != nil {
+			t.Fatalf("failed to start session: %v", err)
+		}
+
+		session := startResp.Msg.Session
+		if len(session.RestItems) != 1 {
+			t.Fatalf("expected 1 rest item, got %d", len(session.RestItems))
+		}
+		restItemID := session.RestItems[0].Id
+
+		// Sync to complete the rest item
+		syncReq := connect.NewRequest(&heftv1.SyncSessionRequest{
+			SessionId: session.Id,
+			RestItems: []*heftv1.SyncRestItemData{
+				{
+					Id:          restItemID,
+					IsCompleted: true,
+				},
+			},
+		})
+		syncReq.Header().Set("Authorization", ts.AuthHeader(userID))
+		syncResp, err := ts.SessionClient.SyncSession(ctx, syncReq)
+		if err != nil {
+			t.Fatalf("failed to sync session: %v", err)
+		}
+
+		if !syncResp.Msg.Success {
+			t.Error("expected sync to succeed")
+		}
+
+		// Get session and verify rest item is completed
+		getReq := connect.NewRequest(&heftv1.GetSessionRequest{
+			Id: session.Id,
+		})
+		getReq.Header().Set("Authorization", ts.AuthHeader(userID))
+		getResp, err := ts.SessionClient.GetSession(ctx, getReq)
+		if err != nil {
+			t.Fatalf("failed to get session: %v", err)
+		}
+
+		if len(getResp.Msg.Session.RestItems) != 1 {
+			t.Fatalf("expected 1 rest item, got %d", len(getResp.Msg.Session.RestItems))
+		}
+
+		updatedRestItem := getResp.Msg.Session.RestItems[0]
+		if !updatedRestItem.IsCompleted {
+			t.Error("expected rest item to be completed")
+		}
+		if updatedRestItem.CompletedAt == nil {
+			t.Error("expected completed_at to be set")
+		}
+
+		// Clean up
+		abandonReq := connect.NewRequest(&heftv1.AbandonSessionRequest{Id: session.Id})
+		abandonReq.Header().Set("Authorization", ts.AuthHeader(userID))
+		ts.SessionClient.AbandonSession(ctx, abandonReq)
+	})
+}
+
+func TestSessionService_Integration_RestItemToggle(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping integration test in short mode")
+	}
+
+	pool := testutil.NewTestPool(t)
+	ts := testutil.NewTestServer(t, pool)
+
+	testUser := testutil.DefaultTestUser()
+	userID := testutil.SeedTestUser(t, pool, testUser)
+
+	// Seed a test exercise
+	exerciseID := testutil.SeedTestExercise(t, pool, testutil.TestExercise{
+		Name:         "Deadlift",
+		CategoryID:   testutil.BackCategoryID,
+		ExerciseType: "weight_reps",
+		IsSystem:     false,
+		CreatedBy:    &userID,
+	})
+
+	t.Run("toggle rest item completion", func(t *testing.T) {
+		ctx := context.Background()
+
+		// Create workout with rest item
+		restDuration := int32(60)
+		createReq := connect.NewRequest(&heftv1.CreateWorkoutRequest{
+			Name: "Toggle Rest Test",
+			Sections: []*heftv1.CreateWorkoutSection{
+				{
+					Name:         "Main",
+					DisplayOrder: 1,
+					Items: []*heftv1.CreateSectionItem{
+						{
+							ItemType:     heftv1.SectionItemType_SECTION_ITEM_TYPE_EXERCISE,
+							DisplayOrder: 1,
+							ExerciseId:   &exerciseID,
+							TargetSets: []*heftv1.CreateTargetSet{
+								{SetNumber: 1, TargetReps: intPtr(5)},
+							},
+						},
+						{
+							ItemType:            heftv1.SectionItemType_SECTION_ITEM_TYPE_REST,
+							DisplayOrder:        2,
+							RestDurationSeconds: &restDuration,
+						},
+					},
+				},
+			},
+		})
+		createReq.Header().Set("Authorization", ts.AuthHeader(userID))
+		createResp, err := ts.WorkoutClient.CreateWorkout(ctx, createReq)
+		if err != nil {
+			t.Fatalf("failed to create workout: %v", err)
+		}
+		workoutID := createResp.Msg.Workout.Id
+
+		// Start session
+		startReq := connect.NewRequest(&heftv1.StartSessionRequest{
+			WorkoutTemplateId: &workoutID,
+		})
+		startReq.Header().Set("Authorization", ts.AuthHeader(userID))
+		startResp, err := ts.SessionClient.StartSession(ctx, startReq)
+		if err != nil {
+			t.Fatalf("failed to start session: %v", err)
+		}
+
+		session := startResp.Msg.Session
+		restItemID := session.RestItems[0].Id
+
+		// Step 1: Complete the rest item
+		syncReq := connect.NewRequest(&heftv1.SyncSessionRequest{
+			SessionId: session.Id,
+			RestItems: []*heftv1.SyncRestItemData{
+				{
+					Id:          restItemID,
+					IsCompleted: true,
+				},
+			},
+		})
+		syncReq.Header().Set("Authorization", ts.AuthHeader(userID))
+		_, err = ts.SessionClient.SyncSession(ctx, syncReq)
+		if err != nil {
+			t.Fatalf("failed to complete rest item: %v", err)
+		}
+
+		// Verify it's completed
+		getReq := connect.NewRequest(&heftv1.GetSessionRequest{Id: session.Id})
+		getReq.Header().Set("Authorization", ts.AuthHeader(userID))
+		getResp, err := ts.SessionClient.GetSession(ctx, getReq)
+		if err != nil {
+			t.Fatalf("failed to get session: %v", err)
+		}
+		if !getResp.Msg.Session.RestItems[0].IsCompleted {
+			t.Error("expected rest item to be completed after first sync")
+		}
+
+		// Step 2: Toggle back to incomplete
+		syncReq2 := connect.NewRequest(&heftv1.SyncSessionRequest{
+			SessionId: session.Id,
+			RestItems: []*heftv1.SyncRestItemData{
+				{
+					Id:          restItemID,
+					IsCompleted: false,
+				},
+			},
+		})
+		syncReq2.Header().Set("Authorization", ts.AuthHeader(userID))
+		_, err = ts.SessionClient.SyncSession(ctx, syncReq2)
+		if err != nil {
+			t.Fatalf("failed to uncomplete rest item: %v", err)
+		}
+
+		// Verify it's uncompleted
+		getReq2 := connect.NewRequest(&heftv1.GetSessionRequest{Id: session.Id})
+		getReq2.Header().Set("Authorization", ts.AuthHeader(userID))
+		getResp2, err := ts.SessionClient.GetSession(ctx, getReq2)
+		if err != nil {
+			t.Fatalf("failed to get session: %v", err)
+		}
+		if getResp2.Msg.Session.RestItems[0].IsCompleted {
+			t.Error("expected rest item to be uncompleted after toggle")
+		}
+		if getResp2.Msg.Session.RestItems[0].CompletedAt != nil {
+			t.Error("expected completed_at to be nil after uncomplete")
+		}
+
+		// Clean up
+		abandonReq := connect.NewRequest(&heftv1.AbandonSessionRequest{Id: session.Id})
+		abandonReq.Header().Set("Authorization", ts.AuthHeader(userID))
+		ts.SessionClient.AbandonSession(ctx, abandonReq)
+	})
+}

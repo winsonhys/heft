@@ -37,6 +37,7 @@ class Session extends $pb.GeneratedMessage {
     $core.Iterable<SessionExercise>? exercises,
     $1.Timestamp? createdAt,
     $1.Timestamp? updatedAt,
+    $core.Iterable<SessionRestItem>? restItems,
   }) {
     final $result = create();
     if (id != null) {
@@ -87,6 +88,9 @@ class Session extends $pb.GeneratedMessage {
     if (updatedAt != null) {
       $result.updatedAt = updatedAt;
     }
+    if (restItems != null) {
+      $result.restItems.addAll(restItems);
+    }
     return $result;
   }
   Session._() : super();
@@ -110,6 +114,7 @@ class Session extends $pb.GeneratedMessage {
     ..pc<SessionExercise>(14, _omitFieldNames ? '' : 'exercises', $pb.PbFieldType.PM, subBuilder: SessionExercise.create)
     ..aOM<$1.Timestamp>(15, _omitFieldNames ? '' : 'createdAt', subBuilder: $1.Timestamp.create)
     ..aOM<$1.Timestamp>(16, _omitFieldNames ? '' : 'updatedAt', subBuilder: $1.Timestamp.create)
+    ..pc<SessionRestItem>(17, _omitFieldNames ? '' : 'restItems', $pb.PbFieldType.PM, subBuilder: SessionRestItem.create)
     ..hasRequiredFields = false
   ;
 
@@ -279,6 +284,9 @@ class Session extends $pb.GeneratedMessage {
   void clearUpdatedAt() => clearField(16);
   @$pb.TagNumber(16)
   $1.Timestamp ensureUpdatedAt() => $_ensure(15);
+
+  @$pb.TagNumber(17)
+  $core.List<SessionRestItem> get restItems => $_getList(16);
 }
 
 /// Session exercise
@@ -470,6 +478,7 @@ class SessionSet extends $pb.GeneratedMessage {
     $core.int? targetTimeSeconds,
     $core.double? rpe,
     $core.String? notes,
+    $core.int? restDurationSeconds,
   }) {
     final $result = create();
     if (id != null) {
@@ -517,6 +526,9 @@ class SessionSet extends $pb.GeneratedMessage {
     if (notes != null) {
       $result.notes = notes;
     }
+    if (restDurationSeconds != null) {
+      $result.restDurationSeconds = restDurationSeconds;
+    }
     return $result;
   }
   SessionSet._() : super();
@@ -539,6 +551,7 @@ class SessionSet extends $pb.GeneratedMessage {
     ..a<$core.int>(13, _omitFieldNames ? '' : 'targetTimeSeconds', $pb.PbFieldType.O3)
     ..a<$core.double>(14, _omitFieldNames ? '' : 'rpe', $pb.PbFieldType.OD)
     ..aOS(15, _omitFieldNames ? '' : 'notes')
+    ..a<$core.int>(16, _omitFieldNames ? '' : 'restDurationSeconds', $pb.PbFieldType.O3)
     ..hasRequiredFields = false
   ;
 
@@ -701,6 +714,152 @@ class SessionSet extends $pb.GeneratedMessage {
   $core.bool hasNotes() => $_has(14);
   @$pb.TagNumber(15)
   void clearNotes() => clearField(15);
+
+  @$pb.TagNumber(16)
+  $core.int get restDurationSeconds => $_getIZ(15);
+  @$pb.TagNumber(16)
+  set restDurationSeconds($core.int v) { $_setSignedInt32(15, v); }
+  @$pb.TagNumber(16)
+  $core.bool hasRestDurationSeconds() => $_has(15);
+  @$pb.TagNumber(16)
+  void clearRestDurationSeconds() => clearField(16);
+}
+
+/// Rest item in a session (from template)
+class SessionRestItem extends $pb.GeneratedMessage {
+  factory SessionRestItem({
+    $core.String? id,
+    $core.String? sessionId,
+    $core.int? displayOrder,
+    $core.String? sectionName,
+    $core.int? restDurationSeconds,
+    $core.bool? isCompleted,
+    $1.Timestamp? completedAt,
+  }) {
+    final $result = create();
+    if (id != null) {
+      $result.id = id;
+    }
+    if (sessionId != null) {
+      $result.sessionId = sessionId;
+    }
+    if (displayOrder != null) {
+      $result.displayOrder = displayOrder;
+    }
+    if (sectionName != null) {
+      $result.sectionName = sectionName;
+    }
+    if (restDurationSeconds != null) {
+      $result.restDurationSeconds = restDurationSeconds;
+    }
+    if (isCompleted != null) {
+      $result.isCompleted = isCompleted;
+    }
+    if (completedAt != null) {
+      $result.completedAt = completedAt;
+    }
+    return $result;
+  }
+  SessionRestItem._() : super();
+  factory SessionRestItem.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
+  factory SessionRestItem.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'SessionRestItem', package: const $pb.PackageName(_omitMessageNames ? '' : 'heft.v1'), createEmptyInstance: create)
+    ..aOS(1, _omitFieldNames ? '' : 'id')
+    ..aOS(2, _omitFieldNames ? '' : 'sessionId')
+    ..a<$core.int>(3, _omitFieldNames ? '' : 'displayOrder', $pb.PbFieldType.O3)
+    ..aOS(4, _omitFieldNames ? '' : 'sectionName')
+    ..a<$core.int>(5, _omitFieldNames ? '' : 'restDurationSeconds', $pb.PbFieldType.O3)
+    ..aOB(6, _omitFieldNames ? '' : 'isCompleted')
+    ..aOM<$1.Timestamp>(7, _omitFieldNames ? '' : 'completedAt', subBuilder: $1.Timestamp.create)
+    ..hasRequiredFields = false
+  ;
+
+  @$core.Deprecated(
+  'Using this can add significant overhead to your binary. '
+  'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+  'Will be removed in next major version')
+  SessionRestItem clone() => SessionRestItem()..mergeFromMessage(this);
+  @$core.Deprecated(
+  'Using this can add significant overhead to your binary. '
+  'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+  'Will be removed in next major version')
+  SessionRestItem copyWith(void Function(SessionRestItem) updates) => super.copyWith((message) => updates(message as SessionRestItem)) as SessionRestItem;
+
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static SessionRestItem create() => SessionRestItem._();
+  SessionRestItem createEmptyInstance() => create();
+  static $pb.PbList<SessionRestItem> createRepeated() => $pb.PbList<SessionRestItem>();
+  @$core.pragma('dart2js:noInline')
+  static SessionRestItem getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<SessionRestItem>(create);
+  static SessionRestItem? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.String get id => $_getSZ(0);
+  @$pb.TagNumber(1)
+  set id($core.String v) { $_setString(0, v); }
+  @$pb.TagNumber(1)
+  $core.bool hasId() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearId() => clearField(1);
+
+  @$pb.TagNumber(2)
+  $core.String get sessionId => $_getSZ(1);
+  @$pb.TagNumber(2)
+  set sessionId($core.String v) { $_setString(1, v); }
+  @$pb.TagNumber(2)
+  $core.bool hasSessionId() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearSessionId() => clearField(2);
+
+  @$pb.TagNumber(3)
+  $core.int get displayOrder => $_getIZ(2);
+  @$pb.TagNumber(3)
+  set displayOrder($core.int v) { $_setSignedInt32(2, v); }
+  @$pb.TagNumber(3)
+  $core.bool hasDisplayOrder() => $_has(2);
+  @$pb.TagNumber(3)
+  void clearDisplayOrder() => clearField(3);
+
+  @$pb.TagNumber(4)
+  $core.String get sectionName => $_getSZ(3);
+  @$pb.TagNumber(4)
+  set sectionName($core.String v) { $_setString(3, v); }
+  @$pb.TagNumber(4)
+  $core.bool hasSectionName() => $_has(3);
+  @$pb.TagNumber(4)
+  void clearSectionName() => clearField(4);
+
+  @$pb.TagNumber(5)
+  $core.int get restDurationSeconds => $_getIZ(4);
+  @$pb.TagNumber(5)
+  set restDurationSeconds($core.int v) { $_setSignedInt32(4, v); }
+  @$pb.TagNumber(5)
+  $core.bool hasRestDurationSeconds() => $_has(4);
+  @$pb.TagNumber(5)
+  void clearRestDurationSeconds() => clearField(5);
+
+  @$pb.TagNumber(6)
+  $core.bool get isCompleted => $_getBF(5);
+  @$pb.TagNumber(6)
+  set isCompleted($core.bool v) { $_setBool(5, v); }
+  @$pb.TagNumber(6)
+  $core.bool hasIsCompleted() => $_has(5);
+  @$pb.TagNumber(6)
+  void clearIsCompleted() => clearField(6);
+
+  @$pb.TagNumber(7)
+  $1.Timestamp get completedAt => $_getN(6);
+  @$pb.TagNumber(7)
+  set completedAt($1.Timestamp v) { setField(7, v); }
+  @$pb.TagNumber(7)
+  $core.bool hasCompletedAt() => $_has(6);
+  @$pb.TagNumber(7)
+  void clearCompletedAt() => clearField(7);
+  @$pb.TagNumber(7)
+  $1.Timestamp ensureCompletedAt() => $_ensure(6);
 }
 
 /// Session summary for lists
@@ -1140,6 +1299,7 @@ class SyncSessionRequest extends $pb.GeneratedMessage {
     $core.Iterable<SyncExerciseData>? exercises,
     $core.Iterable<$core.String>? deletedSetIds,
     $core.Iterable<$core.String>? deletedExerciseIds,
+    $core.Iterable<SyncRestItemData>? restItems,
   }) {
     final $result = create();
     if (sessionId != null) {
@@ -1157,6 +1317,9 @@ class SyncSessionRequest extends $pb.GeneratedMessage {
     if (deletedExerciseIds != null) {
       $result.deletedExerciseIds.addAll(deletedExerciseIds);
     }
+    if (restItems != null) {
+      $result.restItems.addAll(restItems);
+    }
     return $result;
   }
   SyncSessionRequest._() : super();
@@ -1169,6 +1332,7 @@ class SyncSessionRequest extends $pb.GeneratedMessage {
     ..pc<SyncExerciseData>(3, _omitFieldNames ? '' : 'exercises', $pb.PbFieldType.PM, subBuilder: SyncExerciseData.create)
     ..pPS(4, _omitFieldNames ? '' : 'deletedSetIds')
     ..pPS(5, _omitFieldNames ? '' : 'deletedExerciseIds')
+    ..pc<SyncRestItemData>(6, _omitFieldNames ? '' : 'restItems', $pb.PbFieldType.PM, subBuilder: SyncRestItemData.create)
     ..hasRequiredFields = false
   ;
 
@@ -1213,6 +1377,74 @@ class SyncSessionRequest extends $pb.GeneratedMessage {
 
   @$pb.TagNumber(5)
   $core.List<$core.String> get deletedExerciseIds => $_getList(4);
+
+  @$pb.TagNumber(6)
+  $core.List<SyncRestItemData> get restItems => $_getList(5);
+}
+
+/// Sync data for rest items
+class SyncRestItemData extends $pb.GeneratedMessage {
+  factory SyncRestItemData({
+    $core.String? id,
+    $core.bool? isCompleted,
+  }) {
+    final $result = create();
+    if (id != null) {
+      $result.id = id;
+    }
+    if (isCompleted != null) {
+      $result.isCompleted = isCompleted;
+    }
+    return $result;
+  }
+  SyncRestItemData._() : super();
+  factory SyncRestItemData.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
+  factory SyncRestItemData.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'SyncRestItemData', package: const $pb.PackageName(_omitMessageNames ? '' : 'heft.v1'), createEmptyInstance: create)
+    ..aOS(1, _omitFieldNames ? '' : 'id')
+    ..aOB(2, _omitFieldNames ? '' : 'isCompleted')
+    ..hasRequiredFields = false
+  ;
+
+  @$core.Deprecated(
+  'Using this can add significant overhead to your binary. '
+  'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+  'Will be removed in next major version')
+  SyncRestItemData clone() => SyncRestItemData()..mergeFromMessage(this);
+  @$core.Deprecated(
+  'Using this can add significant overhead to your binary. '
+  'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+  'Will be removed in next major version')
+  SyncRestItemData copyWith(void Function(SyncRestItemData) updates) => super.copyWith((message) => updates(message as SyncRestItemData)) as SyncRestItemData;
+
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static SyncRestItemData create() => SyncRestItemData._();
+  SyncRestItemData createEmptyInstance() => create();
+  static $pb.PbList<SyncRestItemData> createRepeated() => $pb.PbList<SyncRestItemData>();
+  @$core.pragma('dart2js:noInline')
+  static SyncRestItemData getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<SyncRestItemData>(create);
+  static SyncRestItemData? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.String get id => $_getSZ(0);
+  @$pb.TagNumber(1)
+  set id($core.String v) { $_setString(0, v); }
+  @$pb.TagNumber(1)
+  $core.bool hasId() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearId() => clearField(1);
+
+  @$pb.TagNumber(2)
+  $core.bool get isCompleted => $_getBF(1);
+  @$pb.TagNumber(2)
+  set isCompleted($core.bool v) { $_setBool(1, v); }
+  @$pb.TagNumber(2)
+  $core.bool hasIsCompleted() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearIsCompleted() => clearField(2);
 }
 
 enum SyncSetData_SetIdentifier {

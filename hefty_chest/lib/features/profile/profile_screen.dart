@@ -76,15 +76,9 @@ class ProfileScreen extends ConsumerWidget {
               const SizedBox(height: 12),
               SettingsCard(
                 usePounds: user.usePounds,
-                restTimerSeconds: user.restTimerSeconds,
                 onUnitChanged: (usePounds) {
                   ref.read(userSettingsProvider.notifier).updateSettings(
                         usePounds: usePounds,
-                      );
-                },
-                onRestTimerChanged: (seconds) {
-                  ref.read(userSettingsProvider.notifier).updateSettings(
-                        restTimerSeconds: seconds,
                       );
                 },
               ),

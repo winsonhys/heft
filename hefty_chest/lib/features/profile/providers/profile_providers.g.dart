@@ -118,7 +118,7 @@ final class UserSettingsProvider
   UserSettings create() => UserSettings();
 }
 
-String _$userSettingsHash() => r'7025ef959b271fac2b890ca0d06117840647b949';
+String _$userSettingsHash() => r'5418b8c930747006ea7d9a91ce292eb7c5d630fc';
 
 /// Notifier for user settings
 

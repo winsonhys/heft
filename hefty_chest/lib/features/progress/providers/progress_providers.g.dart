@@ -50,7 +50,7 @@ final class ProgressStatsProvider
   }
 }
 
-String _$progressStatsHash() => r'7250e02fdb9aebe41f221467bbf2dd755a4333f0';
+String _$progressStatsHash() => r'c83f176cebf8cab22b0aba782b81a6c0444fd98e';
 
 /// Provider for weekly activity data
 
@@ -96,7 +96,7 @@ final class WeeklyActivityProvider
   }
 }
 
-String _$weeklyActivityHash() => r'6886f2978a93d9aff714a3625195d13142df4b85';
+String _$weeklyActivityHash() => r'55e981901131018120e082e7fcd2623f390c343d';
 
 /// Provider for personal records (limit to 5 recent)
 
@@ -142,7 +142,7 @@ final class PersonalRecordsProvider
   }
 }
 
-String _$personalRecordsHash() => r'd7894be9fbecfa3f1119615ec170ed19d99f9984';
+String _$personalRecordsHash() => r'620e52d56da56598410241ebe074b51f5f589c1c';
 
 /// Notifier for selected exercise ID for progress chart
 
@@ -266,7 +266,7 @@ final class ExerciseProgressProvider
   }
 }
 
-String _$exerciseProgressHash() => r'892e7ef66886c290eb8e9a2af7c912fc44812163';
+String _$exerciseProgressHash() => r'b50ebcbc03e5f53803d7513243615c6a8f5c3946';
 
 /// Provider for exercise progress data
 
@@ -332,7 +332,7 @@ final class ExercisesListProvider
   }
 }
 
-String _$exercisesListHash() => r'194e013ff9c5a2f167ab6ae1d3b2ef39a1329a67';
+String _$exercisesListHash() => r'c44c1109fb331c2b2b5b2f89b9e51d83ae290fd6';
 
 /// Computed provider for current exercise progress based on selected exercise
 

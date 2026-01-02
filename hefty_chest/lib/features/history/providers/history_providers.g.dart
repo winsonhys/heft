@@ -52,7 +52,7 @@ final class SessionHistoryProvider
   }
 }
 
-String _$sessionHistoryHash() => r'44966b5758559e8aaf7629a010a54e0176884368';
+String _$sessionHistoryHash() => r'f0235d38d06d5d323eacc681dd91edec90933616';
 
 /// Provider for fetching full session details
 
@@ -114,7 +114,7 @@ final class SessionDetailProvider
   }
 }
 
-String _$sessionDetailHash() => r'91dc55cfe9983a796219c6924cdff4420ef7634d';
+String _$sessionDetailHash() => r'd059b87fe60f07df9a446c3d929030eacbf4de25';
 
 /// Provider for fetching full session details
 

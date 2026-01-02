@@ -44,7 +44,7 @@ final class WorkoutBuilderProvider
   }
 }
 
-String _$workoutBuilderHash() => r'4b2d095a723fc9900267ca219e6124f9d0a11e9f';
+String _$workoutBuilderHash() => r'db2ef277d9e158f01dc7ba69dae5448532e519c2';
 
 /// Workout builder state notifier
 
@@ -216,3 +216,88 @@ final class FilteredExercisesProvider
 }
 
 String _$filteredExercisesHash() => r'84173a97e3107c5672b0c21ecf04bd51a5c057b3';
+
+/// Remote search provider - calls backend searchExercises API
+
+@ProviderFor(searchExercisesRemote)
+const searchExercisesRemoteProvider = SearchExercisesRemoteFamily._();
+
+/// Remote search provider - calls backend searchExercises API
+
+final class SearchExercisesRemoteProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<List<Exercise>>,
+          List<Exercise>,
+          FutureOr<List<Exercise>>
+        >
+    with $FutureModifier<List<Exercise>>, $FutureProvider<List<Exercise>> {
+  /// Remote search provider - calls backend searchExercises API
+  const SearchExercisesRemoteProvider._({
+    required SearchExercisesRemoteFamily super.from,
+    required String super.argument,
+  }) : super(
+         retry: null,
+         name: r'searchExercisesRemoteProvider',
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
+
+  @override
+  String debugGetCreateSourceHash() => _$searchExercisesRemoteHash();
+
+  @override
+  String toString() {
+    return r'searchExercisesRemoteProvider'
+        ''
+        '($argument)';
+  }
+
+  @$internal
+  @override
+  $FutureProviderElement<List<Exercise>> $createElement(
+    $ProviderPointer pointer,
+  ) => $FutureProviderElement(pointer);
+
+  @override
+  FutureOr<List<Exercise>> create(Ref ref) {
+    final argument = this.argument as String;
+    return searchExercisesRemote(ref, argument);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is SearchExercisesRemoteProvider && other.argument == argument;
+  }
+
+  @override
+  int get hashCode {
+    return argument.hashCode;
+  }
+}
+
+String _$searchExercisesRemoteHash() =>
+    r'bfa5b61d51f4a333d620cf0e28b5e178fd803368';
+
+/// Remote search provider - calls backend searchExercises API
+
+final class SearchExercisesRemoteFamily extends $Family
+    with $FunctionalFamilyOverride<FutureOr<List<Exercise>>, String> {
+  const SearchExercisesRemoteFamily._()
+    : super(
+        retry: null,
+        name: r'searchExercisesRemoteProvider',
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
+      );
+
+  /// Remote search provider - calls backend searchExercises API
+
+  SearchExercisesRemoteProvider call(String query) =>
+      SearchExercisesRemoteProvider._(argument: query, from: this);
+
+  @override
+  String toString() => r'searchExercisesRemoteProvider';
+}

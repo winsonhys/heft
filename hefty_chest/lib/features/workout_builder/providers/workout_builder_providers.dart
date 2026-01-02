@@ -645,3 +645,12 @@ List<Exercise> filteredExercises(Ref ref) {
     error: (error, stack) => [],
   );
 }
+
+/// Remote search provider - calls backend searchExercises API
+@riverpod
+Future<List<Exercise>> searchExercisesRemote(Ref ref, String query) async {
+  if (query.trim().isEmpty) return [];
+  final request = SearchExercisesRequest()..query = query;
+  final response = await exerciseClient.searchExercises(request);
+  return response.exercises;
+}

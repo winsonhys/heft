@@ -15,7 +15,7 @@ void main() {
     await IntegrationTestSetup.waitForBackend();
   });
 
-  setUp(() {
+  setUp(() async {
     // Reset SharedPreferences before each test
     SharedPreferences.setMockInitialValues({});
     container = IntegrationTestSetup.createContainer();

@@ -108,8 +108,10 @@ type MockSessionRepository struct {
 	CreateFunc           func(ctx context.Context, userID string, workoutTemplateID, programID *string, programDayNumber *int, name *string) (*repository.WorkoutSession, error)
 	GetByIDFunc          func(ctx context.Context, id, userID string) (*repository.WorkoutSession, error)
 	AddExerciseFunc      func(ctx context.Context, sessionID, exerciseID string, displayOrder int, sectionName, supersetID *string) (*repository.SessionExercise, error)
-	AddSetFunc           func(ctx context.Context, sessionExerciseID string, setNumber int, targetWeightKg *float64, targetReps, targetTimeSeconds *int, isBodyweight bool) (*repository.SessionSet, error)
+	AddSetFunc           func(ctx context.Context, sessionExerciseID string, setNumber int, targetWeightKg *float64, targetReps, targetTimeSeconds, restDurationSeconds *int, isBodyweight bool) (*repository.SessionSet, error)
+	AddRestItemFunc      func(ctx context.Context, sessionID string, displayOrder int, sectionName *string, restDurationSeconds int) (*repository.SessionRestItem, error)
 	SyncSetsFunc         func(ctx context.Context, sessionID string, sets []repository.SyncSetInput) error
+	SyncRestItemsFunc    func(ctx context.Context, sessionID string, items []repository.SyncRestItemInput) error
 	DeleteSetsFunc       func(ctx context.Context, sessionID string, setIDs []string) error
 	DeleteExercisesFunc  func(ctx context.Context, sessionID string, exerciseIDs []string) error
 	UpdateExerciseFunc   func(ctx context.Context, sessionID, exerciseID string, params repository.UpdateExerciseParams) error
@@ -139,9 +141,16 @@ func (m *MockSessionRepository) AddExercise(ctx context.Context, sessionID, exer
 	return nil, nil
 }
 
-func (m *MockSessionRepository) AddSet(ctx context.Context, sessionExerciseID string, setNumber int, targetWeightKg *float64, targetReps, targetTimeSeconds *int, isBodyweight bool) (*repository.SessionSet, error) {
+func (m *MockSessionRepository) AddSet(ctx context.Context, sessionExerciseID string, setNumber int, targetWeightKg *float64, targetReps, targetTimeSeconds, restDurationSeconds *int, isBodyweight bool) (*repository.SessionSet, error) {
 	if m.AddSetFunc != nil {
-		return m.AddSetFunc(ctx, sessionExerciseID, setNumber, targetWeightKg, targetReps, targetTimeSeconds, isBodyweight)
+		return m.AddSetFunc(ctx, sessionExerciseID, setNumber, targetWeightKg, targetReps, targetTimeSeconds, restDurationSeconds, isBodyweight)
+	}
+	return nil, nil
+}
+
+func (m *MockSessionRepository) AddRestItem(ctx context.Context, sessionID string, displayOrder int, sectionName *string, restDurationSeconds int) (*repository.SessionRestItem, error) {
+	if m.AddRestItemFunc != nil {
+		return m.AddRestItemFunc(ctx, sessionID, displayOrder, sectionName, restDurationSeconds)
 	}
 	return nil, nil
 }
@@ -149,6 +158,13 @@ func (m *MockSessionRepository) AddSet(ctx context.Context, sessionExerciseID st
 func (m *MockSessionRepository) SyncSets(ctx context.Context, sessionID string, sets []repository.SyncSetInput) error {
 	if m.SyncSetsFunc != nil {
 		return m.SyncSetsFunc(ctx, sessionID, sets)
+	}
+	return nil
+}
+
+func (m *MockSessionRepository) SyncRestItems(ctx context.Context, sessionID string, items []repository.SyncRestItemInput) error {
+	if m.SyncRestItemsFunc != nil {
+		return m.SyncRestItemsFunc(ctx, sessionID, items)
 	}
 	return nil
 }

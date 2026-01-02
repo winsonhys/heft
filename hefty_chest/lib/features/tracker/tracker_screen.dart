@@ -18,6 +18,7 @@ import 'widgets/exercise_drop_zone.dart';
 import 'widgets/progress_header.dart';
 import 'widgets/tracker_section_card.dart';
 import 'widgets/rest_timer_sheet.dart';
+import 'widgets/rest_item_card.dart';
 
 /// Tracker screen for active workout session
 class TrackerScreen extends HookConsumerWidget {
@@ -216,7 +217,18 @@ class TrackerScreen extends HookConsumerWidget {
                     if (session == null) {
                       return _buildNoSession(context);
                     }
-                    return _buildSessionContent(context, ref, session, isDragging);
+                    return _buildSessionContent(
+                      context,
+                      ref,
+                      session,
+                      isDragging,
+                      onTriggerRestTimer: (int duration, String exerciseName, int setNumber) {
+                        restTimeRemaining.value = duration;
+                        nextExerciseName.value = exerciseName;
+                        nextSetNumber.value = setNumber;
+                        showRestTimer.value = true;
+                      },
+                    );
                   },
                   loading: () => const Center(
                     child: FCircularProgress.loader(),
@@ -297,9 +309,32 @@ class TrackerScreen extends HookConsumerWidget {
     BuildContext context,
     WidgetRef ref,
     SessionModel session,
-    ValueNotifier<bool> isDragging,
-  ) {
-    // Group exercises by section
+    ValueNotifier<bool> isDragging, {
+    required void Function(int duration, String exerciseName, int setNumber) onTriggerRestTimer,
+  }) {
+    // Create unified list of items (exercises and rest items) for each section
+    final itemsBySection = <String, List<_TrackerItem>>{};
+
+    for (final exercise in session.exercises) {
+      final sectionName = exercise.sectionName.isEmpty ? 'Exercises' : exercise.sectionName;
+      itemsBySection.putIfAbsent(sectionName, () => []).add(
+        _TrackerItem.exercise(exercise),
+      );
+    }
+
+    for (final restItem in session.restItems) {
+      final sectionName = restItem.sectionName.isEmpty ? 'Exercises' : restItem.sectionName;
+      itemsBySection.putIfAbsent(sectionName, () => []).add(
+        _TrackerItem.rest(restItem),
+      );
+    }
+
+    // Sort items within each section by displayOrder
+    for (final items in itemsBySection.values) {
+      items.sort((a, b) => a.displayOrder.compareTo(b.displayOrder));
+    }
+
+    // Also maintain backwards-compatible exercises-only map for superset logic
     final exercisesBySection = <String, List<SessionExerciseModel>>{};
     for (final exercise in session.exercises) {
       final sectionName = exercise.sectionName.isEmpty ? 'Exercises' : exercise.sectionName;
@@ -318,10 +353,11 @@ class TrackerScreen extends HookConsumerWidget {
               Expanded(
                 child: ListView.builder(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
-                  itemCount: exercisesBySection.length,
+                  itemCount: itemsBySection.length,
                   itemBuilder: (context, sectionIndex) {
-              final sectionName = exercisesBySection.keys.elementAt(sectionIndex);
-              final exercises = exercisesBySection[sectionName]!;
+              final sectionName = itemsBySection.keys.elementAt(sectionIndex);
+              final items = itemsBySection[sectionName]!;
+              final exercises = exercisesBySection[sectionName] ?? [];
               // Check if any exercise in this section has a superset_id
               final isSuperset = exercises.any((e) => e.supersetId != null);
 
@@ -423,8 +459,17 @@ class TrackerScreen extends HookConsumerWidget {
                     ),
                   ),
 
-                  // Exercises - build cards once, conditionally wrap
-                  ..._buildExerciseCards(context, ref, exercises, isSuperset, sectionName, isDragging),
+                  // Items - build cards once, conditionally wrap
+                  ..._buildSectionItems(
+                    context,
+                    ref,
+                    items,
+                    exercises,
+                    isSuperset,
+                    sectionName,
+                    isDragging,
+                    onTriggerRestTimer: onTriggerRestTimer,
+                  ),
                 ],
               );
             },
@@ -470,67 +515,113 @@ class TrackerScreen extends HookConsumerWidget {
     );
   }
 
-  List<Widget> _buildExerciseCards(
+  List<Widget> _buildSectionItems(
     BuildContext context,
     WidgetRef ref,
+    List<_TrackerItem> items,
     List<SessionExerciseModel> exercises,
     bool isSuperset,
     String sectionName,
-    ValueNotifier<bool> isDragging,
-  ) {
+    ValueNotifier<bool> isDragging, {
+    required void Function(int duration, String exerciseName, int setNumber) onTriggerRestTimer,
+  }) {
     final widgets = <Widget>[];
+    int exerciseIndex = 0;
 
-    for (int i = 0; i < exercises.length; i++) {
-      final exercise = exercises[i];
+    for (int i = 0; i < items.length; i++) {
+      final item = items[i];
 
-      // Add drop zone before each exercise
-      widgets.add(
-        ExerciseDropZone(
-          sectionName: sectionName,
-          targetIndex: i,
-          isDragging: isDragging.value,
-          onAccept: (dragData) {
-            ref.read(activeSessionProvider.notifier).moveExercise(
-              exerciseId: dragData.exercise.id,
-              toSectionName: sectionName,
-              targetIndex: i,
+      if (item.isExercise) {
+        final exercise = item.exercise!;
+
+        // Add drop zone before each exercise
+        widgets.add(
+          ExerciseDropZone(
+            sectionName: sectionName,
+            targetIndex: exerciseIndex,
+            isDragging: isDragging.value,
+            onAccept: (dragData) {
+              ref.read(activeSessionProvider.notifier).moveExercise(
+                exerciseId: dragData.exercise.id,
+                toSectionName: sectionName,
+                targetIndex: exerciseIndex,
+              );
+            },
+          ),
+        );
+
+        // Build the card
+        final card = TrackerSectionCard(
+          exercise: exercise,
+          onSetCompleted: (setId, weight, reps, timeSeconds) {
+            final notifier = ref.read(activeSessionProvider.notifier);
+
+            // Check if completing (not un-completing)
+            final session = ref.read(activeSessionProvider).value;
+            final isCompleting = session?.exercises
+                .expand((e) => e.sets)
+                .where((s) => s.id == setId)
+                .firstOrNull
+                ?.completedAt == null;
+
+            notifier.completeSet(
+              sessionSetId: setId,
+              weightKg: weight,
+              reps: reps,
+              timeSeconds: timeSeconds,
+              toggle: true,
             );
-          },
-        ),
-      );
 
-      // Build the card
-      final card = TrackerSectionCard(
-        exercise: exercise,
-        onSetCompleted: (setId, weight, reps, timeSeconds) {
-          ref.read(activeSessionProvider.notifier).completeSet(
-                sessionSetId: setId,
-                weightKg: weight,
-                reps: reps,
-                timeSeconds: timeSeconds,
+            // Show rest timer only when completing (not un-completing) and rest is configured
+            if (isCompleting) {
+              final info = notifier.getSetCompletionInfo(setId);
+              if (info != null && info.restDurationSeconds > 0) {
+                onTriggerRestTimer(info.restDurationSeconds, info.nextExerciseName, info.nextSetNumber);
+              }
+            }
+          },
+          onAddSet: () {
+            ref.read(activeSessionProvider.notifier).addSet(sessionExerciseId: exercise.id);
+          },
+          onSetDeleted: (setId) {
+            ref.read(activeSessionProvider.notifier).deleteSet(sessionSetId: setId);
+          },
+          onDeleteExercise: () => _confirmDeleteExercise(context, ref, exercise),
+        );
+
+        // Wrap with draggable
+        widgets.add(
+          DraggableExerciseCard(
+            exercise: exercise,
+            sectionName: sectionName,
+            index: exerciseIndex,
+            onDragStarted: () => isDragging.value = true,
+            onDragEnd: () => isDragging.value = false,
+            child: card,
+          ),
+        );
+
+        exerciseIndex++;
+      } else {
+        // Rest item
+        final restItem = item.restItem!;
+        widgets.add(
+          RestItemCard(
+            restItem: restItem,
+            onComplete: () {
+              ref.read(activeSessionProvider.notifier).completeRestItem(
+                restItemId: restItem.id,
+              );
+            },
+            onSkip: () {
+              ref.read(activeSessionProvider.notifier).completeRestItem(
+                restItemId: restItem.id,
                 toggle: true,
               );
-        },
-        onAddSet: () {
-          ref.read(activeSessionProvider.notifier).addSet(sessionExerciseId: exercise.id);
-        },
-        onSetDeleted: (setId) {
-          ref.read(activeSessionProvider.notifier).deleteSet(sessionSetId: setId);
-        },
-        onDeleteExercise: () => _confirmDeleteExercise(context, ref, exercise),
-      );
-
-      // Wrap with draggable
-      widgets.add(
-        DraggableExerciseCard(
-          exercise: exercise,
-          sectionName: sectionName,
-          index: i,
-          onDragStarted: () => isDragging.value = true,
-          onDragEnd: () => isDragging.value = false,
-          child: card,
-        ),
-      );
+            },
+          ),
+        );
+      }
     }
 
     // Add drop zone after the last exercise
@@ -688,4 +779,18 @@ class TrackerScreen extends HookConsumerWidget {
       ref.read(activeSessionProvider.notifier).deleteSection(sectionName: sectionName);
     }
   }
+}
+
+/// Internal class to represent either an exercise or a rest item in the tracker
+class _TrackerItem {
+  final SessionExerciseModel? exercise;
+  final SessionRestItemModel? restItem;
+
+  const _TrackerItem.exercise(this.exercise) : restItem = null;
+  const _TrackerItem.rest(this.restItem) : exercise = null;
+
+  bool get isExercise => exercise != null;
+  bool get isRest => restItem != null;
+
+  int get displayOrder => exercise?.displayOrder ?? restItem?.displayOrder ?? 0;
 }

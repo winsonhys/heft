@@ -77,7 +77,11 @@ class Auth extends _$Auth {
   }
 
   Future<bool> login(String email) async {
-    logAuth.info('Login attempt for email: ${email.replaceRange(3, email.indexOf('@'), '***')}');
+    final atIndex = email.indexOf('@');
+    final maskedEmail = atIndex > 3
+        ? email.replaceRange(3, atIndex, '***')
+        : '***';
+    logAuth.info('Login attempt for email: $maskedEmail');
     state = state.copyWith(isLoading: true, clearError: true);
 
     try {

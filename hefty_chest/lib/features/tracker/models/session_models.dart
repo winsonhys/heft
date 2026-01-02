@@ -15,6 +15,7 @@ sealed class SessionModel with _$SessionModel {
     required String workoutTemplateId,
     required String name,
     required List<SessionExerciseModel> exercises,
+    @Default([]) List<SessionRestItemModel> restItems,
     @Default(0) int completedSets,
     @Default(0) int totalSets,
     @Default(0) int durationSeconds,
@@ -27,6 +28,7 @@ sealed class SessionModel with _$SessionModel {
   /// Convert from protobuf Session
   factory SessionModel.fromProto(Session pb) {
     final exercises = pb.exercises.map(SessionExerciseModel.fromProto).toList();
+    final restItems = pb.restItems.map(SessionRestItemModel.fromProto).toList();
 
     // Always compute totalSets from exercises (don't rely on stored value)
     final totalSets = exercises.fold(0, (sum, ex) => sum + ex.sets.length);
@@ -36,6 +38,7 @@ sealed class SessionModel with _$SessionModel {
       workoutTemplateId: pb.workoutTemplateId,
       name: pb.name,
       exercises: exercises,
+      restItems: restItems,
       completedSets: pb.completedSets,
       totalSets: totalSets,
       durationSeconds: pb.durationSeconds,
@@ -95,6 +98,7 @@ sealed class SessionSetModel with _$SessionSetModel {
     @Default(0.0) double rpe,
     @Default('') String notes,
     DateTime? completedAt,
+    @Default(0) int restDurationSeconds,
   }) = _SessionSetModel;
 
   /// Convert from protobuf SessionSet
@@ -112,6 +116,31 @@ sealed class SessionSetModel with _$SessionSetModel {
         targetTimeSeconds: pb.targetTimeSeconds,
         rpe: pb.rpe,
         notes: pb.notes,
+        completedAt: pb.hasCompletedAt() ? pb.completedAt.toDateTime() : null,
+        restDurationSeconds: pb.restDurationSeconds,
+      );
+}
+
+/// Immutable session rest item model
+@freezed
+sealed class SessionRestItemModel with _$SessionRestItemModel {
+  const factory SessionRestItemModel({
+    required String id,
+    required int displayOrder,
+    required String sectionName,
+    required int restDurationSeconds,
+    @Default(false) bool isCompleted,
+    DateTime? completedAt,
+  }) = _SessionRestItemModel;
+
+  /// Convert from protobuf SessionRestItem
+  factory SessionRestItemModel.fromProto(SessionRestItem pb) =>
+      SessionRestItemModel(
+        id: pb.id,
+        displayOrder: pb.displayOrder,
+        sectionName: pb.sectionName,
+        restDurationSeconds: pb.restDurationSeconds,
+        isCompleted: pb.isCompleted,
         completedAt: pb.hasCompletedAt() ? pb.completedAt.toDateTime() : null,
       );
 }
@@ -137,6 +166,7 @@ extension SessionModelToProto on SessionModel {
     }
 
     session.exercises.addAll(exercises.map((e) => e.toProto()));
+    session.restItems.addAll(restItems.map((r) => r.toProto()));
     return session;
   }
 }
@@ -176,13 +206,31 @@ extension SessionSetModelToProto on SessionSetModel {
       ..targetReps = targetReps
       ..targetTimeSeconds = targetTimeSeconds
       ..rpe = rpe
-      ..notes = notes;
+      ..notes = notes
+      ..restDurationSeconds = restDurationSeconds;
 
     if (completedAt != null) {
       set.completedAt = _dateTimeToTimestamp(completedAt!);
     }
 
     return set;
+  }
+}
+
+extension SessionRestItemModelToProto on SessionRestItemModel {
+  SessionRestItem toProto() {
+    final restItem = SessionRestItem()
+      ..id = id
+      ..displayOrder = displayOrder
+      ..sectionName = sectionName
+      ..restDurationSeconds = restDurationSeconds
+      ..isCompleted = isCompleted;
+
+    if (completedAt != null) {
+      restItem.completedAt = _dateTimeToTimestamp(completedAt!);
+    }
+
+    return restItem;
   }
 }
 

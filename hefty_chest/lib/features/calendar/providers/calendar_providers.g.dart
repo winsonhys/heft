@@ -231,7 +231,7 @@ final class CalendarMonthProvider
   }
 }
 
-String _$calendarMonthHash() => r'abe0e7ec924ccbc73bbf9d5d476e0b5d66561212';
+String _$calendarMonthHash() => r'ff726e6a6c9ca55f1ca084a4db78aab9948c48d0';
 
 /// Calendar month data provider
 
@@ -300,4 +300,4 @@ final class WorkoutsForSchedulingProvider
 }
 
 String _$workoutsForSchedulingHash() =>
-    r'49eef20aa95976b199c71c69d2e938566e2fcba1';
+    r'e2737386387766e0432867cae78b14215624cd60';

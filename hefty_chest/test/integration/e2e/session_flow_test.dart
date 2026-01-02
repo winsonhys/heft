@@ -284,6 +284,9 @@ void main() {
     });
   });
 
+  // Run rest items E2E tests
+  restItemsE2ETests();
+
   group('Progress Update E2E', () {
     testWidgets('completing session updates progress stats', (tester) async {
       await tester.runAsync(() async {
@@ -353,4 +356,376 @@ class MockAuth extends Auth {
       isLoading: false,
     );
   }
+}
+
+/// E2E tests for rest items in session flow
+void restItemsE2ETests() {
+  String getUniqueName(String base) {
+    return '$base ${DateTime.now().microsecondsSinceEpoch}';
+  }
+
+  group('Rest Items E2E', () {
+    testWidgets('tracker screen shows rest items from workout template', (tester) async {
+      await tester.runAsync(() async {
+        final name = getUniqueName('Rest Item Display Test');
+        final workoutId = await TestData.createWorkoutWithRestItem(
+          name: name,
+          restDurationSeconds: 60,
+        );
+        final sessionId = await TestData.startSession(workoutTemplateId: workoutId);
+
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: [
+              authProvider.overrideWith(MockAuth.new),
+            ],
+            child: const HeftyChestApp(),
+          ),
+        );
+
+        await Future.delayed(const Duration(seconds: 3));
+        await tester.pump();
+
+        // Navigate to tracker (Resume if active session exists)
+        final resumeButtons = find.text('Resume');
+        if (resumeButtons.evaluate().isNotEmpty) {
+          await tester.tap(resumeButtons.first);
+        } else {
+          final startButtons = find.text('Start');
+          if (startButtons.evaluate().isNotEmpty) {
+            await tester.tap(startButtons.first);
+          }
+        }
+
+        await Future.delayed(const Duration(seconds: 2));
+        await tester.pump();
+
+        // Verify rest item UI is visible
+        // Rest item shows "Rest" label and timer button
+        expect(find.text('Rest'), findsWidgets);
+
+        // Should show duration (1:00 for 60 seconds)
+        expect(find.text('1:00'), findsWidgets);
+
+        // Should show Start Timer and Skip buttons
+        expect(find.text('Start Timer'), findsWidgets);
+        expect(find.text('Skip'), findsWidgets);
+
+        // Cleanup
+        await sessionClient.abandonSession(
+          AbandonSessionRequest()..id = sessionId,
+        );
+      });
+    });
+
+    testWidgets('can skip rest item in tracker', (tester) async {
+      await tester.runAsync(() async {
+        final name = getUniqueName('Skip Rest Test');
+        final workoutId = await TestData.createWorkoutWithRestItem(
+          name: name,
+          restDurationSeconds: 90,
+        );
+        final sessionId = await TestData.startSession(workoutTemplateId: workoutId);
+
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: [
+              authProvider.overrideWith(MockAuth.new),
+            ],
+            child: const HeftyChestApp(),
+          ),
+        );
+
+        await Future.delayed(const Duration(seconds: 3));
+        await tester.pump();
+
+        // Navigate to tracker
+        final resumeButtons = find.text('Resume');
+        if (resumeButtons.evaluate().isNotEmpty) {
+          await tester.tap(resumeButtons.first);
+        } else {
+          final startButtons = find.text('Start');
+          if (startButtons.evaluate().isNotEmpty) {
+            await tester.tap(startButtons.first);
+          }
+        }
+
+        await Future.delayed(const Duration(seconds: 2));
+        await tester.pump();
+
+        // Verify Skip button exists
+        final skipButton = find.text('Skip');
+        expect(skipButton, findsWidgets);
+
+        // Tap Skip
+        await tester.tap(skipButton.first);
+        await Future.delayed(const Duration(milliseconds: 500));
+        await tester.pump();
+
+        // After skip, the rest item should show completed state
+        // Completed rest items show checkmark icon and undo button
+        expect(find.byIcon(Icons.check), findsWidgets);
+        expect(find.byIcon(Icons.undo), findsWidgets);
+
+        // Cleanup
+        await sessionClient.abandonSession(
+          AbandonSessionRequest()..id = sessionId,
+        );
+      });
+    });
+
+    testWidgets('can start rest timer in tracker', (tester) async {
+      await tester.runAsync(() async {
+        final name = getUniqueName('Start Timer Test');
+        final workoutId = await TestData.createWorkoutWithRestItem(
+          name: name,
+          restDurationSeconds: 30,
+        );
+        final sessionId = await TestData.startSession(workoutTemplateId: workoutId);
+
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: [
+              authProvider.overrideWith(MockAuth.new),
+            ],
+            child: const HeftyChestApp(),
+          ),
+        );
+
+        await Future.delayed(const Duration(seconds: 3));
+        await tester.pump();
+
+        // Navigate to tracker
+        final resumeButtons = find.text('Resume');
+        if (resumeButtons.evaluate().isNotEmpty) {
+          await tester.tap(resumeButtons.first);
+        } else {
+          final startButtons = find.text('Start');
+          if (startButtons.evaluate().isNotEmpty) {
+            await tester.tap(startButtons.first);
+          }
+        }
+
+        await Future.delayed(const Duration(seconds: 2));
+        await tester.pump();
+
+        // Find and tap Start Timer button
+        final startTimerButton = find.text('Start Timer');
+        expect(startTimerButton, findsWidgets);
+
+        await tester.tap(startTimerButton.first);
+        await Future.delayed(const Duration(milliseconds: 500));
+        await tester.pump();
+
+        // After starting, button should change to "Done"
+        expect(find.text('Done'), findsWidgets);
+
+        // Should show "Time remaining" text
+        expect(find.text('Time remaining'), findsWidgets);
+
+        // Cleanup
+        await sessionClient.abandonSession(
+          AbandonSessionRequest()..id = sessionId,
+        );
+      });
+    });
+
+    testWidgets('rest item completion persists to backend', (tester) async {
+      await tester.runAsync(() async {
+        final name = getUniqueName('Rest Persist Test');
+        final workoutId = await TestData.createWorkoutWithRestItem(
+          name: name,
+          restDurationSeconds: 60,
+        );
+        final sessionId = await TestData.startSession(workoutTemplateId: workoutId);
+
+        // Get rest item ID
+        final sessionResponse = await sessionClient.getSession(
+          GetSessionRequest()..id = sessionId,
+        );
+        final restItemId = sessionResponse.session.restItems.first.id;
+
+        // Complete rest item via API (simulating Skip button action)
+        await sessionClient.syncSession(
+          SyncSessionRequest()
+            ..sessionId = sessionId
+            ..restItems.add(SyncRestItemData()
+              ..id = restItemId
+              ..isCompleted = true),
+        );
+
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: [
+              authProvider.overrideWith(MockAuth.new),
+            ],
+            child: const HeftyChestApp(),
+          ),
+        );
+
+        await Future.delayed(const Duration(seconds: 3));
+        await tester.pump();
+
+        // Verify rest item is still completed via API
+        final checkResponse = await sessionClient.getSession(
+          GetSessionRequest()..id = sessionId,
+        );
+
+        expect(checkResponse.session.restItems.first.isCompleted, isTrue);
+        expect(checkResponse.session.restItems.first.completedAt, isNotNull);
+
+        // Cleanup
+        await sessionClient.abandonSession(
+          AbandonSessionRequest()..id = sessionId,
+        );
+      });
+    });
+
+    testWidgets('can undo completed rest item', (tester) async {
+      await tester.runAsync(() async {
+        final name = getUniqueName('Undo Rest Test');
+        final workoutId = await TestData.createWorkoutWithRestItem(
+          name: name,
+          restDurationSeconds: 45,
+        );
+        final sessionId = await TestData.startSession(workoutTemplateId: workoutId);
+
+        // Complete rest item via API first
+        final sessionResponse = await sessionClient.getSession(
+          GetSessionRequest()..id = sessionId,
+        );
+        final restItemId = sessionResponse.session.restItems.first.id;
+
+        await sessionClient.syncSession(
+          SyncSessionRequest()
+            ..sessionId = sessionId
+            ..restItems.add(SyncRestItemData()
+              ..id = restItemId
+              ..isCompleted = true),
+        );
+
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: [
+              authProvider.overrideWith(MockAuth.new),
+            ],
+            child: const HeftyChestApp(),
+          ),
+        );
+
+        await Future.delayed(const Duration(seconds: 3));
+        await tester.pump();
+
+        // Navigate to tracker
+        final resumeButtons = find.text('Resume');
+        if (resumeButtons.evaluate().isNotEmpty) {
+          await tester.tap(resumeButtons.first);
+        } else {
+          final startButtons = find.text('Start');
+          if (startButtons.evaluate().isNotEmpty) {
+            await tester.tap(startButtons.first);
+          }
+        }
+
+        await Future.delayed(const Duration(seconds: 2));
+        await tester.pump();
+
+        // Find and tap undo icon
+        final undoButton = find.byIcon(Icons.undo);
+        expect(undoButton, findsWidgets);
+
+        await tester.tap(undoButton.first);
+        await Future.delayed(const Duration(milliseconds: 500));
+        await tester.pump();
+
+        // After undo, should show Start Timer again
+        expect(find.text('Start Timer'), findsWidgets);
+
+        // Cleanup
+        await sessionClient.abandonSession(
+          AbandonSessionRequest()..id = sessionId,
+        );
+      });
+    });
+
+    testWidgets('full session flow with rest item', (tester) async {
+      await tester.runAsync(() async {
+        final name = getUniqueName('Full Rest Flow');
+        final workoutId = await TestData.createWorkoutWithRestItem(
+          name: name,
+          restDurationSeconds: 30,
+        );
+
+        // Start session
+        final startResponse = await sessionClient.startSession(
+          StartSessionRequest()..workoutTemplateId = workoutId,
+        );
+        final session = startResponse.session;
+        expect(session.restItems, isNotEmpty);
+
+        // Complete exercise sets
+        final syncSets = <SyncSetData>[];
+        for (final exercise in session.exercises) {
+          for (final set in exercise.sets) {
+            syncSets.add(SyncSetData()
+              ..id = set.id
+              ..weightKg = 50.0
+              ..reps = 10
+              ..isCompleted = true);
+          }
+        }
+
+        // Complete rest items
+        final syncRestItems = <SyncRestItemData>[];
+        for (final restItem in session.restItems) {
+          syncRestItems.add(SyncRestItemData()
+            ..id = restItem.id
+            ..isCompleted = true);
+        }
+
+        // Sync all
+        final syncResponse = await sessionClient.syncSession(
+          SyncSessionRequest()
+            ..sessionId = session.id
+            ..sets.addAll(syncSets)
+            ..restItems.addAll(syncRestItems),
+        );
+        expect(syncResponse.success, isTrue);
+
+        // Verify rest item is completed
+        expect(syncResponse.session.restItems.first.isCompleted, isTrue);
+
+        // Finish session
+        final finishResponse = await sessionClient.finishSession(
+          FinishSessionRequest()..id = session.id,
+        );
+        expect(
+          finishResponse.session.status,
+          equals(WorkoutStatus.WORKOUT_STATUS_COMPLETED),
+        );
+
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: [
+              authProvider.overrideWith(MockAuth.new),
+            ],
+            child: const HeftyChestApp(),
+          ),
+        );
+
+        await Future.delayed(const Duration(seconds: 3));
+        await tester.pump();
+
+        // Verify session is in history with rest items
+        final historyResponse = await sessionClient.listSessions(
+          ListSessionsRequest(),
+        );
+
+        final completedSession = historyResponse.sessions.firstWhere(
+          (s) => s.id == session.id,
+        );
+        expect(completedSession.status, equals(WorkoutStatus.WORKOUT_STATUS_COMPLETED));
+      });
+    });
+  });
 }

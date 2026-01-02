@@ -35,21 +35,17 @@ class UserSettings extends _$UserSettings {
 
   Future<void> updateSettings({
     bool? usePounds,
-    int? restTimerSeconds,
   }) async {
     final currentUser = state.value;
     if (currentUser == null) return;
 
-    logProfile.info('Updating settings: usePounds=$usePounds, restTimer=$restTimerSeconds');
+    logProfile.info('Updating settings: usePounds=$usePounds');
     state = const AsyncValue.loading();
     try {
       final request = UpdateSettingsRequest();
 
       if (usePounds != null) {
         request.usePounds = usePounds;
-      }
-      if (restTimerSeconds != null) {
-        request.restTimerSeconds = restTimerSeconds;
       }
 
       final response = await userClient.updateSettings(request);

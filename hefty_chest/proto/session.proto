@@ -44,6 +44,7 @@ message Session {
   repeated SessionExercise exercises = 14;
   google.protobuf.Timestamp created_at = 15;
   google.protobuf.Timestamp updated_at = 16;
+  repeated SessionRestItem rest_items = 17;  // Rest blocks from template
 }
 
 // Session exercise
@@ -83,6 +84,18 @@ message SessionSet {
 
   optional double rpe = 14;
   string notes = 15;
+  optional int32 rest_duration_seconds = 16;  // Copied from template TargetSet
+}
+
+// Rest item in a session (from template)
+message SessionRestItem {
+  string id = 1;
+  string session_id = 2;
+  int32 display_order = 3;
+  string section_name = 4;
+  int32 rest_duration_seconds = 5;
+  bool is_completed = 6;
+  google.protobuf.Timestamp completed_at = 7;
 }
 
 // Session summary for lists
@@ -127,6 +140,13 @@ message SyncSessionRequest {
   repeated SyncExerciseData exercises = 3;  // For adding new exercises
   repeated string deleted_set_ids = 4;      // IDs of sets to delete
   repeated string deleted_exercise_ids = 5; // IDs of exercises to delete (cascades to sets)
+  repeated SyncRestItemData rest_items = 6; // For updating rest item completion
+}
+
+// Sync data for rest items
+message SyncRestItemData {
+  string id = 1;
+  bool is_completed = 2;
 }
 
 message SyncSetData {

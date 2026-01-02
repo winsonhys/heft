@@ -15,8 +15,10 @@ void main() {
     await IntegrationTestSetup.authenticateTestUser();
   });
 
-  setUp(() {
+  setUp(() async {
     container = IntegrationTestSetup.createContainer();
+    // Clean up any leftover active sessions from previous tests
+    await TestData.abandonAnyActiveSession();
   });
 
   tearDown(() {

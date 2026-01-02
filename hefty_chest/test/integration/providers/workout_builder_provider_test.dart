@@ -15,9 +15,10 @@ void main() {
     await IntegrationTestSetup.authenticateTestUser();
   });
 
-  setUp(() {
+  setUp(() async {
     IntegrationTestSetup.restoreTokenProvider();
     container = IntegrationTestSetup.createContainer();
+    await TestData.abandonAnyActiveSession();
   });
 
   tearDown(() {

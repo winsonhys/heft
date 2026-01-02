@@ -26,6 +26,7 @@ type WorkoutSession struct {
 	CreatedAt          time.Time
 	UpdatedAt          time.Time
 	Exercises          []*SessionExercise
+	RestItems          []*SessionRestItem
 }
 
 // SessionExercise represents an exercise in a session
@@ -59,10 +60,24 @@ type SessionSet struct {
 	TargetWeightKg      *float64
 	TargetReps          *int
 	TargetTimeSeconds   *int
+	RestDurationSeconds *int
 	RPE                 *float64
 	Notes               *string
 	CreatedAt           time.Time
 	UpdatedAt           time.Time
+}
+
+// SessionRestItem represents a rest item in a session (from template)
+type SessionRestItem struct {
+	ID                  string
+	SessionID           string
+	SectionItemID       *string
+	DisplayOrder        int
+	SectionName         *string
+	RestDurationSeconds int
+	IsCompleted         bool
+	CompletedAt         *time.Time
+	CreatedAt           time.Time
 }
 
 // SessionRepository handles workout session data access
@@ -128,6 +143,13 @@ func (r *SessionRepository) GetByID(ctx context.Context, id, userID string) (*Wo
 	}
 	s.Exercises = exercises
 
+	// Load rest items
+	restItems, err := r.loadRestItems(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	s.RestItems = restItems
+
 	return &s, nil
 }
 
@@ -182,7 +204,7 @@ func (r *SessionRepository) loadSets(ctx context.Context, sessionExerciseID stri
 	query := `
 		SELECT id, session_exercise_id, set_number, weight_kg, reps, time_seconds, distance_m,
 		       is_bodyweight, is_completed, completed_at, target_weight_kg, target_reps,
-		       target_time_seconds, rpe, notes, created_at, updated_at
+		       target_time_seconds, rest_duration_seconds, rpe, notes, created_at, updated_at
 		FROM session_sets
 		WHERE session_exercise_id = $1
 		ORDER BY set_number
@@ -200,7 +222,7 @@ func (r *SessionRepository) loadSets(ctx context.Context, sessionExerciseID stri
 		err := rows.Scan(
 			&s.ID, &s.SessionExerciseID, &s.SetNumber, &s.WeightKg, &s.Reps, &s.TimeSeconds, &s.DistanceM,
 			&s.IsBodyweight, &s.IsCompleted, &s.CompletedAt, &s.TargetWeightKg, &s.TargetReps,
-			&s.TargetTimeSeconds, &s.RPE, &s.Notes, &s.CreatedAt, &s.UpdatedAt,
+			&s.TargetTimeSeconds, &s.RestDurationSeconds, &s.RPE, &s.Notes, &s.CreatedAt, &s.UpdatedAt,
 		)
 		if err != nil {
 			return nil, err
@@ -209,6 +231,96 @@ func (r *SessionRepository) loadSets(ctx context.Context, sessionExerciseID stri
 	}
 
 	return sets, rows.Err()
+}
+
+func (r *SessionRepository) loadRestItems(ctx context.Context, sessionID string) ([]*SessionRestItem, error) {
+	query := `
+		SELECT id, session_id, section_item_id, display_order, section_name,
+		       rest_duration_seconds, is_completed, completed_at, created_at
+		FROM session_rest_items
+		WHERE session_id = $1
+		ORDER BY display_order
+	`
+
+	rows, err := r.pool.Query(ctx, query, sessionID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var items []*SessionRestItem
+	for rows.Next() {
+		var ri SessionRestItem
+		err := rows.Scan(
+			&ri.ID, &ri.SessionID, &ri.SectionItemID, &ri.DisplayOrder, &ri.SectionName,
+			&ri.RestDurationSeconds, &ri.IsCompleted, &ri.CompletedAt, &ri.CreatedAt,
+		)
+		if err != nil {
+			return nil, err
+		}
+		items = append(items, &ri)
+	}
+
+	return items, rows.Err()
+}
+
+// AddRestItem adds a rest item to a session
+func (r *SessionRepository) AddRestItem(ctx context.Context, sessionID string, displayOrder int, sectionName *string, restDurationSeconds int) (*SessionRestItem, error) {
+	query := `
+		INSERT INTO session_rest_items (session_id, display_order, section_name, rest_duration_seconds)
+		VALUES ($1, $2, $3, $4)
+		RETURNING id, session_id, section_item_id, display_order, section_name,
+		          rest_duration_seconds, is_completed, completed_at, created_at
+	`
+
+	var ri SessionRestItem
+	err := r.pool.QueryRow(ctx, query, sessionID, displayOrder, sectionName, restDurationSeconds).Scan(
+		&ri.ID, &ri.SessionID, &ri.SectionItemID, &ri.DisplayOrder, &ri.SectionName,
+		&ri.RestDurationSeconds, &ri.IsCompleted, &ri.CompletedAt, &ri.CreatedAt,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	return &ri, nil
+}
+
+// SyncRestItems batch updates rest item completion status
+func (r *SessionRepository) SyncRestItems(ctx context.Context, sessionID string, items []SyncRestItemInput) error {
+	if len(items) == 0 {
+		return nil
+	}
+
+	tx, err := r.pool.Begin(ctx)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback(ctx)
+
+	for _, item := range items {
+		query := `
+			UPDATE session_rest_items
+			SET is_completed = $2,
+			    completed_at = CASE
+			        WHEN $2 AND NOT is_completed THEN CURRENT_TIMESTAMP
+			        WHEN NOT $2 THEN NULL
+			        ELSE completed_at
+			    END
+			WHERE id = $1 AND session_id = $3
+		`
+		_, err := tx.Exec(ctx, query, item.ID, item.IsCompleted, sessionID)
+		if err != nil {
+			return err
+		}
+	}
+
+	return tx.Commit(ctx)
+}
+
+// SyncRestItemInput represents input for syncing a rest item
+type SyncRestItemInput struct {
+	ID          string
+	IsCompleted bool
 }
 
 // AddExercise adds an exercise to a session
@@ -238,20 +350,20 @@ func (r *SessionRepository) AddExercise(ctx context.Context, sessionID, exercise
 }
 
 // AddSet adds a set to a session exercise
-func (r *SessionRepository) AddSet(ctx context.Context, sessionExerciseID string, setNumber int, targetWeightKg *float64, targetReps, targetTimeSeconds *int, isBodyweight bool) (*SessionSet, error) {
+func (r *SessionRepository) AddSet(ctx context.Context, sessionExerciseID string, setNumber int, targetWeightKg *float64, targetReps, targetTimeSeconds, restDurationSeconds *int, isBodyweight bool) (*SessionSet, error) {
 	query := `
-		INSERT INTO session_sets (session_exercise_id, set_number, target_weight_kg, target_reps, target_time_seconds, is_bodyweight)
-		VALUES ($1, $2, $3, $4, $5, $6)
+		INSERT INTO session_sets (session_exercise_id, set_number, target_weight_kg, target_reps, target_time_seconds, rest_duration_seconds, is_bodyweight)
+		VALUES ($1, $2, $3, $4, $5, $6, $7)
 		RETURNING id, session_exercise_id, set_number, weight_kg, reps, time_seconds, distance_m,
 		          is_bodyweight, is_completed, completed_at, target_weight_kg, target_reps,
-		          target_time_seconds, rpe, notes, created_at, updated_at
+		          target_time_seconds, rest_duration_seconds, rpe, notes, created_at, updated_at
 	`
 
 	var s SessionSet
-	err := r.pool.QueryRow(ctx, query, sessionExerciseID, setNumber, targetWeightKg, targetReps, targetTimeSeconds, isBodyweight).Scan(
+	err := r.pool.QueryRow(ctx, query, sessionExerciseID, setNumber, targetWeightKg, targetReps, targetTimeSeconds, restDurationSeconds, isBodyweight).Scan(
 		&s.ID, &s.SessionExerciseID, &s.SetNumber, &s.WeightKg, &s.Reps, &s.TimeSeconds, &s.DistanceM,
 		&s.IsBodyweight, &s.IsCompleted, &s.CompletedAt, &s.TargetWeightKg, &s.TargetReps,
-		&s.TargetTimeSeconds, &s.RPE, &s.Notes, &s.CreatedAt, &s.UpdatedAt,
+		&s.TargetTimeSeconds, &s.RestDurationSeconds, &s.RPE, &s.Notes, &s.CreatedAt, &s.UpdatedAt,
 	)
 	if err != nil {
 		return nil, err
