@@ -45,8 +45,16 @@ class SetRowEditor extends HookConsumerWidget {
       text: formatSec(set.targetTimeSeconds),
     );
 
+    // FocusNodes to detect when user is actively typing (skip sync for focused field)
+    final weightFocus = useFocusNode();
+    final repsFocus = useFocusNode();
+    final timeMinFocus = useFocusNode();
+    final timeSecFocus = useFocusNode();
+
     // Sync controllers when set values change externally (e.g., linked sets)
+    // Skip sync when field has focus to avoid overwriting user's typing
     useEffect(() {
+      if (weightFocus.hasFocus) return null;
       final newWeight = set.targetWeightKg > 0 ? set.targetWeightKg.toString() : '';
       if (weightController.text != newWeight) {
         weightController.text = newWeight;
@@ -55,6 +63,7 @@ class SetRowEditor extends HookConsumerWidget {
     }, [set.targetWeightKg]);
 
     useEffect(() {
+      if (repsFocus.hasFocus) return null;
       final newReps = set.targetReps > 0 ? set.targetReps.toString() : '';
       if (repsController.text != newReps) {
         repsController.text = newReps;
@@ -63,6 +72,7 @@ class SetRowEditor extends HookConsumerWidget {
     }, [set.targetReps]);
 
     useEffect(() {
+      if (timeMinFocus.hasFocus || timeSecFocus.hasFocus) return null;
       final newMin = formatMin(set.targetTimeSeconds);
       final newSec = formatSec(set.targetTimeSeconds);
       if (timeMinController.text != newMin) {
@@ -116,6 +126,7 @@ class SetRowEditor extends HookConsumerWidget {
           if (isWeight) ...[
             Expanded(
               child: FTextField(
+                focusNode: weightFocus,
                 control: .managed(controller: weightController, onChange: (v) => updateValues(weight: double.tryParse(v.text))), hint: 'kg',
                 keyboardType: const TextInputType.numberWithOptions(decimal: true),
               ),
@@ -124,6 +135,7 @@ class SetRowEditor extends HookConsumerWidget {
             // Reps input
             Expanded(
               child: FTextField(
+                focusNode: repsFocus,
                 control: .managed(controller: repsController, onChange: (v) => updateValues(reps: int.tryParse(v.text))), hint: 'reps',
                 keyboardType: TextInputType.number,
               ),
@@ -135,6 +147,7 @@ class SetRowEditor extends HookConsumerWidget {
                 children: [
                   Expanded(
                     child: FTextField(
+                      focusNode: timeMinFocus,
                       control: .managed(controller: timeMinController, onChange: (_) => onTimeChanged()), hint: 'm',
                       keyboardType: TextInputType.number,
                     ),
@@ -145,6 +158,7 @@ class SetRowEditor extends HookConsumerWidget {
                   ),
                   Expanded(
                     child: FTextField(
+                      focusNode: timeSecFocus,
                       control: .managed(controller: timeSecController, onChange: (_) => onTimeChanged()), hint: 's',
                       keyboardType: TextInputType.number,
                     ),
@@ -156,6 +170,7 @@ class SetRowEditor extends HookConsumerWidget {
             // Bodyweight - just reps
             Expanded(
               child: FTextField(
+                focusNode: repsFocus,
                 control: .managed(controller: repsController, onChange: (v) => updateValues(reps: int.tryParse(v.text))), hint: 'reps',
                 keyboardType: TextInputType.number,
               ),
