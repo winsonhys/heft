@@ -60,11 +60,10 @@ Plans:
   1. A session started from a template with rest items contains those rest items in the session data
   2. A session started from a template with no rest items is unaffected
   3. The nil-check in StartSession no longer filters out valid rest items
-**Plans**: TBD
+**Plans:** 1 plan
 
 Plans:
-- [ ] 03-01: Audit the nil-check in handlers/session.go StartSession rest item insertion path
-- [ ] 03-02: Correct the condition and add integration test covering template-with-rest-items case
+- [ ] 03-01-PLAN.md — Audit loading path, add nil-skip and zero-duration unit tests, fix handler condition if needed
 
 ### Phase 4: Fix Rest Timer Off-by-One
 **Goal**: The rest timer counts down to 0:00 and is visible at 0:00 before dismissing
@@ -183,13 +182,13 @@ Plans:
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 → 9 → 10 → 11
+Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9 -> 10 -> 11
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Remove Debug Logging | 1/1 | Complete   | 2026-03-10 |
 | 2. Fix UpdateProgram Handler | 0/1 | Not started | - |
-| 3. Fix Template-to-Session Rest Item Copy | 0/2 | Not started | - |
+| 3. Fix Template-to-Session Rest Item Copy | 0/1 | Not started | - |
 | 4. Fix Rest Timer Off-by-One | 0/2 | Not started | - |
 | 5. Guard Zero-Duration Rest Items | 0/2 | Not started | - |
 | 6. Fix Rest Item Display Order | 0/3 | Not started | - |
