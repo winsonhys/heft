@@ -154,12 +154,82 @@ func (h *ProgramHandler) UpdateProgram(ctx context.Context, req *connect.Request
 		return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("id is required"))
 	}
 
-	program, err := h.programRepo.GetByID(ctx, req.Msg.Id, userID)
+	// Extract optional fields from request
+	var name *string
+	if req.Msg.Name != nil {
+		name = req.Msg.Name
+	}
+	var description *string
+	if req.Msg.Description != nil {
+		description = req.Msg.Description
+	}
+	var durationWeeks *int
+	if req.Msg.DurationWeeks != nil {
+		dw := int(*req.Msg.DurationWeeks)
+		durationWeeks = &dw
+	}
+	var durationDays *int
+	if req.Msg.DurationDays != nil {
+		dd := int(*req.Msg.DurationDays)
+		durationDays = &dd
+	}
+	var isArchived *bool
+	if req.Msg.IsArchived != nil {
+		isArchived = req.Msg.IsArchived
+	}
+
+	// If days provided, compute totals for the UPDATE
+	var totalWorkoutDays, totalRestDays *int
+	if len(req.Msg.Days) > 0 {
+		wd, rd := 0, 0
+		for _, d := range req.Msg.Days {
+			switch d.DayType {
+			case heftv1.ProgramDayType_PROGRAM_DAY_TYPE_WORKOUT:
+				wd++
+			case heftv1.ProgramDayType_PROGRAM_DAY_TYPE_REST:
+				rd++
+			}
+		}
+		totalWorkoutDays = &wd
+		totalRestDays = &rd
+	}
+
+	// Call Update
+	updatedProgram, err := h.programRepo.Update(ctx, req.Msg.Id, userID,
+		name, description, durationWeeks, durationDays, isArchived,
+		totalWorkoutDays, totalRestDays)
 	if err != nil {
 		return nil, handleDBError(err)
 	}
-	if program == nil {
+	if updatedProgram == nil {
 		return nil, connect.NewError(connect.CodeNotFound, errors.New("program not found"))
+	}
+
+	// Replace days if provided
+	if len(req.Msg.Days) > 0 {
+		if err := h.programRepo.DeleteDays(ctx, req.Msg.Id, userID); err != nil {
+			return nil, handleDBError(err)
+		}
+		for _, d := range req.Msg.Days {
+			dayType := programDayTypeToString(d.DayType)
+			var workoutTemplateID, customName *string
+			if d.WorkoutTemplateId != nil {
+				workoutTemplateID = d.WorkoutTemplateId
+			}
+			if d.CustomName != nil {
+				customName = d.CustomName
+			}
+			_, err := h.programRepo.CreateDay(ctx, req.Msg.Id, int(d.DayNumber), dayType, workoutTemplateID, customName)
+			if err != nil {
+				return nil, handleDBError(err)
+			}
+		}
+	}
+
+	// Reload with days
+	program, err := h.programRepo.GetByID(ctx, updatedProgram.ID, userID)
+	if err != nil {
+		return nil, handleDBError(err)
 	}
 
 	return connect.NewResponse(&heftv1.UpdateProgramResponse{

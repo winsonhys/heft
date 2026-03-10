@@ -830,27 +830,155 @@ func TestProgramHandler_UpdateProgram(t *testing.T) {
 		validateResp func(*testing.T, *heftv1.UpdateProgramResponse)
 	}{
 		{
-			name:     "success - returns existing program",
+			name:     "success - updates name",
 			userID:   "user-123",
 			withAuth: true,
 			request: &heftv1.UpdateProgramRequest{
-				Id: "program-123",
+				Id:   "program-123",
+				Name: ptrString("New Name"),
 			},
 			setupMock: func(mp *testutil.MockProgramRepository, mw *testutil.MockWorkoutRepository) {
+				mp.UpdateFunc = func(ctx context.Context, id, userID string, name *string, description *string, durationWeeks *int, durationDays *int, isArchived *bool, totalWorkoutDays *int, totalRestDays *int) (*repository.Program, error) {
+					require.NotNil(t, name)
+					assert.Equal(t, "New Name", *name)
+					return &repository.Program{
+						ID:        id,
+						UserID:    userID,
+						Name:      "New Name",
+						CreatedAt: time.Now(),
+						UpdatedAt: time.Now(),
+					}, nil
+				}
 				mp.GetByIDFunc = func(ctx context.Context, id, userID string) (*repository.Program, error) {
 					return &repository.Program{
 						ID:        id,
 						UserID:    userID,
-						Name:      "Existing Program",
+						Name:      "New Name",
 						CreatedAt: time.Now(),
 						UpdatedAt: time.Now(),
+						Days:      []*repository.ProgramDay{},
 					}, nil
 				}
 			},
 			validateResp: func(t *testing.T, resp *heftv1.UpdateProgramResponse) {
 				assert.Equal(t, "program-123", resp.Program.Id)
-				assert.Equal(t, "Existing Program", resp.Program.Name)
+				assert.Equal(t, "New Name", resp.Program.Name)
 			},
+		},
+		{
+			name:     "success - replaces days",
+			userID:   "user-123",
+			withAuth: true,
+			request: &heftv1.UpdateProgramRequest{
+				Id: "program-123",
+				Days: []*heftv1.CreateProgramDay{
+					{DayNumber: 1, DayType: heftv1.ProgramDayType_PROGRAM_DAY_TYPE_WORKOUT},
+					{DayNumber: 2, DayType: heftv1.ProgramDayType_PROGRAM_DAY_TYPE_REST},
+				},
+			},
+			setupMock: func(mp *testutil.MockProgramRepository, mw *testutil.MockWorkoutRepository) {
+				mp.UpdateFunc = func(ctx context.Context, id, userID string, name *string, description *string, durationWeeks *int, durationDays *int, isArchived *bool, totalWorkoutDays *int, totalRestDays *int) (*repository.Program, error) {
+					require.NotNil(t, totalWorkoutDays)
+					require.NotNil(t, totalRestDays)
+					assert.Equal(t, 1, *totalWorkoutDays)
+					assert.Equal(t, 1, *totalRestDays)
+					return &repository.Program{
+						ID:        id,
+						UserID:    userID,
+						Name:      "Program",
+						CreatedAt: time.Now(),
+						UpdatedAt: time.Now(),
+					}, nil
+				}
+				mp.DeleteDaysFunc = func(ctx context.Context, programID, userID string) error {
+					return nil
+				}
+				mp.CreateDayFunc = func(ctx context.Context, programID string, dayNumber int, dayType string, workoutTemplateID, customName *string) (*repository.ProgramDay, error) {
+					return &repository.ProgramDay{
+						ID:        "day-" + string(rune(dayNumber)),
+						ProgramID: programID,
+						DayNumber: dayNumber,
+						DayType:   dayType,
+					}, nil
+				}
+				mp.GetByIDFunc = func(ctx context.Context, id, userID string) (*repository.Program, error) {
+					return &repository.Program{
+						ID:        id,
+						UserID:    userID,
+						Name:      "Program",
+						CreatedAt: time.Now(),
+						UpdatedAt: time.Now(),
+						Days: []*repository.ProgramDay{
+							{ID: "day-1", DayNumber: 1, DayType: "workout"},
+							{ID: "day-2", DayNumber: 2, DayType: "rest"},
+						},
+					}, nil
+				}
+			},
+			validateResp: func(t *testing.T, resp *heftv1.UpdateProgramResponse) {
+				assert.Len(t, resp.Program.Days, 2)
+			},
+		},
+		{
+			name:     "success - no days in request, days unchanged",
+			userID:   "user-123",
+			withAuth: true,
+			request: &heftv1.UpdateProgramRequest{
+				Id:   "program-123",
+				Name: ptrString("Same Days"),
+			},
+			setupMock: func(mp *testutil.MockProgramRepository, mw *testutil.MockWorkoutRepository) {
+				deleteDaysCalled := false
+				mp.UpdateFunc = func(ctx context.Context, id, userID string, name *string, description *string, durationWeeks *int, durationDays *int, isArchived *bool, totalWorkoutDays *int, totalRestDays *int) (*repository.Program, error) {
+					assert.Nil(t, totalWorkoutDays, "totalWorkoutDays should be nil when no days in request")
+					assert.Nil(t, totalRestDays, "totalRestDays should be nil when no days in request")
+					return &repository.Program{
+						ID:        id,
+						UserID:    userID,
+						Name:      "Same Days",
+						CreatedAt: time.Now(),
+						UpdatedAt: time.Now(),
+					}, nil
+				}
+				mp.DeleteDaysFunc = func(ctx context.Context, programID, userID string) error {
+					deleteDaysCalled = true
+					return nil
+				}
+				mp.GetByIDFunc = func(ctx context.Context, id, userID string) (*repository.Program, error) {
+					assert.False(t, deleteDaysCalled, "DeleteDays should NOT be called when no days in request")
+					return &repository.Program{
+						ID:        id,
+						UserID:    userID,
+						Name:      "Same Days",
+						CreatedAt: time.Now(),
+						UpdatedAt: time.Now(),
+						Days: []*repository.ProgramDay{
+							{ID: "day-1", DayNumber: 1, DayType: "workout"},
+							{ID: "day-2", DayNumber: 2, DayType: "rest"},
+							{ID: "day-3", DayNumber: 3, DayType: "rest"},
+						},
+					}, nil
+				}
+			},
+			validateResp: func(t *testing.T, resp *heftv1.UpdateProgramResponse) {
+				assert.Len(t, resp.Program.Days, 3)
+			},
+		},
+		{
+			name:     "error - Update DB error",
+			userID:   "user-123",
+			withAuth: true,
+			request: &heftv1.UpdateProgramRequest{
+				Id:   "program-123",
+				Name: ptrString("New Name"),
+			},
+			setupMock: func(mp *testutil.MockProgramRepository, mw *testutil.MockWorkoutRepository) {
+				mp.UpdateFunc = func(ctx context.Context, id, userID string, name *string, description *string, durationWeeks *int, durationDays *int, isArchived *bool, totalWorkoutDays *int, totalRestDays *int) (*repository.Program, error) {
+					return nil, errors.New("database error")
+				}
+			},
+			wantErr:  true,
+			wantCode: connect.CodeInternal,
 		},
 		{
 			name:     "error - program not found",
@@ -860,7 +988,7 @@ func TestProgramHandler_UpdateProgram(t *testing.T) {
 				Id: "nonexistent",
 			},
 			setupMock: func(mp *testutil.MockProgramRepository, mw *testutil.MockWorkoutRepository) {
-				mp.GetByIDFunc = func(ctx context.Context, id, userID string) (*repository.Program, error) {
+				mp.UpdateFunc = func(ctx context.Context, id, userID string, name *string, description *string, durationWeeks *int, durationDays *int, isArchived *bool, totalWorkoutDays *int, totalRestDays *int) (*repository.Program, error) {
 					return nil, nil
 				}
 			},
