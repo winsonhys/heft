@@ -3,9 +3,6 @@ package handlers
 import (
 	"context"
 	"errors"
-	"fmt"
-	"log"
-	"os"
 	"time"
 
 	"connectrpc.com/connect"
@@ -33,8 +30,6 @@ func NewSessionHandler(sessionRepo repository.SessionRepositoryInterface, workou
 
 // StartSession starts a new workout session
 func (h *SessionHandler) StartSession(ctx context.Context, req *connect.Request[heftv1.StartSessionRequest]) (*connect.Response[heftv1.StartSessionResponse], error) {
-	fmt.Fprintln(os.Stderr, "[StartSession] HANDLER CALLED VIA FMT - This should appear in logs")
-	fmt.Fprintf(os.Stderr, "[StartSession] Request: workoutTemplateId=%s\n", req.Msg.GetWorkoutTemplateId())
 	userID, ok := auth.UserIDFromContext(ctx)
 	if !ok {
 		return nil, connect.NewError(connect.CodeUnauthenticated, errors.New("not authenticated"))
@@ -91,13 +86,6 @@ func (h *SessionHandler) StartSession(ctx context.Context, req *connect.Request[
 
 	// If based on template, populate exercises from template
 	if workout != nil {
-		// Debug: dump all section items
-		for _, section := range workout.Sections {
-			for _, item := range section.Items {
-				log.Printf("DEBUG ITEM: section=%s type=%q displayOrder=%d restDuration=%v exerciseID=%v",
-					section.Name, item.ItemType, item.DisplayOrder, item.RestDurationSeconds, item.ExerciseID)
-			}
-		}
 		for _, section := range workout.Sections {
 			// Generate a superset ID if section is a superset
 			var supersetID *string
@@ -107,14 +95,6 @@ func (h *SessionHandler) StartSession(ctx context.Context, req *connect.Request[
 			}
 
 			for _, item := range section.Items {
-				fmt.Fprintf(os.Stderr, "[StartSession] Processing item: type=%q (isExercise=%v isRest=%v) displayOrder=%d restDuration=%v exerciseID=%v\n",
-					item.ItemType,
-					item.ItemType == "exercise",
-					item.ItemType == "rest",
-					item.DisplayOrder,
-					item.RestDurationSeconds,
-					item.ExerciseID,
-				)
 				if item.ItemType == "exercise" && item.ExerciseID != nil {
 					exercise, err := h.sessionRepo.AddExercise(ctx, session.ID, *item.ExerciseID, item.DisplayOrder, &section.Name, supersetID)
 					if err != nil {
@@ -136,15 +116,11 @@ func (h *SessionHandler) StartSession(ctx context.Context, req *connect.Request[
 						}
 					}
 				} else if item.ItemType == "rest" && item.RestDurationSeconds != nil {
-					fmt.Fprintf(os.Stderr, "[StartSession] Adding rest item with duration %d\n", *item.RestDurationSeconds)
 					// Add rest item from template
 					_, err := h.sessionRepo.AddRestItem(ctx, session.ID, item.DisplayOrder, &section.Name, *item.RestDurationSeconds)
 					if err != nil {
 						return nil, handleDBError(err)
 					}
-				} else {
-					fmt.Fprintf(os.Stderr, "[StartSession] SKIPPED item: type=%q restDuration=%v - neither exercise nor rest condition matched\n",
-						item.ItemType, item.RestDurationSeconds)
 				}
 			}
 		}
@@ -305,22 +281,17 @@ func (h *SessionHandler) SyncSession(ctx context.Context, req *connect.Request[h
 	}
 
 	// Process deletions first (before sync to avoid conflicts)
-	log.Printf("[SyncSession] Received deletedSetIds: %v", req.Msg.DeletedSetIds)
-	log.Printf("[SyncSession] Received deletedExerciseIds: %v", req.Msg.DeletedExerciseIds)
-
 	if len(req.Msg.DeletedSetIds) > 0 {
 		err = h.sessionRepo.DeleteSets(ctx, req.Msg.SessionId, req.Msg.DeletedSetIds)
 		if err != nil {
 			return nil, handleDBError(err)
 		}
-		log.Printf("[SyncSession] DeleteSets completed for IDs: %v", req.Msg.DeletedSetIds)
 	}
 	if len(req.Msg.DeletedExerciseIds) > 0 {
 		err = h.sessionRepo.DeleteExercises(ctx, req.Msg.SessionId, req.Msg.DeletedExerciseIds)
 		if err != nil {
 			return nil, handleDBError(err)
 		}
-		log.Printf("[SyncSession] DeleteExercises completed for IDs: %v", req.Msg.DeletedExerciseIds)
 	}
 
 	// Perform sync
@@ -348,12 +319,6 @@ func (h *SessionHandler) SyncSession(ctx context.Context, req *connect.Request[h
 	session, err = h.sessionRepo.GetByID(ctx, req.Msg.SessionId, userID)
 	if err != nil {
 		return nil, handleDBError(err)
-	}
-
-	// Log what we're returning
-	log.Printf("[SyncSession] Returning session with %d exercises", len(session.Exercises))
-	for _, ex := range session.Exercises {
-		log.Printf("[SyncSession]   Exercise %s has %d sets", ex.ID, len(ex.Sets))
 	}
 
 	return connect.NewResponse(&heftv1.SyncSessionResponse{
