@@ -952,6 +952,183 @@ func TestSessionHandler_StartSession_WithRestItems(t *testing.T) {
 				}
 			},
 		},
+		{
+			name:     "skips rest item with nil RestDurationSeconds",
+			userID:   "user-123",
+			withAuth: true,
+			request: &heftv1.StartSessionRequest{
+				WorkoutTemplateId: ptrString("workout-nil-rest"),
+			},
+			mockSetup: func(sr *testutil.MockSessionRepository, wr *testutil.MockWorkoutRepository) {
+				now := time.Now()
+				sr.ListFunc = func(ctx context.Context, userID string, status *string, startDate, endDate *time.Time, limit, offset int) ([]*repository.WorkoutSession, int, error) {
+					return []*repository.WorkoutSession{}, 0, nil
+				}
+				sr.CreateFunc = func(ctx context.Context, userID string, workoutTemplateID, programID *string, programDayNumber *int, name *string) (*repository.WorkoutSession, error) {
+					return &repository.WorkoutSession{
+						ID:        "session-nil-rest",
+						UserID:    userID,
+						Status:    "in_progress",
+						StartedAt: now,
+						CreatedAt: now,
+						UpdatedAt: now,
+					}, nil
+				}
+				// Workout template with a rest item where RestDurationSeconds is nil (DB NULL)
+				wr.GetByIDFunc = func(ctx context.Context, id, userID string) (*repository.WorkoutTemplate, error) {
+					return &repository.WorkoutTemplate{
+						ID:     id,
+						UserID: userID,
+						Name:   "Nil Rest Workout",
+						Sections: []*repository.WorkoutSection{
+							{
+								ID:                "section-nil",
+								WorkoutTemplateID: id,
+								Name:              "Section B",
+								DisplayOrder:      1,
+								Items: []*repository.SectionItem{
+									{
+										ID:                  "item-nil-rest",
+										SectionID:           "section-nil",
+										ItemType:            "rest",
+										DisplayOrder:        1,
+										RestDurationSeconds: nil, // DB NULL — must be skipped
+									},
+								},
+							},
+						},
+					}, nil
+				}
+				// AddRestItem must NOT be called for a nil-duration rest item
+				sr.AddRestItemFunc = func(ctx context.Context, sessionID string, displayOrder int, sectionName *string, restDurationSeconds int) (*repository.SessionRestItem, error) {
+					t.Error("AddRestItem should not be called for nil RestDurationSeconds")
+					return nil, errors.New("unexpected call")
+				}
+				sr.GetByIDFunc = func(ctx context.Context, id, userID string) (*repository.WorkoutSession, error) {
+					return &repository.WorkoutSession{
+						ID:        id,
+						UserID:    userID,
+						Status:    "in_progress",
+						StartedAt: now,
+						CreatedAt: now,
+						UpdatedAt: now,
+						Exercises: []*repository.SessionExercise{},
+						RestItems: []*repository.SessionRestItem{},
+					}, nil
+				}
+			},
+			checkResponse: func(t *testing.T, resp *heftv1.StartSessionResponse) {
+				if resp.Session == nil {
+					t.Error("expected session in response")
+					return
+				}
+				if len(resp.Session.RestItems) != 0 {
+					t.Errorf("expected 0 rest items (nil duration skipped), got %d", len(resp.Session.RestItems))
+				}
+			},
+		},
+		{
+			name:     "copies rest item with zero duration",
+			userID:   "user-123",
+			withAuth: true,
+			request: &heftv1.StartSessionRequest{
+				WorkoutTemplateId: ptrString("workout-zero-rest"),
+			},
+			mockSetup: func(sr *testutil.MockSessionRepository, wr *testutil.MockWorkoutRepository) {
+				now := time.Now()
+				sr.ListFunc = func(ctx context.Context, userID string, status *string, startDate, endDate *time.Time, limit, offset int) ([]*repository.WorkoutSession, int, error) {
+					return []*repository.WorkoutSession{}, 0, nil
+				}
+				sr.CreateFunc = func(ctx context.Context, userID string, workoutTemplateID, programID *string, programDayNumber *int, name *string) (*repository.WorkoutSession, error) {
+					return &repository.WorkoutSession{
+						ID:        "session-zero-rest",
+						UserID:    userID,
+						Status:    "in_progress",
+						StartedAt: now,
+						CreatedAt: now,
+						UpdatedAt: now,
+					}, nil
+				}
+				// Workout template with a rest item where RestDurationSeconds is &0 (explicit zero — NOT nil)
+				zeroDuration := 0
+				wr.GetByIDFunc = func(ctx context.Context, id, userID string) (*repository.WorkoutTemplate, error) {
+					return &repository.WorkoutTemplate{
+						ID:     id,
+						UserID: userID,
+						Name:   "Zero Rest Workout",
+						Sections: []*repository.WorkoutSection{
+							{
+								ID:                "section-zero",
+								WorkoutTemplateID: id,
+								Name:              "Section C",
+								DisplayOrder:      1,
+								Items: []*repository.SectionItem{
+									{
+										ID:                  "item-zero-rest",
+										SectionID:           "section-zero",
+										ItemType:            "rest",
+										DisplayOrder:        1,
+										RestDurationSeconds: &zeroDuration, // &0 — must be copied
+									},
+								},
+							},
+						},
+					}, nil
+				}
+				addRestItemCalled := false
+				sr.AddRestItemFunc = func(ctx context.Context, sessionID string, displayOrder int, sectionName *string, restDurationSeconds int) (*repository.SessionRestItem, error) {
+					addRestItemCalled = true
+					if restDurationSeconds != 0 {
+						t.Errorf("expected restDurationSeconds=0, got %d", restDurationSeconds)
+					}
+					_ = addRestItemCalled
+					return &repository.SessionRestItem{
+						ID:                  "rest-item-zero",
+						SessionID:           sessionID,
+						DisplayOrder:        displayOrder,
+						SectionName:         sectionName,
+						RestDurationSeconds: restDurationSeconds,
+						IsCompleted:         false,
+					}, nil
+				}
+				sectionName := "Section C"
+				sr.GetByIDFunc = func(ctx context.Context, id, userID string) (*repository.WorkoutSession, error) {
+					return &repository.WorkoutSession{
+						ID:        id,
+						UserID:    userID,
+						Status:    "in_progress",
+						StartedAt: now,
+						CreatedAt: now,
+						UpdatedAt: now,
+						Exercises: []*repository.SessionExercise{},
+						RestItems: []*repository.SessionRestItem{
+							{
+								ID:                  "rest-item-zero",
+								SessionID:           id,
+								DisplayOrder:        1,
+								SectionName:         &sectionName,
+								RestDurationSeconds: 0,
+								IsCompleted:         false,
+							},
+						},
+					}, nil
+				}
+			},
+			checkResponse: func(t *testing.T, resp *heftv1.StartSessionResponse) {
+				if resp.Session == nil {
+					t.Error("expected session in response")
+					return
+				}
+				if len(resp.Session.RestItems) != 1 {
+					t.Errorf("expected 1 rest item (zero duration copied), got %d", len(resp.Session.RestItems))
+					return
+				}
+				restItem := resp.Session.RestItems[0]
+				if restItem.RestDurationSeconds != 0 {
+					t.Errorf("expected rest duration 0, got %d", restItem.RestDurationSeconds)
+				}
+			},
+		},
 	}
 
 	for _, tt := range tests {
