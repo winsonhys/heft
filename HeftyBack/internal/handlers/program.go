@@ -362,6 +362,9 @@ func programSummaryToProto(p *repository.Program) *heftv1.ProgramSummary {
 	if p.Description != nil {
 		ps.Description = *p.Description
 	}
+	if p.StartedAt != nil {
+		ps.StartedAt = timestamppb.New(*p.StartedAt)
+	}
 	return ps
 }
 
@@ -381,6 +384,9 @@ func programToProto(p *repository.Program) *heftv1.Program {
 	}
 	if p.Description != nil {
 		program.Description = *p.Description
+	}
+	if p.StartedAt != nil {
+		program.StartedAt = timestamppb.New(*p.StartedAt)
 	}
 
 	days := make([]*heftv1.ProgramDay, len(p.Days))

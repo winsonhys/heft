@@ -34,6 +34,7 @@ class ProgramSummary extends $pb.GeneratedMessage {
     $core.bool? isArchived,
     $1.Timestamp? createdAt,
     $1.Timestamp? updatedAt,
+    $1.Timestamp? startedAt,
   }) {
     final $result = create();
     if (id != null) {
@@ -72,6 +73,9 @@ class ProgramSummary extends $pb.GeneratedMessage {
     if (updatedAt != null) {
       $result.updatedAt = updatedAt;
     }
+    if (startedAt != null) {
+      $result.startedAt = startedAt;
+    }
     return $result;
   }
   ProgramSummary._() : super();
@@ -91,6 +95,7 @@ class ProgramSummary extends $pb.GeneratedMessage {
     ..aOB(10, _omitFieldNames ? '' : 'isArchived')
     ..aOM<$1.Timestamp>(11, _omitFieldNames ? '' : 'createdAt', subBuilder: $1.Timestamp.create)
     ..aOM<$1.Timestamp>(12, _omitFieldNames ? '' : 'updatedAt', subBuilder: $1.Timestamp.create)
+    ..aOM<$1.Timestamp>(13, _omitFieldNames ? '' : 'startedAt', subBuilder: $1.Timestamp.create)
     ..hasRequiredFields = false
   ;
 
@@ -226,6 +231,17 @@ class ProgramSummary extends $pb.GeneratedMessage {
   void clearUpdatedAt() => clearField(12);
   @$pb.TagNumber(12)
   $1.Timestamp ensureUpdatedAt() => $_ensure(11);
+
+  @$pb.TagNumber(13)
+  $1.Timestamp get startedAt => $_getN(12);
+  @$pb.TagNumber(13)
+  set startedAt($1.Timestamp v) { setField(13, v); }
+  @$pb.TagNumber(13)
+  $core.bool hasStartedAt() => $_has(12);
+  @$pb.TagNumber(13)
+  void clearStartedAt() => clearField(13);
+  @$pb.TagNumber(13)
+  $1.Timestamp ensureStartedAt() => $_ensure(12);
 }
 
 /// Program with full details
@@ -244,6 +260,7 @@ class Program extends $pb.GeneratedMessage {
     $core.Iterable<ProgramDay>? days,
     $1.Timestamp? createdAt,
     $1.Timestamp? updatedAt,
+    $1.Timestamp? startedAt,
   }) {
     final $result = create();
     if (id != null) {
@@ -285,6 +302,9 @@ class Program extends $pb.GeneratedMessage {
     if (updatedAt != null) {
       $result.updatedAt = updatedAt;
     }
+    if (startedAt != null) {
+      $result.startedAt = startedAt;
+    }
     return $result;
   }
   Program._() : super();
@@ -305,6 +325,7 @@ class Program extends $pb.GeneratedMessage {
     ..pc<ProgramDay>(11, _omitFieldNames ? '' : 'days', $pb.PbFieldType.PM, subBuilder: ProgramDay.create)
     ..aOM<$1.Timestamp>(12, _omitFieldNames ? '' : 'createdAt', subBuilder: $1.Timestamp.create)
     ..aOM<$1.Timestamp>(13, _omitFieldNames ? '' : 'updatedAt', subBuilder: $1.Timestamp.create)
+    ..aOM<$1.Timestamp>(14, _omitFieldNames ? '' : 'startedAt', subBuilder: $1.Timestamp.create)
     ..hasRequiredFields = false
   ;
 
@@ -443,6 +464,17 @@ class Program extends $pb.GeneratedMessage {
   void clearUpdatedAt() => clearField(13);
   @$pb.TagNumber(13)
   $1.Timestamp ensureUpdatedAt() => $_ensure(12);
+
+  @$pb.TagNumber(14)
+  $1.Timestamp get startedAt => $_getN(13);
+  @$pb.TagNumber(14)
+  set startedAt($1.Timestamp v) { setField(14, v); }
+  @$pb.TagNumber(14)
+  $core.bool hasStartedAt() => $_has(13);
+  @$pb.TagNumber(14)
+  void clearStartedAt() => clearField(14);
+  @$pb.TagNumber(14)
+  $1.Timestamp ensureStartedAt() => $_ensure(13);
 }
 
 /// Program day

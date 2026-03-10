@@ -37,6 +37,7 @@ type ProgramSummary struct {
 	IsArchived       bool                   `protobuf:"varint,10,opt,name=is_archived,json=isArchived,proto3" json:"is_archived,omitempty"`
 	CreatedAt        *timestamppb.Timestamp `protobuf:"bytes,11,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
 	UpdatedAt        *timestamppb.Timestamp `protobuf:"bytes,12,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	StartedAt        *timestamppb.Timestamp `protobuf:"bytes,13,opt,name=started_at,json=startedAt,proto3,oneof" json:"started_at,omitempty"`
 	unknownFields    protoimpl.UnknownFields
 	sizeCache        protoimpl.SizeCache
 }
@@ -155,6 +156,13 @@ func (x *ProgramSummary) GetUpdatedAt() *timestamppb.Timestamp {
 	return nil
 }
 
+func (x *ProgramSummary) GetStartedAt() *timestamppb.Timestamp {
+	if x != nil {
+		return x.StartedAt
+	}
+	return nil
+}
+
 // Program with full details
 type Program struct {
 	state            protoimpl.MessageState `protogen:"open.v1"`
@@ -171,6 +179,7 @@ type Program struct {
 	Days             []*ProgramDay          `protobuf:"bytes,11,rep,name=days,proto3" json:"days,omitempty"`
 	CreatedAt        *timestamppb.Timestamp `protobuf:"bytes,12,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
 	UpdatedAt        *timestamppb.Timestamp `protobuf:"bytes,13,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	StartedAt        *timestamppb.Timestamp `protobuf:"bytes,14,opt,name=started_at,json=startedAt,proto3,oneof" json:"started_at,omitempty"`
 	unknownFields    protoimpl.UnknownFields
 	sizeCache        protoimpl.SizeCache
 }
@@ -292,6 +301,13 @@ func (x *Program) GetCreatedAt() *timestamppb.Timestamp {
 func (x *Program) GetUpdatedAt() *timestamppb.Timestamp {
 	if x != nil {
 		return x.UpdatedAt
+	}
+	return nil
+}
+
+func (x *Program) GetStartedAt() *timestamppb.Timestamp {
+	if x != nil {
+		return x.StartedAt
 	}
 	return nil
 }
@@ -1204,7 +1220,7 @@ var File_heft_v1_program_proto protoreflect.FileDescriptor
 
 const file_heft_v1_program_proto_rawDesc = "" +
 	"\n" +
-	"\x15heft/v1/program.proto\x12\aheft.v1\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x14heft/v1/common.proto\x1a\x15heft/v1/workout.proto\"\xc5\x03\n" +
+	"\x15heft/v1/program.proto\x12\aheft.v1\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x14heft/v1/common.proto\x1a\x15heft/v1/workout.proto\"\x94\x04\n" +
 	"\x0eProgramSummary\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x17\n" +
 	"\auser_id\x18\x02 \x01(\tR\x06userId\x12\x12\n" +
@@ -1221,7 +1237,10 @@ const file_heft_v1_program_proto_rawDesc = "" +
 	"\n" +
 	"created_at\x18\v \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\x129\n" +
 	"\n" +
-	"updated_at\x18\f \x01(\v2\x1a.google.protobuf.TimestampR\tupdatedAt\"\xe7\x03\n" +
+	"updated_at\x18\f \x01(\v2\x1a.google.protobuf.TimestampR\tupdatedAt\x12>\n" +
+	"\n" +
+	"started_at\x18\r \x01(\v2\x1a.google.protobuf.TimestampH\x00R\tstartedAt\x88\x01\x01B\r\n" +
+	"\v_started_at\"\xb6\x04\n" +
 	"\aProgram\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x17\n" +
 	"\auser_id\x18\x02 \x01(\tR\x06userId\x12\x12\n" +
@@ -1239,7 +1258,10 @@ const file_heft_v1_program_proto_rawDesc = "" +
 	"\n" +
 	"created_at\x18\f \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\x129\n" +
 	"\n" +
-	"updated_at\x18\r \x01(\v2\x1a.google.protobuf.TimestampR\tupdatedAt\"\x82\x02\n" +
+	"updated_at\x18\r \x01(\v2\x1a.google.protobuf.TimestampR\tupdatedAt\x12>\n" +
+	"\n" +
+	"started_at\x18\x0e \x01(\v2\x1a.google.protobuf.TimestampH\x00R\tstartedAt\x88\x01\x01B\r\n" +
+	"\v_started_at\"\x82\x02\n" +
 	"\n" +
 	"ProgramDay\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1d\n" +
@@ -1370,42 +1392,44 @@ var file_heft_v1_program_proto_goTypes = []any{
 var file_heft_v1_program_proto_depIdxs = []int32{
 	18, // 0: heft.v1.ProgramSummary.created_at:type_name -> google.protobuf.Timestamp
 	18, // 1: heft.v1.ProgramSummary.updated_at:type_name -> google.protobuf.Timestamp
-	2,  // 2: heft.v1.Program.days:type_name -> heft.v1.ProgramDay
-	18, // 3: heft.v1.Program.created_at:type_name -> google.protobuf.Timestamp
-	18, // 4: heft.v1.Program.updated_at:type_name -> google.protobuf.Timestamp
-	19, // 5: heft.v1.ProgramDay.day_type:type_name -> heft.v1.ProgramDayType
-	20, // 6: heft.v1.ListProgramsRequest.pagination:type_name -> heft.v1.PaginationRequest
-	0,  // 7: heft.v1.ListProgramsResponse.programs:type_name -> heft.v1.ProgramSummary
-	21, // 8: heft.v1.ListProgramsResponse.pagination:type_name -> heft.v1.PaginationResponse
-	1,  // 9: heft.v1.GetProgramResponse.program:type_name -> heft.v1.Program
-	8,  // 10: heft.v1.CreateProgramRequest.days:type_name -> heft.v1.CreateProgramDay
-	19, // 11: heft.v1.CreateProgramDay.day_type:type_name -> heft.v1.ProgramDayType
-	1,  // 12: heft.v1.CreateProgramResponse.program:type_name -> heft.v1.Program
-	8,  // 13: heft.v1.UpdateProgramRequest.days:type_name -> heft.v1.CreateProgramDay
-	1,  // 14: heft.v1.UpdateProgramResponse.program:type_name -> heft.v1.Program
-	1,  // 15: heft.v1.SetActiveProgramResponse.program:type_name -> heft.v1.Program
-	19, // 16: heft.v1.GetTodayWorkoutResponse.day_type:type_name -> heft.v1.ProgramDayType
-	22, // 17: heft.v1.GetTodayWorkoutResponse.workout:type_name -> heft.v1.Workout
-	1,  // 18: heft.v1.GetTodayWorkoutResponse.program:type_name -> heft.v1.Program
-	3,  // 19: heft.v1.ProgramService.ListPrograms:input_type -> heft.v1.ListProgramsRequest
-	5,  // 20: heft.v1.ProgramService.GetProgram:input_type -> heft.v1.GetProgramRequest
-	7,  // 21: heft.v1.ProgramService.CreateProgram:input_type -> heft.v1.CreateProgramRequest
-	10, // 22: heft.v1.ProgramService.UpdateProgram:input_type -> heft.v1.UpdateProgramRequest
-	12, // 23: heft.v1.ProgramService.DeleteProgram:input_type -> heft.v1.DeleteProgramRequest
-	14, // 24: heft.v1.ProgramService.SetActiveProgram:input_type -> heft.v1.SetActiveProgramRequest
-	16, // 25: heft.v1.ProgramService.GetTodayWorkout:input_type -> heft.v1.GetTodayWorkoutRequest
-	4,  // 26: heft.v1.ProgramService.ListPrograms:output_type -> heft.v1.ListProgramsResponse
-	6,  // 27: heft.v1.ProgramService.GetProgram:output_type -> heft.v1.GetProgramResponse
-	9,  // 28: heft.v1.ProgramService.CreateProgram:output_type -> heft.v1.CreateProgramResponse
-	11, // 29: heft.v1.ProgramService.UpdateProgram:output_type -> heft.v1.UpdateProgramResponse
-	13, // 30: heft.v1.ProgramService.DeleteProgram:output_type -> heft.v1.DeleteProgramResponse
-	15, // 31: heft.v1.ProgramService.SetActiveProgram:output_type -> heft.v1.SetActiveProgramResponse
-	17, // 32: heft.v1.ProgramService.GetTodayWorkout:output_type -> heft.v1.GetTodayWorkoutResponse
-	26, // [26:33] is the sub-list for method output_type
-	19, // [19:26] is the sub-list for method input_type
-	19, // [19:19] is the sub-list for extension type_name
-	19, // [19:19] is the sub-list for extension extendee
-	0,  // [0:19] is the sub-list for field type_name
+	18, // 2: heft.v1.ProgramSummary.started_at:type_name -> google.protobuf.Timestamp
+	2,  // 3: heft.v1.Program.days:type_name -> heft.v1.ProgramDay
+	18, // 4: heft.v1.Program.created_at:type_name -> google.protobuf.Timestamp
+	18, // 5: heft.v1.Program.updated_at:type_name -> google.protobuf.Timestamp
+	18, // 6: heft.v1.Program.started_at:type_name -> google.protobuf.Timestamp
+	19, // 7: heft.v1.ProgramDay.day_type:type_name -> heft.v1.ProgramDayType
+	20, // 8: heft.v1.ListProgramsRequest.pagination:type_name -> heft.v1.PaginationRequest
+	0,  // 9: heft.v1.ListProgramsResponse.programs:type_name -> heft.v1.ProgramSummary
+	21, // 10: heft.v1.ListProgramsResponse.pagination:type_name -> heft.v1.PaginationResponse
+	1,  // 11: heft.v1.GetProgramResponse.program:type_name -> heft.v1.Program
+	8,  // 12: heft.v1.CreateProgramRequest.days:type_name -> heft.v1.CreateProgramDay
+	19, // 13: heft.v1.CreateProgramDay.day_type:type_name -> heft.v1.ProgramDayType
+	1,  // 14: heft.v1.CreateProgramResponse.program:type_name -> heft.v1.Program
+	8,  // 15: heft.v1.UpdateProgramRequest.days:type_name -> heft.v1.CreateProgramDay
+	1,  // 16: heft.v1.UpdateProgramResponse.program:type_name -> heft.v1.Program
+	1,  // 17: heft.v1.SetActiveProgramResponse.program:type_name -> heft.v1.Program
+	19, // 18: heft.v1.GetTodayWorkoutResponse.day_type:type_name -> heft.v1.ProgramDayType
+	22, // 19: heft.v1.GetTodayWorkoutResponse.workout:type_name -> heft.v1.Workout
+	1,  // 20: heft.v1.GetTodayWorkoutResponse.program:type_name -> heft.v1.Program
+	3,  // 21: heft.v1.ProgramService.ListPrograms:input_type -> heft.v1.ListProgramsRequest
+	5,  // 22: heft.v1.ProgramService.GetProgram:input_type -> heft.v1.GetProgramRequest
+	7,  // 23: heft.v1.ProgramService.CreateProgram:input_type -> heft.v1.CreateProgramRequest
+	10, // 24: heft.v1.ProgramService.UpdateProgram:input_type -> heft.v1.UpdateProgramRequest
+	12, // 25: heft.v1.ProgramService.DeleteProgram:input_type -> heft.v1.DeleteProgramRequest
+	14, // 26: heft.v1.ProgramService.SetActiveProgram:input_type -> heft.v1.SetActiveProgramRequest
+	16, // 27: heft.v1.ProgramService.GetTodayWorkout:input_type -> heft.v1.GetTodayWorkoutRequest
+	4,  // 28: heft.v1.ProgramService.ListPrograms:output_type -> heft.v1.ListProgramsResponse
+	6,  // 29: heft.v1.ProgramService.GetProgram:output_type -> heft.v1.GetProgramResponse
+	9,  // 30: heft.v1.ProgramService.CreateProgram:output_type -> heft.v1.CreateProgramResponse
+	11, // 31: heft.v1.ProgramService.UpdateProgram:output_type -> heft.v1.UpdateProgramResponse
+	13, // 32: heft.v1.ProgramService.DeleteProgram:output_type -> heft.v1.DeleteProgramResponse
+	15, // 33: heft.v1.ProgramService.SetActiveProgram:output_type -> heft.v1.SetActiveProgramResponse
+	17, // 34: heft.v1.ProgramService.GetTodayWorkout:output_type -> heft.v1.GetTodayWorkoutResponse
+	28, // [28:35] is the sub-list for method output_type
+	21, // [21:28] is the sub-list for method input_type
+	21, // [21:21] is the sub-list for extension type_name
+	21, // [21:21] is the sub-list for extension extendee
+	0,  // [0:21] is the sub-list for field type_name
 }
 
 func init() { file_heft_v1_program_proto_init() }
@@ -1415,6 +1439,8 @@ func file_heft_v1_program_proto_init() {
 	}
 	file_heft_v1_common_proto_init()
 	file_heft_v1_workout_proto_init()
+	file_heft_v1_program_proto_msgTypes[0].OneofWrappers = []any{}
+	file_heft_v1_program_proto_msgTypes[1].OneofWrappers = []any{}
 	file_heft_v1_program_proto_msgTypes[3].OneofWrappers = []any{}
 	file_heft_v1_program_proto_msgTypes[7].OneofWrappers = []any{}
 	file_heft_v1_program_proto_msgTypes[8].OneofWrappers = []any{}

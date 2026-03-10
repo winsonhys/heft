@@ -22,6 +22,7 @@ type Program struct {
 	IsArchived       bool
 	CreatedAt        time.Time
 	UpdatedAt        time.Time
+	StartedAt        *time.Time
 	Days             []*ProgramDay
 }
 
@@ -63,7 +64,7 @@ func (r *ProgramRepository) List(ctx context.Context, userID string, includeArch
 
 	query := `
 		SELECT id, user_id, name, description, duration_weeks, duration_days,
-		       total_workout_days, total_rest_days, is_active, is_archived, created_at, updated_at
+		       total_workout_days, total_rest_days, is_active, is_archived, created_at, updated_at, started_at
 		FROM programs
 		WHERE user_id = $1 AND ($2 = TRUE OR is_archived = FALSE)
 		ORDER BY is_active DESC, updated_at DESC
@@ -81,7 +82,7 @@ func (r *ProgramRepository) List(ctx context.Context, userID string, includeArch
 		var p Program
 		err := rows.Scan(
 			&p.ID, &p.UserID, &p.Name, &p.Description, &p.DurationWeeks, &p.DurationDays,
-			&p.TotalWorkoutDays, &p.TotalRestDays, &p.IsActive, &p.IsArchived, &p.CreatedAt, &p.UpdatedAt,
+			&p.TotalWorkoutDays, &p.TotalRestDays, &p.IsActive, &p.IsArchived, &p.CreatedAt, &p.UpdatedAt, &p.StartedAt,
 		)
 		if err != nil {
 			return nil, 0, err
@@ -96,7 +97,7 @@ func (r *ProgramRepository) List(ctx context.Context, userID string, includeArch
 func (r *ProgramRepository) GetByID(ctx context.Context, id, userID string) (*Program, error) {
 	query := `
 		SELECT id, user_id, name, description, duration_weeks, duration_days,
-		       total_workout_days, total_rest_days, is_active, is_archived, created_at, updated_at
+		       total_workout_days, total_rest_days, is_active, is_archived, created_at, updated_at, started_at
 		FROM programs
 		WHERE id = $1 AND user_id = $2
 	`
@@ -104,7 +105,7 @@ func (r *ProgramRepository) GetByID(ctx context.Context, id, userID string) (*Pr
 	var p Program
 	err := r.pool.QueryRow(ctx, query, id, userID).Scan(
 		&p.ID, &p.UserID, &p.Name, &p.Description, &p.DurationWeeks, &p.DurationDays,
-		&p.TotalWorkoutDays, &p.TotalRestDays, &p.IsActive, &p.IsArchived, &p.CreatedAt, &p.UpdatedAt,
+		&p.TotalWorkoutDays, &p.TotalRestDays, &p.IsActive, &p.IsArchived, &p.CreatedAt, &p.UpdatedAt, &p.StartedAt,
 	)
 	if err != nil {
 		if err == pgx.ErrNoRows {
@@ -161,13 +162,13 @@ func (r *ProgramRepository) Create(ctx context.Context, userID, name string, des
 		INSERT INTO programs (user_id, name, description, duration_weeks, duration_days)
 		VALUES ($1, $2, $3, $4, $5)
 		RETURNING id, user_id, name, description, duration_weeks, duration_days,
-		          total_workout_days, total_rest_days, is_active, is_archived, created_at, updated_at
+		          total_workout_days, total_rest_days, is_active, is_archived, created_at, updated_at, started_at
 	`
 
 	var p Program
 	err := r.pool.QueryRow(ctx, query, userID, name, description, durationWeeks, durationDays).Scan(
 		&p.ID, &p.UserID, &p.Name, &p.Description, &p.DurationWeeks, &p.DurationDays,
-		&p.TotalWorkoutDays, &p.TotalRestDays, &p.IsActive, &p.IsArchived, &p.CreatedAt, &p.UpdatedAt,
+		&p.TotalWorkoutDays, &p.TotalRestDays, &p.IsActive, &p.IsArchived, &p.CreatedAt, &p.UpdatedAt, &p.StartedAt,
 	)
 	if err != nil {
 		return nil, err
@@ -206,16 +207,16 @@ func (r *ProgramRepository) SetActive(ctx context.Context, id, userID string) (*
 	// Activate the specified program
 	query := `
 		UPDATE programs
-		SET is_active = TRUE, updated_at = CURRENT_TIMESTAMP
+		SET is_active = TRUE, started_at = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP
 		WHERE id = $1 AND user_id = $2
 		RETURNING id, user_id, name, description, duration_weeks, duration_days,
-		          total_workout_days, total_rest_days, is_active, is_archived, created_at, updated_at
+		          total_workout_days, total_rest_days, is_active, is_archived, created_at, updated_at, started_at
 	`
 
 	var p Program
 	err = r.pool.QueryRow(ctx, query, id, userID).Scan(
 		&p.ID, &p.UserID, &p.Name, &p.Description, &p.DurationWeeks, &p.DurationDays,
-		&p.TotalWorkoutDays, &p.TotalRestDays, &p.IsActive, &p.IsArchived, &p.CreatedAt, &p.UpdatedAt,
+		&p.TotalWorkoutDays, &p.TotalRestDays, &p.IsActive, &p.IsArchived, &p.CreatedAt, &p.UpdatedAt, &p.StartedAt,
 	)
 	if err != nil {
 		return nil, err
@@ -274,7 +275,7 @@ func (r *ProgramRepository) DeleteDays(ctx context.Context, programID, userID st
 func (r *ProgramRepository) GetActiveProgram(ctx context.Context, userID string) (*Program, error) {
 	query := `
 		SELECT id, user_id, name, description, duration_weeks, duration_days,
-		       total_workout_days, total_rest_days, is_active, is_archived, created_at, updated_at
+		       total_workout_days, total_rest_days, is_active, is_archived, created_at, updated_at, started_at
 		FROM programs
 		WHERE user_id = $1 AND is_active = TRUE
 		LIMIT 1
@@ -283,7 +284,7 @@ func (r *ProgramRepository) GetActiveProgram(ctx context.Context, userID string)
 	var p Program
 	err := r.pool.QueryRow(ctx, query, userID).Scan(
 		&p.ID, &p.UserID, &p.Name, &p.Description, &p.DurationWeeks, &p.DurationDays,
-		&p.TotalWorkoutDays, &p.TotalRestDays, &p.IsActive, &p.IsArchived, &p.CreatedAt, &p.UpdatedAt,
+		&p.TotalWorkoutDays, &p.TotalRestDays, &p.IsActive, &p.IsArchived, &p.CreatedAt, &p.UpdatedAt, &p.StartedAt,
 	)
 	if err != nil {
 		if err == pgx.ErrNoRows {

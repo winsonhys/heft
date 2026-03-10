@@ -33,6 +33,10 @@ const ProgramSummary$json = {
     {'1': 'is_archived', '3': 10, '4': 1, '5': 8, '10': 'isArchived'},
     {'1': 'created_at', '3': 11, '4': 1, '5': 11, '6': '.google.protobuf.Timestamp', '10': 'createdAt'},
     {'1': 'updated_at', '3': 12, '4': 1, '5': 11, '6': '.google.protobuf.Timestamp', '10': 'updatedAt'},
+    {'1': 'started_at', '3': 13, '4': 1, '5': 11, '6': '.google.protobuf.Timestamp', '9': 0, '10': 'startedAt', '17': true},
+  ],
+  '8': [
+    {'1': '_started_at'},
   ],
 };
 
@@ -46,7 +50,8 @@ final $typed_data.Uint8List programSummaryDescriptor = $convert.base64Decode(
     'lzX2FjdGl2ZRgJIAEoCFIIaXNBY3RpdmUSHwoLaXNfYXJjaGl2ZWQYCiABKAhSCmlzQXJjaGl2'
     'ZWQSOQoKY3JlYXRlZF9hdBgLIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXBSCWNyZW'
     'F0ZWRBdBI5Cgp1cGRhdGVkX2F0GAwgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcFIJ'
-    'dXBkYXRlZEF0');
+    'dXBkYXRlZEF0Ej4KCnN0YXJ0ZWRfYXQYDSABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW'
+    '1wSABSCXN0YXJ0ZWRBdIgBAUINCgtfc3RhcnRlZF9hdA==');
 
 @$core.Deprecated('Use programDescriptor instead')
 const Program$json = {
@@ -65,6 +70,10 @@ const Program$json = {
     {'1': 'days', '3': 11, '4': 3, '5': 11, '6': '.heft.v1.ProgramDay', '10': 'days'},
     {'1': 'created_at', '3': 12, '4': 1, '5': 11, '6': '.google.protobuf.Timestamp', '10': 'createdAt'},
     {'1': 'updated_at', '3': 13, '4': 1, '5': 11, '6': '.google.protobuf.Timestamp', '10': 'updatedAt'},
+    {'1': 'started_at', '3': 14, '4': 1, '5': 11, '6': '.google.protobuf.Timestamp', '9': 0, '10': 'startedAt', '17': true},
+  ],
+  '8': [
+    {'1': '_started_at'},
   ],
 };
 
@@ -78,7 +87,9 @@ final $typed_data.Uint8List programDescriptor = $convert.base64Decode(
     'ZlGAkgASgIUghpc0FjdGl2ZRIfCgtpc19hcmNoaXZlZBgKIAEoCFIKaXNBcmNoaXZlZBInCgRk'
     'YXlzGAsgAygLMhMuaGVmdC52MS5Qcm9ncmFtRGF5UgRkYXlzEjkKCmNyZWF0ZWRfYXQYDCABKA'
     'syGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wUgljcmVhdGVkQXQSOQoKdXBkYXRlZF9hdBgN'
-    'IAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXBSCXVwZGF0ZWRBdA==');
+    'IAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXBSCXVwZGF0ZWRBdBI+CgpzdGFydGVkX2'
+    'F0GA4gASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcEgAUglzdGFydGVkQXSIAQFCDQoL'
+    'X3N0YXJ0ZWRfYXQ=');
 
 @$core.Deprecated('Use programDayDescriptor instead')
 const ProgramDay$json = {

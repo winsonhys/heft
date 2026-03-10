@@ -44,6 +44,7 @@ message ProgramSummary {
   bool is_archived = 10;
   google.protobuf.Timestamp created_at = 11;
   google.protobuf.Timestamp updated_at = 12;
+  optional google.protobuf.Timestamp started_at = 13;
 }
 
 // Program with full details
@@ -61,6 +62,7 @@ message Program {
   repeated ProgramDay days = 11;
   google.protobuf.Timestamp created_at = 12;
   google.protobuf.Timestamp updated_at = 13;
+  optional google.protobuf.Timestamp started_at = 14;
 }
 
 // Program day
