@@ -1,671 +1,115 @@
-# HeftyBack - Go Backend API
+# HeftyBack — Backend Harness
 
-## Tech Stack
+Go API server. Connect-RPC over HTTP/2 with PostgreSQL (Supabase).
 
-| Component | Technology |
-|-----------|------------|
-| Language | Go 1.25 |
-| API Framework | Connect-RPC (connectrpc.com/connect v1.16.0) |
-| Database | PostgreSQL via Supabase |
-| DB Driver | pgx v5 (github.com/jackc/pgx/v5) |
-| Migrations | Goose (pressly/goose/v3) |
-| Testing | testify, pgtestdb |
-| Proto Tool | Buf CLI |
+## Boundary Rules
 
-## Project Structure
+Non-negotiable. Violations are bugs.
 
-```
-HeftyBack/
-├── cmd/
-│   └── server/
-│       └── main.go              # Entry point
-├── internal/
-│   ├── auth/                    # JWT authentication
-│   │   ├── jwt.go               # JWT token generation/validation
-│   │   ├── jwt_test.go
-│   │   └── context.go           # Auth context helpers
-│   ├── config/
-│   │   └── config.go            # Environment configuration
-│   ├── db/
-│   │   └── db.go                # Database connection pool
-│   ├── handlers/                # Service implementations
-│   │   ├── errors.go            # Error handling helpers (handleDBError)
-│   │   ├── auth.go              # AuthService handler
-│   │   ├── auth_test.go
-│   │   ├── user.go              # UserService handler
-│   │   ├── user_test.go
-│   │   ├── exercise.go          # ExerciseService handler
-│   │   ├── exercise_test.go
-│   │   ├── workout.go           # WorkoutService handler
-│   │   ├── workout_test.go
-│   │   ├── program.go           # ProgramService handler
-│   │   ├── program_test.go
-│   │   ├── session.go           # SessionService handler
-│   │   ├── session_test.go
-│   │   ├── progress.go          # ProgressService handler
-│   │   └── progress_test.go
-│   ├── repository/              # Data access layer
-│   │   ├── interfaces.go        # Repository interfaces
-│   │   ├── auth.go
-│   │   ├── user.go
-│   │   ├── exercise.go
-│   │   ├── workout.go
-│   │   ├── program.go
-│   │   ├── session.go
-│   │   └── progress.go
-│   ├── middleware/
-│   │   ├── logging.go           # Request logging
-│   │   ├── auth.go              # JWT auth interceptor
-│   │   └── auth_test.go
-│   └── testutil/                # Test utilities
-│       ├── mocks.go             # Mock implementations
-│       ├── testdb.go            # Test database setup (pgtestdb)
-│       ├── testserver.go        # Test HTTP server with all clients
-│       └── fixtures.go          # Test data fixtures
-├── proto/
-│   └── heft/v1/                 # Protocol Buffer definitions
-│       ├── common.proto
-│       ├── auth.proto
-│       ├── user.proto
-│       ├── exercise.proto
-│       ├── workout.proto
-│       ├── program.proto
-│       ├── session.proto
-│       └── progress.proto
-├── gen/
-│   └── heft/v1/                 # Generated Go code
-│       ├── *.pb.go              # Message types
-│       └── *connect/*.go        # Connect handlers
-├── migrations/
-│   └── 00001_initial_schema.sql # Database schema
-├── tests/
-│   └── integration/             # Integration tests (all 7 services)
-│       ├── auth_service_test.go
-│       ├── user_service_test.go
-│       ├── exercise_service_test.go
-│       ├── workout_service_test.go
-│       ├── program_service_test.go
-│       ├── session_service_test.go
-│       └── progress_service_test.go
-├── docker-compose.yml           # PostgreSQL with persistent volume (port 5433)
-├── Makefile                     # Build commands
-├── buf.yaml                     # Buf configuration
-├── buf.gen.yaml                 # Buf code generation
-├── go.mod
-└── .env.example
-```
+- **Handlers** (`internal/handlers/`) → Business logic + validation. Import repositories via interface. Never import `pgx`.
+- **Repositories** (`internal/repository/`) → SQL queries only. Never import handler types. Always scope by `user_id`.
+- **Middleware** (`internal/middleware/`) → Cross-cutting concerns (auth, logging). No business logic.
+- **Generated code** (`gen/`) → Never hand-edit. Regenerate: `make generate`.
 
-## Architecture
+Dependency flow: `proto → config → repository → handlers → middleware → cmd/server`
 
-### Clean Architecture Pattern
+## File Map
 
-```
-HTTP Request
-     │
-     ▼
-┌─────────────────────────────────────────┐
-│           Connect-RPC Handler            │
-│  (internal/handlers/*.go)               │
-│  - Request validation                   │
-│  - Business logic                       │
-│  - Response mapping                     │
-└─────────────────┬───────────────────────┘
-                  │
-                  ▼
-┌─────────────────────────────────────────┐
-│         Repository Interface            │
-│  (internal/repository/interfaces.go)    │
-│  - Defines data access contract         │
-└─────────────────┬───────────────────────┘
-                  │
-                  ▼
-┌─────────────────────────────────────────┐
-│       Repository Implementation         │
-│  (internal/repository/*.go)             │
-│  - SQL queries via pgx                  │
-│  - Data mapping                         │
-└─────────────────┬───────────────────────┘
-                  │
-                  ▼
-┌─────────────────────────────────────────┐
-│            PostgreSQL                   │
-│  (via Supabase)                         │
-└─────────────────────────────────────────┘
-```
+| Need to... | Look at |
+|---|---|
+| Add/modify an endpoint | `internal/handlers/{service}.go` |
+| Add/modify a query | `internal/repository/{service}.go` |
+| Change an interface | `internal/repository/interfaces.go` |
+| Add a migration | `migrations/` → `make migrate-create name=xxx` |
+| Change proto schema | `proto/heft/v1/*.proto` → `make generate` |
+| Wire a new service | `cmd/server/main.go` |
+| Add middleware | `internal/middleware/` |
+| Write unit tests | `internal/handlers/{service}_test.go` |
+| Write integration tests | `tests/integration/{service}_test.go` |
+| Add test fixtures | `internal/testutil/fixtures.go` |
+| Add mock methods | `internal/testutil/mocks.go` |
 
-### Dependency Injection
+## Error Handling — Mechanical Rule
 
-Dependencies are wired in `cmd/server/main.go`:
+ALL handler errors use this exact pattern:
 
 ```go
-// Load config
-cfg := config.Load()
+// Validation → CodeInvalidArgument
+if req.Msg.Field == "" {
+    return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("field is required"))
+}
 
-// Create database pool
-pool, err := db.NewPool(ctx, cfg.DatabaseURL)
+// Not found → CodeNotFound
+if result == nil {
+    return nil, connect.NewError(connect.CodeNotFound, errors.New("resource not found"))
+}
 
-// Create repositories
-userRepo := repository.NewUserRepository(pool)
-exerciseRepo := repository.NewExerciseRepository(pool)
-// ...
-
-// Create handlers (inject repositories)
-userHandler := handlers.NewUserHandler(userRepo)
-exerciseHandler := handlers.NewExerciseHandler(exerciseRepo)
-// ...
-
-// Register Connect-RPC services
-mux.Handle(heftv1connect.NewUserServiceHandler(userHandler))
-mux.Handle(heftv1connect.NewExerciseServiceHandler(exerciseHandler))
-// ...
+// DB errors → handleDBError() (FK violations → CodePermissionDenied)
+if err != nil {
+    return nil, handleDBError(err)
+}
 ```
 
-## Services
+Codes: `Unauthenticated` (401) | `PermissionDenied` (403) | `InvalidArgument` (400) | `NotFound` (404) | `AlreadyExists` (409) | `Internal` (500)
 
-### AuthService
-- `Login(email)` → JWT token + user (creates new user if doesn't exist)
+## Auth — Mechanical Rule
 
-### UserService
-- `GetProfile(user_id)` → User profile data
-- `UpdateProfile(user_id, display_name, avatar_url)` → Updated profile
-- `UpdateSettings(user_id, use_pounds, rest_timer_seconds)` → Updated settings
-- `LogWeight(user_id, weight_kg, date, notes)` → Weight log entry
-- `GetWeightHistory(user_id, pagination)` → List of weight logs
-- `DeleteWeightLog(user_id, log_id)` → Success
+User ID from JWT context. NEVER from request body.
 
-### ExerciseService
-- `ListExercises(user_id, category_id, exercise_type, pagination)` → Exercise list
-- `GetExercise(exercise_id)` → Single exercise
-- `CreateExercise(user_id, name, category_id, type, description)` → New exercise
-- `ListCategories()` → All categories
-- `SearchExercises(query, limit)` → Matching exercises
+```go
+userID, ok := auth.UserIDFromContext(ctx)
+if !ok {
+    return nil, connect.NewError(connect.CodeUnauthenticated, errors.New("user not authenticated"))
+}
+```
 
-### WorkoutService
-- `ListWorkouts(pagination)` → Workout templates
-- `GetWorkout(workout_id)` → Full workout with sections/sets
-- `CreateWorkout(name, description)` → New template
-- `UpdateWorkout(workout_id, name, description, sections)` → Updated workout
-- `DuplicateWorkout(workout_id, new_name?)` → Duplicated workout with new ID
-- `DeleteWorkout(workout_id)` → Success
-- `AddSection(workout_id, name, is_superset)` → New section
-- `AddSectionItem(section_id, exercise_id | rest_duration)` → New item
-- `AddTargetSet(item_id, weight, reps, time, distance)` → New target set
+## User Scoping — Mechanical Rule
 
-### ProgramService
-- `ListPrograms(user_id, pagination)` → Training programs
-- `GetProgram(program_id)` → Full program with days
-- `CreateProgram(user_id, name, duration_weeks)` → New program
-- `AssignWorkout(program_id, day_number, workout_id)` → Updated day
-- `SetActiveProgram(user_id, program_id)` → Success
-- `GetActiveProgram(user_id)` → Current active program
-- `DeleteProgram(program_id)` → Success
+ALL queries on user data include user_id:
 
-### SessionService
-- `StartSession(workout_template_id, program_id?)` → New session (returns 409 AlreadyExists if user has active session)
-- `GetSession(session_id)` → Session with exercises/sets
-- `SyncSession(session_id, sets, exercises, deleted_set_ids, deleted_exercise_ids)` → Synced session
-  - `sets`: List of `SyncSetInput` using oneof pattern (`existing_set_id` OR `new_set` with temp ID)
-  - `exercises`: List of new exercises to add (with `superset_id` support)
-  - `deleted_set_ids`: IDs of sets to remove
-  - `deleted_exercise_ids`: IDs of exercises to remove
-- `FinishSession(session_id, notes)` → Completed session
-- `AbandonSession(session_id)` → Abandoned session
-- `ListSessions(pagination)` → Session history
+```go
+// CORRECT
+WHERE id = $1 AND user_id = $2
 
-### ProgressService
-- `GetDashboardStats()` → Overview stats (total workouts, current streak, etc.)
-- `GetCalendarMonth(year, month)` → Monthly workout activity
-- `GetWeeklyActivity(week_start)` → Weekly calendar
-- `GetPersonalRecords(pagination)` → PRs list
-- `GetExerciseProgress(exercise_id)` → Exercise-specific progress
-- `GetStreak()` → Current workout streak
+// WRONG — security vulnerability
+WHERE id = $1
+```
 
-## Commands (Makefile)
+## Repository Pattern — Mechanical Rule
+
+```go
+// 1. Define interface in interfaces.go
+type FooRepositoryInterface interface {
+    GetFoo(ctx context.Context, userID, fooID string) (*Foo, error)
+}
+
+// 2. Implement in foo.go
+type FooRepository struct { pool *pgxpool.Pool }
+var _ FooRepositoryInterface = (*FooRepository)(nil)  // Compile-time check
+
+// 3. Not found = nil, nil (not an error)
+if errors.Is(err, pgx.ErrNoRows) {
+    return nil, nil
+}
+```
+
+## Commands
 
 ```bash
-# Code Generation
-make generate           # Generate proto code via buf
-
-# Build
-make build             # Compile to bin/server
-make clean             # Remove build artifacts
-
-# Run
-make run               # Start server
-
-# Dependencies
-make deps              # go mod download
-make lint              # Lint proto files
-
-# Database
-make migrate-up        # Apply all migrations
-make migrate-down      # Rollback last migration
-make migrate-status    # Check migration status
-make migrate-create name=xxx  # Create new migration
-
-# Testing
-make test              # All tests
-make test-unit         # Unit tests only (no DB, uses -short)
-make test-integration  # Integration tests (needs Docker)
-make test-coverage     # Generate HTML coverage report
-make test-race         # Run with race detector
-
-# All-in-one
-make setup             # deps + generate + build
+docker compose up -d              # Start server + PostgreSQL (port 5433)
+make run                          # Run server directly
+make test                         # All tests
+make test-unit                    # Unit tests (no DB, fast)
+make test-integration             # Integration tests (needs Docker)
+make generate                     # Regenerate proto code
+make migrate-create name=xxx      # New migration
+make migrate-up                   # Apply migrations
+make migrate-down                 # Rollback last
 ```
 
-## Testing
-
-### Unit Tests
-
-Located in `internal/handlers/*_test.go`. Pattern:
-
-```go
-func TestUserHandler_GetProfile(t *testing.T) {
-    tests := []struct {
-        name        string
-        userID      string
-        mockSetup   func(*testutil.MockUserRepository)
-        wantErr     bool
-        wantErrCode connect.Code
-    }{
-        {
-            name:   "success",
-            userID: "valid-uuid",
-            mockSetup: func(m *testutil.MockUserRepository) {
-                m.GetProfileFunc = func(ctx context.Context, userID string) (*repository.UserProfile, error) {
-                    return &repository.UserProfile{ID: userID, DisplayName: "Test"}, nil
-                }
-            },
-            wantErr: false,
-        },
-        {
-            name:   "not found",
-            userID: "missing-uuid",
-            mockSetup: func(m *testutil.MockUserRepository) {
-                m.GetProfileFunc = func(ctx context.Context, userID string) (*repository.UserProfile, error) {
-                    return nil, nil  // Not found returns nil, nil
-                }
-            },
-            wantErr:     true,
-            wantErrCode: connect.CodeNotFound,
-        },
-    }
-
-    for _, tt := range tests {
-        t.Run(tt.name, func(t *testing.T) {
-            mock := &testutil.MockUserRepository{}
-            tt.mockSetup(mock)
-            handler := handlers.NewUserHandler(mock)
-            // ... test logic
-        })
-    }
-}
-```
-
-Run: `make test-unit`
-
-### Integration Tests
-
-Located in `tests/integration/`. Uses **pgtestdb** for isolated test databases with automatic cleanup.
-
-**Test Infrastructure:**
-- `pgtestdb` + `goosemigrator` - Creates fresh isolated database per test
-- `TestServer` - HTTP test server with all 7 service clients
-- JWT auth support via `AuthHeader(userID)` helper
-- Fixtures for seeding test data
-
-**Pattern:**
-
-```go
-func TestUserService_Integration_GetProfile(t *testing.T) {
-    if testing.Short() {
-        t.Skip("skipping integration test in short mode")
-    }
-
-    pool := testutil.NewTestPool(t)       // Fresh isolated database
-    ts := testutil.NewTestServer(t, pool) // HTTP server with all services
-
-    // Seed test data with unique email
-    testUser := testutil.DefaultTestUser()
-    userID := testutil.SeedTestUser(t, pool, testUser)
-
-    t.Run("get existing user profile", func(t *testing.T) {
-        ctx := context.Background()
-
-        req := connect.NewRequest(&heftv1.GetProfileRequest{})
-        req.Header().Set("Authorization", ts.AuthHeader(userID))  // JWT auth
-
-        resp, err := ts.UserClient.GetProfile(ctx, req)
-
-        if err != nil {
-            t.Fatalf("unexpected error: %v", err)
-        }
-        if resp.Msg.User.Id != userID {
-            t.Errorf("expected user ID %s, got %s", userID, resp.Msg.User.Id)
-        }
-    })
-
-    t.Run("unauthenticated request returns error", func(t *testing.T) {
-        ctx := context.Background()
-        req := connect.NewRequest(&heftv1.GetProfileRequest{})
-        // No auth header
-
-        _, err := ts.UserClient.GetProfile(ctx, req)
-
-        var connectErr *connect.Error
-        if errors.As(err, &connectErr) && connectErr.Code() != connect.CodeUnauthenticated {
-            t.Errorf("expected Unauthenticated error, got %v", connectErr.Code())
-        }
-    })
-}
-```
-
-**TestServer clients available:**
-- `ts.AuthClient` - AuthService
-- `ts.UserClient` - UserService
-- `ts.ExerciseClient` - ExerciseService
-- `ts.WorkoutClient` - WorkoutService
-- `ts.ProgramClient` - ProgramService
-- `ts.SessionClient` - SessionService
-- `ts.ProgressClient` - ProgressService
-
-**Run:** `docker compose up -d && make test-integration`
-
-### Mock Pattern
-
-Mocks in `internal/testutil/mocks.go`:
-
-```go
-type MockUserRepository struct {
-    GetProfileFunc    func(ctx context.Context, userID string) (*repository.UserProfile, error)
-    UpdateProfileFunc func(ctx context.Context, userID string, params repository.UpdateProfileParams) error
-    // ... other functions
-}
-
-// Compile-time interface check
-var _ repository.UserRepositoryInterface = (*MockUserRepository)(nil)
-
-func (m *MockUserRepository) GetProfile(ctx context.Context, userID string) (*repository.UserProfile, error) {
-    return m.GetProfileFunc(ctx, userID)
-}
-```
-
-## Database Schema
-
-### Core Tables
-
-**Users & Profile:**
-- `users` - id, email, password_hash, display_name, avatar_url, use_pounds, rest_timer_seconds
-- `weight_logs` - user_id, weight_kg, logged_date, notes
-
-**Exercise Library:**
-- `exercise_categories` - id, name, display_order
-- `exercises` - id, name, category_id, exercise_type, is_system, created_by, description
-
-**Workout Templates:**
-- `workout_templates` - id, user_id, name, description, is_archived
-  - Note: `total_exercises`, `total_sets`, `estimated_duration_minutes` are computed dynamically via subqueries (not stored)
-- `workout_sections` - workout_template_id, name, display_order, is_superset
-- `section_items` - section_id, item_type (exercise|rest), exercise_id, rest_duration, display_order
-- `exercise_target_sets` - section_item_id, set_number, target_weight, target_reps, target_time, target_distance, rest_duration_seconds
-
-**Training Programs:**
-- `programs` - id, user_id, name, duration_weeks, is_active, is_archived
-- `program_days` - program_id, day_number, day_type (workout|rest|unassigned), workout_template_id
-
-**Workout Sessions:**
-- `workout_sessions` - id, user_id, workout_template_id, status (in_progress|completed|abandoned), started_at, completed_at
-- `session_exercises` - session_id, exercise_id, display_order, superset_id (UUID grouping exercises in same superset)
-- `session_sets` - session_exercise_id, set_number, weight_kg, reps, is_completed, rpe
-
-### Superset Support
-
-The `superset_id` field in `session_exercises` groups exercises that belong to the same superset:
-- When a workout section is marked as `is_superset = true`, all its exercises share a `superset_id`
-- The `superset_id` is a UUID generated when starting a session from a template
-- Exercises with the same `superset_id` should be performed in alternating sets
-- Used by frontend to display superset badges and grouping
-
-**Progress Tracking:**
-- `personal_records` - user_id, exercise_id, weight_kg, reps, one_rep_max_kg, achieved_at
-- `exercise_history` - user_id, exercise_id, session_id, session_date, best_weight, total_volume
-
-### Exercise Types (enum)
-- `weight_reps` - Barbell/dumbbell exercises
-- `bodyweight_reps` - Push-ups, pull-ups, etc.
-- `time` - Planks, holds
-- `distance` - Running, rowing
-- `cardio` - General cardio
-
-## Code Patterns
-
-### Repository Interface Pattern
-
-```go
-// interfaces.go
-type UserRepositoryInterface interface {
-    GetProfile(ctx context.Context, userID string) (*UserProfile, error)
-    UpdateProfile(ctx context.Context, userID string, params UpdateProfileParams) error
-    // ...
-}
-
-// user.go
-type UserRepository struct {
-    pool *pgxpool.Pool
-}
-
-var _ UserRepositoryInterface = (*UserRepository)(nil)  // Compile-time check
-
-func NewUserRepository(pool *pgxpool.Pool) *UserRepository {
-    return &UserRepository{pool: pool}
-}
-
-func (r *UserRepository) GetProfile(ctx context.Context, userID string) (*UserProfile, error) {
-    var profile UserProfile
-    err := r.pool.QueryRow(ctx, `
-        SELECT id, email, display_name, avatar_url, use_pounds, rest_timer_seconds, member_since
-        FROM users WHERE id = $1
-    `, userID).Scan(&profile.ID, &profile.Email, ...)
-
-    if errors.Is(err, pgx.ErrNoRows) {
-        return nil, nil  // Not found = nil, nil (not an error)
-    }
-    return &profile, err
-}
-```
-
-### Error Handling Pattern
-
-All handlers use `handleDBError()` from `internal/handlers/errors.go` for database errors:
-
-```go
-// errors.go - converts DB errors to appropriate Connect errors
-func handleDBError(err error) error {
-    if isUserFKViolation(err) {
-        // Returns 403 for user FK violations (user doesn't exist in DB)
-        // This allows the frontend to redirect to auth screen
-        return connect.NewError(connect.CodePermissionDenied, errors.New("user not found"))
-    }
-    return connect.NewError(connect.CodeInternal, err)
-}
-
-// Handler usage
-func (h *UserHandler) GetProfile(ctx context.Context, req *connect.Request[heftv1.GetProfileRequest]) (*connect.Response[heftv1.GetProfileResponse], error) {
-    // Validation
-    if req.Msg.UserId == "" {
-        return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("user_id is required"))
-    }
-
-    // Repository call - use handleDBError for DB errors
-    profile, err := h.repo.GetProfile(ctx, req.Msg.UserId)
-    if err != nil {
-        return nil, handleDBError(err)  // Returns 403 if user FK violation
-    }
-    if profile == nil {
-        return nil, connect.NewError(connect.CodeNotFound, errors.New("user not found"))
-    }
-
-    // Success
-    return connect.NewResponse(&heftv1.GetProfileResponse{
-        Profile: mapProfileToProto(profile),
-    }), nil
-}
-```
-
-**Error Code Mapping:**
-- `CodeUnauthenticated` (401) - Missing or invalid auth token
-- `CodePermissionDenied` (403) - User doesn't exist in DB (FK violation)
-- `CodeInvalidArgument` (400) - Missing required fields
-- `CodeNotFound` (404) - Resource not found
-- `CodeAlreadyExists` (409) - Resource already exists (e.g., user has active session)
-- `CodeInternal` (500) - Other database errors
-
-### User ID Extraction from JWT
-
-All authenticated endpoints extract user ID from the JWT token claims, not from request parameters.
-
-```go
-// internal/auth/context.go - Get user ID from context
-func UserIDFromContext(ctx context.Context) (string, bool) {
-    userID, ok := ctx.Value(userIDKey).(string)
-    return userID, ok
-}
-
-// Handler usage - user ID comes from JWT, not request body
-func (h *SessionHandler) StartSession(ctx context.Context, req *connect.Request[heftv1.StartSessionRequest]) (*connect.Response[heftv1.StartSessionResponse], error) {
-    userID, ok := auth.UserIDFromContext(ctx)
-    if !ok {
-        return nil, connect.NewError(connect.CodeUnauthenticated, errors.New("user not authenticated"))
-    }
-
-    // Use userID from JWT, not from request
-    session, err := h.repo.StartSession(ctx, userID, req.Msg.WorkoutTemplateId)
-    // ...
-}
-```
-
-**Key Points:**
-- Requests no longer include `user_id` field in the message body
-- Backend extracts `user_id` from JWT claims via auth middleware
-- This applies to all services: User, Exercise, Workout, Program, Session, Progress
-
-### User Scoping Pattern
-
-All queries include user_id for data isolation:
-
-```go
-// Good - scoped to user
-err := r.pool.QueryRow(ctx, `
-    SELECT * FROM workout_templates
-    WHERE id = $1 AND user_id = $2
-`, workoutID, userID).Scan(...)
-
-// Bad - no user scoping (security risk)
-err := r.pool.QueryRow(ctx, `
-    SELECT * FROM workout_templates WHERE id = $1
-`, workoutID).Scan(...)
-```
-
-## Middleware
-
-Located in `internal/middleware/`:
-
-### Auth Middleware (`auth.go`)
-JWT authentication interceptor that:
-- Validates Bearer tokens from `Authorization` header
-- Extracts user ID from JWT claims and adds to context
-- Skips auth for public endpoints (Login)
-
-### Logging Middleware (`logging.go`)
-Request logging with method, duration, and status.
-
-Registration in `cmd/server/main.go`:
-```go
-interceptors := connect.WithInterceptors(
-    middleware.NewLoggingInterceptor(),
-    middleware.NewAuthInterceptor(jwtSecret, publicPaths),
-)
-```
-
-## Test Reset Endpoint
-
-When `TEST_MODE=true`, a special endpoint is available:
-- `POST /test/reset` - Clears all user data from database
-- Used by integration tests to reset state between test runs
-- **Never enabled in production**
-
-## Environment Variables
-
-| Variable | Description | Example |
-|----------|-------------|---------|
-| `DATABASE_URL` | PostgreSQL connection string | `postgres://user:pass@host:5432/db` |
-| `SUPABASE_URL` | Supabase project URL | `https://xxx.supabase.co` |
-| `SUPABASE_ANON_KEY` | Supabase anonymous key | `eyJhbGc...` |
-| `SUPABASE_SERVICE_KEY` | Supabase service role key | `eyJhbGc...` |
-| `PORT` | Server port (default: 8080) | `8080` |
-
-## Common Tasks
-
-### Add New Endpoint
-
-1. Define in `proto/heft/v1/service.proto`:
-```protobuf
-service MyService {
-    rpc NewMethod(NewMethodRequest) returns (NewMethodResponse);
-}
-
-message NewMethodRequest {
-    // Note: user_id is NOT included - extracted from JWT by backend
-    string resource_id = 1;
-    // ...
-}
-
-message NewMethodResponse {
-    // ...
-}
-```
-
-2. Generate code: `make generate`
-
-3. Add repository method in `internal/repository/interfaces.go` and implementation
-
-4. Implement handler in `internal/handlers/myservice.go`:
-```go
-func (h *MyHandler) NewMethod(ctx context.Context, req *connect.Request[heftv1.NewMethodRequest]) (*connect.Response[heftv1.NewMethodResponse], error) {
-    // Get user ID from JWT (set by auth middleware)
-    userID, ok := auth.UserIDFromContext(ctx)
-    if !ok {
-        return nil, connect.NewError(connect.CodeUnauthenticated, errors.New("user not authenticated"))
-    }
-
-    // Use userID from context, not from request
-    result, err := h.repo.DoSomething(ctx, userID, req.Msg.ResourceId)
-    if err != nil {
-        return nil, handleDBError(err)
-    }
-
-    return connect.NewResponse(&heftv1.NewMethodResponse{
-        // ...
-    }), nil
-}
-```
-
-5. Add tests in `internal/handlers/myservice_test.go`
-
-### Add Database Migration
-
-```bash
-make migrate-create name=add_new_column
-# Edit migrations/XXXX_add_new_column.sql
-make migrate-up
-```
-
-Migration file format:
-```sql
--- +goose Up
-ALTER TABLE users ADD COLUMN new_column TEXT;
-
--- +goose Down
-ALTER TABLE users DROP COLUMN new_column;
-```
+## Deep Reference
+
+- Full services API, DB schema, DI wiring: `docs/backend.md`
+- Testing infrastructure and patterns: `docs/testing.md`
+- Architecture layers and data flow: `docs/architecture.md`
+- Error codes and conventions: `docs/conventions.md`

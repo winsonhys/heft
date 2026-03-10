@@ -1,242 +1,99 @@
-# Heft - Workout Tracking Application
+# Heft
 
-## Project Overview
+Workout tracking platform: Go backend (HeftyBack) + Flutter mobile app (hefty_chest).
+Users create workout templates, follow training programs, track live sessions, and monitor progress.
 
-Heft is a full-stack workout tracking application consisting of:
-- **HeftyBack/** - Go backend API server
-- **hefty_chest/** - Flutter cross-platform mobile app
+## Golden Principles
 
-This is a fitness platform that allows users to create workout templates, follow training programs, track live workout sessions, and monitor their progress over time.
+Mechanical rules. Violations are bugs, not style issues.
 
-## Architecture Overview
+1. **Proto is the contract.** Change `.proto` in BOTH `HeftyBack/proto/` AND `hefty_chest/proto/`, then `buf generate` in both. Never hand-edit `gen/` files.
+2. **User ID comes from JWT.** Backend extracts user ID from auth context, never from request body. Frontend never sends user_id in requests.
+3. **All queries are user-scoped.** Every SQL query touching user data MUST include `WHERE user_id = $N`. No exceptions.
+4. **Repository interfaces mediate all DB access.** Handlers never import `pgx` directly. Add interface method, implement, inject.
+5. **Errors map to Connect codes.** Use `handleDBError()` for DB errors. See error code table in `docs/conventions.md`.
+6. **State is immutable.** Frontend uses `copyWith()` for all state updates. No direct mutation.
+7. **Features are self-contained.** Each frontend feature owns its screen, providers, and widgets. No cross-feature imports except via `shared/`.
+
+## Architecture Layers
+
+Dependencies flow DOWN only. Never import upward.
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                    hefty_chest (Flutter)                     │
-│  ┌─────────────┐  ┌─────────────┐  ┌─────────────────────┐  │
-│  │   Riverpod  │  │  go_router  │  │     forui UI        │  │
-│  │   (State)   │  │  (Routing)  │  │    (Components)     │  │
-│  └──────┬──────┘  └─────────────┘  └─────────────────────┘  │
-│         │                                                    │
-│  ┌──────▼──────────────────────────────────────────────┐    │
-│  │           Connect-RPC Client (lib/gen/)              │    │
-│  └──────────────────────────┬───────────────────────────┘    │
-└─────────────────────────────┼───────────────────────────────┘
-                              │ HTTP/2 + Protobuf
-┌─────────────────────────────▼───────────────────────────────┐
-│                    HeftyBack (Go)                            │
-│  ┌─────────────────────────────────────────────────────┐    │
-│  │              Connect-RPC Services (7)                │    │
-│  │  Auth │ User │ Exercise │ Workout │ Program │ Session │ Progress │
-│  └──────────────────────────┬──────────────────────────┘    │
-│                             │                                │
-│  ┌──────────────────────────▼──────────────────────────┐    │
-│  │           Repository Layer (interfaces)              │    │
-│  └──────────────────────────┬──────────────────────────┘    │
-│                             │                                │
-│  ┌──────────────────────────▼──────────────────────────┐    │
-│  │              PostgreSQL (Supabase)                   │    │
-│  └─────────────────────────────────────────────────────┘    │
-└─────────────────────────────────────────────────────────────┘
+Backend:  Proto → Config → Repository → Handlers → Middleware → Server
+Frontend: Gen → Core → Shared → Features → App
 ```
 
-## Tech Stack Summary
+Boundary violations = bugs. If you need something from a higher layer, you have the wrong abstraction.
 
-| Component | Backend (HeftyBack) | Frontend (hefty_chest) |
-|-----------|---------------------|------------------------|
+## Knowledge Base
+
+| What you need | Where to find it |
+|---|---|
+| Architecture, data flow, layers | `docs/architecture.md` |
+| Backend patterns, DB schema, services | `docs/backend.md` |
+| Frontend patterns, state, routing, UI | `docs/frontend.md` |
+| Code conventions, error codes, naming | `docs/conventions.md` |
+| Testing infrastructure and patterns | `docs/testing.md` |
+| Step-by-step task recipes | `docs/workflows.md` |
+| Backend quick reference | `HeftyBack/CLAUDE.md` |
+| Frontend quick reference | `hefty_chest/CLAUDE.md` |
+
+## Tech Stack
+
+| | Backend | Frontend |
+|--|---------|----------|
 | Language | Go 1.25 | Dart/Flutter 3.10.3+ |
 | API | Connect-RPC v1.16.0 | Connect-RPC v1.0.0 |
-| Database | PostgreSQL (Supabase) | - |
-| State Mgmt | - | Riverpod 3.0 + Hooks |
-| UI | - | forui 0.17.0 |
-| Routing | - | go_router 17.0 |
-| Build Tool | Makefile | Flutter CLI |
+| DB | PostgreSQL (Supabase) | — |
+| State | — | Riverpod 3.0 + Hooks |
+| UI | — | forui 0.17.0 |
+| Build | Makefile + Docker | Flutter CLI |
 
-## Communication Protocol
+Boring technology wins. These are stable, well-documented, and well-represented in training data.
 
-- **Protocol:** Connect-RPC over HTTP/2
-- **Serialization:** Protocol Buffers
-- **Schema Location:** Proto files are duplicated in both projects:
-  - `HeftyBack/proto/heft/v1/*.proto`
-  - `hefty_chest/proto/*.proto`
-- **Code Generation:** Buf CLI (`buf generate`)
-- **Backend URL:**
-  - Debug: `http://localhost:8080`
-  - Release: `https://heft-backend.onrender.com`
+## Essential Commands
 
-## Quick Start
-
-### Prerequisites
-- Go 1.25+
-- Flutter SDK 3.10.3+
-- PostgreSQL 15+ (or Supabase account)
-- Buf CLI (`brew install bufbuild/buf/buf`)
-- Docker (for backend tests)
-
-### Backend Setup
 ```bash
-cd HeftyBack
-docker compose up -d              # Start server + PostgreSQL (migrations auto-run)
-# Server runs on :8080, PostgreSQL on :5433
+# Backend
+cd HeftyBack && docker compose up -d       # Start server + PostgreSQL
+make test                                   # All tests
+make test-unit                              # Fast unit tests (no DB)
+make test-integration                       # Full integration tests
+make generate                               # Regenerate proto code
+
+# Frontend
+cd hefty_chest && flutter pub get           # Install deps
+buf generate                                # Regenerate proto code
+flutter run                                 # Run app
+flutter test                                # Run tests
+
+# Proto changes (MUST do both sides)
+# 1. Edit proto in HeftyBack/proto/ AND hefty_chest/proto/
+# 2. buf generate in HeftyBack/
+# 3. buf generate in hefty_chest/
 ```
 
-For manual setup (without Docker):
-```bash
-cp .env.example .env              # Configure DATABASE_URL and Supabase keys
-make deps                         # Install Go dependencies
-make generate                     # Generate proto code
-make migrate-up                   # Apply database migrations
-make run                          # Start server on :8080
-```
+## Entropy Rules
 
-### Frontend Setup
-```bash
-cd hefty_chest
-flutter pub get                   # Install dependencies
-buf generate                      # Generate proto code
-flutter run                       # Run app (connects to localhost:8080)
-```
+When you encounter these patterns, fix them immediately — don't propagate:
 
-### Run Everything
-```bash
-# Terminal 1 - Backend (Docker)
-cd HeftyBack && docker compose up -d
+- SQL query without user scoping → Add `WHERE user_id = $N`
+- Handler accessing DB directly → Route through repository interface
+- Frontend mutating state directly → Use `copyWith()`
+- Cross-feature imports → Extract to `shared/`
+- Hardcoded user ID → Use JWT auth context
+- Generated code hand-edited → Regenerate with `buf generate`
+- Hardcoded colors → Use `AppColors` constants
+- Material widgets where forui exists → Use `FButton`, `FTextField`, etc.
 
-# Terminal 2 - Frontend
-cd hefty_chest && flutter run
-```
+## Feedback Loops
 
-## Development Workflow
+When an agent struggles with a task, treat it as a signal. The fix is not a better prompt — it's a better harness:
 
-### Making Proto Changes
-Proto files define the API contract. When modifying:
-1. Update `.proto` files in **BOTH** `HeftyBack/proto/` and `hefty_chest/proto/`
-2. Run `buf generate` in **BOTH** projects
-3. Implement/update handlers in backend
-4. Update providers/UI in frontend
+1. Missing documentation → Add to `docs/`
+2. Repeated mistake → Add to Golden Principles or Entropy Rules
+3. Architectural violation → Add mechanical check
+4. Unclear pattern → Add example to `docs/conventions.md`
 
-### Backend Development
-- `docker compose up -d` - Start server with PostgreSQL (persistent volume)
-- `docker compose down && docker compose build --no-cache && docker compose up -d` - Rebuild after code changes
-- `make run` - Run server directly (needs external DB)
-- `make test` - Run all tests
-- `make test-unit` - Fast unit tests (no database)
-- `make test-integration` - Full integration tests (needs Docker)
-
-### Frontend Development
-- `flutter run` - Run with hot reload
-- `flutter test` - Run tests
-- `flutter build apk/ios/web` - Build for platform
-
-## Project Structure
-
-```
-heft/
-├── CLAUDE.md                    # This file (orchestrator)
-├── HeftyBack/                   # Go backend
-│   ├── CLAUDE.md               # Backend-specific guide
-│   ├── cmd/server/             # Entry point
-│   ├── internal/               # Application code
-│   │   ├── handlers/           # Service implementations
-│   │   ├── repository/         # Data access layer
-│   │   ├── db/                 # Database connection
-│   │   ├── config/             # Configuration
-│   │   └── testutil/           # Test helpers
-│   ├── proto/heft/v1/          # Proto definitions
-│   ├── gen/                    # Generated code
-│   ├── migrations/             # SQL migrations
-│   └── Makefile                # Build commands
-│
-└── hefty_chest/                 # Flutter frontend
-    ├── CLAUDE.md               # Frontend-specific guide
-    ├── lib/
-    │   ├── app/                # App config, router
-    │   ├── core/               # RPC client, config
-    │   ├── features/           # Feature modules (9)
-    │   ├── shared/             # Theme, widgets
-    │   └── gen/                # Generated proto code
-    ├── proto/                  # Proto definitions
-    └── pubspec.yaml            # Dependencies
-```
-
-## Services Overview
-
-The backend exposes 7 RPC services:
-
-| Service | Purpose | Key Operations |
-|---------|---------|----------------|
-| AuthService | Authentication | Login (handles both new/existing users) |
-| UserService | User management | GetProfile, UpdateSettings, LogWeight |
-| ExerciseService | Exercise library | ListExercises, SearchExercises, CreateExercise |
-| WorkoutService | Workout templates | CreateWorkout, UpdateWorkout, DuplicateWorkout, AddSection |
-| ProgramService | Training programs | CreateProgram, AssignWorkout, SetActiveProgram |
-| SessionService | Live tracking | StartSession, SyncSession, ListSessions, FinishSession |
-| ProgressService | Analytics | GetDashboardStats, GetCalendarMonth, GetPersonalRecords |
-
-## Testing
-
-### Backend Tests
-```bash
-cd HeftyBack
-docker compose up -d   # Start test PostgreSQL on port 5433
-make test              # All tests
-make test-unit         # Unit tests only (fast, no DB)
-make test-integration  # Integration tests (uses pgtestdb for isolated DBs)
-make test-coverage     # Generate coverage report
-```
-
-Integration tests use **pgtestdb** with **goosemigrator** to create isolated test databases per test. The `TestServer` provides clients for all 7 services with JWT auth support.
-
-### Frontend Tests
-```bash
-cd hefty_chest
-flutter test           # Run all tests
-```
-
-## Environment Configuration
-
-### Backend (.env)
-```bash
-SUPABASE_URL=https://your-project.supabase.co
-SUPABASE_ANON_KEY=eyJhbGc...
-SUPABASE_SERVICE_KEY=eyJhbGc...
-DATABASE_URL=postgres://postgres:password@db.your-project.supabase.co:5432/postgres
-PORT=8080
-```
-
-### Frontend
-Configuration is in `lib/core/config.dart`:
-- `backendUrl`: Backend API URL (default: `http://localhost:8080`)
-- `hardcodedUserId`: MVP user ID (will be replaced with auth)
-
-## Common Tasks
-
-### Add a New API Endpoint
-1. Define messages and service method in `.proto` files (both projects)
-2. `buf generate` in both projects
-3. Implement handler in `HeftyBack/internal/handlers/`
-4. Add repository method if needed
-5. Create provider and UI in frontend
-
-### Add a New Feature Screen
-1. Create feature folder in `hefty_chest/lib/features/`
-2. Add providers in `providers/` subfolder
-3. Add widgets in `widgets/` subfolder
-4. Create screen widget
-5. Add route in `lib/app/router.dart`
-
-### Run Database Migration
-```bash
-cd HeftyBack
-make migrate-create name=add_new_table  # Create new migration
-make migrate-up                          # Apply migrations
-make migrate-down                        # Rollback last migration
-make migrate-status                      # Check status
-```
-
-## Current Status (MVP)
-
-- Authentication: JWT-based auth via AuthService (Login handles both new/existing users)
-- Environment: Local development + Production on Render
-- CI/CD: Not configured
-- Proto sync: Manual (files duplicated, not shared)
+Every mistake an agent makes should result in a harness improvement so it never happens again.
