@@ -73,11 +73,10 @@ Plans:
   1. The countdown displays 0:00 before the timer dismisses
   2. Both rest_item_card.dart and rest_timer_sheet.dart use the same correct countdown termination condition
   3. The timer does not disappear while still showing 0:01
-**Plans**: TBD
+**Plans:** 1 plan
 
 Plans:
-- [ ] 04-01: Fix the <= 1 termination condition in rest_item_card.dart to <= 0
-- [ ] 04-02: Verify rest_timer_sheet.dart uses <= 0 (confirm already correct per research)
+- [ ] 04-01-PLAN.md — Fix <= 1 to <= 0 in rest_item_card.dart, update and add tests for 0:00 visibility, confirm rest_timer_sheet.dart already correct
 
 ### Phase 5: Guard Zero-Duration Rest Items
 **Goal**: Zero-duration rest items are never inserted into sessions and never rendered in the tracker UI
@@ -189,7 +188,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9 -> 10
 | 1. Remove Debug Logging | 1/1 | Complete   | 2026-03-10 |
 | 2. Fix UpdateProgram Handler | 0/1 | Not started | - |
 | 3. Fix Template-to-Session Rest Item Copy | 1/1 | Complete   | 2026-03-10 |
-| 4. Fix Rest Timer Off-by-One | 0/2 | Not started | - |
+| 4. Fix Rest Timer Off-by-One | 0/1 | Not started | - |
 | 5. Guard Zero-Duration Rest Items | 0/2 | Not started | - |
 | 6. Fix Rest Item Display Order | 0/3 | Not started | - |
 | 7. Wire Rest Timer Overlay Trigger | 0/2 | Not started | - |
