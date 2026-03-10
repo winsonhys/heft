@@ -295,6 +295,8 @@ type MockProgramRepository struct {
 	CreateDayFunc        func(ctx context.Context, programID string, dayNumber int, dayType string, workoutTemplateID, customName *string) (*repository.ProgramDay, error)
 	SetActiveFunc        func(ctx context.Context, id, userID string) (*repository.Program, error)
 	DeleteFunc           func(ctx context.Context, id, userID string) error
+	UpdateFunc           func(ctx context.Context, id, userID string, name *string, description *string, durationWeeks *int, durationDays *int, isArchived *bool, totalWorkoutDays *int, totalRestDays *int) (*repository.Program, error)
+	DeleteDaysFunc       func(ctx context.Context, programID, userID string) error
 	GetActiveProgramFunc func(ctx context.Context, userID string) (*repository.Program, error)
 }
 
@@ -345,6 +347,20 @@ func (m *MockProgramRepository) GetActiveProgram(ctx context.Context, userID str
 		return m.GetActiveProgramFunc(ctx, userID)
 	}
 	return nil, nil
+}
+
+func (m *MockProgramRepository) Update(ctx context.Context, id, userID string, name *string, description *string, durationWeeks *int, durationDays *int, isArchived *bool, totalWorkoutDays *int, totalRestDays *int) (*repository.Program, error) {
+	if m.UpdateFunc != nil {
+		return m.UpdateFunc(ctx, id, userID, name, description, durationWeeks, durationDays, isArchived, totalWorkoutDays, totalRestDays)
+	}
+	return nil, nil
+}
+
+func (m *MockProgramRepository) DeleteDays(ctx context.Context, programID, userID string) error {
+	if m.DeleteDaysFunc != nil {
+		return m.DeleteDaysFunc(ctx, programID, userID)
+	}
+	return nil
 }
 
 // MockProgressRepository is a mock implementation of ProgressRepositoryInterface

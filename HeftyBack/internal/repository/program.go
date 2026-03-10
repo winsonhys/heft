@@ -231,6 +231,45 @@ func (r *ProgramRepository) Delete(ctx context.Context, id, userID string) error
 	return err
 }
 
+// Update updates a program's fields using COALESCE for optional fields
+func (r *ProgramRepository) Update(ctx context.Context, id, userID string, name *string, description *string, durationWeeks *int, durationDays *int, isArchived *bool, totalWorkoutDays *int, totalRestDays *int) (*Program, error) {
+	query := `
+		UPDATE programs
+		SET name = COALESCE($3, name),
+		    description = COALESCE($4, description),
+		    duration_weeks = COALESCE($5, duration_weeks),
+		    duration_days = COALESCE($6, duration_days),
+		    is_archived = COALESCE($7, is_archived),
+		    total_workout_days = COALESCE($8, total_workout_days),
+		    total_rest_days = COALESCE($9, total_rest_days),
+		    updated_at = CURRENT_TIMESTAMP
+		WHERE id = $1 AND user_id = $2
+		RETURNING id, user_id, name, description, duration_weeks, duration_days,
+		          total_workout_days, total_rest_days, is_active, is_archived, created_at, updated_at
+	`
+
+	var p Program
+	err := r.pool.QueryRow(ctx, query, id, userID, name, description, durationWeeks, durationDays, isArchived, totalWorkoutDays, totalRestDays).Scan(
+		&p.ID, &p.UserID, &p.Name, &p.Description, &p.DurationWeeks, &p.DurationDays,
+		&p.TotalWorkoutDays, &p.TotalRestDays, &p.IsActive, &p.IsArchived, &p.CreatedAt, &p.UpdatedAt,
+	)
+	if err != nil {
+		if err == pgx.ErrNoRows {
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	return &p, nil
+}
+
+// DeleteDays deletes all days for a program, user-scoped via EXISTS subquery
+func (r *ProgramRepository) DeleteDays(ctx context.Context, programID, userID string) error {
+	query := `DELETE FROM program_days WHERE program_id = $1 AND EXISTS (SELECT 1 FROM programs WHERE id = $1 AND user_id = $2)`
+	_, err := r.pool.Exec(ctx, query, programID, userID)
+	return err
+}
+
 // GetActiveProgram retrieves the active program for a user
 func (r *ProgramRepository) GetActiveProgram(ctx context.Context, userID string) (*Program, error) {
 	query := `

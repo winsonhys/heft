@@ -75,6 +75,8 @@ type ProgramRepositoryInterface interface {
 	CreateDay(ctx context.Context, programID string, dayNumber int, dayType string, workoutTemplateID, customName *string) (*ProgramDay, error)
 	SetActive(ctx context.Context, id, userID string) (*Program, error)
 	Delete(ctx context.Context, id, userID string) error
+	Update(ctx context.Context, id, userID string, name *string, description *string, durationWeeks *int, durationDays *int, isArchived *bool, totalWorkoutDays *int, totalRestDays *int) (*Program, error)
+	DeleteDays(ctx context.Context, programID, userID string) error
 	GetActiveProgram(ctx context.Context, userID string) (*Program, error)
 }
 
