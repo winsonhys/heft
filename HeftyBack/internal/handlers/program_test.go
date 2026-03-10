@@ -818,6 +818,159 @@ func TestProgramHandler_GetTodayWorkout(t *testing.T) {
 	}
 }
 
+func TestProgramHandler_GetTodayWorkout_DayCalculation(t *testing.T) {
+	tests := []struct {
+		name          string
+		setupMock     func(*testutil.MockProgramRepository, *testutil.MockWorkoutRepository)
+		wantDayNumber int32
+	}{
+		{
+			name: "started today returns day 1",
+			setupMock: func(mp *testutil.MockProgramRepository, mw *testutil.MockWorkoutRepository) {
+				now := time.Now()
+				mp.GetActiveProgramFunc = func(ctx context.Context, userID string) (*repository.Program, error) {
+					return &repository.Program{
+						ID:            "program-1",
+						UserID:        userID,
+						Name:          "Test Program",
+						DurationWeeks: 1,
+						DurationDays:  0,
+						IsActive:      true,
+						StartedAt:     &now,
+						CreatedAt:     now,
+						UpdatedAt:     now,
+						Days: []*repository.ProgramDay{
+							{
+								ID:        "day-1",
+								ProgramID: "program-1",
+								DayNumber: 1,
+								DayType:   "rest",
+								CreatedAt: now,
+							},
+						},
+					}, nil
+				}
+			},
+			wantDayNumber: 1,
+		},
+		{
+			name: "started 3 days ago returns day 4",
+			setupMock: func(mp *testutil.MockProgramRepository, mw *testutil.MockWorkoutRepository) {
+				now := time.Now()
+				startedAt := now.Add(-3 * 24 * time.Hour)
+				workoutTemplateID := "workout-1"
+				mp.GetActiveProgramFunc = func(ctx context.Context, userID string) (*repository.Program, error) {
+					return &repository.Program{
+						ID:            "program-1",
+						UserID:        userID,
+						Name:          "Test Program",
+						DurationWeeks: 1,
+						DurationDays:  0,
+						IsActive:      true,
+						StartedAt:     &startedAt,
+						CreatedAt:     now,
+						UpdatedAt:     now,
+						Days: []*repository.ProgramDay{
+							{
+								ID:                "day-4",
+								ProgramID:         "program-1",
+								DayNumber:         4,
+								DayType:           "workout",
+								WorkoutTemplateID: &workoutTemplateID,
+								CreatedAt:         now,
+							},
+						},
+					}, nil
+				}
+				mw.GetByIDFunc = func(ctx context.Context, id, userID string) (*repository.WorkoutTemplate, error) {
+					return &repository.WorkoutTemplate{
+						ID:     id,
+						UserID: userID,
+						Name:   "Push Day",
+					}, nil
+				}
+			},
+			wantDayNumber: 4,
+		},
+		{
+			name: "nil started_at returns day 1",
+			setupMock: func(mp *testutil.MockProgramRepository, mw *testutil.MockWorkoutRepository) {
+				now := time.Now()
+				mp.GetActiveProgramFunc = func(ctx context.Context, userID string) (*repository.Program, error) {
+					return &repository.Program{
+						ID:            "program-1",
+						UserID:        userID,
+						Name:          "Test Program",
+						DurationWeeks: 1,
+						DurationDays:  0,
+						IsActive:      true,
+						StartedAt:     nil,
+						CreatedAt:     now,
+						UpdatedAt:     now,
+						Days: []*repository.ProgramDay{
+							{
+								ID:        "day-1",
+								ProgramID: "program-1",
+								DayNumber: 1,
+								DayType:   "rest",
+								CreatedAt: now,
+							},
+						},
+					}, nil
+				}
+			},
+			wantDayNumber: 1,
+		},
+		{
+			name: "past program duration clamps to last day",
+			setupMock: func(mp *testutil.MockProgramRepository, mw *testutil.MockWorkoutRepository) {
+				now := time.Now()
+				startedAt := now.Add(-10 * 24 * time.Hour)
+				mp.GetActiveProgramFunc = func(ctx context.Context, userID string) (*repository.Program, error) {
+					return &repository.Program{
+						ID:            "program-1",
+						UserID:        userID,
+						Name:          "Test Program",
+						DurationWeeks: 1,
+						DurationDays:  0,
+						IsActive:      true,
+						StartedAt:     &startedAt,
+						CreatedAt:     now,
+						UpdatedAt:     now,
+						Days: []*repository.ProgramDay{
+							{
+								ID:        "day-7",
+								ProgramID: "program-1",
+								DayNumber: 7,
+								DayType:   "rest",
+								CreatedAt: now,
+							},
+						},
+					}, nil
+				}
+			},
+			wantDayNumber: 7,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mockProgramRepo := &testutil.MockProgramRepository{}
+			mockWorkoutRepo := &testutil.MockWorkoutRepository{}
+			tt.setupMock(mockProgramRepo, mockWorkoutRepo)
+
+			handler := handlers.NewProgramHandler(mockProgramRepo, mockWorkoutRepo)
+
+			ctx := auth.ContextWithUserID(context.Background(), "user-123")
+
+			resp, err := handler.GetTodayWorkout(ctx, connect.NewRequest(&heftv1.GetTodayWorkoutRequest{}))
+
+			require.NoError(t, err)
+			assert.Equal(t, tt.wantDayNumber, resp.Msg.DayNumber)
+		})
+	}
+}
+
 func TestProgramHandler_UpdateProgram(t *testing.T) {
 	tests := []struct {
 		name         string

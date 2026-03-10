@@ -3,6 +3,7 @@ package handlers
 import (
 	"context"
 	"errors"
+	"time"
 
 	"connectrpc.com/connect"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -301,12 +302,14 @@ func (h *ProgramHandler) GetTodayWorkout(ctx context.Context, req *connect.Reque
 		}), nil
 	}
 
-	// Calculate today's day number in the program
-	// For simplicity, use day 1 for now - real implementation would calculate based on program start date
+	// Calculate today's day number based on program start date
 	dayNumber := 1
+	if program.StartedAt != nil {
+		dayNumber = int(time.Since(*program.StartedAt).Hours()/24) + 1
+	}
 	totalDays := program.DurationWeeks*7 + program.DurationDays
-	if totalDays > 0 {
-		dayNumber = (dayNumber-1)%totalDays + 1
+	if totalDays > 0 && dayNumber > totalDays {
+		dayNumber = totalDays
 	}
 
 	// Find today's day
