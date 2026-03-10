@@ -1248,7 +1248,7 @@ func TestSessionHandler_StartSession_WithRestItems(t *testing.T) {
 			mockWorkoutRepo := &testutil.MockWorkoutRepository{}
 			tt.mockSetup(mockSessionRepo, mockWorkoutRepo)
 
-			handler := handlers.NewSessionHandler(mockSessionRepo, mockWorkoutRepo)
+			handler := handlers.NewSessionHandler(mockSessionRepo, mockWorkoutRepo, &testutil.MockProgramRepository{})
 
 			ctx := context.Background()
 			if tt.withAuth {
@@ -1448,7 +1448,7 @@ func TestSessionHandler_SyncSession_RestItems(t *testing.T) {
 			mockWorkoutRepo := &testutil.MockWorkoutRepository{}
 			tt.mockSetup(mockSessionRepo)
 
-			handler := handlers.NewSessionHandler(mockSessionRepo, mockWorkoutRepo)
+			handler := handlers.NewSessionHandler(mockSessionRepo, mockWorkoutRepo, &testutil.MockProgramRepository{})
 
 			ctx := context.Background()
 			if tt.withAuth {
@@ -1624,7 +1624,7 @@ func TestSessionHandler_GetSession_IncludesRestItems(t *testing.T) {
 			mockWorkoutRepo := &testutil.MockWorkoutRepository{}
 			tt.mockSetup(mockSessionRepo)
 
-			handler := handlers.NewSessionHandler(mockSessionRepo, mockWorkoutRepo)
+			handler := handlers.NewSessionHandler(mockSessionRepo, mockWorkoutRepo, &testutil.MockProgramRepository{})
 
 			ctx := context.Background()
 			if tt.withAuth {
@@ -1821,7 +1821,7 @@ func TestSessionHandler_StartSession_DisplayOrder(t *testing.T) {
 		}, nil
 	}
 
-	handler := handlers.NewSessionHandler(mockSessionRepo, mockWorkoutRepo)
+	handler := handlers.NewSessionHandler(mockSessionRepo, mockWorkoutRepo, &testutil.MockProgramRepository{})
 
 	ctx := auth.ContextWithUserID(context.Background(), "user-123")
 	resp, err := handler.StartSession(ctx, connect.NewRequest(&heftv1.StartSessionRequest{
