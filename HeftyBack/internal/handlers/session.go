@@ -115,7 +115,7 @@ func (h *SessionHandler) StartSession(ctx context.Context, req *connect.Request[
 							return nil, handleDBError(err)
 						}
 					}
-				} else if item.ItemType == "rest" && item.RestDurationSeconds != nil {
+				} else if item.ItemType == "rest" && item.RestDurationSeconds != nil && *item.RestDurationSeconds > 0 {
 					// Add rest item from template
 					_, err := h.sessionRepo.AddRestItem(ctx, session.ID, item.DisplayOrder, &section.Name, *item.RestDurationSeconds)
 					if err != nil {

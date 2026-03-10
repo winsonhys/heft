@@ -322,7 +322,7 @@ class TrackerScreen extends HookConsumerWidget {
       );
     }
 
-    for (final restItem in session.restItems) {
+    for (final restItem in session.restItems.where((r) => r.restDurationSeconds > 0)) {
       final sectionName = restItem.sectionName.isEmpty ? 'Exercises' : restItem.sectionName;
       itemsBySection.putIfAbsent(sectionName, () => []).add(
         _TrackerItem.rest(restItem),

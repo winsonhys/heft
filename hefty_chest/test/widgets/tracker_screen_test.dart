@@ -7,6 +7,7 @@ import 'package:hefty_chest/features/tracker/tracker_screen.dart';
 import 'package:hefty_chest/features/tracker/widgets/progress_header.dart';
 import 'package:hefty_chest/features/tracker/widgets/tracker_section_card.dart';
 import 'package:hefty_chest/features/tracker/widgets/rest_timer_sheet.dart';
+import 'package:hefty_chest/features/tracker/widgets/rest_item_card.dart';
 import 'package:hefty_chest/features/tracker/models/session_models.dart';
 import 'package:hefty_chest/features/tracker/providers/session_providers.dart';
 import 'package:hefty_chest/features/workout_builder/providers/workout_builder_providers.dart';
@@ -1393,6 +1394,52 @@ void main() {
       // Both section headers should exist
       expect(find.text('Warm Up'), findsOneWidget);
       expect(find.text('Chest Superset'), findsOneWidget);
+    });
+  });
+
+  group('Zero-duration rest items', () {
+    Widget createTrackerWidgetWithSession(SessionModel session) {
+      final trackingNotifier = TrackingActiveSession(session);
+      return ProviderScope(
+        overrides: [
+          activeSessionProvider.overrideWith(() => trackingNotifier),
+          floatingWidgetVisibleProvider.overrideWith(SafeFloatingWidgetVisible.new),
+        ],
+        child: MaterialApp(
+          home: FTheme(
+            data: FThemes.zinc.dark,
+            child: TrackerScreen(sessionId: session.id),
+          ),
+        ),
+      );
+    }
+
+    testWidgets('does not render rest item with zero duration', (tester) async {
+      final session = createMockSession(
+        exercises: [
+          createMockExercise(
+            id: 'ex-1',
+            exerciseName: 'Bench Press',
+            sectionName: 'Main',
+          ),
+        ],
+      ).copyWith(
+        restItems: [
+          const SessionRestItemModel(
+            id: 'rest-zero',
+            displayOrder: 2,
+            sectionName: 'Main',
+            restDurationSeconds: 0,
+          ),
+        ],
+      );
+
+      await tester.pumpWidget(createTrackerWidgetWithSession(session));
+      await tester.pumpAndSettle();
+
+      // Zero-duration rest item should not be rendered
+      expect(find.byType(RestItemCard), findsNothing);
+      expect(find.text('Rest'), findsNothing);
     });
   });
 }

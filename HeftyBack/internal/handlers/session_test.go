@@ -1028,7 +1028,7 @@ func TestSessionHandler_StartSession_WithRestItems(t *testing.T) {
 			},
 		},
 		{
-			name:     "copies rest item with zero duration",
+			name:     "skips rest item with zero duration",
 			userID:   "user-123",
 			withAuth: true,
 			request: &heftv1.StartSessionRequest{
@@ -1068,30 +1068,18 @@ func TestSessionHandler_StartSession_WithRestItems(t *testing.T) {
 										SectionID:           "section-zero",
 										ItemType:            "rest",
 										DisplayOrder:        1,
-										RestDurationSeconds: &zeroDuration, // &0 — must be copied
+										RestDurationSeconds: &zeroDuration, // &0 — must be skipped
 									},
 								},
 							},
 						},
 					}, nil
 				}
-				addRestItemCalled := false
+				// AddRestItem must NOT be called for a zero-duration rest item
 				sr.AddRestItemFunc = func(ctx context.Context, sessionID string, displayOrder int, sectionName *string, restDurationSeconds int) (*repository.SessionRestItem, error) {
-					addRestItemCalled = true
-					if restDurationSeconds != 0 {
-						t.Errorf("expected restDurationSeconds=0, got %d", restDurationSeconds)
-					}
-					_ = addRestItemCalled
-					return &repository.SessionRestItem{
-						ID:                  "rest-item-zero",
-						SessionID:           sessionID,
-						DisplayOrder:        displayOrder,
-						SectionName:         sectionName,
-						RestDurationSeconds: restDurationSeconds,
-						IsCompleted:         false,
-					}, nil
+					t.Error("AddRestItem should not be called for zero duration")
+					return nil, errors.New("unexpected call")
 				}
-				sectionName := "Section C"
 				sr.GetByIDFunc = func(ctx context.Context, id, userID string) (*repository.WorkoutSession, error) {
 					return &repository.WorkoutSession{
 						ID:        id,
@@ -1101,16 +1089,7 @@ func TestSessionHandler_StartSession_WithRestItems(t *testing.T) {
 						CreatedAt: now,
 						UpdatedAt: now,
 						Exercises: []*repository.SessionExercise{},
-						RestItems: []*repository.SessionRestItem{
-							{
-								ID:                  "rest-item-zero",
-								SessionID:           id,
-								DisplayOrder:        1,
-								SectionName:         &sectionName,
-								RestDurationSeconds: 0,
-								IsCompleted:         false,
-							},
-						},
+						RestItems: []*repository.SessionRestItem{},
 					}, nil
 				}
 			},
@@ -1119,13 +1098,8 @@ func TestSessionHandler_StartSession_WithRestItems(t *testing.T) {
 					t.Error("expected session in response")
 					return
 				}
-				if len(resp.Session.RestItems) != 1 {
-					t.Errorf("expected 1 rest item (zero duration copied), got %d", len(resp.Session.RestItems))
-					return
-				}
-				restItem := resp.Session.RestItems[0]
-				if restItem.RestDurationSeconds != 0 {
-					t.Errorf("expected rest duration 0, got %d", restItem.RestDurationSeconds)
+				if len(resp.Session.RestItems) != 0 {
+					t.Errorf("expected 0 rest items (zero duration skipped), got %d", len(resp.Session.RestItems))
 				}
 			},
 		},
