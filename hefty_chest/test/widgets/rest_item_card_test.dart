@@ -285,6 +285,40 @@ void main() {
       expect(skipCalled, isTrue);
     });
 
+    // RestTimerSheet already uses <= 0 (rest_timer_sheet.dart line 47) and is the
+    // reference implementation. Both timer widgets now share the same termination semantics.
+    testWidgets('shows 0:00 before calling onComplete', (tester) async {
+      bool completeCalled = false;
+
+      await tester.pumpWidget(
+        createTestWidget(
+          child: RestItemCard(
+            restItem: createMockRestItem(restDurationSeconds: 2),
+            onComplete: () => completeCalled = true,
+            onSkip: () {},
+          ),
+        ),
+      );
+
+      // Start the timer
+      await tester.tap(find.text('Start Timer'));
+      await tester.pump();
+
+      // Tick 1: 2 -> 1
+      await tester.pump(const Duration(seconds: 1));
+      expect(completeCalled, isFalse);
+      expect(find.text('0:01'), findsOneWidget);
+
+      // Tick 2: 1 -> 0, display shows 0:00
+      await tester.pump(const Duration(seconds: 1));
+      expect(find.text('0:00'), findsOneWidget);
+      expect(completeCalled, isFalse);
+
+      // Tick 3: <= 0 fires onComplete
+      await tester.pump(const Duration(seconds: 1));
+      expect(completeCalled, isTrue);
+    });
+
     testWidgets('displays different duration formats correctly', (tester) async {
       // Test 30 seconds
       await tester.pumpWidget(
