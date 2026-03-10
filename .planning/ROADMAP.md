@@ -86,11 +86,10 @@ Plans:
   1. A template with a zero-duration rest item starts a session that does not contain that rest item
   2. If a zero-duration rest item somehow reaches the frontend, the tracker screen does not render it
   3. No empty rest item cards appear in the tracker during any session
-**Plans**: TBD
+**Plans:** 1 plan
 
 Plans:
-- [ ] 05-01: Add backend guard in StartSession: only insert rest items where rest_duration_seconds > 0
-- [ ] 05-02: Add frontend filter in tracker_screen.dart before building the display list
+- [ ] 05-01-PLAN.md — Add backend guard in StartSession and frontend filter in tracker_screen.dart to exclude zero-duration rest items
 
 ### Phase 6: Fix Rest Item Display Order
 **Goal**: Rest items and exercises render in the same order as defined in the template, and that order remains consistent throughout the session
@@ -189,7 +188,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9 -> 10
 | 2. Fix UpdateProgram Handler | 0/1 | Not started | - |
 | 3. Fix Template-to-Session Rest Item Copy | 1/1 | Complete   | 2026-03-10 |
 | 4. Fix Rest Timer Off-by-One | 1/1 | Complete   | 2026-03-10 |
-| 5. Guard Zero-Duration Rest Items | 0/2 | Not started | - |
+| 5. Guard Zero-Duration Rest Items | 0/1 | Not started | - |
 | 6. Fix Rest Item Display Order | 0/3 | Not started | - |
 | 7. Wire Rest Timer Overlay Trigger | 0/2 | Not started | - |
 | 8. Add Program Start Date Migration | 0/3 | Not started | - |
