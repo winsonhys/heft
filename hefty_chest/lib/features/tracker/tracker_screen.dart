@@ -605,6 +605,11 @@ class TrackerScreen extends HookConsumerWidget {
       } else {
         // Rest item
         final restItem = item.restItem!;
+        // Determine next exercise name for rest timer context
+        String nextExerciseName = '';
+        if (i + 1 < items.length && items[i + 1].isExercise) {
+          nextExerciseName = items[i + 1].exercise!.exerciseName;
+        }
         widgets.add(
           RestItemCard(
             restItem: restItem,
@@ -612,6 +617,9 @@ class TrackerScreen extends HookConsumerWidget {
               ref.read(activeSessionProvider.notifier).completeRestItem(
                 restItemId: restItem.id,
               );
+              if (restItem.restDurationSeconds > 0) {
+                onTriggerRestTimer(restItem.restDurationSeconds, nextExerciseName, 1);
+              }
             },
             onSkip: () {
               ref.read(activeSessionProvider.notifier).completeRestItem(
