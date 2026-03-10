@@ -246,13 +246,13 @@ func (r *ProgramRepository) Update(ctx context.Context, id, userID string, name 
 		    updated_at = CURRENT_TIMESTAMP
 		WHERE id = $1 AND user_id = $2
 		RETURNING id, user_id, name, description, duration_weeks, duration_days,
-		          total_workout_days, total_rest_days, is_active, is_archived, created_at, updated_at
+		          total_workout_days, total_rest_days, is_active, is_archived, created_at, updated_at, started_at
 	`
 
 	var p Program
 	err := r.pool.QueryRow(ctx, query, id, userID, name, description, durationWeeks, durationDays, isArchived, totalWorkoutDays, totalRestDays).Scan(
 		&p.ID, &p.UserID, &p.Name, &p.Description, &p.DurationWeeks, &p.DurationDays,
-		&p.TotalWorkoutDays, &p.TotalRestDays, &p.IsActive, &p.IsArchived, &p.CreatedAt, &p.UpdatedAt,
+		&p.TotalWorkoutDays, &p.TotalRestDays, &p.IsActive, &p.IsArchived, &p.CreatedAt, &p.UpdatedAt, &p.StartedAt,
 	)
 	if err != nil {
 		if err == pgx.ErrNoRows {
