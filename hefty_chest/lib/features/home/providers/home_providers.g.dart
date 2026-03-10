@@ -175,3 +175,49 @@ final class WorkoutDetailFamily extends $Family
   @override
   String toString() => r'workoutDetailProvider';
 }
+
+/// Provider for today's workout from active program
+
+@ProviderFor(todayWorkout)
+const todayWorkoutProvider = TodayWorkoutProvider._();
+
+/// Provider for today's workout from active program
+
+final class TodayWorkoutProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<GetTodayWorkoutResponse>,
+          GetTodayWorkoutResponse,
+          FutureOr<GetTodayWorkoutResponse>
+        >
+    with
+        $FutureModifier<GetTodayWorkoutResponse>,
+        $FutureProvider<GetTodayWorkoutResponse> {
+  /// Provider for today's workout from active program
+  const TodayWorkoutProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'todayWorkoutProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$todayWorkoutHash();
+
+  @$internal
+  @override
+  $FutureProviderElement<GetTodayWorkoutResponse> $createElement(
+    $ProviderPointer pointer,
+  ) => $FutureProviderElement(pointer);
+
+  @override
+  FutureOr<GetTodayWorkoutResponse> create(Ref ref) {
+    return todayWorkout(ref);
+  }
+}
+
+String _$todayWorkoutHash() => r'b7bc45ee328aa063753ed2807761edc0f500ec46';

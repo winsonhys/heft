@@ -8,6 +8,7 @@ import '../../core/logging.dart';
 import '../tracker/providers/session_providers.dart';
 import 'providers/home_providers.dart';
 import 'widgets/quick_stats_row.dart';
+import 'widgets/today_workout_card.dart';
 import 'widgets/workout_card.dart';
 
 /// Home screen displaying workout list and quick stats
@@ -90,6 +91,7 @@ class HomeScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final workoutsAsync = ref.watch(workoutListProvider);
     final statsAsync = ref.watch(dashboardStatsProvider);
+    final todayWorkoutAsync = ref.watch(todayWorkoutProvider);
 
     return Stack(
       children: [
@@ -147,6 +149,26 @@ class HomeScreen extends ConsumerWidget {
                   thisWeek: 0,
                   streak: 0,
                 ),
+              ),
+
+              // Today's Workout (from active program)
+              todayWorkoutAsync.when(
+                data: (todayWorkout) {
+                  if (!todayWorkout.hasWorkout) return const SizedBox.shrink();
+                  return Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
+                    child: TodayWorkoutCard(
+                      programName: todayWorkout.program.name,
+                      dayNumber: todayWorkout.dayNumber,
+                      workoutName: todayWorkout.workout_4.name,
+                      onStart: () => _startWorkout(
+                        context, ref, todayWorkout.workout_4.id,
+                      ),
+                    ),
+                  );
+                },
+                loading: () => const SizedBox.shrink(),
+                error: (_, _) => const SizedBox.shrink(),
               ),
 
               // Section Header

@@ -33,6 +33,16 @@ Future<Workout> workoutDetail(Ref ref, String workoutId) async {
   return response.workout;
 }
 
+/// Provider for today's workout from active program
+@riverpod
+Future<GetTodayWorkoutResponse> todayWorkout(Ref ref) async {
+  logHome.fine('Fetching today\'s workout');
+  final request = GetTodayWorkoutRequest();
+  final response = await programClient.getTodayWorkout(request);
+  logHome.fine('Today\'s workout fetched, hasWorkout: ${response.hasWorkout}');
+  return response;
+}
+
 /// Delete a workout by ID
 Future<void> deleteWorkout(String workoutId) async {
   logHome.info('Deleting workout: $workoutId');
