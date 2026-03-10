@@ -34,10 +34,10 @@ Decimal phases appear between their surrounding integers in numeric order.
   1. Starting a session produces no debug output on the server's stderr stream
   2. The session handler source contains no fmt.Fprintf or fmt.Fprintln calls
   3. All existing session handler tests pass after the change
-**Plans**: TBD
+**Plans:** 1 plan
 
 Plans:
-- [ ] 01-01: Grep and remove all fmt.Fprintf/fmt.Fprintln calls from handlers/session.go
+- [ ] 01-01-PLAN.md — Remove all debug logging (fmt + log) from session handler and clean imports
 
 ### Phase 2: Fix UpdateProgram Handler
 **Goal**: Editing a program's name, days, or exercises persists correctly to the database
