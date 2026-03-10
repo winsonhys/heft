@@ -271,6 +271,13 @@ func (r *ProgramRepository) DeleteDays(ctx context.Context, programID, userID st
 	return err
 }
 
+// Archive marks a program as archived and inactive
+func (r *ProgramRepository) Archive(ctx context.Context, id, userID string) error {
+	query := `UPDATE programs SET is_archived = TRUE, is_active = FALSE, updated_at = CURRENT_TIMESTAMP WHERE id = $1 AND user_id = $2`
+	_, err := r.pool.Exec(ctx, query, id, userID)
+	return err
+}
+
 // GetActiveProgram retrieves the active program for a user
 func (r *ProgramRepository) GetActiveProgram(ctx context.Context, userID string) (*Program, error) {
 	query := `

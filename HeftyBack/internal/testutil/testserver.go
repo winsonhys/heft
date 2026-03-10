@@ -49,7 +49,7 @@ func NewTestServer(t *testing.T, pool *pgxpool.Pool) *TestServer {
 	authHandler := handlers.NewAuthHandler(authRepo, jwtManager)
 	userHandler := handlers.NewUserHandler(userRepo)
 	exerciseHandler := handlers.NewExerciseHandler(exerciseRepo)
-	sessionHandler := handlers.NewSessionHandler(sessionRepo, workoutRepo)
+	sessionHandler := handlers.NewSessionHandler(sessionRepo, workoutRepo, programRepo)
 	workoutHandler := handlers.NewWorkoutHandler(workoutRepo)
 	programHandler := handlers.NewProgramHandler(programRepo, workoutRepo)
 	progressHandler := handlers.NewProgressHandler(progressRepo, exerciseRepo)

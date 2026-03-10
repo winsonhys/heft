@@ -18,13 +18,15 @@ import (
 type SessionHandler struct {
 	sessionRepo repository.SessionRepositoryInterface
 	workoutRepo repository.WorkoutRepositoryInterface
+	programRepo repository.ProgramRepositoryInterface
 }
 
 // NewSessionHandler creates a new SessionHandler
-func NewSessionHandler(sessionRepo repository.SessionRepositoryInterface, workoutRepo repository.WorkoutRepositoryInterface) *SessionHandler {
+func NewSessionHandler(sessionRepo repository.SessionRepositoryInterface, workoutRepo repository.WorkoutRepositoryInterface, programRepo repository.ProgramRepositoryInterface) *SessionHandler {
 	return &SessionHandler{
 		sessionRepo: sessionRepo,
 		workoutRepo: workoutRepo,
+		programRepo: programRepo,
 	}
 }
 
@@ -351,6 +353,17 @@ func (h *SessionHandler) FinishSession(ctx context.Context, req *connect.Request
 	session, err = h.sessionRepo.GetByID(ctx, session.ID, userID)
 	if err != nil {
 		return nil, handleDBError(err)
+	}
+
+	// Archive program if this was the last day
+	if session.ProgramID != nil && session.ProgramDayNumber != nil {
+		program, err := h.programRepo.GetByID(ctx, *session.ProgramID, userID)
+		if err == nil && program != nil {
+			totalDays := program.DurationWeeks*7 + program.DurationDays
+			if totalDays > 0 && *session.ProgramDayNumber >= totalDays {
+				_ = h.programRepo.Archive(ctx, program.ID, userID)
+			}
+		}
 	}
 
 	return connect.NewResponse(&heftv1.FinishSessionResponse{

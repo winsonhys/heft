@@ -132,7 +132,8 @@ func TestSessionHandler_StartSession(t *testing.T) {
 			mockWorkoutRepo := &testutil.MockWorkoutRepository{}
 			tt.mockSetup(mockSessionRepo, mockWorkoutRepo)
 
-			handler := handlers.NewSessionHandler(mockSessionRepo, mockWorkoutRepo)
+			mockProgramRepo := &testutil.MockProgramRepository{}
+			handler := handlers.NewSessionHandler(mockSessionRepo, mockWorkoutRepo, mockProgramRepo)
 
 			ctx := context.Background()
 			if tt.withAuth {
@@ -256,7 +257,8 @@ func TestSessionHandler_GetSession(t *testing.T) {
 			mockWorkoutRepo := &testutil.MockWorkoutRepository{}
 			tt.mockSetup(mockSessionRepo)
 
-			handler := handlers.NewSessionHandler(mockSessionRepo, mockWorkoutRepo)
+			mockProgramRepo := &testutil.MockProgramRepository{}
+			handler := handlers.NewSessionHandler(mockSessionRepo, mockWorkoutRepo, mockProgramRepo)
 
 			ctx := context.Background()
 			if tt.withAuth {
@@ -377,7 +379,8 @@ func TestSessionHandler_FinishSession(t *testing.T) {
 			mockWorkoutRepo := &testutil.MockWorkoutRepository{}
 			tt.mockSetup(mockSessionRepo)
 
-			handler := handlers.NewSessionHandler(mockSessionRepo, mockWorkoutRepo)
+			mockProgramRepo := &testutil.MockProgramRepository{}
+			handler := handlers.NewSessionHandler(mockSessionRepo, mockWorkoutRepo, mockProgramRepo)
 
 			ctx := context.Background()
 			if tt.withAuth {
@@ -482,7 +485,8 @@ func TestSessionHandler_AbandonSession(t *testing.T) {
 			mockWorkoutRepo := &testutil.MockWorkoutRepository{}
 			tt.mockSetup(mockSessionRepo)
 
-			handler := handlers.NewSessionHandler(mockSessionRepo, mockWorkoutRepo)
+			mockProgramRepo := &testutil.MockProgramRepository{}
+			handler := handlers.NewSessionHandler(mockSessionRepo, mockWorkoutRepo, mockProgramRepo)
 
 			ctx := context.Background()
 			if tt.withAuth {
@@ -596,7 +600,8 @@ func TestSessionHandler_ListSessions(t *testing.T) {
 			mockWorkoutRepo := &testutil.MockWorkoutRepository{}
 			tt.mockSetup(mockSessionRepo)
 
-			handler := handlers.NewSessionHandler(mockSessionRepo, mockWorkoutRepo)
+			mockProgramRepo := &testutil.MockProgramRepository{}
+			handler := handlers.NewSessionHandler(mockSessionRepo, mockWorkoutRepo, mockProgramRepo)
 
 			ctx := context.Background()
 			if tt.withAuth {
@@ -756,7 +761,8 @@ func TestSessionHandler_SyncSession(t *testing.T) {
 			mockWorkoutRepo := &testutil.MockWorkoutRepository{}
 			tt.mockSetup(mockSessionRepo)
 
-			handler := handlers.NewSessionHandler(mockSessionRepo, mockWorkoutRepo)
+			mockProgramRepo := &testutil.MockProgramRepository{}
+			handler := handlers.NewSessionHandler(mockSessionRepo, mockWorkoutRepo, mockProgramRepo)
 
 			ctx := context.Background()
 			if tt.withAuth {
@@ -787,6 +793,137 @@ func TestSessionHandler_SyncSession(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestSessionHandler_FinishSession_ArchivesProgram(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping unit test in short mode")
+	}
+
+	t.Run("archives program on last day", func(t *testing.T) {
+		mockSessionRepo := &testutil.MockSessionRepository{}
+		mockWorkoutRepo := &testutil.MockWorkoutRepository{}
+		mockProgramRepo := &testutil.MockProgramRepository{}
+
+		now := time.Now()
+		programID := "program-1"
+		dayNumber := 7
+
+		mockSessionRepo.FinishSessionFunc = func(ctx context.Context, id, userID string, notes *string) (*repository.WorkoutSession, error) {
+			return &repository.WorkoutSession{
+				ID:        id,
+				UserID:    userID,
+				Status:    "completed",
+				StartedAt: now.Add(-time.Hour),
+				CreatedAt: now.Add(-time.Hour),
+				UpdatedAt: now,
+			}, nil
+		}
+		mockSessionRepo.GetByIDFunc = func(ctx context.Context, id, userID string) (*repository.WorkoutSession, error) {
+			return &repository.WorkoutSession{
+				ID:               id,
+				UserID:           userID,
+				Status:           "completed",
+				StartedAt:        now.Add(-time.Hour),
+				CompletedAt:      &now,
+				CreatedAt:        now.Add(-time.Hour),
+				UpdatedAt:        now,
+				ProgramID:        &programID,
+				ProgramDayNumber: &dayNumber,
+				Exercises:        []*repository.SessionExercise{},
+			}, nil
+		}
+		mockProgramRepo.GetByIDFunc = func(ctx context.Context, id, userID string) (*repository.Program, error) {
+			return &repository.Program{
+				ID:            id,
+				UserID:        userID,
+				DurationWeeks: 1,
+				DurationDays:  0,
+				IsActive:      true,
+			}, nil
+		}
+
+		archiveCalled := false
+		mockProgramRepo.ArchiveFunc = func(ctx context.Context, id, userID string) error {
+			archiveCalled = true
+			if id != programID {
+				t.Errorf("expected program ID %s, got %s", programID, id)
+			}
+			return nil
+		}
+
+		handler := handlers.NewSessionHandler(mockSessionRepo, mockWorkoutRepo, mockProgramRepo)
+		ctx := auth.ContextWithUserID(context.Background(), "user-123")
+
+		_, err := handler.FinishSession(ctx, connect.NewRequest(&heftv1.FinishSessionRequest{Id: "session-123"}))
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+		if !archiveCalled {
+			t.Error("expected Archive to be called for last program day")
+		}
+	})
+
+	t.Run("does not archive program when not last day", func(t *testing.T) {
+		mockSessionRepo := &testutil.MockSessionRepository{}
+		mockWorkoutRepo := &testutil.MockWorkoutRepository{}
+		mockProgramRepo := &testutil.MockProgramRepository{}
+
+		now := time.Now()
+		programID := "program-1"
+		dayNumber := 3
+
+		mockSessionRepo.FinishSessionFunc = func(ctx context.Context, id, userID string, notes *string) (*repository.WorkoutSession, error) {
+			return &repository.WorkoutSession{
+				ID:        id,
+				UserID:    userID,
+				Status:    "completed",
+				StartedAt: now.Add(-time.Hour),
+				CreatedAt: now.Add(-time.Hour),
+				UpdatedAt: now,
+			}, nil
+		}
+		mockSessionRepo.GetByIDFunc = func(ctx context.Context, id, userID string) (*repository.WorkoutSession, error) {
+			return &repository.WorkoutSession{
+				ID:               id,
+				UserID:           userID,
+				Status:           "completed",
+				StartedAt:        now.Add(-time.Hour),
+				CompletedAt:      &now,
+				CreatedAt:        now.Add(-time.Hour),
+				UpdatedAt:        now,
+				ProgramID:        &programID,
+				ProgramDayNumber: &dayNumber,
+				Exercises:        []*repository.SessionExercise{},
+			}, nil
+		}
+		mockProgramRepo.GetByIDFunc = func(ctx context.Context, id, userID string) (*repository.Program, error) {
+			return &repository.Program{
+				ID:            id,
+				UserID:        userID,
+				DurationWeeks: 1,
+				DurationDays:  0,
+				IsActive:      true,
+			}, nil
+		}
+
+		archiveCalled := false
+		mockProgramRepo.ArchiveFunc = func(ctx context.Context, id, userID string) error {
+			archiveCalled = true
+			return nil
+		}
+
+		handler := handlers.NewSessionHandler(mockSessionRepo, mockWorkoutRepo, mockProgramRepo)
+		ctx := auth.ContextWithUserID(context.Background(), "user-123")
+
+		_, err := handler.FinishSession(ctx, connect.NewRequest(&heftv1.FinishSessionRequest{Id: "session-123"}))
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+		if archiveCalled {
+			t.Error("expected Archive NOT to be called when not on last program day")
+		}
+	})
 }
 
 // Helper functions for creating pointers

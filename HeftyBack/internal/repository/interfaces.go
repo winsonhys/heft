@@ -78,6 +78,7 @@ type ProgramRepositoryInterface interface {
 	Update(ctx context.Context, id, userID string, name *string, description *string, durationWeeks *int, durationDays *int, isArchived *bool, totalWorkoutDays *int, totalRestDays *int) (*Program, error)
 	DeleteDays(ctx context.Context, programID, userID string) error
 	GetActiveProgram(ctx context.Context, userID string) (*Program, error)
+	Archive(ctx context.Context, id, userID string) error
 }
 
 // ProgressRepositoryInterface defines the contract for progress data access

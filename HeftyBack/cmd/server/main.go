@@ -59,7 +59,7 @@ func main() {
 	exerciseHandler := handlers.NewExerciseHandler(exerciseRepo)
 	workoutHandler := handlers.NewWorkoutHandler(workoutRepo)
 	programHandler := handlers.NewProgramHandler(programRepo, workoutRepo)
-	sessionHandler := handlers.NewSessionHandler(sessionRepo, workoutRepo)
+	sessionHandler := handlers.NewSessionHandler(sessionRepo, workoutRepo, programRepo)
 	progressHandler := handlers.NewProgressHandler(progressRepo, exerciseRepo)
 
 	// Create interceptors (auth first, then logging)

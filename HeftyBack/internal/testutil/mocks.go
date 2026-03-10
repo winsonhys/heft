@@ -298,6 +298,7 @@ type MockProgramRepository struct {
 	UpdateFunc           func(ctx context.Context, id, userID string, name *string, description *string, durationWeeks *int, durationDays *int, isArchived *bool, totalWorkoutDays *int, totalRestDays *int) (*repository.Program, error)
 	DeleteDaysFunc       func(ctx context.Context, programID, userID string) error
 	GetActiveProgramFunc func(ctx context.Context, userID string) (*repository.Program, error)
+	ArchiveFunc          func(ctx context.Context, id, userID string) error
 }
 
 func (m *MockProgramRepository) List(ctx context.Context, userID string, includeArchived bool, limit, offset int) ([]*repository.Program, int, error) {
@@ -359,6 +360,13 @@ func (m *MockProgramRepository) Update(ctx context.Context, id, userID string, n
 func (m *MockProgramRepository) DeleteDays(ctx context.Context, programID, userID string) error {
 	if m.DeleteDaysFunc != nil {
 		return m.DeleteDaysFunc(ctx, programID, userID)
+	}
+	return nil
+}
+
+func (m *MockProgramRepository) Archive(ctx context.Context, id, userID string) error {
+	if m.ArchiveFunc != nil {
+		return m.ArchiveFunc(ctx, id, userID)
 	}
 	return nil
 }
