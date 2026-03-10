@@ -47,12 +47,10 @@ Plans:
   1. Calling UpdateProgram with a new name causes the program to reflect that name on the next GetProgram call
   2. The UpdateProgram handler calls the repository Update method (not a read-only path)
   3. ProgramRepositoryInterface declares Update, and the compile-time interface check passes
-**Plans**: TBD
+**Plans:** 1 plan
 
 Plans:
-- [ ] 02-01: Add Update method to ProgramRepositoryInterface in interfaces.go
-- [ ] 02-02: Implement Update SQL in repository/program.go with WHERE id AND user_id scoping
-- [ ] 02-03: Wire handler to call repository.Update and return the updated program
+- [ ] 02-01-PLAN.md — Add Update + DeleteDays to repo interface/impl/mock, wire handler, rewrite tests
 
 ### Phase 3: Fix Template-to-Session Rest Item Copy
 **Goal**: Starting a session from a template that contains rest items produces a session with those rest items included
@@ -190,7 +188,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Remove Debug Logging | 1/1 | Complete   | 2026-03-10 |
-| 2. Fix UpdateProgram Handler | 0/3 | Not started | - |
+| 2. Fix UpdateProgram Handler | 0/1 | Not started | - |
 | 3. Fix Template-to-Session Rest Item Copy | 0/2 | Not started | - |
 | 4. Fix Rest Timer Off-by-One | 0/2 | Not started | - |
 | 5. Guard Zero-Duration Rest Items | 0/2 | Not started | - |
