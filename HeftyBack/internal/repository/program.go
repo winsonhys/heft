@@ -20,7 +20,6 @@ type Program struct {
 	TotalRestDays    int
 	IsActive         bool
 	IsArchived       bool
-	StartedAt        *time.Time
 	CreatedAt        time.Time
 	UpdatedAt        time.Time
 	StartedAt        *time.Time
