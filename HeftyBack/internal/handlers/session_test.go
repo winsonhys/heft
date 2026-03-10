@@ -1519,3 +1519,219 @@ func TestSessionHandler_GetSession_IncludesRestItems(t *testing.T) {
 		})
 	}
 }
+
+func TestSessionHandler_StartSession_DisplayOrder(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping unit test in short mode")
+	}
+
+	// This test verifies that StartSession copies exercises from the template
+	// in display_order sequence, and that interleaved rest items (which don't
+	// become session_exercises) don't break the ordering.
+	//
+	// Template layout (single section):
+	//   display_order=1: exercise (Bench Press)
+	//   display_order=2: rest (60s)
+	//   display_order=3: exercise (Squat)
+	//
+	// Expected session exercises (display_order preserved from template):
+	//   display_order=1: Bench Press
+	//   display_order=3: Squat (rest item at 2 is separate)
+
+	exerciseID1 := "exercise-bench"
+	exerciseID2 := "exercise-squat"
+	sectionName := "Main"
+	restDuration := 60
+
+	// Track the display orders passed to AddExercise
+	type addExerciseCall struct {
+		exerciseID   string
+		displayOrder int
+	}
+	var addExerciseCalls []addExerciseCall
+
+	mockSessionRepo := &testutil.MockSessionRepository{}
+	mockWorkoutRepo := &testutil.MockWorkoutRepository{}
+
+	now := time.Now()
+
+	// Mock: no existing in-progress sessions
+	mockSessionRepo.ListFunc = func(ctx context.Context, userID string, status *string, startDate, endDate *time.Time, limit, offset int) ([]*repository.WorkoutSession, int, error) {
+		return []*repository.WorkoutSession{}, 0, nil
+	}
+
+	// Mock: create session
+	mockSessionRepo.CreateFunc = func(ctx context.Context, userID string, workoutTemplateID, programID *string, programDayNumber *int, name *string) (*repository.WorkoutSession, error) {
+		return &repository.WorkoutSession{
+			ID:        "session-new",
+			UserID:    userID,
+			Status:    "in_progress",
+			StartedAt: now,
+			CreatedAt: now,
+			UpdatedAt: now,
+		}, nil
+	}
+
+	// Mock: AddExercise captures calls
+	mockSessionRepo.AddExerciseFunc = func(ctx context.Context, sessionID, exerciseID string, displayOrder int, sectionName, supersetID *string) (*repository.SessionExercise, error) {
+		addExerciseCalls = append(addExerciseCalls, addExerciseCall{
+			exerciseID:   exerciseID,
+			displayOrder: displayOrder,
+		})
+		return &repository.SessionExercise{
+			ID:           "se-" + exerciseID,
+			SessionID:    sessionID,
+			ExerciseID:   exerciseID,
+			ExerciseName: exerciseID, // simplified
+			ExerciseType: "weight_reps",
+			DisplayOrder: displayOrder,
+			CreatedAt:    now,
+		}, nil
+	}
+
+	// Mock: AddSet (for target sets)
+	mockSessionRepo.AddSetFunc = func(ctx context.Context, sessionExerciseID string, setNumber int, targetWeightKg *float64, targetReps, targetTimeSeconds, restDurationSeconds *int, isBodyweight bool) (*repository.SessionSet, error) {
+		return &repository.SessionSet{
+			ID:                "set-" + sessionExerciseID,
+			SessionExerciseID: sessionExerciseID,
+			SetNumber:         setNumber,
+			CreatedAt:         now,
+			UpdatedAt:         now,
+		}, nil
+	}
+
+	// Mock: GetByID returns session with exercises in order
+	mockSessionRepo.GetByIDFunc = func(ctx context.Context, id, userID string) (*repository.WorkoutSession, error) {
+		return &repository.WorkoutSession{
+			ID:        id,
+			UserID:    userID,
+			Status:    "in_progress",
+			StartedAt: now,
+			CreatedAt: now,
+			UpdatedAt: now,
+			Exercises: []*repository.SessionExercise{
+				{
+					ID:           "se-" + exerciseID1,
+					SessionID:    id,
+					ExerciseID:   exerciseID1,
+					ExerciseName: "Bench Press",
+					ExerciseType: "weight_reps",
+					DisplayOrder: 1,
+					SectionName:  &sectionName,
+					CreatedAt:    now,
+					Sets:         []*repository.SessionSet{},
+				},
+				{
+					ID:           "se-" + exerciseID2,
+					SessionID:    id,
+					ExerciseID:   exerciseID2,
+					ExerciseName: "Squat",
+					ExerciseType: "weight_reps",
+					DisplayOrder: 3,
+					SectionName:  &sectionName,
+					CreatedAt:    now,
+					Sets:         []*repository.SessionSet{},
+				},
+			},
+		}, nil
+	}
+
+	// Mock: workout template with interleaved exercises and rest
+	templateID := "template-123"
+	mockWorkoutRepo.GetByIDFunc = func(ctx context.Context, id, userID string) (*repository.WorkoutTemplate, error) {
+		return &repository.WorkoutTemplate{
+			ID:     id,
+			UserID: userID,
+			Name:   "Test Workout",
+			Sections: []*repository.WorkoutSection{
+				{
+					ID:                "section-1",
+					WorkoutTemplateID: id,
+					Name:              sectionName,
+					DisplayOrder:      0,
+					IsSuperset:        false,
+					Items: []*repository.SectionItem{
+						{
+							ID:           "item-1",
+							SectionID:    "section-1",
+							ItemType:     "exercise",
+							DisplayOrder: 1,
+							ExerciseID:   &exerciseID1,
+							ExerciseName: ptrString("Bench Press"),
+							ExerciseType: ptrString("weight_reps"),
+							TargetSets:   []*repository.ExerciseTargetSet{},
+						},
+						{
+							ID:                  "item-2",
+							SectionID:           "section-1",
+							ItemType:            "rest",
+							DisplayOrder:        2,
+							RestDurationSeconds: &restDuration,
+						},
+						{
+							ID:           "item-3",
+							SectionID:    "section-1",
+							ItemType:     "exercise",
+							DisplayOrder: 3,
+							ExerciseID:   &exerciseID2,
+							ExerciseName: ptrString("Squat"),
+							ExerciseType: ptrString("weight_reps"),
+							TargetSets:   []*repository.ExerciseTargetSet{},
+						},
+					},
+				},
+			},
+		}, nil
+	}
+
+	handler := handlers.NewSessionHandler(mockSessionRepo, mockWorkoutRepo)
+
+	ctx := auth.ContextWithUserID(context.Background(), "user-123")
+	resp, err := handler.StartSession(ctx, connect.NewRequest(&heftv1.StartSessionRequest{
+		WorkoutTemplateId: &templateID,
+	}))
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	// Verify AddExercise was called exactly twice (rest item skipped)
+	if len(addExerciseCalls) != 2 {
+		t.Fatalf("expected 2 AddExercise calls, got %d", len(addExerciseCalls))
+	}
+
+	// Verify first exercise: Bench Press at display_order 1 (preserved from template)
+	if addExerciseCalls[0].exerciseID != exerciseID1 {
+		t.Errorf("first exercise: expected %s, got %s", exerciseID1, addExerciseCalls[0].exerciseID)
+	}
+	if addExerciseCalls[0].displayOrder != 1 {
+		t.Errorf("first exercise display_order: expected 1, got %d", addExerciseCalls[0].displayOrder)
+	}
+
+	// Verify second exercise: Squat at display_order 3 (preserved from template, rest item at 2 skipped)
+	if addExerciseCalls[1].exerciseID != exerciseID2 {
+		t.Errorf("second exercise: expected %s, got %s", exerciseID2, addExerciseCalls[1].exerciseID)
+	}
+	if addExerciseCalls[1].displayOrder != 3 {
+		t.Errorf("second exercise display_order: expected 3, got %d", addExerciseCalls[1].displayOrder)
+	}
+
+	// Verify response session has exercises in correct order
+	if resp.Msg.Session == nil {
+		t.Fatal("expected session in response")
+	}
+	if len(resp.Msg.Session.Exercises) != 2 {
+		t.Fatalf("expected 2 exercises in response, got %d", len(resp.Msg.Session.Exercises))
+	}
+	if resp.Msg.Session.Exercises[0].DisplayOrder != 1 {
+		t.Errorf("response exercise[0] display_order: expected 1, got %d", resp.Msg.Session.Exercises[0].DisplayOrder)
+	}
+	if resp.Msg.Session.Exercises[1].DisplayOrder != 3 {
+		t.Errorf("response exercise[1] display_order: expected 3, got %d", resp.Msg.Session.Exercises[1].DisplayOrder)
+	}
+	if resp.Msg.Session.Exercises[0].ExerciseId != exerciseID1 {
+		t.Errorf("response exercise[0] ID: expected %s, got %s", exerciseID1, resp.Msg.Session.Exercises[0].ExerciseId)
+	}
+	if resp.Msg.Session.Exercises[1].ExerciseId != exerciseID2 {
+		t.Errorf("response exercise[1] ID: expected %s, got %s", exerciseID2, resp.Msg.Session.Exercises[1].ExerciseId)
+	}
+}
