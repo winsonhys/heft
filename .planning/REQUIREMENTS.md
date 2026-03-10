@@ -10,7 +10,7 @@ Requirements for this milestone. Each maps to roadmap phases.
 ### Rest Timer
 
 - [ ] **REST-01**: Rest timer counts down to 0 before dismissing (not 1)
-- [ ] **REST-02**: Rest items from workout templates are correctly added to sessions on start
+- [x] **REST-02**: Rest items from workout templates are correctly added to sessions on start
 - [ ] **REST-03**: Zero-duration rest items are not rendered in the tracker UI
 - [ ] **REST-04**: Standalone rest items trigger the rest timer overlay on completion
 - [ ] **REST-05**: Rest items and exercises display in correct template order within sections
@@ -61,7 +61,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | Requirement | Phase | Status |
 |-------------|-------|--------|
 | REST-01 | Phase 4 | Pending |
-| REST-02 | Phase 3 | Pending |
+| REST-02 | Phase 3 | Complete |
 | REST-03 | Phase 5 | Pending |
 | REST-04 | Phase 7 | Pending |
 | REST-05 | Phase 6 | Pending |

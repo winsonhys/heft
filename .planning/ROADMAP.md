@@ -14,7 +14,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Remove Debug Logging** - Clean production session handler of fmt.Fprintf/fmt.Fprintln debug output (completed 2026-03-10)
 - [ ] **Phase 2: Fix UpdateProgram Handler** - Wire UpdateProgram to actually persist changes to the database
-- [ ] **Phase 3: Fix Template-to-Session Rest Item Copy** - Correct nil-check logic so rest items from templates are added to sessions
+- [x] **Phase 3: Fix Template-to-Session Rest Item Copy** - Correct nil-check logic so rest items from templates are added to sessions (completed 2026-03-10)
 - [ ] **Phase 4: Fix Rest Timer Off-by-One** - Timer counts down to 0:00 before dismissing (not 0:01)
 - [ ] **Phase 5: Guard Zero-Duration Rest Items** - Prevent zero-duration rest items from being inserted or rendered
 - [ ] **Phase 6: Fix Rest Item Display Order** - Rest items and exercises render in correct, consistent template order
@@ -60,7 +60,7 @@ Plans:
   1. A session started from a template with rest items contains those rest items in the session data
   2. A session started from a template with no rest items is unaffected
   3. The nil-check in StartSession no longer filters out valid rest items
-**Plans:** 1 plan
+**Plans:** 1/1 plans complete
 
 Plans:
 - [ ] 03-01-PLAN.md — Audit loading path, add nil-skip and zero-duration unit tests, fix handler condition if needed
@@ -188,7 +188,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9 -> 10
 |-------|----------------|--------|-----------|
 | 1. Remove Debug Logging | 1/1 | Complete   | 2026-03-10 |
 | 2. Fix UpdateProgram Handler | 0/1 | Not started | - |
-| 3. Fix Template-to-Session Rest Item Copy | 0/1 | Not started | - |
+| 3. Fix Template-to-Session Rest Item Copy | 1/1 | Complete   | 2026-03-10 |
 | 4. Fix Rest Timer Off-by-One | 0/2 | Not started | - |
 | 5. Guard Zero-Duration Rest Items | 0/2 | Not started | - |
 | 6. Fix Rest Item Display Order | 0/3 | Not started | - |
