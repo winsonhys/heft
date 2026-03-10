@@ -15,7 +15,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 1: Remove Debug Logging** - Clean production session handler of fmt.Fprintf/fmt.Fprintln debug output (completed 2026-03-10)
 - [ ] **Phase 2: Fix UpdateProgram Handler** - Wire UpdateProgram to actually persist changes to the database
 - [x] **Phase 3: Fix Template-to-Session Rest Item Copy** - Correct nil-check logic so rest items from templates are added to sessions (completed 2026-03-10)
-- [ ] **Phase 4: Fix Rest Timer Off-by-One** - Timer counts down to 0:00 before dismissing (not 0:01)
+- [x] **Phase 4: Fix Rest Timer Off-by-One** - Timer counts down to 0:00 before dismissing (not 0:01) (completed 2026-03-10)
 - [ ] **Phase 5: Guard Zero-Duration Rest Items** - Prevent zero-duration rest items from being inserted or rendered
 - [ ] **Phase 6: Fix Rest Item Display Order** - Rest items and exercises render in correct, consistent template order
 - [ ] **Phase 7: Wire Rest Timer Overlay Trigger** - Standalone rest items trigger the RestTimerSheet overlay on completion
@@ -73,7 +73,7 @@ Plans:
   1. The countdown displays 0:00 before the timer dismisses
   2. Both rest_item_card.dart and rest_timer_sheet.dart use the same correct countdown termination condition
   3. The timer does not disappear while still showing 0:01
-**Plans:** 1 plan
+**Plans:** 1/1 plans complete
 
 Plans:
 - [ ] 04-01-PLAN.md — Fix <= 1 to <= 0 in rest_item_card.dart, update and add tests for 0:00 visibility, confirm rest_timer_sheet.dart already correct
@@ -188,7 +188,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9 -> 10
 | 1. Remove Debug Logging | 1/1 | Complete   | 2026-03-10 |
 | 2. Fix UpdateProgram Handler | 0/1 | Not started | - |
 | 3. Fix Template-to-Session Rest Item Copy | 1/1 | Complete   | 2026-03-10 |
-| 4. Fix Rest Timer Off-by-One | 0/1 | Not started | - |
+| 4. Fix Rest Timer Off-by-One | 1/1 | Complete   | 2026-03-10 |
 | 5. Guard Zero-Duration Rest Items | 0/2 | Not started | - |
 | 6. Fix Rest Item Display Order | 0/3 | Not started | - |
 | 7. Wire Rest Timer Overlay Trigger | 0/2 | Not started | - |
