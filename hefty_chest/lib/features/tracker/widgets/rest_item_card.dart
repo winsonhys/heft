@@ -30,7 +30,7 @@ class RestItemCard extends HookWidget {
       if (!isTimerRunning.value) return null;
 
       final timer = Timer.periodic(const Duration(seconds: 1), (_) {
-        if (timeRemaining.value <= 1) {
+        if (timeRemaining.value <= 0) {
           isTimerRunning.value = false;
           onComplete();
         } else {

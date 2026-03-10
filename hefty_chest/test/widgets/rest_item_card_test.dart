@@ -175,11 +175,15 @@ void main() {
 
       expect(completeCalled, isFalse);
 
-      // Pump 1 second - timer still running
+      // Tick 1: 2->1, timer still running
       await tester.pump(const Duration(seconds: 1));
       expect(completeCalled, isFalse);
 
-      // Pump another second - timer should complete
+      // Tick 2: 1->0, 0:00 is displayed but onComplete not yet fired
+      await tester.pump(const Duration(seconds: 1));
+      expect(completeCalled, isFalse);
+
+      // Tick 3: <= 0 condition fires onComplete
       await tester.pump(const Duration(seconds: 1));
       expect(completeCalled, isTrue);
     });
