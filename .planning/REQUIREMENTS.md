@@ -60,25 +60,25 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| REST-01 | TBD | Pending |
-| REST-02 | TBD | Pending |
-| REST-03 | TBD | Pending |
-| REST-04 | TBD | Pending |
-| REST-05 | TBD | Pending |
-| REST-06 | TBD | Pending |
-| PROG-01 | TBD | Pending |
-| PROG-02 | TBD | Pending |
-| PROG-03 | TBD | Pending |
-| PROG-04 | TBD | Pending |
-| PROG-05 | TBD | Pending |
-| CLEN-01 | TBD | Pending |
-| CLEN-02 | TBD | Pending |
+| REST-01 | Phase 4 | Pending |
+| REST-02 | Phase 3 | Pending |
+| REST-03 | Phase 5 | Pending |
+| REST-04 | Phase 7 | Pending |
+| REST-05 | Phase 6 | Pending |
+| REST-06 | Phase 6 | Pending |
+| PROG-01 | Phase 8 | Pending |
+| PROG-02 | Phase 9 | Pending |
+| PROG-03 | Phase 10 | Pending |
+| PROG-04 | Phase 2 | Pending |
+| PROG-05 | Phase 11 | Pending |
+| CLEN-01 | Phase 1 | Pending |
+| CLEN-02 | Phase 6 | Pending |
 
 **Coverage:**
 - v1 requirements: 13 total
-- Mapped to phases: 0
-- Unmapped: 13 ⚠️
+- Mapped to phases: 13
+- Unmapped: 0 ✓
 
 ---
 *Requirements defined: 2026-03-10*
-*Last updated: 2026-03-10 after initial definition*
+*Last updated: 2026-03-10 after roadmap creation*
