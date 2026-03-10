@@ -26,7 +26,7 @@ Requirements for this milestone. Each maps to roadmap phases.
 
 ### Cleanup
 
-- [ ] **CLEN-01**: Debug fmt.Fprintf/fmt.Fprintln logging removed from session handler
+- [x] **CLEN-01**: Debug fmt.Fprintf/fmt.Fprintln logging removed from session handler
 - [ ] **CLEN-02**: Rest item display order is correctly copied from template section item order during session creation
 
 ## v2 Requirements
@@ -71,7 +71,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | PROG-03 | Phase 10 | Pending |
 | PROG-04 | Phase 2 | Pending |
 | PROG-05 | Phase 11 | Pending |
-| CLEN-01 | Phase 1 | Pending |
+| CLEN-01 | Phase 1 | Complete |
 | CLEN-02 | Phase 6 | Pending |
 
 **Coverage:**

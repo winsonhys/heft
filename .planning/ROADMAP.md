@@ -12,7 +12,7 @@ This milestone fixes 13 known bugs across the rest timer system and program sche
 
 Decimal phases appear between their surrounding integers in numeric order.
 
-- [ ] **Phase 1: Remove Debug Logging** - Clean production session handler of fmt.Fprintf/fmt.Fprintln debug output
+- [x] **Phase 1: Remove Debug Logging** - Clean production session handler of fmt.Fprintf/fmt.Fprintln debug output (completed 2026-03-10)
 - [ ] **Phase 2: Fix UpdateProgram Handler** - Wire UpdateProgram to actually persist changes to the database
 - [ ] **Phase 3: Fix Template-to-Session Rest Item Copy** - Correct nil-check logic so rest items from templates are added to sessions
 - [ ] **Phase 4: Fix Rest Timer Off-by-One** - Timer counts down to 0:00 before dismissing (not 0:01)
@@ -34,7 +34,7 @@ Decimal phases appear between their surrounding integers in numeric order.
   1. Starting a session produces no debug output on the server's stderr stream
   2. The session handler source contains no fmt.Fprintf or fmt.Fprintln calls
   3. All existing session handler tests pass after the change
-**Plans:** 1 plan
+**Plans:** 1/1 plans complete
 
 Plans:
 - [ ] 01-01-PLAN.md — Remove all debug logging (fmt + log) from session handler and clean imports
@@ -189,7 +189,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Remove Debug Logging | 0/1 | Not started | - |
+| 1. Remove Debug Logging | 1/1 | Complete   | 2026-03-10 |
 | 2. Fix UpdateProgram Handler | 0/3 | Not started | - |
 | 3. Fix Template-to-Session Rest Item Copy | 0/2 | Not started | - |
 | 4. Fix Rest Timer Off-by-One | 0/2 | Not started | - |
