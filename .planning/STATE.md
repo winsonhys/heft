@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: completed
-stopped_at: Phase 2 context gathered
-last_updated: "2026-03-10T14:07:00.645Z"
+stopped_at: Completed 02-01-PLAN.md
+last_updated: "2026-03-10T14:22:21.471Z"
 last_activity: "2026-03-10 — Completed 01-01: Remove Debug Logging from session handler"
 progress:
   total_phases: 11
-  completed_phases: 1
-  total_plans: 1
-  completed_plans: 1
+  completed_phases: 2
+  total_plans: 2
+  completed_plans: 2
   percent: 9
 ---
 
@@ -50,6 +50,7 @@ Progress: [█░░░░░░░░░] 9%
 - Trend: -
 
 *Updated after each plan completion*
+| Phase 02-fix-updateprogram-handler P01 | 2 min | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -62,6 +63,9 @@ Recent decisions affecting current work:
 - Fix rest timer off-by-one (count to 0) — timer showing 0:01 then disappearing is confusing UX
 - Add started_at column to programs table — required to calculate current program day
 - Remove debug logging from session handler — production code uses structured logging
+- [Phase 02-fix-updateprogram-handler]: COALESCE in UPDATE SQL allows partial updates — nil args leave existing DB values unchanged
+- [Phase 02-fix-updateprogram-handler]: Days replacement uses delete-then-insert (DeleteDays + CreateDay loop), matching CreateProgram pattern
+- [Phase 02-fix-updateprogram-handler]: Reload via GetByID after Update required because UPDATE RETURNING does not include days
 
 ### Pending Todos
 
@@ -75,6 +79,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-10T14:07:00.638Z
-Stopped at: Phase 2 context gathered
-Resume file: .planning/phases/02-fix-updateprogram-handler/02-CONTEXT.md
+Last session: 2026-03-10T14:22:21.469Z
+Stopped at: Completed 02-01-PLAN.md
+Resume file: None

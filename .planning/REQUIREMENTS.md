@@ -21,7 +21,7 @@ Requirements for this milestone. Each maps to roadmap phases.
 - [ ] **PROG-01**: Program records start date when activated via SetActiveProgram
 - [ ] **PROG-02**: GetTodayWorkout returns the correct day number based on elapsed calendar time
 - [ ] **PROG-03**: Programs end and archive after the last day is reached
-- [ ] **PROG-04**: UpdateProgram handler applies changes to the database
+- [x] **PROG-04**: UpdateProgram handler applies changes to the database
 - [ ] **PROG-05**: Today's Workout from active program is displayed on the home screen
 
 ### Cleanup
@@ -69,7 +69,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | PROG-01 | Phase 8 | Pending |
 | PROG-02 | Phase 9 | Pending |
 | PROG-03 | Phase 10 | Pending |
-| PROG-04 | Phase 2 | Pending |
+| PROG-04 | Phase 2 | Complete |
 | PROG-05 | Phase 11 | Pending |
 | CLEN-01 | Phase 1 | Complete |
 | CLEN-02 | Phase 6 | Pending |
