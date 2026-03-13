@@ -39,6 +39,17 @@ Boundary violations = bugs. If you need something from a higher layer, you have 
 | Backend quick reference | `HeftyBack/CLAUDE.md` |
 | Frontend quick reference | `hefty_chest/CLAUDE.md` |
 
+## Quick Start
+
+| Task | Command |
+|---|---|
+| Full dev environment | `./dev.sh` (backend + mobile) |
+| Dev on web | `./dev.sh -w` |
+| Clean DB + restart | `./dev.sh --clean` |
+| Backend tests | See `HeftyBack/CLAUDE.md` |
+| Frontend tests | See `hefty_chest/CLAUDE.md` |
+| Proto changes | See `docs/workflows.md` — MUST update both sides |
+
 ## Tech Stack
 
 | | Backend | Frontend |
@@ -51,28 +62,6 @@ Boundary violations = bugs. If you need something from a higher layer, you have 
 | Build | Makefile + Docker | Flutter CLI |
 
 Boring technology wins. These are stable, well-documented, and well-represented in training data.
-
-## Essential Commands
-
-```bash
-# Backend
-cd HeftyBack && docker compose up -d       # Start server + PostgreSQL
-make test                                   # All tests
-make test-unit                              # Fast unit tests (no DB)
-make test-integration                       # Full integration tests
-make generate                               # Regenerate proto code
-
-# Frontend
-cd hefty_chest && flutter pub get           # Install deps
-buf generate                                # Regenerate proto code
-flutter run                                 # Run app
-flutter test                                # Run tests
-
-# Proto changes (MUST do both sides)
-# 1. Edit proto in HeftyBack/proto/ AND hefty_chest/proto/
-# 2. buf generate in HeftyBack/
-# 3. buf generate in hefty_chest/
-```
 
 ## Entropy Rules
 
