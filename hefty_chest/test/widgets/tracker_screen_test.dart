@@ -1022,20 +1022,20 @@ void main() {
       );
     }
 
-    testWidgets('section header shows + button', (tester) async {
+    testWidgets('section header shows + Exercise button', (tester) async {
       await tester.pumpWidget(createTrackerWidget());
       await tester.pumpAndSettle();
 
-      // Should find the add_circle_outline icon in section header
-      expect(find.byIcon(Icons.add_circle_outline), findsOneWidget);
+      // Should find the "Exercise" add button in section header
+      expect(find.text('Exercise'), findsOneWidget);
     });
 
-    testWidgets('tapping + opens exercise modal', (tester) async {
+    testWidgets('tapping + Exercise opens exercise modal', (tester) async {
       await tester.pumpWidget(createTrackerWidget());
       await tester.pumpAndSettle();
 
-      // Tap the + button
-      await tester.tap(find.byIcon(Icons.add_circle_outline));
+      // Tap the "Exercise" add button
+      await tester.tap(find.text('Exercise'));
       await tester.pumpAndSettle();
 
       // Exercise modal should open
@@ -1169,30 +1169,32 @@ void main() {
       );
     }
 
-    testWidgets('shows X discard button in header', (tester) async {
+    testWidgets('shows Discard button in header', (tester) async {
       await tester.pumpWidget(createTrackerWidget(createTestSession()));
       await tester.pumpAndSettle();
 
-      expect(find.byIcon(Icons.close), findsOneWidget);
+      expect(find.text('Discard'), findsOneWidget);
     });
 
-    testWidgets('tapping X shows discard confirmation dialog', (tester) async {
+    testWidgets('tapping Discard shows discard confirmation dialog', (tester) async {
       await tester.pumpWidget(createTrackerWidget(createTestSession()));
       await tester.pumpAndSettle();
 
-      await tester.tap(find.byIcon(Icons.close));
+      await tester.tap(find.text('Discard'));
       await tester.pumpAndSettle();
 
       expect(find.text('Discard Workout?'), findsOneWidget);
       expect(find.text('Cancel'), findsOneWidget);
-      expect(find.text('Discard'), findsOneWidget);
+      // "Discard" appears twice: header button + dialog confirm button
+      expect(find.text('Discard'), findsNWidgets(2));
     });
 
     testWidgets('Cancel in discard dialog does not abandon session', (tester) async {
       await tester.pumpWidget(createTrackerWidget(createTestSession()));
       await tester.pumpAndSettle();
 
-      await tester.tap(find.byIcon(Icons.close));
+      // Tap header Discard to open dialog
+      await tester.tap(find.text('Discard'));
       await tester.pumpAndSettle();
 
       expect(find.text('Discard Workout?'), findsOneWidget);
@@ -1208,10 +1210,14 @@ void main() {
       await tester.pumpWidget(createTrackerWidget(createTestSession()));
       await tester.pumpAndSettle();
 
-      await tester.tap(find.byIcon(Icons.close));
+      // Tap the header "Discard" button
+      await tester.tap(find.text('Discard'));
       await tester.pumpAndSettle();
 
-      await tester.tap(find.text('Discard'));
+      // Now tap "Discard" in the confirmation dialog
+      // The dialog has "Discard Workout?" title, "Cancel" and "Discard" buttons
+      // There are now two "Discard" texts — tap the last one (dialog button)
+      await tester.tap(find.text('Discard').last);
       await tester.pumpAndSettle();
 
       expect(trackingNotifier.abandonSessionCalled, isTrue);
@@ -1271,7 +1277,7 @@ void main() {
       expect(find.text('Superset'), findsOneWidget);
     });
 
-    testWidgets('Superset badge does NOT appear when exercises have no supersetId', (tester) async {
+    testWidgets('Superset toggle shows inactive state when exercises have no supersetId', (tester) async {
       final normalExercises = [
         const SessionExerciseModel(
           id: 'ex1',
@@ -1303,8 +1309,10 @@ void main() {
       await tester.pumpWidget(createTrackerWidgetWithSession(session));
       await tester.pumpAndSettle();
 
-      // Verify "Superset" badge does NOT appear
-      expect(find.text('Superset'), findsNothing);
+      // Superset toggle always visible but shows inactive icon (link_off)
+      expect(find.text('Superset'), findsOneWidget);
+      expect(find.byIcon(Icons.link_off), findsOneWidget);
+      expect(find.byIcon(Icons.link), findsNothing);
     });
 
     testWidgets('Superset exercises are wrapped with left border', (tester) async {
@@ -1345,7 +1353,7 @@ void main() {
           reason: 'Should have container with 3px superset left border');
     });
 
-    testWidgets('Mixed sections show badge only for superset section', (tester) async {
+    testWidgets('Mixed sections show active/inactive superset toggles', (tester) async {
       final mixedExercises = [
         // Normal section
         const SessionExerciseModel(
@@ -1388,8 +1396,12 @@ void main() {
       await tester.pumpWidget(createTrackerWidgetWithSession(session));
       await tester.pumpAndSettle();
 
-      // Should find exactly one Superset badge (for Chest Superset section)
-      expect(find.text('Superset'), findsOneWidget);
+      // Both sections show superset toggle
+      expect(find.text('Superset'), findsNWidgets(2));
+
+      // One active (link icon) and one inactive (link_off icon)
+      expect(find.byIcon(Icons.link), findsOneWidget);
+      expect(find.byIcon(Icons.link_off), findsOneWidget);
 
       // Both section headers should exist
       expect(find.text('Warm Up'), findsOneWidget);

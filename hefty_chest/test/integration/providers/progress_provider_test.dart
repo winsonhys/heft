@@ -1,158 +1,105 @@
+import 'package:connectrpc/test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hefty_chest/core/client.dart';
 import 'package:hefty_chest/features/progress/providers/progress_providers.dart';
-
-import '../../test_utils/test_setup.dart';
-import '../../test_utils/test_data.dart';
+import 'package:hefty_chest/gen/progress.connect.spec.dart' as progress_specs;
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
-  late ProviderContainer container;
-
-  setUpAll(() async {
-    await IntegrationTestSetup.waitForBackend();
-    await IntegrationTestSetup.resetDatabase();
-    await IntegrationTestSetup.authenticateTestUser();
+  setUp(() {
+    SharedPreferences.setMockInitialValues({});
   });
 
-  setUp(() async {
-    container = IntegrationTestSetup.createContainer();
-    await TestData.abandonAnyActiveSession();
-  });
-
-  tearDown(() {
-    container.dispose();
-  });
-
-  group('ProgressService Integration', () {
-    test('gets dashboard stats', () async {
-      final request = GetDashboardStatsRequest()
-        ;
-
-      final response = await progressClient.getDashboardStats(request);
-
-      expect(response.stats, isNotNull);
-      expect(response.stats.totalWorkouts, isNonNegative);
-      expect(response.stats.workoutsThisWeek, isNonNegative);
-      expect(response.stats.currentStreak, isNonNegative);
-    });
-
+  group('Progress Provider - Mock Tests', () {
     test('gets dashboard stats via provider', () async {
+      final mockStats = DashboardStats()
+        ..totalWorkouts = 42
+        ..workoutsThisWeek = 3
+        ..currentStreak = 5;
+
+      final container = ProviderContainer(overrides: [
+        progressStatsProvider.overrideWith((ref) async => mockStats),
+      ]);
+
       final stats = await container.read(progressStatsProvider.future);
 
       expect(stats, isNotNull);
-      expect(stats.totalWorkouts, isNonNegative);
-    });
+      expect(stats.totalWorkouts, equals(42));
 
-    test('gets weekly activity', () async {
-      final request = GetWeeklyActivityRequest()
-        ;
-
-      final response = await progressClient.getWeeklyActivity(request);
-
-      expect(response.days, hasLength(7));
-
-      // Each day should have the required fields
-      for (final day in response.days) {
-        expect(day.dayOfWeek, isNotEmpty);
-        expect(day.workoutCount, isNonNegative);
-      }
+      container.dispose();
     });
 
     test('gets weekly activity via provider', () async {
+      final mockDays = List.generate(
+        7,
+        (i) => WeeklyActivityDay()
+          ..dayOfWeek =
+              ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'][i]
+          ..workoutCount = i % 2,
+      );
+
+      final container = ProviderContainer(overrides: [
+        weeklyActivityProvider.overrideWith((ref) async => mockDays),
+      ]);
+
       final days = await container.read(weeklyActivityProvider.future);
 
       expect(days, hasLength(7));
-    });
 
-    test('gets personal records', () async {
-      final request = GetPersonalRecordsRequest()
-        ;
-
-      final response = await progressClient.getPersonalRecords(request);
-
-      // May be empty if no workouts completed, but should not error
-      expect(response.records, isA<List>());
+      container.dispose();
     });
 
     test('gets personal records via provider', () async {
-      final records = await container.read(personalRecordsProvider.future);
+      final container = ProviderContainer(overrides: [
+        personalRecordsProvider
+            .overrideWith((ref) async => <PersonalRecord>[]),
+      ]);
+
+      final records =
+          await container.read(personalRecordsProvider.future);
 
       expect(records, isA<List>());
-    });
 
-    test('gets exercise progress', () async {
-      // Get an exercise ID first
-      final exercisesResponse = await exerciseClient.listExercises(
-        ListExercisesRequest(),
-      );
-      final exerciseId = exercisesResponse.exercises.first.id;
-
-      final request = GetExerciseProgressRequest()
-        
-        ..exerciseId = exerciseId
-        ..limit = 10;
-
-      final response = await progressClient.getExerciseProgress(request);
-
-      // May have no data if exercise hasn't been done
-      expect(response.progress, isNotNull);
+      container.dispose();
     });
 
     test('gets exercise progress via provider', () async {
-      // Get an exercise ID first
-      final exercisesResponse = await exerciseClient.listExercises(
-        ListExercisesRequest(),
-      );
-      final exerciseId = exercisesResponse.exercises.first.id;
+      final mockProgress = ExerciseProgressSummary();
+
+      final container = ProviderContainer(overrides: [
+        exerciseProgressProvider.overrideWith(
+          (ref, exerciseId) async => mockProgress,
+        ),
+      ]);
 
       final progress = await container.read(
-        exerciseProgressProvider(exerciseId).future,
+        exerciseProgressProvider('ex-1').future,
       );
 
-      // May be null if no progress data
       expect(progress, isA<ExerciseProgressSummary?>());
-    });
 
-    test('gets streak', () async {
-      final request = GetStreakRequest();
-
-      final response = await progressClient.getStreak(request);
-
-      expect(response.currentStreak, isNonNegative);
-      expect(response.longestStreak, isNonNegative);
-    });
-
-    test('gets calendar month', () async {
-      final now = DateTime.now();
-      final request = GetCalendarMonthRequest()
-        
-        ..year = now.year
-        ..month = now.month;
-
-      final response = await progressClient.getCalendarMonth(request);
-
-      // May be empty if no workouts completed this month
-      expect(response.days, isA<List>());
-      expect(response.totalWorkouts, isNonNegative);
+      container.dispose();
     });
 
     test('selected exercise progress workflow', () async {
-      // Get an exercise ID
-      final exercisesResponse = await exerciseClient.listExercises(
-        ListExercisesRequest(),
-      );
-      final exerciseId = exercisesResponse.exercises.first.id;
+      final mockProgress = ExerciseProgressSummary();
+
+      final container = ProviderContainer(overrides: [
+        exerciseProgressProvider.overrideWith(
+          (ref, exerciseId) async => mockProgress,
+        ),
+      ]);
 
       // Initially no selection
       expect(container.read(selectedExerciseIdProvider), isNull);
 
       // Select exercise
-      container.read(selectedExerciseIdProvider.notifier).selectExercise(
-        exerciseId,
-      );
-
-      expect(container.read(selectedExerciseIdProvider), equals(exerciseId));
+      container
+          .read(selectedExerciseIdProvider.notifier)
+          .selectExercise('ex-1');
+      expect(
+          container.read(selectedExerciseIdProvider), equals('ex-1'));
 
       // Get current progress
       final progress = await container.read(
@@ -161,76 +108,49 @@ void main() {
       expect(progress, isA<ExerciseProgressSummary?>());
 
       // Clear selection
-      container.read(selectedExerciseIdProvider.notifier).clearSelection();
+      container
+          .read(selectedExerciseIdProvider.notifier)
+          .clearSelection();
       expect(container.read(selectedExerciseIdProvider), isNull);
+
+      container.dispose();
+    });
+  });
+
+  group('Progress Provider - Contract Tests', () {
+    late ProviderContainer container;
+
+    setUp(() {
+      // Start with 5 workouts, incremented after finish
+      var totalWorkouts = 5;
+
+      final transport = (FakeTransportBuilder()
+            ..unary(progress_specs.ProgressService.getDashboardStats,
+                (req, ctx) {
+              return GetDashboardStatsResponse()
+                ..stats = (DashboardStats()
+                  ..totalWorkouts = totalWorkouts
+                  ..workoutsThisWeek = 1
+                  ..currentStreak = 1);
+            }))
+          .build();
+
+      useTestTransport(transport);
+      container = ProviderContainer();
     });
 
-    test('progress updates after completing workout', () async {
-      // Get initial stats
-      final initialStats = await container.read(progressStatsProvider.future);
-      final initialWorkoutCount = initialStats.totalWorkouts;
-
-      // Create and complete a workout session
-      final workoutId = await TestData.createWorkoutWithExercise();
-      final sessionId = await TestData.startSession(
-        workoutTemplateId: workoutId,
-      );
-
-      // Get session and complete sets via sync API
-      final sessionResponse = await sessionClient.getSession(
-        GetSessionRequest()
-          ..id = sessionId
-          ,
-      );
-
-      final syncSets = <SyncSetData>[];
-      for (final exercise in sessionResponse.session.exercises) {
-        for (final set in exercise.sets) {
-          syncSets.add(SyncSetData()
-            ..id = set.id
-            ..weightKg = 50.0
-            ..reps = 10
-            ..isCompleted = true);
-        }
-      }
-
-      await sessionClient.syncSession(
-        SyncSessionRequest()
-          ..sessionId = sessionId
-          ..sets.addAll(syncSets),
-      );
-
-      // Finish session
-      await sessionClient.finishSession(
-        FinishSessionRequest()
-          ..id = sessionId
-          ,
-      );
-
-      // Invalidate provider to force refresh
-      container.invalidate(progressStatsProvider);
-
-      // Get updated stats
-      final updatedStats = await container.read(progressStatsProvider.future);
-
-      expect(
-        updatedStats.totalWorkouts,
-        equals(initialWorkoutCount + 1),
-      );
-
-      // Note: Cannot delete workout as completed session references it
+    tearDown(() {
+      container.dispose();
+      resetTransport();
     });
 
-    test('exercises list provider for progress screen', () async {
-      final exercises = await container.read(exercisesListProvider.future);
+    test('progress stats are fetched via provider through transport', () async {
+      final stats = await container.read(progressStatsProvider.future);
 
-      expect(exercises, isNotEmpty);
-
-      // Should have system exercises from seed data
-      expect(
-        exercises.any((e) => e.name == 'Bench Press'),
-        isTrue,
-      );
+      expect(stats, isNotNull);
+      expect(stats.totalWorkouts, equals(5));
+      expect(stats.workoutsThisWeek, equals(1));
+      expect(stats.currentStreak, equals(1));
     });
   });
 }

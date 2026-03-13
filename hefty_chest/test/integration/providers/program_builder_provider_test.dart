@@ -3,26 +3,23 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:hefty_chest/core/client.dart';
 import 'package:hefty_chest/features/program_builder/providers/program_builder_providers.dart';
 
+import '../../test_utils/fake_backend.dart';
 import '../../test_utils/test_data.dart';
-import '../../test_utils/test_setup.dart';
+
+late FakeBackend _backend;
 
 void main() {
   late ProviderContainer container;
 
-  setUpAll(() async {
-    await IntegrationTestSetup.waitForBackend();
-    await IntegrationTestSetup.resetDatabase();
-    await IntegrationTestSetup.authenticateTestUser();
-  });
-
   setUp(() async {
-    IntegrationTestSetup.restoreTokenProvider();
-    container = IntegrationTestSetup.createContainer();
-    await TestData.abandonAnyActiveSession();
+    _backend = FakeBackend();
+    useTestTransport(_backend.buildTransport());
+    container = ProviderContainer();
   });
 
   tearDown(() {
     container.dispose();
+    resetTransport();
   });
 
   group('ProgramBuilder State Management', () {

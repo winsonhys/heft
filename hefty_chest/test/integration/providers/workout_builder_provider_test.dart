@@ -3,26 +3,23 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:hefty_chest/core/client.dart';
 import 'package:hefty_chest/features/workout_builder/providers/workout_builder_providers.dart';
 
+import '../../test_utils/fake_backend.dart';
 import '../../test_utils/test_data.dart';
-import '../../test_utils/test_setup.dart';
+
+late FakeBackend _backend;
 
 void main() {
   late ProviderContainer container;
 
-  setUpAll(() async {
-    await IntegrationTestSetup.waitForBackend();
-    await IntegrationTestSetup.resetDatabase();
-    await IntegrationTestSetup.authenticateTestUser();
-  });
-
   setUp(() async {
-    IntegrationTestSetup.restoreTokenProvider();
-    container = IntegrationTestSetup.createContainer();
-    await TestData.abandonAnyActiveSession();
+    _backend = FakeBackend();
+    useTestTransport(_backend.buildTransport());
+    container = ProviderContainer();
   });
 
   tearDown(() {
     container.dispose();
+    resetTransport();
   });
 
   group('WorkoutBuilder State Management', () {
@@ -127,7 +124,7 @@ void main() {
     test('addExercise adds exercise to section', () async {
       // Get an exercise from the API first (before accessing the notifier)
       final exercisesResponse = await exerciseClient.listExercises(
-        ListExercisesRequest()..userId = TestData.testUserId,
+        ListExercisesRequest(),
       );
       final exercise = exercisesResponse.exercises.first;
 
@@ -151,7 +148,7 @@ void main() {
     test('deleteExercise removes exercise', () async {
       // Get an exercise from the API first
       final exercisesResponse = await exerciseClient.listExercises(
-        ListExercisesRequest()..userId = TestData.testUserId,
+        ListExercisesRequest(),
       );
       final exercise = exercisesResponse.exercises.first;
 
@@ -202,7 +199,7 @@ void main() {
     test('reorderItems moves items', () async {
       // Get exercises from the API first
       final exercisesResponse = await exerciseClient.listExercises(
-        ListExercisesRequest()..userId = TestData.testUserId,
+        ListExercisesRequest(),
       );
       final exercise1 = exercisesResponse.exercises[0];
       final exercise2 = exercisesResponse.exercises[1];
@@ -229,7 +226,7 @@ void main() {
     test('addSet adds set to exercise', () async {
       // Get exercise from the API first
       final exercisesResponse = await exerciseClient.listExercises(
-        ListExercisesRequest()..userId = TestData.testUserId,
+        ListExercisesRequest(),
       );
       final exercise = exercisesResponse.exercises.first;
 
@@ -257,7 +254,7 @@ void main() {
     test('deleteSet removes and renumbers', () async {
       // Get exercise from the API first
       final exercisesResponse = await exerciseClient.listExercises(
-        ListExercisesRequest()..userId = TestData.testUserId,
+        ListExercisesRequest(),
       );
       final exercise = exercisesResponse.exercises.first;
 
@@ -290,7 +287,7 @@ void main() {
     test('updateSetValues modifies set', () async {
       // Get exercise from the API first
       final exercisesResponse = await exerciseClient.listExercises(
-        ListExercisesRequest()..userId = TestData.testUserId,
+        ListExercisesRequest(),
       );
       final exercise = exercisesResponse.exercises.first;
 
@@ -365,7 +362,7 @@ void main() {
     test('saveWorkout creates new workout', () async {
       // Get an exercise first (before accessing notifier)
       final exercisesResponse = await exerciseClient.listExercises(
-        ListExercisesRequest()..userId = TestData.testUserId,
+        ListExercisesRequest(),
       );
       final exercise = exercisesResponse.exercises.first;
       final uniqueName = 'Save Test ${DateTime.now().millisecondsSinceEpoch}';
@@ -461,7 +458,7 @@ void main() {
     test('moveItem moves item to different section', () async {
       // Get an exercise from the API first
       final exercisesResponse = await exerciseClient.listExercises(
-        ListExercisesRequest()..userId = TestData.testUserId,
+        ListExercisesRequest(),
       );
       final exercise = exercisesResponse.exercises.first;
 
@@ -496,7 +493,7 @@ void main() {
     test('moveItem handles within-section reorder', () async {
       // Get exercises from the API first
       final exercisesResponse = await exerciseClient.listExercises(
-        ListExercisesRequest()..userId = TestData.testUserId,
+        ListExercisesRequest(),
       );
       final exercise1 = exercisesResponse.exercises[0];
       final exercise2 = exercisesResponse.exercises[1];
@@ -527,7 +524,7 @@ void main() {
     test('moveItem to empty section works', () async {
       // Get an exercise from the API first
       final exercisesResponse = await exerciseClient.listExercises(
-        ListExercisesRequest()..userId = TestData.testUserId,
+        ListExercisesRequest(),
       );
       final exercise = exercisesResponse.exercises.first;
 
@@ -560,7 +557,7 @@ void main() {
     test('moveItem clamps target index to valid range', () async {
       // Get an exercise from the API first
       final exercisesResponse = await exerciseClient.listExercises(
-        ListExercisesRequest()..userId = TestData.testUserId,
+        ListExercisesRequest(),
       );
       final exercise = exercisesResponse.exercises.first;
 
@@ -592,7 +589,7 @@ void main() {
     test('moveItem preserves item data when moving between sections', () async {
       // Get an exercise from the API first
       final exercisesResponse = await exerciseClient.listExercises(
-        ListExercisesRequest()..userId = TestData.testUserId,
+        ListExercisesRequest(),
       );
       final exercise = exercisesResponse.exercises.first;
 

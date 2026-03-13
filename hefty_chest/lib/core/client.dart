@@ -62,13 +62,37 @@ protocol.Transport createTransport() {
 }
 
 /// Global transport instance
-final _transport = createTransport();
+Transport _transport = createTransport();
 
 /// Service clients - use these to make RPC calls
-final authClient = AuthServiceClient(_transport);
-final userClient = UserServiceClient(_transport);
-final workoutClient = WorkoutServiceClient(_transport);
-final sessionClient = SessionServiceClient(_transport);
-final progressClient = ProgressServiceClient(_transport);
-final exerciseClient = ExerciseServiceClient(_transport);
-final programClient = ProgramServiceClient(_transport);
+AuthServiceClient authClient = AuthServiceClient(_transport);
+UserServiceClient userClient = UserServiceClient(_transport);
+WorkoutServiceClient workoutClient = WorkoutServiceClient(_transport);
+SessionServiceClient sessionClient = SessionServiceClient(_transport);
+ProgressServiceClient progressClient = ProgressServiceClient(_transport);
+ExerciseServiceClient exerciseClient = ExerciseServiceClient(_transport);
+ProgramServiceClient programClient = ProgramServiceClient(_transport);
+
+/// Replace all clients with a test transport (for use in tests only)
+void useTestTransport(Transport transport) {
+  _transport = transport;
+  authClient = AuthServiceClient(transport);
+  userClient = UserServiceClient(transport);
+  workoutClient = WorkoutServiceClient(transport);
+  sessionClient = SessionServiceClient(transport);
+  progressClient = ProgressServiceClient(transport);
+  exerciseClient = ExerciseServiceClient(transport);
+  programClient = ProgramServiceClient(transport);
+}
+
+/// Reset clients back to the real transport (for use in tests only)
+void resetTransport() {
+  _transport = createTransport();
+  authClient = AuthServiceClient(_transport);
+  userClient = UserServiceClient(_transport);
+  workoutClient = WorkoutServiceClient(_transport);
+  sessionClient = SessionServiceClient(_transport);
+  progressClient = ProgressServiceClient(_transport);
+  exerciseClient = ExerciseServiceClient(_transport);
+  programClient = ProgramServiceClient(_transport);
+}
