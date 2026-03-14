@@ -169,6 +169,18 @@ class NewSessionRoute extends GoRouteData with $NewSessionRoute {
   }
 }
 
+/// Empty session route - start a workout without a template
+@TypedGoRoute<EmptySessionRoute>(path: '/session/empty')
+@immutable
+class EmptySessionRoute extends GoRouteData with $EmptySessionRoute {
+  const EmptySessionRoute();
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) {
+    return const TrackerScreen();
+  }
+}
+
 /// Resume session route - continue an existing session
 @TypedGoRoute<ResumeSessionRoute>(path: '/session/:sessionId')
 @immutable
@@ -180,18 +192,6 @@ class ResumeSessionRoute extends GoRouteData with $ResumeSessionRoute {
   @override
   Widget build(BuildContext context, GoRouterState state) {
     return TrackerScreen(sessionId: sessionId);
-  }
-}
-
-/// Empty session route - start a workout without a template
-@TypedGoRoute<EmptySessionRoute>(path: '/session/empty')
-@immutable
-class EmptySessionRoute extends GoRouteData with $EmptySessionRoute {
-  const EmptySessionRoute();
-
-  @override
-  Widget build(BuildContext context, GoRouterState state) {
-    return const TrackerScreen();
   }
 }
 

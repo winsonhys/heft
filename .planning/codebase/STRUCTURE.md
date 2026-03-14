@@ -195,19 +195,19 @@ heft/
     │   │   ├── test_setup.dart      # Integration test setup, auth, backend wait
     │   │   └── test_data.dart       # Test data creation/cleanup helpers
     │   ├── integration/
-    │   │   ├── providers/           # Provider integration tests (7 files)
-    │   │   │   ├── auth_provider_test.dart
-    │   │   │   ├── exercise_provider_test.dart
-    │   │   │   ├── workout_provider_test.dart
-    │   │   │   ├── session_provider_test.dart
-    │   │   │   ├── program_provider_test.dart
-    │   │   │   ├── progress_provider_test.dart
-    │   │   │   └── user_provider_test.dart
-    │   └── e2e/                     # End-to-end user flow tests
+    │   │   └── providers/           # Provider integration tests (7 files)
+    │   │       ├── auth_provider_test.dart
+    │   │       ├── exercise_provider_test.dart
+    │   │       ├── workout_provider_test.dart
+    │   │       ├── session_provider_test.dart
+    │   │       ├── program_provider_test.dart
+    │   │       ├── progress_provider_test.dart
+    │   │       └── user_provider_test.dart
+    │   └── e2e/                     # End-to-end user flow tests (real Docker backend)
+    │       ├── CLAUDE.md
     │       ├── workout_flow_test.dart
-    │       └── session_flow_test.dart
-    ├── scripts/
-    │   └── run_integration_tests.sh  # Integration test runner (handles Docker)
+    │       ├── session_flow_test.dart
+    │       └── (20+ test files)
     ├── pubspec.yaml                 # Flutter dependencies
     ├── buf.yaml                     # Buf configuration
     ├── buf.gen.yaml                 # Proto code generation config
@@ -319,7 +319,7 @@ heft/
 - Backend unit tests: `HeftyBack/internal/handlers/{service}_test.go` (7 files)
 - Backend integration tests: `HeftyBack/tests/integration/{service}_test.go` (7 files)
 - Frontend integration tests: `hefty_chest/test/integration/providers/{service}_provider_test.dart` (7 files)
-- Frontend E2E tests: `hefty_chest/test/integration/e2e/{flow}_test.dart` (2 files)
+- Frontend E2E tests: `hefty_chest/test/e2e/{flow}_test.dart`
 
 ## Naming Conventions
 
@@ -452,7 +452,7 @@ heft/
 **`hefty_chest/test/integration/`:**
 - Purpose: Integration tests requiring backend
 - Execution: Requires Docker (PostgreSQL container) + backend running in TEST_MODE
-- Command: `./scripts/run_integration_tests.sh`
+- Command: `./run_e2e_tests.sh` (from project root)
 
 **`.env` file (not checked in):**
 - Purpose: Environment variables (DATABASE_URL, JWT_SECRET, etc.)

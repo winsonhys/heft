@@ -35,11 +35,11 @@ if [ -n "$GO_CHANGES" ]; then
 fi
 
 # Frontend tests (unit + contract tests, no Docker needed)
-# Excludes test/integration/e2e/ which requires a running backend
+# Excludes test/e2e/ which requires a running backend
 if [ -n "$DART_CHANGES" ]; then
     echo "Dart changes detected — running frontend tests..." >&2
 
-    if ! (cd "$FRONTEND_DIR" && flutter test test/widgets/ test/widget_test.dart test/integration/providers/ --concurrency=1 2>&1); then
+    if ! (cd "$FRONTEND_DIR" && flutter test --exclude-tags e2e 2>&1); then
         echo "FRONTEND TESTS FAILED" >&2
         FAILED=1
     fi

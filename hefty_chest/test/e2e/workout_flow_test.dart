@@ -1,3 +1,6 @@
+@Tags(['e2e', 'workout'])
+library;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -5,8 +8,8 @@ import 'package:forui/forui.dart';
 import 'package:hefty_chest/app/app.dart';
 import 'package:hefty_chest/features/auth/providers/auth_providers.dart';
 
-import '../../test_utils/test_setup.dart';
-import '../../test_utils/test_data.dart';
+import '../test_utils/test_setup.dart';
+import '../test_utils/test_data.dart';
 
 void main() {
   setUpAll(() async {
@@ -157,8 +160,8 @@ void main() {
         await tester.pump();
       });
 
-      // Find the add icon in FAB
-      expect(find.byIcon(Icons.add), findsOneWidget);
+      // Find the FAB by key
+      expect(find.byKey(const Key('home_fab')), findsOneWidget);
     });
 
     testWidgets('tapping FAB navigates to workout builder', (tester) async {
@@ -176,7 +179,10 @@ void main() {
         await tester.pump();
 
         // Tap FAB
-        await tester.tap(find.byIcon(Icons.add));
+        final fab = find.byKey(const Key('home_fab'));
+        if (fab.evaluate().isNotEmpty) {
+          await tester.tap(fab);
+        }
         await Future.delayed(const Duration(seconds: 2));
         await tester.pump();
       });

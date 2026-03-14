@@ -1,0 +1,10 @@
+tags:
+  e2e:
+    timeout: 5x
+  workout:
+  session:
+  program:
+  progress:
+  profile:
+  calendar:
+  misc:

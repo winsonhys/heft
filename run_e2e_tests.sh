@@ -2,7 +2,7 @@
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
+PROJECT_DIR="$SCRIPT_DIR/hefty_chest"
 
 # Colors for output
 RED='\033[0;31m'
@@ -19,10 +19,15 @@ cleanup() {
 # Trap to ensure cleanup on exit
 trap cleanup EXIT
 
+FEATURE="${1:-}"
+
 echo ""
 echo -e "${GREEN}==================================="
-echo "  Integration Test Runner"
+echo "  E2E Test Runner"
 echo "===================================${NC}"
+if [ -n "$FEATURE" ]; then
+    echo -e "  Feature filter: ${YELLOW}${FEATURE}${NC}"
+fi
 echo ""
 
 # Check for running containers on our ports
@@ -89,7 +94,7 @@ fi
 
 echo ""
 echo -e "${GREEN}==================================="
-echo "  Running Integration Tests"
+echo "  Running E2E Tests"
 echo "===================================${NC}"
 echo ""
 
@@ -97,7 +102,13 @@ cd "$PROJECT_DIR"
 
 # Run Flutter integration tests sequentially to avoid race conditions
 # The --concurrency=1 flag ensures tests run one at a time
-flutter test test/integration/providers/ --concurrency=1 --reporter expanded
+if [ -n "$FEATURE" ]; then
+    TAG_EXPR="e2e && $FEATURE"
+else
+    TAG_EXPR="e2e"
+fi
+
+flutter test --tags "$TAG_EXPR" --concurrency=1 --reporter expanded
 TEST_EXIT_CODE=$?
 
 echo ""

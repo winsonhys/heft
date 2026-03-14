@@ -48,6 +48,7 @@ Boundary violations = bugs. If you need something from a higher layer, you have 
 | Clean DB + restart | `./dev.sh --clean` |
 | Backend tests | See `HeftyBack/CLAUDE.md` |
 | Frontend tests | See `hefty_chest/CLAUDE.md` |
+| E2E tests | `./run_e2e_tests.sh` |
 | Proto changes | See `docs/workflows.md` — MUST update both sides |
 
 ## Tech Stack

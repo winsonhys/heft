@@ -1,3 +1,6 @@
+@Tags(['e2e', 'misc'])
+library;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -7,8 +10,8 @@ import 'package:hefty_chest/features/auth/providers/auth_providers.dart';
 import 'package:hefty_chest/features/history/widgets/session_card.dart';
 
 
-import '../../test_utils/test_setup.dart';
-import '../../test_utils/test_data.dart';
+import '../test_utils/test_setup.dart';
+import '../test_utils/test_data.dart';
 
 void main() {
   setUpAll(() async {

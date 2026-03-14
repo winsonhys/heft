@@ -40,12 +40,13 @@ class IntegrationTestSetup {
   ///
   /// Polls the /health endpoint until it responds with 200 or timeout.
   static Future<void> waitForBackend({
-    Duration timeout = const Duration(seconds: 30),
+    Duration timeout = const Duration(seconds: 5),
   }) async {
     // Enable real network requests
     HttpOverrides.global = null;
 
-    final client = HttpClient();
+    final client = HttpClient()
+      ..connectionTimeout = const Duration(seconds: 1);
     final stopwatch = Stopwatch()..start();
 
     while (stopwatch.elapsed < timeout) {
@@ -62,7 +63,10 @@ class IntegrationTestSetup {
       await Future.delayed(const Duration(milliseconds: 500));
     }
     client.close();
-    throw Exception('Backend not available after $timeout');
+    throw Exception(
+      'Backend not available at $backendUrl after $timeout. '
+      'Start with: ./dev.sh or run via ./run_e2e_tests.sh from project root',
+    );
   }
 
   /// Authenticate the test user and set up the token provider.
@@ -131,7 +135,7 @@ class IntegrationTestSetup {
       if (response.statusCode == 404) {
         // Test mode not enabled - skip reset (tests may have stale data)
         // ignore: avoid_print
-        print('Warning: /test/reset not available. Run tests via run_integration_tests.sh');
+        print('Warning: /test/reset not available. Run tests via run_e2e_tests.sh');
         return;
       }
       if (response.statusCode != 200) {

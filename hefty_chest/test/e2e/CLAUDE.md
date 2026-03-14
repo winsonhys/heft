@@ -6,7 +6,7 @@ Full end-to-end tests that run the real `HeftyChestApp` against a live backend (
 
 - Backend running at `localhost:8080` with `TEST_MODE=true`
 - Start with: `./dev.sh` or `docker compose up`
-- Run with: `./scripts/run_integration_tests.sh` (handles DB reset)
+- Run with: `./run_e2e_tests.sh` from project root (handles DB reset)
 
 ## Test Infrastructure
 

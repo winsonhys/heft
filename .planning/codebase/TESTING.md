@@ -724,7 +724,7 @@ flutter test --coverage
 
 ## E2E Tests (Dart/Flutter)
 
-**Location:** `test/integration/e2e/`
+**Location:** `test/e2e/`
 
 **Examples:**
 - `workout_flow_test.dart` - Full workflow: create workout, start session, track
@@ -813,8 +813,8 @@ flutter test --watch
 # With coverage
 flutter test --coverage
 
-# Integration tests
-./scripts/run_integration_tests.sh
+# Integration tests (from project root)
+./run_e2e_tests.sh
 ```
 
 ---
@@ -825,7 +825,7 @@ flutter test --coverage
 |-----------|---------|----------|
 | Unit Tests | `internal/handlers/*_test.go` | `test/widgets/` or co-located |
 | Integration Tests | `tests/integration/*_test.go` with pgtestdb | `test/integration/providers/` |
-| E2E Tests | N/A (full stack via integration tests) | `test/integration/e2e/` |
+| E2E Tests | N/A (full stack via integration tests) | `test/e2e/` |
 | Mocking | Custom pattern in `testutil/` | Custom notifiers + Mockito |
 | Test Data | Fixtures in `testutil/fixtures.go` | Helpers in `test/test_utils/test_data.dart` |
 | Coverage | `make test-coverage` | `flutter test --coverage` |

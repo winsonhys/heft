@@ -29,10 +29,17 @@ class WorkoutBuilderScreen extends HookConsumerWidget {
       if (workoutId != null) {
         // Defer to avoid modifying provider during build
         Future.microtask(() async {
-          
           await ref.read(workoutBuilderProvider.notifier).loadWorkout(workoutId!);
           final loadedState = ref.read(workoutBuilderProvider);
           nameController.text = loadedState.name;
+        });
+      } else {
+        // New workout: add a default section
+        Future.microtask(() {
+          final notifier = ref.read(workoutBuilderProvider.notifier);
+          if (ref.read(workoutBuilderProvider).sections.isEmpty) {
+            notifier.addSection();
+          }
         });
       }
       return null;

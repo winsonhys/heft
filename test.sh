@@ -140,7 +140,7 @@ if $RUN_FRONTEND; then
     if ! $UNIT_ONLY; then
         echo ""
         echo -e "${GREEN}Running frontend integration tests...${NC}"
-        if (cd "$FRONTEND_DIR" && ./scripts/run_integration_tests.sh); then
+        if ("$SCRIPT_DIR/run_e2e_tests.sh"); then
             echo -e "${GREEN}Frontend integration tests passed.${NC}"
         else
             echo -e "${RED}Frontend integration tests FAILED.${NC}"

@@ -14,7 +14,7 @@ BLUE='\033[0;34m'
 NC='\033[0m'
 
 # Defaults
-FLUTTER_DEVICE=""
+FLUTTER_DEVICE="-d chrome"
 CLEAN=false
 
 usage() {

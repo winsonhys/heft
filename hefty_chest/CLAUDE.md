@@ -127,6 +127,7 @@ buf generate                      # Regenerate proto code
 flutter run                       # Run app
 flutter run -d chrome             # Run on web
 flutter test                      # Run tests
+../run_e2e_tests.sh               # E2E tests (Docker + backend)
 flutter analyze                   # Static analysis
 flutter pub run build_runner build --delete-conflicting-outputs  # Regenerate providers/router
 ```

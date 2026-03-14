@@ -30,7 +30,7 @@ class CalendarScreen extends ConsumerWidget {
         ),
         suffixes: [
           FHeaderAction(
-            icon: const Icon(Icons.add),
+            icon: Icon(Icons.add, key: const Key('calendar_add_program')),
             onPress: () => context.goProgramBuilder(),
           ),
         ],

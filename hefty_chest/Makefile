@@ -50,7 +50,7 @@ test-unit:
 
 # Run all integration tests with Docker automation
 test-integration:
-	./scripts/run_integration_tests.sh
+	../run_e2e_tests.sh
 
 # Run provider integration tests only (with Docker)
 test-providers: test-env-up
@@ -61,7 +61,7 @@ test-providers: test-env-up
 # Run E2E widget tests only (with Docker)
 test-e2e: test-env-up
 	@echo "Running E2E integration tests..."
-	flutter test test/integration/e2e/ --reporter expanded || (make test-env-down && exit 1)
+	flutter test test/e2e/ --reporter expanded || (make test-env-down && exit 1)
 	@echo "Tests complete."
 
 # Run all tests

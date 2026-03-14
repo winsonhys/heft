@@ -1,14 +1,19 @@
+@Tags(['e2e', 'progress'])
+library;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hefty_chest/app/app.dart';
 import 'package:hefty_chest/core/client.dart';
 import 'package:hefty_chest/features/auth/providers/auth_providers.dart';
-import 'package:hefty_chest/features/profile/widgets/stats_grid.dart';
-import 'package:hefty_chest/features/profile/widgets/settings_card.dart';
+import 'package:hefty_chest/features/progress/widgets/summary_cards_row.dart';
+import 'package:hefty_chest/features/progress/widgets/weekly_activity_chart.dart';
+import 'package:hefty_chest/features/progress/widgets/pr_list.dart';
+import 'package:hefty_chest/features/progress/widgets/exercise_progress_section.dart';
 
-import '../../test_utils/test_setup.dart';
-import '../../test_utils/test_data.dart';
+import '../test_utils/test_setup.dart';
+import '../test_utils/test_data.dart';
 
 void main() {
   setUpAll(() async {
@@ -26,7 +31,8 @@ void main() {
   }
 
   /// Complete a session: start, sync all sets as completed, finish.
-  Future<String> completeSession(String workoutId) async {
+  Future<String> completeSession(String workoutId,
+      {double weightKg = 60.0, int reps = 10}) async {
     final sessionId = await TestData.startSession(
       workoutTemplateId: workoutId,
     );
@@ -39,8 +45,8 @@ void main() {
         syncSets.add(
           SyncSetData()
             ..id = set.id
-            ..weightKg = 60.0
-            ..reps = 10
+            ..weightKg = weightKg
+            ..reps = reps
             ..isCompleted = true,
         );
       }
@@ -56,40 +62,12 @@ void main() {
     return sessionId;
   }
 
-  group('Profile Flow E2E', () {
-    testWidgets('displays user info and member since', (tester) async {
+  group('Progress Flow E2E', () {
+    testWidgets('summary cards show stats', (tester) async {
       await tester.runAsync(() async {
         await TestData.abandonAnyActiveSession();
 
-        await tester.pumpWidget(
-          ProviderScope(
-            overrides: [authProvider.overrideWith(MockAuth.new)],
-            child: const HeftyChestApp(),
-          ),
-        );
-
-        await Future.delayed(const Duration(seconds: 3));
-        await tester.pump();
-
-        // Navigate to Profile tab
-        await tester.tap(find.byIcon(Icons.person_outline), warnIfMissed: false);
-        await Future.delayed(const Duration(seconds: 3));
-        await tester.pump();
-        await Future.delayed(const Duration(seconds: 2));
-        await tester.pump();
-      });
-
-      // Profile header
-      expect(find.text('Profile'), findsWidgets);
-      // Member since text
-      expect(find.textContaining('Member since'), findsOneWidget);
-    });
-
-    testWidgets('stats grid renders with data', (tester) async {
-      await tester.runAsync(() async {
-        await TestData.abandonAnyActiveSession();
-
-        final name = getUniqueName('Profile Stats');
+        final name = getUniqueName('Progress Stats');
         final workoutId =
             await TestData.createWorkoutWithExercise(name: name);
         await completeSession(workoutId);
@@ -104,23 +82,32 @@ void main() {
         await Future.delayed(const Duration(seconds: 3));
         await tester.pump();
 
-        // Navigate to Profile tab
-        await tester.tap(find.byIcon(Icons.person_outline), warnIfMissed: false);
+        // Navigate to Progress tab
+        await tester.tap(find.byIcon(Icons.bar_chart_outlined), warnIfMissed: false);
         await Future.delayed(const Duration(seconds: 3));
         await tester.pump();
         await Future.delayed(const Duration(seconds: 2));
         await tester.pump();
       });
 
-      // StatsGrid widget should render
-      expect(find.byType(StatsGrid), findsOneWidget);
-      // Settings section should be visible
-      expect(find.text('Settings'), findsOneWidget);
+      // Progress header
+      expect(find.text('Progress'), findsWidgets);
+      // Summary card labels
+      expect(find.text('This Week'), findsOneWidget);
+      expect(find.text('Day Streak'), findsOneWidget);
+      expect(find.text('Total'), findsOneWidget);
+      // SummaryCardsRow widget
+      expect(find.byType(SummaryCardsRow), findsOneWidget);
     });
 
-    testWidgets('unit toggle between KG and LBS', (tester) async {
+    testWidgets('weekly activity chart renders', (tester) async {
       await tester.runAsync(() async {
         await TestData.abandonAnyActiveSession();
+
+        final name = getUniqueName('Weekly Chart');
+        final workoutId =
+            await TestData.createWorkoutWithExercise(name: name);
+        await completeSession(workoutId);
 
         await tester.pumpWidget(
           ProviderScope(
@@ -132,40 +119,78 @@ void main() {
         await Future.delayed(const Duration(seconds: 3));
         await tester.pump();
 
-        // Navigate to Profile tab
-        await tester.tap(find.byIcon(Icons.person_outline), warnIfMissed: false);
+        // Navigate to Progress tab
+        await tester.tap(find.byIcon(Icons.bar_chart_outlined), warnIfMissed: false);
         await Future.delayed(const Duration(seconds: 3));
         await tester.pump();
         await Future.delayed(const Duration(seconds: 2));
         await tester.pump();
       });
 
-      // SettingsCard should render
-      expect(find.byType(SettingsCard), findsOneWidget);
-      // Weight Unit label
-      expect(find.text('Weight Unit'), findsOneWidget);
-      // KG and LBS options visible
-      expect(find.text('KG'), findsOneWidget);
-      expect(find.text('LBS'), findsOneWidget);
+      expect(find.text('Weekly Activity'), findsOneWidget);
+      expect(find.byType(WeeklyActivityChart), findsOneWidget);
+    });
 
+    testWidgets('personal records section renders', (tester) async {
       await tester.runAsync(() async {
-        // Tap LBS
-        await tester.tap(find.text('LBS'));
+        await TestData.abandonAnyActiveSession();
+
+        final name = getUniqueName('PR Test');
+        final workoutId =
+            await TestData.createWorkoutWithExercise(name: name);
+        // Complete with heavy weight to trigger PR
+        await completeSession(workoutId, weightKg: 100.0, reps: 5);
+
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: [authProvider.overrideWith(MockAuth.new)],
+            child: const HeftyChestApp(),
+          ),
+        );
+
+        await Future.delayed(const Duration(seconds: 3));
+        await tester.pump();
+
+        // Navigate to Progress tab
+        await tester.tap(find.byIcon(Icons.bar_chart_outlined), warnIfMissed: false);
+        await Future.delayed(const Duration(seconds: 3));
+        await tester.pump();
         await Future.delayed(const Duration(seconds: 2));
         await tester.pump();
       });
 
-      // LBS should now be selected (verify API succeeded by checking
-      // the widget is still rendered without error)
-      expect(find.text('LBS'), findsOneWidget);
-      expect(find.byType(SettingsCard), findsOneWidget);
+      expect(find.text('Recent PRs'), findsOneWidget);
+      expect(find.byType(PrList), findsOneWidget);
+    });
 
-      // Switch back to KG for clean state
+    testWidgets('exercise progress section renders', (tester) async {
       await tester.runAsync(() async {
-        await tester.tap(find.text('KG'));
+        await TestData.abandonAnyActiveSession();
+
+        final name = getUniqueName('Exercise Progress');
+        final workoutId =
+            await TestData.createWorkoutWithExercise(name: name);
+        await completeSession(workoutId);
+
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: [authProvider.overrideWith(MockAuth.new)],
+            child: const HeftyChestApp(),
+          ),
+        );
+
+        await Future.delayed(const Duration(seconds: 3));
+        await tester.pump();
+
+        // Navigate to Progress tab
+        await tester.tap(find.byIcon(Icons.bar_chart_outlined), warnIfMissed: false);
+        await Future.delayed(const Duration(seconds: 3));
+        await tester.pump();
         await Future.delayed(const Duration(seconds: 2));
         await tester.pump();
       });
+
+      expect(find.byType(ExerciseProgressSection), findsOneWidget);
     });
   });
 }

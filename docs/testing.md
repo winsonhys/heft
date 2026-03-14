@@ -131,20 +131,11 @@ When `TEST_MODE=true`: `POST /test/reset` clears all user data. Used by integrat
 
 Located in `test/widgets/`. Standard Flutter widget testing.
 
-### Provider Integration Tests
+### Provider Contract Tests
 
-Located in `test/integration/providers/`. Test each provider against a real backend.
-
-```dart
-setUpAll(() async {
-  await IntegrationTestSetup.waitForBackend();
-  await IntegrationTestSetup.resetDatabase();
-  await IntegrationTestSetup.authenticateTestUser();
-});
-
-final container = IntegrationTestSetup.createContainer();
-final userId = IntegrationTestSetup.testUserId;
-```
+Located in `test/integration/providers/`. Test providers against an in-memory fake backend
+(`test/test_utils/fake_backend.dart`) using `FakeTransportBuilder`. No Docker or live backend needed.
+Runs automatically in the Claude stop hook.
 
 ### Test Data Helpers (`test/test_utils/test_data.dart`)
 
@@ -160,7 +151,7 @@ await TestData.abandonSession(sessionId);
 
 ### E2E Tests
 
-Located in `test/integration/e2e/`. Full user flow tests (workout creation → session tracking).
+Located in `test/e2e/`. Full user flow tests (workout creation → session tracking).
 
 ### Auto-Dispose Testing Rule
 
@@ -179,7 +170,7 @@ try {
 Without this, the provider disposes during `await`, causing null returns or disposal errors.
 
 Run frontend tests: `flutter test`
-Run integration tests: `./scripts/run_integration_tests.sh`
+Run e2e tests: `./run_e2e_tests.sh` (from project root)
 
 ## Test Commands Summary
 
@@ -193,5 +184,5 @@ make test-race             # Race condition detection
 
 # Frontend
 flutter test               # All tests
-./scripts/run_integration_tests.sh  # Integration (needs Docker)
+./run_e2e_tests.sh          # E2E (needs Docker, run from project root)
 ```

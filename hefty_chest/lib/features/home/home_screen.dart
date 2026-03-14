@@ -265,7 +265,7 @@ class HomeScreen extends ConsumerWidget {
               ],
             ),
             child: IconButton(
-              icon: const Icon(Icons.add, color: Colors.white, size: 24),
+              icon: Icon(Icons.add, key: const Key('home_fab'), color: Colors.white, size: 24),
               onPressed: () => context.goWorkoutBuilder(),
             ),
           ),

@@ -177,8 +177,8 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      // Initially no sections
-      expect(find.byType(BuilderSectionCard), findsNothing);
+      // Initially one default section
+      expect(find.byType(BuilderSectionCard), findsOneWidget);
 
       // Find and tap the Add Section button
       final addSectionFinder = find.text('Add Section');
@@ -187,8 +187,8 @@ void main() {
       await tester.tap(addSectionFinder);
       await tester.pumpAndSettle();
 
-      // Now there should be one section
-      expect(find.byType(BuilderSectionCard), findsOneWidget);
+      // Now there should be two sections
+      expect(find.byType(BuilderSectionCard), findsNWidgets(2));
     });
 
     testWidgets('displays single section with correct structure',

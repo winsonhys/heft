@@ -1,3 +1,6 @@
+@Tags(['e2e', 'misc'])
+library;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -8,8 +11,8 @@ import 'package:hefty_chest/features/tracker/widgets/set_row.dart';
 import 'package:hefty_chest/features/workout_builder/widgets/exercise_search_modal.dart';
 import 'package:hefty_chest/shared/widgets/floating_session_widget.dart';
 
-import '../../test_utils/test_setup.dart';
-import '../../test_utils/test_data.dart';
+import '../test_utils/test_setup.dart';
+import '../test_utils/test_data.dart';
 
 void main() {
   setUpAll(() async {

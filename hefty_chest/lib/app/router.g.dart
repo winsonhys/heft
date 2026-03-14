@@ -10,8 +10,8 @@ List<RouteBase> get $appRoutes => [
   $mainShellRoute,
   $authRoute,
   $newSessionRoute,
-  $resumeSessionRoute,
   $emptySessionRoute,
+  $resumeSessionRoute,
   $historyDetailRoute,
   $workoutBuilderRoute,
   $editWorkoutRoute,
@@ -211,20 +211,17 @@ mixin $NewSessionRoute on GoRouteData {
   void replace(BuildContext context) => context.replace(location);
 }
 
-RouteBase get $resumeSessionRoute => GoRouteData.$route(
-  path: '/session/:sessionId',
-  factory: $ResumeSessionRoute._fromState,
+RouteBase get $emptySessionRoute => GoRouteData.$route(
+  path: '/session/empty',
+  factory: $EmptySessionRoute._fromState,
 );
 
-mixin $ResumeSessionRoute on GoRouteData {
-  static ResumeSessionRoute _fromState(GoRouterState state) =>
-      ResumeSessionRoute(sessionId: state.pathParameters['sessionId']!);
-
-  ResumeSessionRoute get _self => this as ResumeSessionRoute;
+mixin $EmptySessionRoute on GoRouteData {
+  static EmptySessionRoute _fromState(GoRouterState state) =>
+      const EmptySessionRoute();
 
   @override
-  String get location =>
-      GoRouteData.$location('/session/${Uri.encodeComponent(_self.sessionId)}');
+  String get location => GoRouteData.$location('/session/empty');
 
   @override
   void go(BuildContext context) => context.go(location);
@@ -240,17 +237,20 @@ mixin $ResumeSessionRoute on GoRouteData {
   void replace(BuildContext context) => context.replace(location);
 }
 
-RouteBase get $emptySessionRoute => GoRouteData.$route(
-  path: '/session/empty',
-  factory: $EmptySessionRoute._fromState,
+RouteBase get $resumeSessionRoute => GoRouteData.$route(
+  path: '/session/:sessionId',
+  factory: $ResumeSessionRoute._fromState,
 );
 
-mixin $EmptySessionRoute on GoRouteData {
-  static EmptySessionRoute _fromState(GoRouterState state) =>
-      const EmptySessionRoute();
+mixin $ResumeSessionRoute on GoRouteData {
+  static ResumeSessionRoute _fromState(GoRouterState state) =>
+      ResumeSessionRoute(sessionId: state.pathParameters['sessionId']!);
+
+  ResumeSessionRoute get _self => this as ResumeSessionRoute;
 
   @override
-  String get location => GoRouteData.$location('/session/empty');
+  String get location =>
+      GoRouteData.$location('/session/${Uri.encodeComponent(_self.sessionId)}');
 
   @override
   void go(BuildContext context) => context.go(location);
