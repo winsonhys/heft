@@ -170,6 +170,49 @@ class TestData {
     }
   }
 
+  /// Create a workout with one exercise where target sets have rest duration.
+  ///
+  /// Returns the workout ID. Useful for testing rest timer after set completion.
+  static Future<String> createWorkoutWithRestDuration({
+    String name = 'Test Workout With Rest Duration',
+    int restSeconds = 60,
+  }) async {
+    final exercisesResponse = await exerciseClient.listExercises(
+      ListExercisesRequest(),
+    );
+    final exercise = exercisesResponse.exercises.first;
+
+    final section = CreateWorkoutSection()
+      ..name = 'Main Set'
+      ..displayOrder = 1
+      ..isSuperset = false;
+
+    final item = CreateSectionItem()
+      ..itemType = SectionItemType.SECTION_ITEM_TYPE_EXERCISE
+      ..displayOrder = 1
+      ..exerciseId = exercise.id;
+
+    final set1 = CreateTargetSet()
+      ..setNumber = 1
+      ..targetWeightKg = 60.0
+      ..targetReps = 10
+      ..restDurationSeconds = restSeconds;
+
+    final set2 = CreateTargetSet()
+      ..setNumber = 2
+      ..targetWeightKg = 60.0
+      ..targetReps = 10
+      ..restDurationSeconds = restSeconds;
+
+    item.targetSets.addAll([set1, set2]);
+    section.items.add(item);
+
+    return createTestWorkout(
+      name: name,
+      sections: [section],
+    );
+  }
+
   /// Create a workout with one exercise and one rest item.
   ///
   /// Returns the workout ID. Useful for testing rest item functionality.

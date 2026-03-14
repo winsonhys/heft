@@ -4,6 +4,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:hefty_chest/app/app.dart';
 import 'package:hefty_chest/core/client.dart';
 import 'package:hefty_chest/features/auth/providers/auth_providers.dart';
+import 'package:hefty_chest/features/home/widgets/workout_card.dart';
+import 'package:hefty_chest/features/tracker/widgets/rest_timer_sheet.dart';
+import 'package:hefty_chest/features/tracker/widgets/set_row.dart';
 
 import '../../test_utils/test_setup.dart';
 import '../../test_utils/test_data.dart';
@@ -26,6 +29,7 @@ void main() {
   group('Session Flow E2E', () {
     testWidgets('starts workout session from workout card', (tester) async {
       await tester.runAsync(() async {
+        await TestData.abandonAnyActiveSession();
         final name = getUniqueName('Session Start Test');
         await TestData.createWorkoutWithExercise(name: name);
 
@@ -44,24 +48,30 @@ void main() {
         // Verify my workout is visible
         expect(find.text(name), findsOneWidget);
 
-        // Find and tap a Start button.
-        // We accept tapping any start button as success verifies navigation
-        final startButtons = find.text('Start');
-        expect(startButtons, findsWidgets);
-
-        await tester.tap(startButtons.first);
+        // Find Start button on the specific workout card (skip Quick Start card)
+        final workoutCard = find.ancestor(
+          of: find.text(name),
+          matching: find.byType(WorkoutCard),
+        );
+        final startButton = find.descendant(
+          of: workoutCard,
+          matching: find.text('Start'),
+        );
+        await tester.tap(startButton);
         await Future.delayed(const Duration(seconds: 2));
         await tester.pump();
 
         // Should navigate to tracker screen
         expect(find.byType(Scaffold), findsWidgets);
-        
-        // No cleanup (avoids FK issues)
+
+        // Cleanup
+        await TestData.abandonAnyActiveSession();
       });
     });
 
     testWidgets('tracker screen shows exercise information', (tester) async {
       await tester.runAsync(() async {
+        await TestData.abandonAnyActiveSession();
         final name = getUniqueName('Exercise Info Test');
         final workoutId = await TestData.createWorkoutWithExercise(name: name);
         final sessionId = await TestData.startSession(workoutTemplateId: workoutId);
@@ -78,24 +88,23 @@ void main() {
         await Future.delayed(const Duration(seconds: 3));
         await tester.pump();
 
-        // Should see Resume button or be directed (if we implemented auto-redirect)
-        // For now, look for Resume or Start
+        // Should see Resume button for the active session, or Start
         final resumeButtons = find.text('Resume');
         if (resumeButtons.evaluate().isNotEmpty) {
            await tester.tap(resumeButtons.first);
         } else {
            final startButtons = find.text('Start');
            if (startButtons.evaluate().isNotEmpty) {
-             await tester.tap(startButtons.first);
+             await tester.tap(startButtons.last);
            }
         }
-        
+
         await Future.delayed(const Duration(seconds: 2));
         await tester.pump();
 
         expect(find.byType(Scaffold), findsWidgets);
-        
-        // Cleanup session explicitly if possible (Abandon doesn't delete, but good practice)
+
+        // Cleanup
         await sessionClient.abandonSession(
             AbandonSessionRequest()..id = sessionId);
       });
@@ -103,9 +112,10 @@ void main() {
 
     testWidgets('can complete workout and return to home', (tester) async {
       await tester.runAsync(() async {
+        await TestData.abandonAnyActiveSession();
         final name = getUniqueName('Complete Flow Test');
         await TestData.createWorkoutWithExercise(name: name);
-        
+
         await tester.pumpWidget(
           ProviderScope(
             overrides: [
@@ -117,27 +127,24 @@ void main() {
 
         await Future.delayed(const Duration(seconds: 3));
         await tester.pump();
-        
-        // Tap Start (assuming one exists)
-        final startButtons = find.text('Start');
-        if (startButtons.evaluate().isNotEmpty) {
-            await tester.tap(startButtons.first);
+
+        // Find Start button on the specific workout card
+        final workoutCard = find.ancestor(
+          of: find.text(name),
+          matching: find.byType(WorkoutCard),
+        );
+        if (workoutCard.evaluate().isNotEmpty) {
+            final startButton = find.descendant(
+              of: workoutCard,
+              matching: find.text('Start'),
+            );
+            await tester.tap(startButton);
             await Future.delayed(const Duration(seconds: 2));
             await tester.pump();
-            
-            // Should be on tracker. Try to finish?
-            // "Finish" button?
-            // This test was skeletal.
-            // Let's just check we can go back?
-            // Or if we can find 'Finish' button.
-            // If checking 'Finish' button UI:
-            // expect(find.text('Finish'), findsWidgets);
         }
 
-        // Verify we're on home (or navigated back)
-        // expect(find.text('Heft'), findsOneWidget);
-        // This assertion depends on flow completion.
         // For now, just ensure no crash.
+        await TestData.abandonAnyActiveSession();
       });
     });
 
@@ -171,6 +178,7 @@ void main() {
 
     testWidgets('tracker shows set completion UI', (tester) async {
       await tester.runAsync(() async {
+        await TestData.abandonAnyActiveSession();
         final name = getUniqueName('Set Completion UI');
         await TestData.createWorkoutWithExercise(name: name);
 
@@ -186,21 +194,29 @@ void main() {
         await Future.delayed(const Duration(seconds: 3));
         await tester.pump();
 
-        final startButton = find.text('Start');
-        if (startButton.evaluate().isNotEmpty) {
-          await tester.tap(startButton.first);
+        final workoutCard = find.ancestor(
+          of: find.text(name),
+          matching: find.byType(WorkoutCard),
+        );
+        if (workoutCard.evaluate().isNotEmpty) {
+          final startButton = find.descendant(
+            of: workoutCard,
+            matching: find.text('Start'),
+          );
+          await tester.tap(startButton);
           await Future.delayed(const Duration(seconds: 2));
           await tester.pump();
 
           expect(find.byType(Scaffold), findsWidgets);
-          // Look for Sets UI?
-          // expect(find.text('Set 1'), findsWidgets); // If applicable
         }
+
+        await TestData.abandonAnyActiveSession();
       });
     });
 
     testWidgets('can navigate back from tracker without finishing', (tester) async {
       await tester.runAsync(() async {
+        await TestData.abandonAnyActiveSession();
         final name = getUniqueName('Back Nav Test');
         await TestData.createWorkoutWithExercise(name: name);
 
@@ -216,29 +232,38 @@ void main() {
         await Future.delayed(const Duration(seconds: 3));
         await tester.pump();
 
-        final startButton = find.text('Start');
-        if (startButton.evaluate().isNotEmpty) {
-          await tester.tap(startButton.first);
+        final workoutCard = find.ancestor(
+          of: find.text(name),
+          matching: find.byType(WorkoutCard),
+        );
+        if (workoutCard.evaluate().isNotEmpty) {
+          final startButton = find.descendant(
+            of: workoutCard,
+            matching: find.text('Start'),
+          );
+          await tester.tap(startButton);
           await Future.delayed(const Duration(seconds: 2));
           await tester.pump();
 
           // Try to go back
-          // Check for back button (ChevronLeft icon)
           final backButton = find.byIcon(Icons.chevron_left);
           if (backButton.evaluate().isNotEmpty) {
             await tester.tap(backButton.first);
             await Future.delayed(const Duration(seconds: 1));
             await tester.pump();
-            
+
             // Should be back home
             expect(find.text('Heft'), findsOneWidget);
           }
         }
+
+        await TestData.abandonAnyActiveSession();
       });
     });
 
     testWidgets('session data persists across app restart', (tester) async {
       await tester.runAsync(() async {
+        await TestData.abandonAnyActiveSession();
         final name = getUniqueName('Persistence Test');
         final workoutId = await TestData.createWorkoutWithExercise(name: name);
         final sessionId = await TestData.startSession(workoutTemplateId: workoutId);
@@ -284,12 +309,16 @@ void main() {
     });
   });
 
+  // Session interaction tests — UI-level coverage for the core workout loop
+  sessionInteractionE2ETests();
+
   // Run rest items E2E tests
   restItemsE2ETests();
 
   group('Progress Update E2E', () {
     testWidgets('completing session updates progress stats', (tester) async {
       await tester.runAsync(() async {
+        await TestData.abandonAnyActiveSession();
         final name = getUniqueName('Stats Update Test');
         final workoutId = await TestData.createWorkoutWithExercise(name: name);
 
@@ -367,12 +396,12 @@ void restItemsE2ETests() {
   group('Rest Items E2E', () {
     testWidgets('tracker screen shows rest items from workout template', (tester) async {
       await tester.runAsync(() async {
+        await TestData.abandonAnyActiveSession();
         final name = getUniqueName('Rest Item Display Test');
-        final workoutId = await TestData.createWorkoutWithRestItem(
+        await TestData.createWorkoutWithRestItem(
           name: name,
           restDurationSeconds: 60,
         );
-        final sessionId = await TestData.startSession(workoutTemplateId: workoutId);
 
         await tester.pumpWidget(
           ProviderScope(
@@ -383,49 +412,27 @@ void restItemsE2ETests() {
           ),
         );
 
-        await Future.delayed(const Duration(seconds: 3));
-        await tester.pump();
-
-        // Navigate to tracker (Resume if active session exists)
-        final resumeButtons = find.text('Resume');
-        if (resumeButtons.evaluate().isNotEmpty) {
-          await tester.tap(resumeButtons.first);
-        } else {
-          final startButtons = find.text('Start');
-          if (startButtons.evaluate().isNotEmpty) {
-            await tester.tap(startButtons.first);
-          }
-        }
-
-        await Future.delayed(const Duration(seconds: 2));
-        await tester.pump();
+        await navigateToTracker(tester, name);
 
         // Verify rest item UI is visible
-        // Rest item shows "Rest" label and timer button
         expect(find.text('Rest'), findsWidgets);
-
-        // Should show duration (1:00 for 60 seconds)
         expect(find.text('1:00'), findsWidgets);
-
-        // Should show Start Timer and Skip buttons
         expect(find.text('Start Timer'), findsWidgets);
         expect(find.text('Skip'), findsWidgets);
 
         // Cleanup
-        await sessionClient.abandonSession(
-          AbandonSessionRequest()..id = sessionId,
-        );
+        await TestData.abandonAnyActiveSession();
       });
     });
 
     testWidgets('can skip rest item in tracker', (tester) async {
       await tester.runAsync(() async {
+        await TestData.abandonAnyActiveSession();
         final name = getUniqueName('Skip Rest Test');
-        final workoutId = await TestData.createWorkoutWithRestItem(
+        await TestData.createWorkoutWithRestItem(
           name: name,
           restDurationSeconds: 90,
         );
-        final sessionId = await TestData.startSession(workoutTemplateId: workoutId);
 
         await tester.pumpWidget(
           ProviderScope(
@@ -436,52 +443,39 @@ void restItemsE2ETests() {
           ),
         );
 
-        await Future.delayed(const Duration(seconds: 3));
-        await tester.pump();
+        await navigateToTracker(tester, name);
 
-        // Navigate to tracker
-        final resumeButtons = find.text('Resume');
-        if (resumeButtons.evaluate().isNotEmpty) {
-          await tester.tap(resumeButtons.first);
-        } else {
-          final startButtons = find.text('Start');
-          if (startButtons.evaluate().isNotEmpty) {
-            await tester.tap(startButtons.first);
-          }
-        }
-
-        await Future.delayed(const Duration(seconds: 2));
-        await tester.pump();
-
-        // Verify Skip button exists
+        // Scroll to and tap Skip button on the rest item
         final skipButton = find.text('Skip');
         expect(skipButton, findsWidgets);
 
-        // Tap Skip
-        await tester.tap(skipButton.first);
-        await Future.delayed(const Duration(milliseconds: 500));
+        await tester.ensureVisible(skipButton.first);
         await tester.pump();
+        await tester.tap(skipButton.first);
+
+        // Wait for state update to propagate through Riverpod
+        for (int i = 0; i < 5; i++) {
+          await Future.delayed(const Duration(milliseconds: 300));
+          await tester.pump();
+        }
 
         // After skip, the rest item should show completed state
-        // Completed rest items show checkmark icon and undo button
         expect(find.byIcon(Icons.check), findsWidgets);
         expect(find.byIcon(Icons.undo), findsWidgets);
 
         // Cleanup
-        await sessionClient.abandonSession(
-          AbandonSessionRequest()..id = sessionId,
-        );
+        await TestData.abandonAnyActiveSession();
       });
     });
 
     testWidgets('can start rest timer in tracker', (tester) async {
       await tester.runAsync(() async {
+        await TestData.abandonAnyActiveSession();
         final name = getUniqueName('Start Timer Test');
-        final workoutId = await TestData.createWorkoutWithRestItem(
+        await TestData.createWorkoutWithRestItem(
           name: name,
           restDurationSeconds: 30,
         );
-        final sessionId = await TestData.startSession(workoutTemplateId: workoutId);
 
         await tester.pumpWidget(
           ProviderScope(
@@ -492,46 +486,34 @@ void restItemsE2ETests() {
           ),
         );
 
-        await Future.delayed(const Duration(seconds: 3));
-        await tester.pump();
+        await navigateToTracker(tester, name);
 
-        // Navigate to tracker
-        final resumeButtons = find.text('Resume');
-        if (resumeButtons.evaluate().isNotEmpty) {
-          await tester.tap(resumeButtons.first);
-        } else {
-          final startButtons = find.text('Start');
-          if (startButtons.evaluate().isNotEmpty) {
-            await tester.tap(startButtons.first);
-          }
-        }
-
-        await Future.delayed(const Duration(seconds: 2));
-        await tester.pump();
-
-        // Find and tap Start Timer button
+        // Scroll to and tap Start Timer button
         final startTimerButton = find.text('Start Timer');
         expect(startTimerButton, findsWidgets);
 
-        await tester.tap(startTimerButton.first);
-        await Future.delayed(const Duration(milliseconds: 500));
+        await tester.ensureVisible(startTimerButton.first);
         await tester.pump();
+        await tester.tap(startTimerButton.first);
+
+        // Wait for state update
+        for (int i = 0; i < 5; i++) {
+          await Future.delayed(const Duration(milliseconds: 300));
+          await tester.pump();
+        }
 
         // After starting, button should change to "Done"
         expect(find.text('Done'), findsWidgets);
-
-        // Should show "Time remaining" text
         expect(find.text('Time remaining'), findsWidgets);
 
         // Cleanup
-        await sessionClient.abandonSession(
-          AbandonSessionRequest()..id = sessionId,
-        );
+        await TestData.abandonAnyActiveSession();
       });
     });
 
     testWidgets('rest item completion persists to backend', (tester) async {
       await tester.runAsync(() async {
+        await TestData.abandonAnyActiveSession();
         final name = getUniqueName('Rest Persist Test');
         final workoutId = await TestData.createWorkoutWithRestItem(
           name: name,
@@ -583,25 +565,11 @@ void restItemsE2ETests() {
 
     testWidgets('can undo completed rest item', (tester) async {
       await tester.runAsync(() async {
+        await TestData.abandonAnyActiveSession();
         final name = getUniqueName('Undo Rest Test');
-        final workoutId = await TestData.createWorkoutWithRestItem(
+        await TestData.createWorkoutWithRestItem(
           name: name,
           restDurationSeconds: 45,
-        );
-        final sessionId = await TestData.startSession(workoutTemplateId: workoutId);
-
-        // Complete rest item via API first
-        final sessionResponse = await sessionClient.getSession(
-          GetSessionRequest()..id = sessionId,
-        );
-        final restItemId = sessionResponse.session.restItems.first.id;
-
-        await sessionClient.syncSession(
-          SyncSessionRequest()
-            ..sessionId = sessionId
-            ..restItems.add(SyncRestItemData()
-              ..id = restItemId
-              ..isCompleted = true),
         );
 
         await tester.pumpWidget(
@@ -613,43 +581,47 @@ void restItemsE2ETests() {
           ),
         );
 
+        await navigateToTracker(tester, name);
+
+        // Scroll to and tap Skip to complete the rest item
+        final skipButton = find.text('Skip');
+        expect(skipButton, findsWidgets);
+        await tester.ensureVisible(skipButton.first);
+        await tester.pump();
+        await tester.tap(skipButton.first);
+
+        // Wait for skip to sync to server (sync timer is 2s)
         await Future.delayed(const Duration(seconds: 3));
         await tester.pump();
 
-        // Navigate to tracker
-        final resumeButtons = find.text('Resume');
-        if (resumeButtons.evaluate().isNotEmpty) {
-          await tester.tap(resumeButtons.first);
-        } else {
-          final startButtons = find.text('Start');
-          if (startButtons.evaluate().isNotEmpty) {
-            await tester.tap(startButtons.first);
-          }
-        }
-
-        await Future.delayed(const Duration(seconds: 2));
-        await tester.pump();
-
-        // Find and tap undo icon
+        // Verify completed state with undo icon
         final undoButton = find.byIcon(Icons.undo);
         expect(undoButton, findsWidgets);
 
-        await tester.tap(undoButton.first);
-        await Future.delayed(const Duration(milliseconds: 500));
+        // The undo icon can be outside the 800px test viewport (Spacer pushes it right).
+        // Find the GestureDetector wrapping the icon and invoke onTap directly.
+        final undoGesture = find.ancestor(
+          of: undoButton.first,
+          matching: find.byType(GestureDetector),
+        );
+        final gestureWidget = tester.widget<GestureDetector>(undoGesture.first);
+        gestureWidget.onTap!();
+
+        // Wait for undo to take effect and sync
+        await Future.delayed(const Duration(seconds: 3));
         await tester.pump();
 
         // After undo, should show Start Timer again
         expect(find.text('Start Timer'), findsWidgets);
 
         // Cleanup
-        await sessionClient.abandonSession(
-          AbandonSessionRequest()..id = sessionId,
-        );
+        await TestData.abandonAnyActiveSession();
       });
     });
 
     testWidgets('full session flow with rest item', (tester) async {
       await tester.runAsync(() async {
+        await TestData.abandonAnyActiveSession();
         final name = getUniqueName('Full Rest Flow');
         final workoutId = await TestData.createWorkoutWithRestItem(
           name: name,
@@ -725,6 +697,255 @@ void restItemsE2ETests() {
           (s) => s.id == session.id,
         );
         expect(completedSession.status, equals(WorkoutStatus.WORKOUT_STATUS_COMPLETED));
+      });
+    });
+  });
+}
+
+/// Navigate from home to the tracker screen for a specific workout.
+///
+/// Finds the workout card by [workoutName], taps its Start button,
+/// then polls for SetRow widgets to appear.
+Future<void> navigateToTracker(
+    WidgetTester tester, String workoutName) async {
+  // Wait for home screen to load and show the workout card
+  for (int i = 0; i < 10; i++) {
+    await Future.delayed(const Duration(milliseconds: 500));
+    await tester.pump();
+    if (find.text(workoutName).evaluate().isNotEmpty) break;
+  }
+
+  // Find the Start button specifically on this workout's card.
+  final workoutCard = find.ancestor(
+    of: find.text(workoutName),
+    matching: find.byType(WorkoutCard),
+  );
+
+  if (workoutCard.evaluate().isNotEmpty) {
+    final startButton = find.descendant(
+      of: workoutCard,
+      matching: find.text('Start'),
+    );
+    await tester.tap(startButton);
+  } else {
+    // Fallback: tap the last Start button (skip Quick Start card)
+    await tester.tap(find.text('Start').last);
+  }
+
+  // Poll for tracker content to fully load (SetRow = session data rendered)
+  for (int i = 0; i < 20; i++) {
+    await Future.delayed(const Duration(milliseconds: 500));
+    await tester.pump();
+    if (find.byType(SetRow).evaluate().isNotEmpty) return;
+  }
+}
+
+/// Enter weight/reps and tap the completion circle on a set.
+///
+/// Uses global EditableText and Container finders indexed by [setIndex].
+Future<void> completeSetViaUI(
+  WidgetTester tester,
+  int setIndex, {
+  String weight = '60',
+  String reps = '8',
+}) async {
+  final weightFieldIndex = setIndex * 2;
+  final repsFieldIndex = setIndex * 2 + 1;
+
+  await tester.enterText(
+      find.byType(EditableText).at(weightFieldIndex), weight);
+  await tester.pump();
+  await tester.enterText(
+      find.byType(EditableText).at(repsFieldIndex), reps);
+  await tester.pump();
+
+  final completionCircles = find.byWidgetPredicate((widget) {
+    if (widget is! Container) return false;
+    final decoration = widget.decoration;
+    return decoration is BoxDecoration &&
+        decoration.shape == BoxShape.circle;
+  });
+  await tester.tap(completionCircles.at(setIndex));
+  await Future.delayed(const Duration(milliseconds: 500));
+  await tester.pump();
+}
+
+/// E2E tests for core workout interaction loop: enter sets, complete, rest timer, progress
+void sessionInteractionE2ETests() {
+  String getUniqueName(String base) {
+    return '$base ${DateTime.now().microsecondsSinceEpoch}';
+  }
+
+  group('Session Interaction E2E', () {
+    testWidgets('enter weight and reps, then complete a set via UI',
+        (tester) async {
+      await tester.runAsync(() async {
+        await TestData.abandonAnyActiveSession();
+
+        final name = getUniqueName('Set Entry Test');
+        await TestData.createWorkoutWithExercise(name: name);
+
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: [
+              authProvider.overrideWith(MockAuth.new),
+            ],
+            child: const HeftyChestApp(),
+          ),
+        );
+
+        await navigateToTracker(tester, name);
+
+        // Verify SetRow widgets loaded on tracker
+        expect(find.byType(SetRow), findsWidgets);
+
+        // Enter weight/reps and tap complete on first set
+        await completeSetViaUI(tester, 0, weight: '60', reps: '8');
+
+        // Verify: check icon appears after completing a set
+        expect(find.byIcon(Icons.check), findsAtLeast(1));
+
+        // Cleanup
+        await TestData.abandonAnyActiveSession();
+      });
+    });
+
+    testWidgets('rest timer sheet appears after completing a set',
+        (tester) async {
+      await tester.runAsync(() async {
+        await TestData.abandonAnyActiveSession();
+
+        final name = getUniqueName('Rest Timer Test');
+        await TestData.createWorkoutWithRestDuration(
+          name: name,
+          restSeconds: 60,
+        );
+
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: [
+              authProvider.overrideWith(MockAuth.new),
+            ],
+            child: const HeftyChestApp(),
+          ),
+        );
+
+        await navigateToTracker(tester, name);
+
+        // Verify tracker loaded
+        expect(find.byType(SetRow), findsWidgets);
+
+        // Complete first set
+        await completeSetViaUI(tester, 0);
+
+        // Verify: RestTimerSheet appears
+        expect(find.byType(RestTimerSheet), findsOneWidget);
+
+        // Verify countdown text is showing (should be "1:00" since timer just started)
+        expect(
+          find.descendant(
+            of: find.byType(RestTimerSheet),
+            matching: find.text('1:00'),
+          ),
+          findsOneWidget,
+        );
+
+        // Verify Skip button is present in the sheet
+        expect(
+          find.descendant(
+            of: find.byType(RestTimerSheet),
+            matching: find.text('Skip'),
+          ),
+          findsOneWidget,
+        );
+
+        // Cleanup
+        await TestData.abandonAnyActiveSession();
+      });
+    });
+
+    testWidgets('rest timer shows correct next exercise and set info',
+        (tester) async {
+      await tester.runAsync(() async {
+        await TestData.abandonAnyActiveSession();
+
+        final name = getUniqueName('Rest Info Test');
+        await TestData.createWorkoutWithRestDuration(
+          name: name,
+          restSeconds: 60,
+        );
+
+        // Get exercise name (createWorkoutWithRestDuration uses first exercise)
+        final exercisesResponse = await exerciseClient.listExercises(
+          ListExercisesRequest(),
+        );
+        final exerciseName = exercisesResponse.exercises.first.name;
+
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: [
+              authProvider.overrideWith(MockAuth.new),
+            ],
+            child: const HeftyChestApp(),
+          ),
+        );
+
+        await navigateToTracker(tester, name);
+
+        // Verify tracker loaded
+        expect(find.byType(SetRow), findsWidgets);
+
+        // Complete first set
+        await completeSetViaUI(tester, 0);
+
+        // Verify rest timer shows next exercise info
+        // Format: "Next: {exerciseName} - Set 2"
+        expect(
+          find.text('Next: $exerciseName - Set 2'),
+          findsOneWidget,
+        );
+
+        // Cleanup
+        await TestData.abandonAnyActiveSession();
+      });
+    });
+
+    testWidgets('complete all sets and verify progress', (tester) async {
+      await tester.runAsync(() async {
+        await TestData.abandonAnyActiveSession();
+
+        final name = getUniqueName('Progress Test');
+        await TestData.createWorkoutWithExercise(name: name);
+
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: [
+              authProvider.overrideWith(MockAuth.new),
+            ],
+            child: const HeftyChestApp(),
+          ),
+        );
+
+        await navigateToTracker(tester, name);
+
+        // Verify initial progress
+        expect(find.text('0 / 2 sets'), findsOneWidget);
+
+        // Complete both sets (workout has 2 target sets, no rest duration)
+        expect(find.byType(SetRow), findsNWidgets(2));
+
+        for (int i = 0; i < 2; i++) {
+          await completeSetViaUI(tester, i, weight: '60', reps: '10');
+        }
+
+        // Verify progress header shows "2 / 2 sets"
+        expect(find.text('2 / 2 sets'), findsOneWidget);
+
+        // Verify "100% complete"
+        expect(find.text('100% complete'), findsOneWidget);
+
+        // Cleanup
+        await TestData.abandonAnyActiveSession();
       });
     });
   });

@@ -16,7 +16,7 @@ COPY . .
 RUN CGO_ENABLED=0 GOOS=linux go build -o server ./cmd/server
 
 # Build goose for migrations
-RUN go install github.com/pressly/goose/v3/cmd/goose@latest
+RUN go install github.com/pressly/goose/v3/cmd/goose@v3.22.1
 
 # Runtime image
 FROM alpine:latest
