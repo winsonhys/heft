@@ -103,7 +103,7 @@ class ProgramBuilderScreen extends HookConsumerWidget {
         ],
         suffixes: [
           FHeaderAction(
-            icon: const Icon(Icons.save, color: AppColors.accentBlue),
+            icon: Icon(Icons.save, key: const Key('program_builder_save'), color: AppColors.accentBlue),
             onPress: saveProgram,
           ),
         ],

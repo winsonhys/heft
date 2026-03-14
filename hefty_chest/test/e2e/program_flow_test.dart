@@ -118,10 +118,9 @@ void main() {
             matching: find.byType(GestureDetector),
           ),
         );
-        if (startGesture.evaluate().isNotEmpty) {
-          final widget = tester.widget<GestureDetector>(startGesture.first);
-          widget.onTap?.call();
-        }
+        expect(startGesture, findsWidgets, reason: 'Start button should be on TodayWorkoutCard');
+        final startWidget = tester.widget<GestureDetector>(startGesture.first);
+        startWidget.onTap?.call();
         // Multiple pump cycles for async navigation + session init
         for (int i = 0; i < 5; i++) {
           await Future.delayed(const Duration(seconds: 1));

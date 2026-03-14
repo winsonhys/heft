@@ -89,7 +89,7 @@ class WorkoutBuilderScreen extends HookConsumerWidget {
         ],
         suffixes: [
           FHeaderAction(
-            icon: const Icon(Icons.save, color: AppColors.accentBlue),
+            icon: Icon(Icons.save, key: const Key('workout_builder_save'), color: AppColors.accentBlue),
             onPress: saveWorkout,
           ),
         ],

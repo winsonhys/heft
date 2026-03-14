@@ -14,6 +14,7 @@ import 'package:hefty_chest/features/workout_builder/widgets/set_row_editor.dart
 
 import '../test_utils/test_setup.dart';
 import '../test_utils/test_data.dart';
+import '../test_utils/test_helpers.dart';
 
 void main() {
   setUpAll(() async {
@@ -48,10 +49,7 @@ void main() {
       await Future.delayed(const Duration(seconds: 3));
       await tester.pump();
 
-      final fab = find.byKey(const Key('home_fab'));
-      if (fab.evaluate().isNotEmpty) {
-        await tester.tap(fab);
-      }
+      await tapByKey(tester, 'home_fab', reason: 'FAB should be visible on home screen');
       await Future.delayed(const Duration(seconds: 2));
       await tester.pump();
     });
@@ -92,11 +90,9 @@ void main() {
             matching: find.byType(GestureDetector),
           ),
         );
-        if (exerciseButton.evaluate().isNotEmpty) {
-          final widget =
-              tester.widget<GestureDetector>(exerciseButton.first);
-          widget.onTap?.call();
-        }
+        expect(exerciseButton, findsWidgets, reason: 'Exercise button should be in BuilderSectionCard');
+        final widget = tester.widget<GestureDetector>(exerciseButton.first);
+        widget.onTap?.call();
         await Future.delayed(const Duration(seconds: 2));
         await tester.pump();
       });
@@ -117,11 +113,9 @@ void main() {
           of: find.text('Add Section'),
           matching: find.byType(GestureDetector),
         );
-        if (addSectionGesture.evaluate().isNotEmpty) {
-          final widget =
-              tester.widget<GestureDetector>(addSectionGesture.first);
-          widget.onTap?.call();
-        }
+        expect(addSectionGesture, findsWidgets, reason: 'Add Section GestureDetector should exist');
+        final widget = tester.widget<GestureDetector>(addSectionGesture.first);
+        widget.onTap?.call();
         await Future.delayed(const Duration(seconds: 1));
         await tester.pump();
       });
@@ -142,36 +136,35 @@ void main() {
             matching: find.byType(GestureDetector),
           ),
         );
-        if (exerciseButton.evaluate().isNotEmpty) {
-          final widget =
-              tester.widget<GestureDetector>(exerciseButton.first);
-          widget.onTap?.call();
-        }
+        expect(exerciseButton, findsWidgets, reason: 'Exercise button should be in BuilderSectionCard');
+        final exerciseWidget = tester.widget<GestureDetector>(exerciseButton.first);
+        exerciseWidget.onTap?.call();
         await Future.delayed(const Duration(seconds: 2));
         await tester.pump();
       });
       await tester.pump();
 
-      // Select first exercise from modal
+      // Select first exercise from modal (exercises load async from backend)
       await tester.runAsync(() async {
         final modal = find.byType(ExerciseSearchModal);
-        if (modal.evaluate().isNotEmpty) {
-          final listView = find.descendant(
-            of: modal,
-            matching: find.byType(ListView),
-          );
-          if (listView.evaluate().isNotEmpty) {
-            final tileTaps = find.descendant(
-              of: listView,
-              matching: find.byType(GestureDetector),
-            );
-            if (tileTaps.evaluate().isNotEmpty) {
-              final tileWidget =
-                  tester.widget<GestureDetector>(tileTaps.first);
-              tileWidget.onTap?.call();
-            }
-          }
+        expect(modal, findsOneWidget, reason: 'ExerciseSearchModal should be open');
+        // Poll for ListView to appear (exercises load async from backend)
+        Finder listView = find.descendant(
+          of: modal,
+          matching: find.byType(ListView),
+        );
+        for (int i = 0; i < 10 && listView.evaluate().isEmpty; i++) {
+          await Future.delayed(const Duration(milliseconds: 500));
+          await tester.pump();
         }
+        expect(listView, findsOneWidget, reason: 'Exercise list should be visible in modal');
+        final tileTaps = find.descendant(
+          of: listView,
+          matching: find.byType(GestureDetector),
+        );
+        expect(tileTaps, findsWidgets, reason: 'Exercise items should be tappable');
+        final tileWidget = tester.widget<GestureDetector>(tileTaps.first);
+        tileWidget.onTap?.call();
         await Future.delayed(const Duration(seconds: 2));
         await tester.pump();
       });
@@ -194,10 +187,9 @@ void main() {
       // Fill in workout and save
       await tester.runAsync(() async {
         final nameField = find.byType(EditableText);
-        if (nameField.evaluate().isNotEmpty) {
-          await tester.enterText(nameField.first, name);
-          await tester.pump();
-        }
+        expect(nameField, findsWidgets, reason: 'Name text field should be visible');
+        await tester.enterText(nameField.first, name);
+        await tester.pump();
 
         final exerciseButton = find.descendant(
           of: find.byType(BuilderSectionCard),
@@ -206,36 +198,35 @@ void main() {
             matching: find.byType(GestureDetector),
           ),
         );
-        if (exerciseButton.evaluate().isNotEmpty) {
-          final widget =
-              tester.widget<GestureDetector>(exerciseButton.first);
-          widget.onTap?.call();
-        }
+        expect(exerciseButton, findsWidgets, reason: 'Exercise button should be in BuilderSectionCard');
+        final exerciseWidget = tester.widget<GestureDetector>(exerciseButton.first);
+        exerciseWidget.onTap?.call();
         await Future.delayed(const Duration(seconds: 2));
         await tester.pump();
 
-        final listView = find.descendant(
+        // Poll for ListView to appear (exercises load async from backend)
+        Finder listView = find.descendant(
           of: find.byType(ExerciseSearchModal),
           matching: find.byType(ListView),
         );
-        if (listView.evaluate().isNotEmpty) {
-          final tileTaps = find.descendant(
-            of: listView,
-            matching: find.byType(GestureDetector),
-          );
-          if (tileTaps.evaluate().isNotEmpty) {
-            final tileWidget =
-                tester.widget<GestureDetector>(tileTaps.first);
-            tileWidget.onTap?.call();
-          }
+        for (int i = 0; i < 10 && listView.evaluate().isEmpty; i++) {
+          await Future.delayed(const Duration(milliseconds: 500));
+          await tester.pump();
         }
+        expect(listView, findsOneWidget, reason: 'Exercise list should be visible in modal');
+        final tileTaps = find.descendant(
+          of: listView,
+          matching: find.byType(GestureDetector),
+        );
+        expect(tileTaps, findsWidgets, reason: 'Exercise items should be tappable');
+        final tileWidget = tester.widget<GestureDetector>(tileTaps.first);
+        tileWidget.onTap?.call();
         await Future.delayed(const Duration(seconds: 2));
         await tester.pump();
 
-        final saveIcon = find.byIcon(Icons.save);
-        if (saveIcon.evaluate().isNotEmpty) {
-          await tester.tap(saveIcon);
-        }
+        final saveIcon = find.byKey(const Key('workout_builder_save'));
+        expect(saveIcon, findsOneWidget, reason: 'Save icon should be visible in workout builder');
+        await tapOffScreen(tester, saveIcon, reason: 'Tap save icon (may be off-screen in header)');
         await Future.delayed(const Duration(seconds: 3));
         await tester.pump();
       });
@@ -260,20 +251,17 @@ void main() {
           of: find.text(name),
           matching: find.byType(WorkoutCard),
         );
-        if (workoutCard.evaluate().isNotEmpty) {
-          final editButton = find.descendant(
-            of: workoutCard,
-            matching: find.ancestor(
-              of: find.text('Edit'),
-              matching: find.byType(GestureDetector),
-            ),
-          );
-          if (editButton.evaluate().isNotEmpty) {
-            final widget =
-                tester.widget<GestureDetector>(editButton.first);
-            widget.onTap?.call();
-          }
-        }
+        expect(workoutCard, findsOneWidget, reason: 'Workout card for "$name" should be visible');
+        final editButton = find.descendant(
+          of: workoutCard,
+          matching: find.ancestor(
+            of: find.text('Edit'),
+            matching: find.byType(GestureDetector),
+          ),
+        );
+        expect(editButton, findsWidgets, reason: 'Edit button should be on workout card');
+        final editWidget = tester.widget<GestureDetector>(editButton.first);
+        editWidget.onTap?.call();
         await Future.delayed(const Duration(seconds: 3));
         await tester.pump();
       });

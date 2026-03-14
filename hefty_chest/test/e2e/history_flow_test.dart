@@ -152,14 +152,13 @@ void main() {
 
         // Tap first SessionCard
         final sessionCard = find.byType(SessionCard);
-        if (sessionCard.evaluate().isNotEmpty) {
-          await tester.tap(sessionCard.first);
-          await Future.delayed(const Duration(seconds: 3));
-          await tester.pump();
-          // Extra delay for detail screen async provider
-          await Future.delayed(const Duration(seconds: 2));
-          await tester.pump();
-        }
+        expect(sessionCard, findsWidgets, reason: 'SessionCard should be visible in history');
+        await tester.tap(sessionCard.first);
+        await Future.delayed(const Duration(seconds: 3));
+        await tester.pump();
+        // Extra delay for detail screen async provider
+        await Future.delayed(const Duration(seconds: 2));
+        await tester.pump();
       });
 
       // Detail screen should show stat items

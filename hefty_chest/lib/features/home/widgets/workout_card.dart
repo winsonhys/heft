@@ -93,6 +93,7 @@ class WorkoutCard extends StatelessWidget {
             children: [
               Expanded(
                 child: _ActionButton(
+                  key: const Key('workout_card_start'),
                   label: 'Start',
                   icon: Icons.play_arrow,
                   isPrimary: true,
@@ -102,6 +103,7 @@ class WorkoutCard extends StatelessWidget {
               const SizedBox(width: 8),
               Expanded(
                 child: _ActionButton(
+                  key: const Key('workout_card_edit'),
                   label: 'Edit',
                   icon: Icons.edit_outlined,
                   isPrimary: false,
@@ -213,6 +215,7 @@ class _ActionButton extends StatelessWidget {
   final VoidCallback onTap;
 
   const _ActionButton({
+    super.key,
     required this.label,
     required this.icon,
     required this.isPrimary,

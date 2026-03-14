@@ -119,6 +119,14 @@ class MyScreen extends HookConsumerWidget {
 }
 ```
 
+## E2E Testing — Quick Reference
+
+Keys: `workout_builder_save`, `program_builder_save`, `tracker_discard`, `tracker_finish`, `workout_card_start`, `workout_card_edit`, `home_fab`, `calendar_add_program`
+
+Test helpers: `test/test_utils/test_helpers.dart` — `safeTap()`, `tapByKey()`, `tapOffScreen()`, `waitForWidget()`
+
+Rules: See `test/e2e/CLAUDE.md` for full harness engineering rules.
+
 ## Commands
 
 ```bash

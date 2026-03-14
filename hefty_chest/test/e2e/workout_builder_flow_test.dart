@@ -121,11 +121,9 @@ void main() {
             matching: find.byType(GestureDetector),
           ),
         );
-        if (menuGesture.evaluate().isNotEmpty) {
-          final widget =
-              tester.widget<GestureDetector>(menuGesture.first);
-          widget.onTap?.call();
-        }
+        expect(menuGesture, findsWidgets, reason: 'Menu button should be on workout card');
+        final menuWidget = tester.widget<GestureDetector>(menuGesture.first);
+        menuWidget.onTap?.call();
         await Future.delayed(const Duration(seconds: 1));
         await tester.pump();
 
@@ -134,10 +132,9 @@ void main() {
           of: find.text('Delete'),
           matching: find.byType(InkWell),
         );
-        if (deleteInkWell.evaluate().isNotEmpty) {
-          final widget = tester.widget<InkWell>(deleteInkWell.first);
-          widget.onTap?.call();
-        }
+        expect(deleteInkWell, findsWidgets, reason: 'Delete option should be in context menu');
+        final deleteWidget = tester.widget<InkWell>(deleteInkWell.first);
+        deleteWidget.onTap?.call();
         await Future.delayed(const Duration(seconds: 1));
         await tester.pump();
       });

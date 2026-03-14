@@ -11,6 +11,7 @@ import 'package:hefty_chest/features/workout_builder/widgets/exercise_search_mod
 
 import '../test_utils/test_setup.dart';
 import '../test_utils/test_data.dart';
+import '../test_utils/test_helpers.dart';
 
 void main() {
   setUpAll(() async {
@@ -88,10 +89,7 @@ void main() {
         await tester.pump();
 
         // Tap FAB
-        final fab = find.byKey(const Key('home_fab'));
-        if (fab.evaluate().isNotEmpty) {
-          await tester.tap(fab);
-        }
+        await tapByKey(tester, 'home_fab', reason: 'FAB should be visible on home screen');
         await Future.delayed(const Duration(seconds: 2));
         await tester.pump();
 
@@ -104,15 +102,20 @@ void main() {
           of: find.text('Exercise'),
           matching: find.byType(GestureDetector),
         );
-        if (exerciseButton.evaluate().isNotEmpty) {
-          final widget =
-              tester.widget<GestureDetector>(exerciseButton.first);
-          widget.onTap?.call();
-        }
+        expect(exerciseButton, findsWidgets, reason: 'Exercise button should be visible in builder');
+        final exerciseWidget = tester.widget<GestureDetector>(exerciseButton.first);
+        exerciseWidget.onTap?.call();
 
         await Future.delayed(const Duration(seconds: 2));
         await tester.pump();
       });
+      // Multiple pump cycles for modal animation to complete
+      await tester.pump();
+      await tester.runAsync(() async {
+        await Future.delayed(const Duration(seconds: 1));
+        await tester.pump();
+      });
+      await tester.pump();
 
       // Verify ExerciseSearchModal appeared
       expect(find.byType(ExerciseSearchModal), findsOneWidget);

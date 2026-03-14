@@ -76,6 +76,10 @@ When you encounter these patterns, fix them immediately — don't propagate:
 - Generated code hand-edited → Regenerate with `buf generate`
 - Hardcoded colors → Use `AppColors` constants
 - Material widgets where forui exists → Use `FButton`, `FTextField`, etc.
+- Silent skip guard in E2E test → Replace with expect() + tester.tap()
+- E2E finder using Icon/Type for tappable widget → Add Key to widget, find by Key
+- E2E navigation check inside runAsync → Move expect() outside runAsync, after pump()
+- E2E tap on off-screen widget → Use onTap?.call() or ensureVisible()
 
 ## Feedback Loops
 

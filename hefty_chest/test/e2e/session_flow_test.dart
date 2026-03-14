@@ -93,13 +93,16 @@ void main() {
 
         // Should see Resume button for the active session, or Start
         final resumeButtons = find.text('Resume');
+        final startButtons = find.text('Start');
+        expect(
+          resumeButtons.evaluate().isNotEmpty || startButtons.evaluate().isNotEmpty,
+          isTrue,
+          reason: 'Either Resume or Start button should be visible',
+        );
         if (resumeButtons.evaluate().isNotEmpty) {
-           await tester.tap(resumeButtons.first);
+          await tester.tap(resumeButtons.first);
         } else {
-           final startButtons = find.text('Start');
-           if (startButtons.evaluate().isNotEmpty) {
-             await tester.tap(startButtons.last);
-           }
+          await tester.tap(startButtons.last);
         }
 
         await Future.delayed(const Duration(seconds: 2));
@@ -136,15 +139,14 @@ void main() {
           of: find.text(name),
           matching: find.byType(WorkoutCard),
         );
-        if (workoutCard.evaluate().isNotEmpty) {
-            final startButton = find.descendant(
-              of: workoutCard,
-              matching: find.text('Start'),
-            );
-            await tester.tap(startButton);
-            await Future.delayed(const Duration(seconds: 2));
-            await tester.pump();
-        }
+        expect(workoutCard, findsOneWidget, reason: 'Workout card for "$name" should be visible');
+        final startButton = find.descendant(
+          of: workoutCard,
+          matching: find.text('Start'),
+        );
+        await tester.tap(startButton);
+        await Future.delayed(const Duration(seconds: 2));
+        await tester.pump();
 
         // For now, just ensure no crash.
         await TestData.abandonAnyActiveSession();
@@ -201,17 +203,16 @@ void main() {
           of: find.text(name),
           matching: find.byType(WorkoutCard),
         );
-        if (workoutCard.evaluate().isNotEmpty) {
-          final startButton = find.descendant(
-            of: workoutCard,
-            matching: find.text('Start'),
-          );
-          await tester.tap(startButton);
-          await Future.delayed(const Duration(seconds: 2));
-          await tester.pump();
+        expect(workoutCard, findsOneWidget, reason: 'Workout card for "$name" should be visible');
+        final startButton = find.descendant(
+          of: workoutCard,
+          matching: find.text('Start'),
+        );
+        await tester.tap(startButton);
+        await Future.delayed(const Duration(seconds: 2));
+        await tester.pump();
 
-          expect(find.byType(Scaffold), findsWidgets);
-        }
+        expect(find.byType(Scaffold), findsWidgets);
 
         await TestData.abandonAnyActiveSession();
       });
@@ -239,27 +240,43 @@ void main() {
           of: find.text(name),
           matching: find.byType(WorkoutCard),
         );
-        if (workoutCard.evaluate().isNotEmpty) {
-          final startButton = find.descendant(
-            of: workoutCard,
-            matching: find.text('Start'),
-          );
-          await tester.tap(startButton);
-          await Future.delayed(const Duration(seconds: 2));
+        expect(workoutCard, findsOneWidget, reason: 'Workout card for "$name" should be visible');
+        final startButton = find.descendant(
+          of: workoutCard,
+          matching: find.text('Start'),
+        );
+        await tester.tap(startButton);
+        await Future.delayed(const Duration(seconds: 2));
+        await tester.pump();
+      });
+      // GoRouter navigation completes after exiting runAsync
+      await tester.pump();
+
+      // Wait for tracker screen to fully load (session init is async)
+      await tester.runAsync(() async {
+        for (int i = 0; i < 10; i++) {
+          await Future.delayed(const Duration(milliseconds: 500));
           await tester.pump();
-
-          // Try to go back
-          final backButton = find.byIcon(Icons.chevron_left);
-          if (backButton.evaluate().isNotEmpty) {
-            await tester.tap(backButton.first);
-            await Future.delayed(const Duration(seconds: 1));
-            await tester.pump();
-
-            // Should be back home
-            expect(find.text('Heft'), findsOneWidget);
-          }
+          if (find.byIcon(Icons.chevron_left).evaluate().isNotEmpty) break;
         }
+      });
+      await tester.pump();
 
+      // Try to go back
+      final backButton = find.byIcon(Icons.chevron_left);
+      expect(backButton, findsWidgets, reason: 'Back button should be visible on tracker');
+      await tester.runAsync(() async {
+        await tester.tap(backButton.first);
+        await Future.delayed(const Duration(seconds: 2));
+        await tester.pump();
+      });
+      // GoRouter navigation back completes after pump
+      await tester.pump();
+
+      // Should be back home
+      expect(find.text('Heft'), findsOneWidget);
+
+      await tester.runAsync(() async {
         await TestData.abandonAnyActiveSession();
       });
     });
@@ -724,16 +741,13 @@ Future<void> navigateToTracker(
     matching: find.byType(WorkoutCard),
   );
 
-  if (workoutCard.evaluate().isNotEmpty) {
-    final startButton = find.descendant(
-      of: workoutCard,
-      matching: find.text('Start'),
-    );
-    await tester.tap(startButton);
-  } else {
-    // Fallback: tap the last Start button (skip Quick Start card)
-    await tester.tap(find.text('Start').last);
-  }
+  expect(workoutCard, findsOneWidget,
+      reason: 'Workout card for "$workoutName" should be visible on home screen');
+  final startButton = find.descendant(
+    of: workoutCard,
+    matching: find.text('Start'),
+  );
+  await tester.tap(startButton);
 
   // Poll for tracker content to fully load (SetRow = session data rendered)
   for (int i = 0; i < 20; i++) {

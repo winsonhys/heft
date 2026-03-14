@@ -186,3 +186,69 @@ make test-race             # Race condition detection
 flutter test               # All tests
 ./run_e2e_tests.sh          # E2E (needs Docker, run from project root)
 ```
+
+## E2E Test Patterns
+
+E2E tests run the full `HeftyChestApp` against a live Docker backend. Located in `hefty_chest/test/e2e/`.
+
+### Anti-Patterns (Banned)
+
+**Silent skip guard** — test "passes" when widget doesn't render:
+```dart
+// BANNED — silently skips the tap if widget missing
+if (finder.evaluate().isNotEmpty) {
+  await tester.tap(finder);
+}
+
+// CORRECT — fails immediately with diagnostics
+expect(finder, findsOneWidget, reason: 'Expected save icon');
+await tester.tap(finder);
+```
+
+**Ambiguous finders for tappable widgets:**
+```dart
+// FRAGILE — breaks when duplicate save icons exist
+await tester.tap(find.byIcon(Icons.save));
+
+// ROBUST — unambiguous
+await tester.tap(find.byKey(const Key('workout_builder_save')));
+```
+
+### GoRouter Navigation Timing
+
+Navigation triggered inside `tester.runAsync()` doesn't complete until `tester.pump()` is called OUTSIDE `runAsync`:
+
+```dart
+await tester.runAsync(() async {
+  await tester.tap(fab);
+  await Future.delayed(const Duration(seconds: 2));
+  await tester.pump();
+});
+// Navigation completes here
+await tester.pump();
+expect(find.text('Create Workout'), findsOneWidget);
+```
+
+### Off-Screen Widgets
+
+FHeaderAction suffixes (save, discard, finish) render at x~975, outside the 800×600 test viewport. Invoke `onTap` directly:
+
+```dart
+final widget = tester.widget<GestureDetector>(finder);
+widget.onTap?.call();
+```
+
+Or use the `tapOffScreen()` helper from `test/test_utils/test_helpers.dart`.
+
+### Widget Keys for E2E
+
+| Key | Widget | File |
+|---|---|---|
+| `home_fab` | Home FAB | `home_screen.dart` |
+| `calendar_add_program` | Calendar add icon | `calendar_screen.dart` |
+| `workout_builder_save` | Save icon | `workout_builder_screen.dart` |
+| `program_builder_save` | Save icon | `program_builder_screen.dart` |
+| `tracker_discard` | Discard button | `tracker_screen.dart` |
+| `tracker_finish` | Finish button | `tracker_screen.dart` |
+| `workout_card_start` | Start button | `workout_card.dart` |
+| `workout_card_edit` | Edit button | `workout_card.dart` |

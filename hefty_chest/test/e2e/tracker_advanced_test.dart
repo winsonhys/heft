@@ -201,11 +201,10 @@ void main() {
           of: find.byType(FloatingSessionWidget),
           matching: find.byType(GestureDetector),
         );
-        if (floatingGesture.evaluate().isNotEmpty) {
-          final widget =
-              tester.widget<GestureDetector>(floatingGesture.first);
-          widget.onTap?.call();
-        }
+        expect(floatingGesture, findsWidgets, reason: 'FloatingSessionWidget should have a tappable GestureDetector');
+        final floatingWidget =
+            tester.widget<GestureDetector>(floatingGesture.first);
+        floatingWidget.onTap?.call();
         await Future.delayed(const Duration(seconds: 3));
         await tester.pump();
       });

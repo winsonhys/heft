@@ -10,6 +10,7 @@ import 'package:hefty_chest/features/auth/providers/auth_providers.dart';
 
 import '../test_utils/test_setup.dart';
 import '../test_utils/test_data.dart';
+import '../test_utils/test_helpers.dart';
 
 void main() {
   setUpAll(() async {
@@ -179,10 +180,7 @@ void main() {
         await tester.pump();
 
         // Tap FAB
-        final fab = find.byKey(const Key('home_fab'));
-        if (fab.evaluate().isNotEmpty) {
-          await tester.tap(fab);
-        }
+        await tapByKey(tester, 'home_fab', reason: 'FAB should be visible on home screen');
         await Future.delayed(const Duration(seconds: 2));
         await tester.pump();
       });
@@ -337,6 +335,7 @@ void main() {
         emptyText.evaluate().isNotEmpty ||
             find.text('My Workouts').evaluate().isNotEmpty,
         isTrue,
+        reason: 'Should show either "No workouts yet" empty state or "My Workouts" section',
       );
     });
   });

@@ -15,6 +15,7 @@ import 'package:hefty_chest/features/program_builder/widgets/program_summary_car
 
 import '../test_utils/test_setup.dart';
 import '../test_utils/test_data.dart';
+import '../test_utils/test_helpers.dart';
 
 void main() {
   setUpAll(() async {
@@ -62,9 +63,8 @@ void main() {
 
     // Tap the add icon in the Calendar header to open program builder
     final addIcon = find.byKey(const Key('calendar_add_program'));
-    if (addIcon.evaluate().isNotEmpty) {
-      await tester.tap(addIcon);
-    }
+    expect(addIcon, findsOneWidget, reason: 'Calendar add program icon should be visible');
+    await tester.tap(addIcon);
     await Future.delayed(const Duration(seconds: 2));
     await tester.pump();
   }
@@ -148,11 +148,9 @@ void main() {
           of: find.text('Fill empty with rest'),
           matching: find.byType(GestureDetector),
         );
-        if (fillRestGesture.evaluate().isNotEmpty) {
-          final widget =
-              tester.widget<GestureDetector>(fillRestGesture.first);
-          widget.onTap?.call();
-        }
+        expect(fillRestGesture, findsWidgets, reason: 'Fill empty with rest button should be visible');
+        final fillWidget = tester.widget<GestureDetector>(fillRestGesture.first);
+        fillWidget.onTap?.call();
         await Future.delayed(const Duration(seconds: 1));
         await tester.pump();
       });
@@ -180,15 +178,13 @@ void main() {
       // Phase 2: Fill in name and save
       await tester.runAsync(() async {
         final nameField = find.byType(EditableText);
-        if (nameField.evaluate().isNotEmpty) {
-          await tester.enterText(nameField.first, name);
-          await tester.pump();
-        }
+        expect(nameField, findsWidgets, reason: 'Name text field should be visible in program builder');
+        await tester.enterText(nameField.first, name);
+        await tester.pump();
 
-        final saveIcon = find.byIcon(Icons.save);
-        if (saveIcon.evaluate().isNotEmpty) {
-          await tester.tap(saveIcon);
-        }
+        final saveIcon = find.byKey(const Key('program_builder_save'));
+        expect(saveIcon, findsOneWidget, reason: 'Save icon should be visible in program builder');
+        await tapOffScreen(tester, saveIcon, reason: 'Tap save icon (may be off-screen in header)');
         await Future.delayed(const Duration(seconds: 3));
         await tester.pump();
       });

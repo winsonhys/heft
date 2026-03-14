@@ -184,6 +184,7 @@ class TrackerScreen extends HookConsumerWidget {
             ],
             suffixes: [
               GestureDetector(
+                key: const Key('tracker_discard'),
                 onTap: discardWorkout,
                 child: const Text(
                   'Discard',
@@ -196,6 +197,7 @@ class TrackerScreen extends HookConsumerWidget {
               ),
               const SizedBox(width: 16),
               GestureDetector(
+                key: const Key('tracker_finish'),
                 onTap: finishWorkout,
                 child: const Text(
                   'Finish',
