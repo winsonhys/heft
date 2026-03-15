@@ -26,18 +26,18 @@ void main() {
 
   group('Workout Flow E2E', () {
     testWidgets('displays home screen with app title', (tester) async {
-      await tester.pumpWidget(
-        ProviderScope(
-          overrides: [
-            authProvider.overrideWith(MockAuth.new),
-          ],
-          child: const HeftyChestApp(),
-        ),
-      );
-
-      // Wait for initial load - use runAsync only for delays, not pumpWidget
       await tester.runAsync(() async {
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: [
+              authProvider.overrideWith(MockAuth.new),
+            ],
+            child: const HeftyChestApp(),
+          ),
+        );
+
         await Future.delayed(const Duration(seconds: 3));
+        await tester.pump();
       });
       await tester.pump();
 
@@ -116,7 +116,7 @@ void main() {
         await tester.pump();
       });
       
-      expect(find.byType(FProgress), findsOneWidget);
+      expect(find.byType(FCircularProgress), findsOneWidget);
 
       await tester.runAsync(() async {
         // Then settle
@@ -184,6 +184,8 @@ void main() {
         await Future.delayed(const Duration(seconds: 2));
         await tester.pump();
       });
+      // GoRouter navigation completes after pump outside runAsync
+      await tester.pump();
 
       // Should navigate to workout builder
       expect(find.text('Create Workout'), findsOneWidget);
@@ -204,11 +206,14 @@ void main() {
         await tester.pump();
       });
 
-      // Bottom nav should have icons
-      expect(find.byIcon(Icons.home), findsOneWidget); // Active
-      expect(find.byIcon(Icons.bar_chart_outlined), findsOneWidget); // Inactive
-      expect(find.byIcon(Icons.calendar_today_outlined), findsOneWidget); // Inactive
-      expect(find.byIcon(Icons.person_outline), findsOneWidget); // Inactive
+      await tester.pump();
+
+      // Bottom nav should have icons (all use outlined variants)
+      expect(find.byIcon(Icons.home_outlined), findsOneWidget);
+      expect(find.byIcon(Icons.history), findsOneWidget);
+      expect(find.byIcon(Icons.bar_chart_outlined), findsOneWidget);
+      expect(find.byIcon(Icons.calendar_today_outlined), findsOneWidget);
+      expect(find.byIcon(Icons.person_outline), findsOneWidget);
     });
 
     testWidgets('navigates to progress screen via bottom nav', (tester) async {

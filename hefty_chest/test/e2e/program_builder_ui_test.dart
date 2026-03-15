@@ -75,8 +75,8 @@ void main() {
         await navigateToProgramBuilder(tester);
       });
 
-      // GoRouter navigation completes after exiting runAsync
-      await tester.pump();
+      // GoRouter navigation completes after exiting runAsync + animation time
+      await tester.pump(const Duration(seconds: 1));
 
       expect(find.text('Create Program'), findsOneWidget);
       expect(find.byType(ProgramBuilderScreen), findsOneWidget);
@@ -109,8 +109,11 @@ void main() {
       expect(find.byType(WeekNavigation), findsOneWidget);
       expect(find.text('Week 1'), findsOneWidget);
       expect(find.text('of 4 weeks'), findsOneWidget);
-      expect(find.byIcon(Icons.chevron_left), findsOneWidget);
-      expect(find.byIcon(Icons.chevron_right), findsOneWidget);
+      // Scope to WeekNavigation to avoid ambiguity with header back button
+      final weekNav = find.byType(WeekNavigation);
+      expect(weekNav, findsOneWidget);
+      expect(find.descendant(of: weekNav, matching: find.byIcon(Icons.chevron_left)), findsOneWidget);
+      expect(find.descendant(of: weekNav, matching: find.byIcon(Icons.chevron_right)), findsOneWidget);
     });
 
     testWidgets('day cards render for current week', (tester) async {
@@ -188,6 +191,8 @@ void main() {
         await Future.delayed(const Duration(seconds: 3));
         await tester.pump();
       });
+      // Complete pop navigation + animation
+      await tester.pump(const Duration(seconds: 1));
 
       // Verify program was created via API
       late bool found;

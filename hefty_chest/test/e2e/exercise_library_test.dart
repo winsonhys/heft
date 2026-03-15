@@ -80,6 +80,7 @@ void main() {
 
     testWidgets('exercise search modal opens from workout builder',
         (tester) async {
+      // Phase 1: Navigate to workout builder
       await tester.runAsync(() async {
         await TestData.abandonAnyActiveSession();
 
@@ -92,12 +93,22 @@ void main() {
         await tapByKey(tester, 'home_fab', reason: 'FAB should be visible on home screen');
         await Future.delayed(const Duration(seconds: 2));
         await tester.pump();
+      });
+      // GoRouter navigation completes after pump outside runAsync
+      await tester.pump();
+      // Let builder screen providers load data
+      await tester.runAsync(() async {
+        await Future.delayed(const Duration(seconds: 2));
+        await tester.pump();
+      });
+      await tester.pump();
 
-        // Verify we're on the workout builder screen
-        expect(find.text('Create Workout'), findsOneWidget);
+      // Verify we're on the workout builder screen
+      expect(find.text('Create Workout'), findsOneWidget);
 
+      // Phase 2: Open exercise search modal
+      await tester.runAsync(() async {
         // Find the 'Exercise' button via GestureDetector and invoke onTap
-        // The button may be off-screen, so use the GestureDetector pattern
         final exerciseButton = find.ancestor(
           of: find.text('Exercise'),
           matching: find.byType(GestureDetector),

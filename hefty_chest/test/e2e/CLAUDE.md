@@ -35,7 +35,7 @@ await tester.tap(find.byKey(const Key('workout_builder_save')));
 await tester.tap(find.byIcon(Icons.save));
 ```
 
-Available keys: `home_fab`, `calendar_add_program`, `workout_builder_save`, `program_builder_save`, `tracker_discard`, `tracker_finish`, `workout_card_start`, `workout_card_edit`
+Available keys: `home_fab`, `calendar_add_program`, `workout_builder_save`, `program_builder_save`, `tracker_discard`, `tracker_finish`, `tracker_back`, `workout_card_start`, `workout_card_edit`
 
 ### 3. Pump after runAsync for navigation
 
@@ -76,6 +76,17 @@ widget.onTap?.call();
 await tester.tap(finder); // no-op if widget is outside viewport
 ```
 
+**forui FHeaderAction exception:** `FHeaderAction` uses `FTappable` internally, not `GestureDetector`. The `tapOffScreen()` helper won't work because it looks for `GestureDetector`. Instead, invoke `onPress` directly:
+
+```dart
+// CORRECT — FHeaderAction uses onPress, not onTap
+final action = tester.widget<FHeaderAction>(finder);
+action.onPress?.call();
+
+// WRONG — FHeaderAction wraps FTappable, not GestureDetector
+tapOffScreen(tester, finder); // Fails: no GestureDetector ancestor
+```
+
 ### 5. Fail fast with diagnostics
 
 Add `reason:` to expect calls. For navigation tests, print widget types on screen before critical assertions.
@@ -88,6 +99,42 @@ expect(find.text('Create Workout'), findsOneWidget,
 // WRONG — "Expected 1, found 0" gives no debugging context
 expect(find.text('Create Workout'), findsOneWidget);
 ```
+
+### 6. pumpWidget inside runAsync
+
+`pumpWidget()` must be called INSIDE `tester.runAsync()`. Calling it outside leaves pending KeepAlive timers from forui widgets that cause test failures.
+
+```dart
+// CORRECT — pumpWidget inside runAsync
+await tester.runAsync(() async {
+  await tester.pumpWidget(app);
+  await Future.delayed(const Duration(seconds: 3));
+  await tester.pump();
+});
+
+// WRONG — pending timer failures from forui KeepAlive
+await tester.pumpWidget(app);
+await tester.runAsync(() async {
+  await Future.delayed(const Duration(seconds: 3));
+  await tester.pump();
+});
+```
+
+### 7. pump(Duration) for route animations
+
+GoRouter `push()` triggers route transition animations that require `pump(Duration)` to complete. `go()` replaces the route stack without animation and only needs `pump()`.
+
+```dart
+// After push() — needs pump(Duration) for animation
+context.push('/workout/builder');
+await tester.pump(const Duration(seconds: 1));
+
+// After go() — no animation, just pump()
+context.go('/');
+await tester.pump();
+```
+
+Without `pump(Duration)` after `push()`, you get a route lifecycle assertion error because the transition animation is still in progress.
 
 ## Test Helpers (`test/test_utils/test_helpers.dart`)
 
@@ -134,3 +181,23 @@ Async pattern: All tests use `tester.runAsync()` with `Future.delayed` for timin
 | `createWorkoutWithRestItem()` | Workout + 1 exercise + 1 rest item |
 | `startSession()` | Live session from a workout template |
 | `abandonAnyActiveSession()` | Cleanup: abandons all in-progress sessions |
+
+## E2E Test Tags
+
+Tests are tagged by feature area. Run a subset with `--tags`:
+
+```bash
+flutter test test/e2e/ --tags session
+```
+
+| Tag | Test File |
+|---|---|
+| `session` | `session_flow_test.dart` |
+| `workout` | `workout_builder_ui_test.dart`, `workout_flow_test.dart` |
+| `program` | `program_builder_ui_test.dart` |
+| `progress` | `progress_screen_test.dart` |
+| `profile` | `profile_screen_test.dart` |
+| `calendar` | `calendar_screen_test.dart` |
+| `misc` | `exercise_library_test.dart` |
+
+Note: there are no `tracker`, `exercise`, or `tools` tags.

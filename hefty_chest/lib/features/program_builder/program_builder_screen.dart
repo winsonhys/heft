@@ -50,7 +50,7 @@ class ProgramBuilderScreen extends HookConsumerWidget {
       isLoading.value = false;
 
       if (success && context.mounted) {
-        context.pop();
+        context.go('/calendar');
       }
     }
 

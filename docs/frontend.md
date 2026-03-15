@@ -142,6 +142,20 @@ context.goNewSession(workoutId: workout.id);
 context.goWorkoutBuilder(workoutId: existingId);
 ```
 
+### Navigation After Async Operations
+
+After an async save/create operation, use `context.go()` instead of `context.pop()`. GoRouter `pop()` can trigger route lifecycle assertions when the previous route's state has been invalidated.
+
+```dart
+// CORRECT — explicit navigation avoids lifecycle issues
+await saveWorkout();
+if (context.mounted) context.go('/');
+
+// WRONG — pop() hits route lifecycle assertion after async
+await saveWorkout();
+if (context.mounted) context.pop();
+```
+
 ## Authentication
 
 ### Flow

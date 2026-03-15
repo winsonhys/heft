@@ -53,8 +53,8 @@ void main() {
       await Future.delayed(const Duration(seconds: 2));
       await tester.pump();
     });
-    // Complete GoRouter navigation
-    await tester.pump();
+    // Complete GoRouter navigation + route push animation
+    await tester.pump(const Duration(seconds: 1));
     // Let builder screen providers load data
     await tester.runAsync(() async {
       await Future.delayed(const Duration(seconds: 2));
@@ -227,6 +227,13 @@ void main() {
         final saveIcon = find.byKey(const Key('workout_builder_save'));
         expect(saveIcon, findsOneWidget, reason: 'Save icon should be visible in workout builder');
         await tapOffScreen(tester, saveIcon, reason: 'Tap save icon (may be off-screen in header)');
+        await Future.delayed(const Duration(seconds: 3));
+        await tester.pump();
+      });
+      // Complete pop navigation + animation
+      await tester.pump(const Duration(seconds: 1));
+      // Wait for home screen to re-fetch workout list after invalidation
+      await tester.runAsync(() async {
         await Future.delayed(const Duration(seconds: 3));
         await tester.pump();
       });

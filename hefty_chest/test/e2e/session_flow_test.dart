@@ -4,6 +4,7 @@ library;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:forui/forui.dart';
 import 'package:hefty_chest/app/app.dart';
 import 'package:hefty_chest/core/client.dart';
 import 'package:hefty_chest/features/auth/providers/auth_providers.dart';
@@ -13,6 +14,7 @@ import 'package:hefty_chest/features/tracker/widgets/set_row.dart';
 
 import '../test_utils/test_setup.dart';
 import '../test_utils/test_data.dart';
+import '../test_utils/test_helpers.dart';
 
 void main() {
   setUpAll(() async {
@@ -257,16 +259,17 @@ void main() {
         for (int i = 0; i < 10; i++) {
           await Future.delayed(const Duration(milliseconds: 500));
           await tester.pump();
-          if (find.byIcon(Icons.chevron_left).evaluate().isNotEmpty) break;
+          if (find.byKey(const Key('tracker_back')).evaluate().isNotEmpty) break;
         }
       });
       await tester.pump();
 
-      // Try to go back
-      final backButton = find.byIcon(Icons.chevron_left);
-      expect(backButton, findsWidgets, reason: 'Back button should be visible on tracker');
+      // Try to go back — invoke onPress directly since FHeaderAction uses FTappable, not GestureDetector
+      final backButton = find.byKey(const Key('tracker_back'));
+      expect(backButton, findsOneWidget, reason: 'Back button should be visible on tracker');
       await tester.runAsync(() async {
-        await tester.tap(backButton.first);
+        final headerAction = tester.widget<FHeaderAction>(backButton);
+        headerAction.onPress?.call();
         await Future.delayed(const Duration(seconds: 2));
         await tester.pump();
       });

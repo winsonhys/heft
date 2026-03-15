@@ -180,7 +180,7 @@ class TrackerScreen extends HookConsumerWidget {
               ],
             ),
             prefixes: [
-              FHeaderAction.back(onPress: goBackHome),
+              FHeaderAction.back(key: const Key('tracker_back'), onPress: goBackHome),
             ],
             suffixes: [
               GestureDetector(

@@ -229,6 +229,34 @@ await tester.pump();
 expect(find.text('Create Workout'), findsOneWidget);
 ```
 
+### pumpWidget Placement
+
+`pumpWidget()` must be called INSIDE `tester.runAsync()`. forui widgets use KeepAlive timers internally — calling `pumpWidget()` outside `runAsync` leaves these timers pending, causing test failures.
+
+```dart
+// CORRECT
+await tester.runAsync(() async {
+  await tester.pumpWidget(app);
+  await Future.delayed(const Duration(seconds: 3));
+  await tester.pump();
+});
+
+// WRONG — pending timer failures
+await tester.pumpWidget(app);
+await tester.runAsync(() async { ... });
+```
+
+### Route Animation Timing
+
+GoRouter `push()` and `go()` have different pump requirements:
+
+| Method | Animation | Pump Required |
+|---|---|---|
+| `context.go('/route')` | None (replaces stack) | `await tester.pump()` |
+| `context.push('/route')` | Transition animation | `await tester.pump(const Duration(seconds: 1))` |
+
+Without `pump(Duration)` after `push()`, the transition animation is still in progress and GoRouter throws a route lifecycle assertion.
+
 ### Off-Screen Widgets
 
 FHeaderAction suffixes (save, discard, finish) render at x~975, outside the 800×600 test viewport. Invoke `onTap` directly:
@@ -239,6 +267,13 @@ widget.onTap?.call();
 ```
 
 Or use the `tapOffScreen()` helper from `test/test_utils/test_helpers.dart`.
+
+**forui FHeaderAction exception:** `FHeaderAction` uses `FTappable` internally, not `GestureDetector`. The `tapOffScreen()` helper won't find a `GestureDetector` ancestor. Instead, invoke `onPress` directly:
+
+```dart
+final action = tester.widget<FHeaderAction>(finder);
+action.onPress?.call();
+```
 
 ### Widget Keys for E2E
 
@@ -252,3 +287,24 @@ Or use the `tapOffScreen()` helper from `test/test_utils/test_helpers.dart`.
 | `tracker_finish` | Finish button | `tracker_screen.dart` |
 | `workout_card_start` | Start button | `workout_card.dart` |
 | `workout_card_edit` | Edit button | `workout_card.dart` |
+| `tracker_back` | Back button | `tracker_screen.dart` |
+
+### E2E Test Tags
+
+Tests are tagged by feature area. Run a subset with `--tags`:
+
+```bash
+flutter test test/e2e/ --tags session
+```
+
+| Tag | Test File(s) |
+|---|---|
+| `session` | `session_flow_test.dart` |
+| `workout` | `workout_builder_ui_test.dart`, `workout_flow_test.dart` |
+| `program` | `program_builder_ui_test.dart` |
+| `progress` | `progress_screen_test.dart` |
+| `profile` | `profile_screen_test.dart` |
+| `calendar` | `calendar_screen_test.dart` |
+| `misc` | `exercise_library_test.dart` |
+
+Note: there are no `tracker`, `exercise`, or `tools` tags.

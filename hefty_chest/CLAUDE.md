@@ -95,6 +95,20 @@ final request = ListWorkoutsRequest()..pagination = pagination;
 final request = ListWorkoutsRequest()..userId = currentUserId;
 ```
 
+## Navigation After Async — Mechanical Rule
+
+After an async save/create operation, use `context.go()` instead of `context.pop()`. GoRouter `pop()` can trigger route lifecycle assertions when the previous route's state has been invalidated by the async operation.
+
+```dart
+// CORRECT — explicit navigation avoids lifecycle issues
+await saveWorkout();
+if (context.mounted) context.go('/');
+
+// WRONG — pop() hits route lifecycle assertion after async
+await saveWorkout();
+if (context.mounted) context.pop();
+```
+
 ## Widget Patterns — Quick Reference
 
 ```dart
@@ -121,7 +135,7 @@ class MyScreen extends HookConsumerWidget {
 
 ## E2E Testing — Quick Reference
 
-Keys: `workout_builder_save`, `program_builder_save`, `tracker_discard`, `tracker_finish`, `workout_card_start`, `workout_card_edit`, `home_fab`, `calendar_add_program`
+Keys: `workout_builder_save`, `program_builder_save`, `tracker_discard`, `tracker_finish`, `tracker_back`, `workout_card_start`, `workout_card_edit`, `home_fab`, `calendar_add_program`
 
 Test helpers: `test/test_utils/test_helpers.dart` — `safeTap()`, `tapByKey()`, `tapOffScreen()`, `waitForWidget()`
 

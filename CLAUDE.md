@@ -80,6 +80,9 @@ When you encounter these patterns, fix them immediately — don't propagate:
 - E2E finder using Icon/Type for tappable widget → Add Key to widget, find by Key
 - E2E navigation check inside runAsync → Move expect() outside runAsync, after pump()
 - E2E tap on off-screen widget → Use onTap?.call() or ensureVisible()
+- `context.pop()` after async save → Use `context.go('/target')` to avoid route lifecycle assertion
+- `pumpWidget()` called outside `runAsync` → Move inside `runAsync` to prevent pending KeepAlive timers
+- `tapOffScreen`/`tapOffScreenByKey` on forui FHeaderAction → Invoke `onPress` directly: `tester.widget<FHeaderAction>(finder).onPress?.call()`
 
 ## Feedback Loops
 
