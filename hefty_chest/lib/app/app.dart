@@ -6,6 +6,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 import '../core/client.dart';
 import '../features/auth/providers/auth_providers.dart';
+import '../features/tracker/providers/session_providers.dart';
 import '../shared/theme/heft_theme.dart';
 import '../shared/widgets/floating_session_widget.dart';
 import 'router.dart';
@@ -115,13 +116,35 @@ class _AppShellState extends ConsumerState<_AppShell> {
     final currentPath = widget.router.routerDelegate.currentConfiguration.uri.path;
     final isAuthScreen = currentPath.startsWith('/auth');
 
+    // Read session providers here (app layer can import features)
+    // and pass data down to the shared widget as props
+    FloatingSessionData? sessionData;
+    if (!isAuthScreen) {
+      final activeSession = ref.watch(activeSessionProvider);
+      final fallbackSession = ref.watch(hasActiveSessionProvider);
+      final session = activeSession.value ?? fallbackSession.value;
+      if (session != null) {
+        sessionData = FloatingSessionData(
+          id: session.id,
+          name: session.name,
+          completedSets: session.completedSets,
+          totalSets: session.totalSets,
+          startedAt: session.startedAt,
+        );
+      }
+    }
+
     return FToaster(
       child: Stack(
         children: [
           widget.child,
           // Show floating session widget on all screens except auth
           // (FloatingSessionWidget handles hiding itself on tracker screen internally)
-          if (!isAuthScreen) FloatingSessionWidget(router: widget.router),
+          if (!isAuthScreen)
+            FloatingSessionWidget(
+              router: widget.router,
+              session: sessionData,
+            ),
         ],
       ),
     );

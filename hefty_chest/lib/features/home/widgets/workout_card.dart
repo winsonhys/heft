@@ -241,7 +241,7 @@ class _ActionButton extends StatelessWidget {
             Icon(
               icon,
               size: 16,
-              color: isPrimary ? Colors.white : AppColors.textSecondary,
+              color: isPrimary ? AppColors.textPrimary : AppColors.textSecondary,
             ),
             const SizedBox(width: 6),
             Text(
@@ -249,7 +249,7 @@ class _ActionButton extends StatelessWidget {
               style: TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.w600,
-                color: isPrimary ? Colors.white : AppColors.textSecondary,
+                color: isPrimary ? AppColors.textPrimary : AppColors.textSecondary,
               ),
             ),
           ],

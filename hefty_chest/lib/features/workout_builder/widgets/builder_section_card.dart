@@ -130,7 +130,7 @@ class BuilderSectionCard extends HookWidget {
                         fontSize: 11,
                         fontWeight: FontWeight.w500,
                         color: section.isSuperset
-                            ? Colors.white
+                            ? AppColors.textPrimary
                             : AppColors.textMuted,
                       ),
                     ),

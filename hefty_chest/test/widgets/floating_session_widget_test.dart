@@ -3,22 +3,18 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hefty_chest/shared/widgets/floating_session_widget.dart';
-import 'package:hefty_chest/features/tracker/providers/session_providers.dart';
-import 'package:hefty_chest/features/tracker/models/session_models.dart';
 
-/// Creates a mock SessionModel for testing
-SessionModel createMockSession({
+/// Creates a FloatingSessionData for testing
+FloatingSessionData createMockSessionData({
   String id = 'test-session-id',
   String name = 'Test Workout',
   int completedSets = 5,
   int totalSets = 12,
   DateTime? startedAt,
 }) {
-  return SessionModel(
+  return FloatingSessionData(
     id: id,
-    workoutTemplateId: 'test-workout-id',
     name: name,
-    exercises: [],
     completedSets: completedSets,
     totalSets: totalSets,
     startedAt: startedAt,
@@ -39,10 +35,8 @@ GoRouter createMockRouter() {
 /// Helper to wrap widget under test with required providers
 Widget createTestWidget({
   required Widget child,
-  List<Object> overrides = const [],
 }) {
   return ProviderScope(
-    overrides: overrides.cast(),
     child: MaterialApp(
       home: Scaffold(
         body: SizedBox(
@@ -63,19 +57,17 @@ void main() {
       mockRouter = createMockRouter();
     });
 
-    testWidgets('displays session info when active session exists',
+    testWidgets('displays session info when session data provided',
         (tester) async {
       await tester.pumpWidget(
         createTestWidget(
-          overrides: [
-            hasActiveSessionProvider
-                .overrideWith((ref) async => createMockSession()),
-          ],
-          child: FloatingSessionWidget(router: mockRouter),
+          child: FloatingSessionWidget(
+            router: mockRouter,
+            session: createMockSessionData(),
+          ),
         ),
       );
 
-      // Wait for async provider to resolve
       await tester.pumpAndSettle();
 
       // Verify workout name is displayed
@@ -93,11 +85,10 @@ void main() {
         (tester) async {
       await tester.pumpWidget(
         createTestWidget(
-          overrides: [
-            hasActiveSessionProvider
-                .overrideWith((ref) async => createMockSession(name: '')),
-          ],
-          child: FloatingSessionWidget(router: mockRouter),
+          child: FloatingSessionWidget(
+            router: mockRouter,
+            session: createMockSessionData(name: ''),
+          ),
         ),
       );
 
@@ -107,12 +98,9 @@ void main() {
       expect(find.text('Workout'), findsOneWidget);
     });
 
-    testWidgets('hidden when no active session', (tester) async {
+    testWidgets('hidden when no session data', (tester) async {
       await tester.pumpWidget(
         createTestWidget(
-          overrides: [
-            hasActiveSessionProvider.overrideWith((ref) async => null),
-          ],
           child: FloatingSessionWidget(router: mockRouter),
         ),
       );
@@ -127,34 +115,11 @@ void main() {
       expect(find.byType(SizedBox), findsWidgets);
     });
 
-    testWidgets('shows nothing during loading state', (tester) async {
-      // Create a completer that we can control
-      await tester.pumpWidget(
-        createTestWidget(
-          overrides: [
-            hasActiveSessionProvider.overrideWith((ref) async {
-              // Return immediately but we check before pumpAndSettle
-              return createMockSession();
-            }),
-          ],
-          child: FloatingSessionWidget(router: mockRouter),
-        ),
-      );
-
-      // Check immediately after first pump (before async resolves)
-      // The widget should show SizedBox.shrink during loading
-      expect(find.text('Test Workout'), findsNothing);
-    });
-
     testWidgets('drag updates position', (tester) async {
       late ProviderContainer container;
 
       await tester.pumpWidget(
         ProviderScope(
-          overrides: [
-            hasActiveSessionProvider
-                .overrideWith((ref) async => createMockSession()),
-          ],
           child: Builder(
             builder: (context) {
               container = ProviderScope.containerOf(context);
@@ -163,7 +128,12 @@ void main() {
                   body: SizedBox(
                     width: 400,
                     height: 800,
-                    child: Stack(children: [FloatingSessionWidget(router: mockRouter)]),
+                    child: Stack(children: [
+                      FloatingSessionWidget(
+                        router: mockRouter,
+                        session: createMockSessionData(),
+                      ),
+                    ]),
                   ),
                 ),
               );
@@ -197,15 +167,13 @@ void main() {
     testWidgets('displays correct set counts', (tester) async {
       await tester.pumpWidget(
         createTestWidget(
-          overrides: [
-            hasActiveSessionProvider.overrideWith(
-              (ref) async => createMockSession(
-                completedSets: 3,
-                totalSets: 8,
-              ),
+          child: FloatingSessionWidget(
+            router: mockRouter,
+            session: createMockSessionData(
+              completedSets: 3,
+              totalSets: 8,
             ),
-          ],
-          child: FloatingSessionWidget(router: mockRouter),
+          ),
         ),
       );
 
@@ -217,11 +185,10 @@ void main() {
     testWidgets('renders with Material widget and elevation', (tester) async {
       await tester.pumpWidget(
         createTestWidget(
-          overrides: [
-            hasActiveSessionProvider
-                .overrideWith((ref) async => createMockSession()),
-          ],
-          child: FloatingSessionWidget(router: mockRouter),
+          child: FloatingSessionWidget(
+            router: mockRouter,
+            session: createMockSessionData(),
+          ),
         ),
       );
 
@@ -251,12 +218,10 @@ void main() {
 
       await tester.pumpWidget(
         createTestWidget(
-          overrides: [
-            hasActiveSessionProvider.overrideWith(
-              (ref) async => createMockSession(startedAt: startTime),
-            ),
-          ],
-          child: FloatingSessionWidget(router: mockRouter),
+          child: FloatingSessionWidget(
+            router: mockRouter,
+            session: createMockSessionData(startedAt: startTime),
+          ),
         ),
       );
 
@@ -273,12 +238,10 @@ void main() {
 
       await tester.pumpWidget(
         createTestWidget(
-          overrides: [
-            hasActiveSessionProvider.overrideWith(
-              (ref) async => createMockSession(startedAt: startTime),
-            ),
-          ],
-          child: FloatingSessionWidget(router: mockRouter),
+          child: FloatingSessionWidget(
+            router: mockRouter,
+            session: createMockSessionData(startedAt: startTime),
+          ),
         ),
       );
 

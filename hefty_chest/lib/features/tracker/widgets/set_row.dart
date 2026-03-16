@@ -204,7 +204,7 @@ class SetRow extends HookWidget {
                     ? const Icon(
                         Icons.check,
                         size: 14,
-                        color: Colors.white,
+                        color: AppColors.textPrimary,
                       )
                     : null,
               ),

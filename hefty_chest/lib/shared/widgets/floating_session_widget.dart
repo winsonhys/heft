@@ -6,11 +6,27 @@ import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-import '../../features/tracker/providers/session_providers.dart';
 import '../theme/app_colors.dart';
 import '../utils/formatters.dart';
 
 part 'floating_session_widget.g.dart';
+
+/// Lightweight data for the floating session widget (no feature imports)
+class FloatingSessionData {
+  final String id;
+  final String name;
+  final int completedSets;
+  final int totalSets;
+  final DateTime? startedAt;
+
+  const FloatingSessionData({
+    required this.id,
+    required this.name,
+    required this.completedSets,
+    required this.totalSets,
+    this.startedAt,
+  });
+}
 
 /// Stores the floating widget's position (persists across route changes)
 @riverpod
@@ -50,11 +66,17 @@ class FloatingWidgetVisible extends _$FloatingWidgetVisible {
   }
 }
 
-/// Floating widget showing active session progress
+/// Floating widget showing active session progress.
+/// Pure UI: session data passed via constructor, no feature imports.
 class FloatingSessionWidget extends StatefulHookConsumerWidget {
   final GoRouter router;
+  final FloatingSessionData? session;
 
-  const FloatingSessionWidget({super.key, required this.router});
+  const FloatingSessionWidget({
+    super.key,
+    required this.router,
+    this.session,
+  });
 
   @override
   ConsumerState<FloatingSessionWidget> createState() => _FloatingSessionWidgetState();
@@ -65,29 +87,6 @@ class _FloatingSessionWidgetState extends ConsumerState<FloatingSessionWidget> {
   bool _hasSetInitialPosition = false;
 
   @override
-  void initState() {
-    super.initState();
-    // Listen to route changes to rebuild when navigating to/from session screen
-    widget.router.routerDelegate.addListener(_onRouteChange);
-  }
-
-  @override
-  void dispose() {
-    widget.router.routerDelegate.removeListener(_onRouteChange);
-    super.dispose();
-  }
-
-  void _onRouteChange() {
-    if (mounted) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) {
-          setState(() {});
-        }
-      });
-    }
-  }
-
-  @override
   Widget build(BuildContext context) {
     // Check visibility (hidden when on tracker screen)
     final isVisible = ref.watch(floatingWidgetVisibleProvider);
@@ -95,14 +94,7 @@ class _FloatingSessionWidgetState extends ConsumerState<FloatingSessionWidget> {
       return const SizedBox.shrink();
     }
 
-    // Watch activeSessionProvider for live updates (sets completing in real-time)
-    final activeSession = ref.watch(activeSessionProvider);
-    // Fallback to hasActiveSessionProvider for initial session load
-    final fallbackSession = ref.watch(hasActiveSessionProvider);
-
-    // Use active session if available, otherwise use fallback
-    final session = activeSession.value ?? fallbackSession.value;
-
+    final session = widget.session;
     final position = ref.watch(floatingSessionPositionProvider);
 
     // Capture screen size before callback to avoid context issues
@@ -170,7 +162,7 @@ class _FloatingSessionWidgetState extends ConsumerState<FloatingSessionWidget> {
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Icon(Icons.fitness_center, color: Colors.white, size: 20),
+                const Icon(Icons.fitness_center, color: AppColors.textPrimary, size: 20),
                 const SizedBox(width: 10),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -182,7 +174,7 @@ class _FloatingSessionWidgetState extends ConsumerState<FloatingSessionWidget> {
                         Text(
                           session.name.isNotEmpty ? session.name : 'Workout',
                           style: const TextStyle(
-                            color: Colors.white,
+                            color: AppColors.textPrimary,
                             fontWeight: FontWeight.w600,
                             fontSize: 14,
                           ),
@@ -191,7 +183,7 @@ class _FloatingSessionWidgetState extends ConsumerState<FloatingSessionWidget> {
                         Text(
                           formatDuration(elapsedSeconds.value),
                           style: const TextStyle(
-                            color: Colors.white70,
+                            color: AppColors.textPrimaryMuted,
                             fontSize: 12,
                             fontFeatures: [FontFeature.tabularFigures()],
                           ),
@@ -201,14 +193,14 @@ class _FloatingSessionWidgetState extends ConsumerState<FloatingSessionWidget> {
                     Text(
                       '${session.completedSets}/${session.totalSets} sets',
                       style: const TextStyle(
-                        color: Colors.white70,
+                        color: AppColors.textPrimaryMuted,
                         fontSize: 12,
                       ),
                     ),
                   ],
                 ),
                 const SizedBox(width: 8),
-                const Icon(Icons.chevron_right, color: Colors.white70, size: 20),
+                const Icon(Icons.chevron_right, color: AppColors.textPrimaryMuted, size: 20),
               ],
             ),
           ),

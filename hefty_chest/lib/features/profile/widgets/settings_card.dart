@@ -145,7 +145,7 @@ class _ToggleOption extends StatelessWidget {
           style: TextStyle(
             fontSize: 12,
             fontWeight: FontWeight.w600,
-            color: isSelected ? Colors.white : AppColors.textMuted,
+            color: isSelected ? AppColors.textPrimary : AppColors.textMuted,
           ),
         ),
       ),

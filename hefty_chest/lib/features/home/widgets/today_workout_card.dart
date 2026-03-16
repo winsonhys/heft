@@ -73,7 +73,7 @@ class TodayWorkoutCard extends StatelessWidget {
               child: const Text(
                 'Start',
                 style: TextStyle(
-                  color: Colors.white,
+                  color: AppColors.textPrimary,
                   fontWeight: FontWeight.w600,
                   fontSize: 14,
                 ),
