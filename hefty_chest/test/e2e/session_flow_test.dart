@@ -519,15 +519,15 @@ void restItemsE2ETests() {
         await tester.pump();
         await tester.tap(startTimerButton.first);
 
-        // Wait for state update
+        // Wait for state update and RestTimerSheet to appear
         for (int i = 0; i < 5; i++) {
           await Future.delayed(const Duration(milliseconds: 300));
           await tester.pump();
         }
 
-        // After starting, button should change to "Done"
-        expect(find.text('Done'), findsWidgets);
-        expect(find.text('Time remaining'), findsWidgets);
+        // RestTimerSheet popup should appear with +30s button
+        expect(find.text('+30s'), findsWidgets,
+            reason: 'RestTimerSheet should appear after tapping Start Timer');
 
         // Cleanup
         await TestData.abandonAnyActiveSession();

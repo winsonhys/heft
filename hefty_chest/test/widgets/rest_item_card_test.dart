@@ -98,97 +98,8 @@ void main() {
       expect(find.text('Skip'), findsNothing);
     });
 
-    testWidgets('timer starts on button tap', (tester) async {
-      await tester.pumpWidget(
-        createTestWidget(
-          child: RestItemCard(
-            restItem: createMockRestItem(restDurationSeconds: 10),
-            onComplete: () {},
-            onSkip: () {},
-          ),
-        ),
-      );
-
-      // Initially shows "Start Timer"
-      expect(find.text('Start Timer'), findsOneWidget);
-      expect(find.text('Done'), findsNothing);
-
-      // Tap "Start Timer" button
-      await tester.tap(find.text('Start Timer'));
-      await tester.pump();
-
-      // Button should now say "Done"
-      expect(find.text('Done'), findsOneWidget);
-      expect(find.text('Start Timer'), findsNothing);
-
-      // Should show "Time remaining" subtitle
-      expect(find.text('Time remaining'), findsOneWidget);
-    });
-
-    testWidgets('timer counts down each second', (tester) async {
-      await tester.pumpWidget(
-        createTestWidget(
-          child: RestItemCard(
-            restItem: createMockRestItem(restDurationSeconds: 5),
-            onComplete: () {},
-            onSkip: () {},
-          ),
-        ),
-      );
-
-      // Start the timer
-      await tester.tap(find.text('Start Timer'));
-      await tester.pump();
-
-      // Initial display should show "0:05"
-      expect(find.text('0:05'), findsOneWidget);
-
-      // Pump 1 second
-      await tester.pump(const Duration(seconds: 1));
-
-      // Should now show "0:04"
-      expect(find.text('0:04'), findsOneWidget);
-
-      // Pump another second
-      await tester.pump(const Duration(seconds: 1));
-
-      // Should now show "0:03"
-      expect(find.text('0:03'), findsOneWidget);
-    });
-
-    testWidgets('calls onComplete when timer finishes', (tester) async {
-      bool completeCalled = false;
-
-      await tester.pumpWidget(
-        createTestWidget(
-          child: RestItemCard(
-            restItem: createMockRestItem(restDurationSeconds: 2),
-            onComplete: () => completeCalled = true,
-            onSkip: () {},
-          ),
-        ),
-      );
-
-      // Start the timer
-      await tester.tap(find.text('Start Timer'));
-      await tester.pump();
-
-      expect(completeCalled, isFalse);
-
-      // Tick 1: 2->1, timer still running
-      await tester.pump(const Duration(seconds: 1));
-      expect(completeCalled, isFalse);
-
-      // Tick 2: 1->0, 0:00 is displayed but onComplete not yet fired
-      await tester.pump(const Duration(seconds: 1));
-      expect(completeCalled, isFalse);
-
-      // Tick 3: <= 0 condition fires onComplete
-      await tester.pump(const Duration(seconds: 1));
-      expect(completeCalled, isTrue);
-    });
-
-    testWidgets('calls onComplete when Done button tapped', (tester) async {
+    testWidgets('calls onComplete immediately when Start Timer tapped',
+        (tester) async {
       bool completeCalled = false;
 
       await tester.pumpWidget(
@@ -201,14 +112,10 @@ void main() {
         ),
       );
 
-      // Start the timer
-      await tester.tap(find.text('Start Timer'));
-      await tester.pump();
-
       expect(completeCalled, isFalse);
 
-      // Tap "Done" to complete early
-      await tester.tap(find.text('Done'));
+      // Tap "Start Timer" — should call onComplete immediately
+      await tester.tap(find.text('Start Timer'));
       await tester.pump();
 
       expect(completeCalled, isTrue);
@@ -258,68 +165,8 @@ void main() {
       expect(skipCalled, isTrue);
     });
 
-    testWidgets('skip stops running timer', (tester) async {
-      bool skipCalled = false;
-
-      await tester.pumpWidget(
-        createTestWidget(
-          child: RestItemCard(
-            restItem: createMockRestItem(restDurationSeconds: 30),
-            onComplete: () {},
-            onSkip: () => skipCalled = true,
-          ),
-        ),
-      );
-
-      // Start the timer
-      await tester.tap(find.text('Start Timer'));
-      await tester.pump();
-
-      // Verify timer is running
-      expect(find.text('Done'), findsOneWidget);
-
-      // Tap Skip while timer is running
-      await tester.tap(find.text('Skip'));
-      await tester.pump();
-
-      expect(skipCalled, isTrue);
-    });
-
-    // RestTimerSheet already uses <= 0 (rest_timer_sheet.dart line 47) and is the
-    // reference implementation. Both timer widgets now share the same termination semantics.
-    testWidgets('shows 0:00 before calling onComplete', (tester) async {
-      bool completeCalled = false;
-
-      await tester.pumpWidget(
-        createTestWidget(
-          child: RestItemCard(
-            restItem: createMockRestItem(restDurationSeconds: 2),
-            onComplete: () => completeCalled = true,
-            onSkip: () {},
-          ),
-        ),
-      );
-
-      // Start the timer
-      await tester.tap(find.text('Start Timer'));
-      await tester.pump();
-
-      // Tick 1: 2 -> 1
-      await tester.pump(const Duration(seconds: 1));
-      expect(completeCalled, isFalse);
-      expect(find.text('0:01'), findsOneWidget);
-
-      // Tick 2: 1 -> 0, display shows 0:00
-      await tester.pump(const Duration(seconds: 1));
-      expect(find.text('0:00'), findsOneWidget);
-      expect(completeCalled, isFalse);
-
-      // Tick 3: <= 0 fires onComplete
-      await tester.pump(const Duration(seconds: 1));
-      expect(completeCalled, isTrue);
-    });
-
-    testWidgets('displays different duration formats correctly', (tester) async {
+    testWidgets('displays different duration formats correctly',
+        (tester) async {
       // Test 30 seconds
       await tester.pumpWidget(
         createTestWidget(

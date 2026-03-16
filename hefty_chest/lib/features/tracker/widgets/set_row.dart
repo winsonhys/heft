@@ -161,6 +161,29 @@ class SetRow extends HookWidget {
             ),
           ],
           const SizedBox(width: 6),
+          // Rest duration indicator
+          if (set.restDurationSeconds > 0)
+            Padding(
+              padding: const EdgeInsets.only(right: 4),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(
+                    Icons.timer_outlined,
+                    size: 12,
+                    color: AppColors.textMuted,
+                  ),
+                  const SizedBox(width: 2),
+                  Text(
+                    formatDuration(set.restDurationSeconds),
+                    style: const TextStyle(
+                      fontSize: 11,
+                      color: AppColors.textMuted,
+                    ),
+                  ),
+                ],
+              ),
+            ),
           // Complete button (toggle)
           SizedBox(
             width: 32,

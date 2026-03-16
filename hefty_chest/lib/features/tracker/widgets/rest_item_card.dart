@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 
@@ -7,7 +5,11 @@ import '../../../shared/theme/app_colors.dart';
 import '../../../shared/utils/formatters.dart';
 import '../models/session_models.dart';
 
-/// A card displaying a rest item with timer functionality
+/// A card displaying a rest item with timer functionality.
+///
+/// Two states: pending (Start Timer / Skip) and completed (checkmark / undo).
+/// Tapping "Start Timer" calls [onComplete] immediately, which triggers
+/// the RestTimerSheet popup via the tracker screen's callback chain.
 class RestItemCard extends HookWidget {
   final SessionRestItemModel restItem;
   final VoidCallback onComplete;
@@ -22,32 +24,6 @@ class RestItemCard extends HookWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isTimerRunning = useState(false);
-    final timeRemaining = useState(restItem.restDurationSeconds);
-
-    // Timer effect
-    useEffect(() {
-      if (!isTimerRunning.value) return null;
-
-      final timer = Timer.periodic(const Duration(seconds: 1), (_) {
-        if (timeRemaining.value <= 0) {
-          isTimerRunning.value = false;
-          onComplete();
-        } else {
-          timeRemaining.value = timeRemaining.value - 1;
-        }
-      });
-
-      return timer.cancel;
-    }, [isTimerRunning.value]);
-
-    // Reset timer when rest item changes
-    useEffect(() {
-      timeRemaining.value = restItem.restDurationSeconds;
-      isTimerRunning.value = false;
-      return null;
-    }, [restItem.id]);
-
     if (restItem.isCompleted) {
       // Completed state - compact view
       return Container(
@@ -96,7 +72,7 @@ class RestItemCard extends HookWidget {
       );
     }
 
-    // Active/pending state
+    // Pending state
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.all(16),
@@ -104,10 +80,7 @@ class RestItemCard extends HookWidget {
         color: AppColors.bgCard,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: isTimerRunning.value
-              ? AppColors.accentGreen
-              : AppColors.borderColor,
-          width: isTimerRunning.value ? 2 : 1,
+          color: AppColors.borderColor,
         ),
       ),
       child: Column(
@@ -142,9 +115,7 @@ class RestItemCard extends HookWidget {
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      isTimerRunning.value
-                          ? 'Time remaining'
-                          : formatDuration(restItem.restDurationSeconds),
+                      formatDuration(restItem.restDurationSeconds),
                       style: const TextStyle(
                         fontSize: 13,
                         color: AppColors.textSecondary,
@@ -153,16 +124,6 @@ class RestItemCard extends HookWidget {
                   ],
                 ),
               ),
-              if (isTimerRunning.value)
-                Text(
-                  formatDuration(timeRemaining.value),
-                  style: const TextStyle(
-                    fontSize: 28,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.accentGreen,
-                    fontFeatures: [FontFeature.tabularFigures()],
-                  ),
-                ),
             ],
           ),
           const SizedBox(height: 16),
@@ -170,10 +131,7 @@ class RestItemCard extends HookWidget {
             children: [
               Expanded(
                 child: GestureDetector(
-                  onTap: () {
-                    onSkip();
-                    isTimerRunning.value = false;
-                  },
+                  onTap: onSkip,
                   child: Container(
                     padding: const EdgeInsets.symmetric(vertical: 12),
                     decoration: BoxDecoration(
@@ -196,26 +154,17 @@ class RestItemCard extends HookWidget {
               const SizedBox(width: 12),
               Expanded(
                 child: GestureDetector(
-                  onTap: () {
-                    if (isTimerRunning.value) {
-                      // Stop timer and complete
-                      isTimerRunning.value = false;
-                      onComplete();
-                    } else {
-                      // Start timer
-                      isTimerRunning.value = true;
-                    }
-                  },
+                  onTap: onComplete,
                   child: Container(
                     padding: const EdgeInsets.symmetric(vertical: 12),
                     decoration: BoxDecoration(
                       color: AppColors.accentGreen,
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    child: Center(
+                    child: const Center(
                       child: Text(
-                        isTimerRunning.value ? 'Done' : 'Start Timer',
-                        style: const TextStyle(
+                        'Start Timer',
+                        style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w600,
                           color: Colors.white,
