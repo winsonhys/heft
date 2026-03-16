@@ -574,11 +574,22 @@ class TrackerScreen extends HookConsumerWidget {
               toggle: true,
             );
 
-            // Show rest timer only when completing (not un-completing) and rest is configured
+            // Show rest timer only when completing (not un-completing)
+            // Priority: superset round > per-set rest > section rest item
             if (isCompleting) {
-              final info = notifier.getSetCompletionInfo(setId);
-              if (info != null && info.restDurationSeconds > 0) {
-                onTriggerRestTimer(info.restDurationSeconds, info.nextExerciseName, info.nextSetNumber);
+              final supersetInfo = notifier.getSupersetRoundCompletionInfo(setId);
+              if (supersetInfo != null && supersetInfo.restDurationSeconds > 0) {
+                onTriggerRestTimer(supersetInfo.restDurationSeconds, supersetInfo.nextExerciseName, supersetInfo.nextSetNumber);
+              } else {
+                final info = notifier.getSetCompletionInfo(setId);
+                if (info != null && info.restDurationSeconds > 0) {
+                  onTriggerRestTimer(info.restDurationSeconds, info.nextExerciseName, info.nextSetNumber);
+                } else {
+                  final sectionInfo = notifier.getExerciseCompletionRestInfo(setId);
+                  if (sectionInfo != null && sectionInfo.restDurationSeconds > 0) {
+                    onTriggerRestTimer(sectionInfo.restDurationSeconds, sectionInfo.nextExerciseName, sectionInfo.nextSetNumber);
+                  }
+                }
               }
             }
           },
@@ -605,30 +616,11 @@ class TrackerScreen extends HookConsumerWidget {
 
         exerciseIndex++;
       } else {
-        // Rest item
-        final restItem = item.restItem!;
-        // Determine next exercise name for rest timer context
-        String nextExerciseName = '';
-        if (i + 1 < items.length && items[i + 1].isExercise) {
-          nextExerciseName = items[i + 1].exercise!.exerciseName;
-        }
+        // Rest item — info-only (timer auto-triggers on exercise/round completion)
         widgets.add(
           RestItemCard(
-            restItem: restItem,
-            onComplete: () {
-              ref.read(activeSessionProvider.notifier).completeRestItem(
-                restItemId: restItem.id,
-              );
-              if (restItem.restDurationSeconds > 0) {
-                onTriggerRestTimer(restItem.restDurationSeconds, nextExerciseName, 1);
-              }
-            },
-            onSkip: () {
-              ref.read(activeSessionProvider.notifier).completeRestItem(
-                restItemId: restItem.id,
-                toggle: true,
-              );
-            },
+            restItem: item.restItem!,
+            isSuperset: isSuperset,
           ),
         );
       }
