@@ -14,7 +14,6 @@ import 'package:hefty_chest/features/tracker/widgets/set_row.dart';
 
 import '../test_utils/test_setup.dart';
 import '../test_utils/test_data.dart';
-import '../test_utils/test_helpers.dart';
 
 void main() {
   setUpAll(() async {
@@ -437,97 +436,12 @@ void restItemsE2ETests() {
 
         await navigateToTracker(tester, name);
 
-        // Verify rest item UI is visible
-        expect(find.text('Rest'), findsWidgets);
-        expect(find.text('1:00'), findsWidgets);
-        expect(find.text('Start Timer'), findsWidgets);
-        expect(find.text('Skip'), findsWidgets);
-
-        // Cleanup
-        await TestData.abandonAnyActiveSession();
-      });
-    });
-
-    testWidgets('can skip rest item in tracker', (tester) async {
-      await tester.runAsync(() async {
-        await TestData.abandonAnyActiveSession();
-        final name = getUniqueName('Skip Rest Test');
-        await TestData.createWorkoutWithRestItem(
-          name: name,
-          restDurationSeconds: 90,
-        );
-
-        await tester.pumpWidget(
-          ProviderScope(
-            overrides: [
-              authProvider.overrideWith(MockAuth.new),
-            ],
-            child: const HeftyChestApp(),
-          ),
-        );
-
-        await navigateToTracker(tester, name);
-
-        // Scroll to and tap Skip button on the rest item
-        final skipButton = find.text('Skip');
-        expect(skipButton, findsWidgets);
-
-        await tester.ensureVisible(skipButton.first);
-        await tester.pump();
-        await tester.tap(skipButton.first);
-
-        // Wait for state update to propagate through Riverpod
-        for (int i = 0; i < 5; i++) {
-          await Future.delayed(const Duration(milliseconds: 300));
-          await tester.pump();
-        }
-
-        // After skip, the rest item should show completed state
-        expect(find.byIcon(Icons.check), findsWidgets);
-        expect(find.byIcon(Icons.undo), findsWidgets);
-
-        // Cleanup
-        await TestData.abandonAnyActiveSession();
-      });
-    });
-
-    testWidgets('can start rest timer in tracker', (tester) async {
-      await tester.runAsync(() async {
-        await TestData.abandonAnyActiveSession();
-        final name = getUniqueName('Start Timer Test');
-        await TestData.createWorkoutWithRestItem(
-          name: name,
-          restDurationSeconds: 30,
-        );
-
-        await tester.pumpWidget(
-          ProviderScope(
-            overrides: [
-              authProvider.overrideWith(MockAuth.new),
-            ],
-            child: const HeftyChestApp(),
-          ),
-        );
-
-        await navigateToTracker(tester, name);
-
-        // Scroll to and tap Start Timer button
-        final startTimerButton = find.text('Start Timer');
-        expect(startTimerButton, findsWidgets);
-
-        await tester.ensureVisible(startTimerButton.first);
-        await tester.pump();
-        await tester.tap(startTimerButton.first);
-
-        // Wait for state update and RestTimerSheet to appear
-        for (int i = 0; i < 5; i++) {
-          await Future.delayed(const Duration(milliseconds: 300));
-          await tester.pump();
-        }
-
-        // RestTimerSheet popup should appear with +30s button
-        expect(find.text('+30s'), findsWidgets,
-            reason: 'RestTimerSheet should appear after tapping Start Timer');
+        // Rest item card is info-only (timer auto-triggers on set completion)
+        // Verify rest item displays with duration in "Rest — M:SS" format
+        expect(find.textContaining('Rest'), findsWidgets,
+            reason: 'Rest item card should show "Rest —" label');
+        expect(find.byIcon(Icons.timer_outlined), findsWidgets,
+            reason: 'Rest item card should show timer icon');
 
         // Cleanup
         await TestData.abandonAnyActiveSession();
@@ -583,62 +497,6 @@ void restItemsE2ETests() {
         await sessionClient.abandonSession(
           AbandonSessionRequest()..id = sessionId,
         );
-      });
-    });
-
-    testWidgets('can undo completed rest item', (tester) async {
-      await tester.runAsync(() async {
-        await TestData.abandonAnyActiveSession();
-        final name = getUniqueName('Undo Rest Test');
-        await TestData.createWorkoutWithRestItem(
-          name: name,
-          restDurationSeconds: 45,
-        );
-
-        await tester.pumpWidget(
-          ProviderScope(
-            overrides: [
-              authProvider.overrideWith(MockAuth.new),
-            ],
-            child: const HeftyChestApp(),
-          ),
-        );
-
-        await navigateToTracker(tester, name);
-
-        // Scroll to and tap Skip to complete the rest item
-        final skipButton = find.text('Skip');
-        expect(skipButton, findsWidgets);
-        await tester.ensureVisible(skipButton.first);
-        await tester.pump();
-        await tester.tap(skipButton.first);
-
-        // Wait for skip to sync to server (sync timer is 2s)
-        await Future.delayed(const Duration(seconds: 3));
-        await tester.pump();
-
-        // Verify completed state with undo icon
-        final undoButton = find.byIcon(Icons.undo);
-        expect(undoButton, findsWidgets);
-
-        // The undo icon can be outside the 800px test viewport (Spacer pushes it right).
-        // Find the GestureDetector wrapping the icon and invoke onTap directly.
-        final undoGesture = find.ancestor(
-          of: undoButton.first,
-          matching: find.byType(GestureDetector),
-        );
-        final gestureWidget = tester.widget<GestureDetector>(undoGesture.first);
-        gestureWidget.onTap!();
-
-        // Wait for undo to take effect and sync
-        await Future.delayed(const Duration(seconds: 3));
-        await tester.pump();
-
-        // After undo, should show Start Timer again
-        expect(find.text('Start Timer'), findsWidgets);
-
-        // Cleanup
-        await TestData.abandonAnyActiveSession();
       });
     });
 
