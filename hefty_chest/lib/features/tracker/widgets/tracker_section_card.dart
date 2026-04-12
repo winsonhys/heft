@@ -14,6 +14,7 @@ class TrackerSectionCard extends StatefulWidget {
   final Function(String setId)? onSetDeleted;
   final Function(String setId, double rpe)? onRpeChanged;
   final VoidCallback? onDeleteExercise;
+  final Function(String setId, String notes)? onNotesChanged;
 
   const TrackerSectionCard({
     super.key,
@@ -23,6 +24,7 @@ class TrackerSectionCard extends StatefulWidget {
     this.onSetDeleted,
     this.onRpeChanged,
     this.onDeleteExercise,
+    this.onNotesChanged,
   });
 
   @override
@@ -181,6 +183,7 @@ class _TrackerSectionCardState extends State<TrackerSectionCard> with SingleTick
                               ? () => widget.onSetDeleted!(set.id)
                               : null,
                           onRpeChanged: widget.onRpeChanged,
+                          onNotesChanged: widget.onNotesChanged,
                         );
                       }),
                     ],

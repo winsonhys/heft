@@ -4,6 +4,7 @@ import 'package:forui/forui.dart';
 
 import '../../../shared/theme/app_colors.dart';
 import '../../../shared/utils/formatters.dart';
+import '../../../shared/widgets/modal_sheet.dart';
 import '../models/session_models.dart';
 
 /// Individual set row with editable inputs
@@ -17,6 +18,7 @@ class SetRow extends HookWidget {
   final Function(String setId, double? weight, int? reps, int? timeSeconds) onComplete;
   final VoidCallback? onDelete;
   final Function(String setId, double rpe)? onRpeChanged;
+  final Function(String setId, String notes)? onNotesChanged;
 
   const SetRow({
     super.key,
@@ -26,6 +28,7 @@ class SetRow extends HookWidget {
     required this.onComplete,
     this.onDelete,
     this.onRpeChanged,
+    this.onNotesChanged,
   });
 
   int? _parseTime(String value) {
@@ -200,6 +203,51 @@ class SetRow extends HookWidget {
       return null;
     }, [set.isCompleted]);
 
+    void showNoteSheet(BuildContext ctx) {
+      final noteController = TextEditingController(text: set.notes);
+      showHeftModalSheet(
+        context: ctx,
+        backgroundColor: AppColors.bgCard,
+        builder: (sheetContext) => Padding(
+          padding: EdgeInsets.only(
+            left: 16,
+            right: 16,
+            top: 16,
+            bottom: MediaQuery.of(sheetContext).viewInsets.bottom + 16,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Set Note',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.textPrimary,
+                ),
+              ),
+              const SizedBox(height: 12),
+              FTextField(
+                control: .managed(controller: noteController),
+                hint: 'Add a note...',
+                maxLines: 3,
+                minLines: 2,
+              ),
+              const SizedBox(height: 12),
+              FButton(
+                onPress: () {
+                  onNotesChanged?.call(set.id, noteController.text);
+                  Navigator.of(sheetContext).pop();
+                },
+                child: const Text('Save'),
+              ),
+            ],
+          ),
+        ),
+      ).whenComplete(noteController.dispose);
+    }
+
     void handleComplete() {
       // INSTANT visual feedback
       isCompleted.value = !isCompleted.value;
@@ -361,6 +409,19 @@ class SetRow extends HookWidget {
             ),
           ],
           const SizedBox(width: 6),
+          // Note indicator
+          if (set.notes.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.only(right: 4),
+              child: GestureDetector(
+                onTap: () => showNoteSheet(context),
+                child: const Icon(
+                  Icons.sticky_note_2_outlined,
+                  size: 14,
+                  color: AppColors.accentBlue,
+                ),
+              ),
+            ),
           // Rest duration indicator
           if (set.restDurationSeconds > 0)
             Padding(
@@ -435,13 +496,25 @@ class SetRow extends HookWidget {
               ),
               color: AppColors.bgCard,
               onSelected: (value) {
-                if (value == 'rpe') {
+                if (value == 'note') {
+                  showNoteSheet(context);
+                } else if (value == 'rpe') {
                   _showRpeBottomSheet(context);
                 } else if (value == 'delete' && onDelete != null) {
                   onDelete!();
                 }
               },
               itemBuilder: (context) => [
+                PopupMenuItem(
+                  value: 'note',
+                  child: Row(
+                    children: [
+                      const Icon(Icons.note_add_outlined, size: 18, color: AppColors.textSecondary),
+                      const SizedBox(width: 8),
+                      Text(set.notes.isNotEmpty ? 'Edit Note' : 'Add Note'),
+                    ],
+                  ),
+                ),
                 const PopupMenuItem(
                   value: 'rpe',
                   child: Row(
