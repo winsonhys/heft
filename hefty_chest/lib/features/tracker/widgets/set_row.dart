@@ -37,6 +37,34 @@ class SetRow extends HookWidget {
     return int.tryParse(value);
   }
 
+  /// Formats weight: "82.5" for fractional, "80" for whole numbers.
+  static String _formatWeight(double value) {
+    return value % 1 == 0 ? value.toInt().toString() : value.toStringAsFixed(1);
+  }
+
+  static Widget _stepperButton({required String label, required VoidCallback onTap}) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 20,
+        height: 24,
+        decoration: BoxDecoration(
+          color: AppColors.bgCardInner,
+          borderRadius: BorderRadius.circular(4),
+        ),
+        alignment: Alignment.center,
+        child: Text(
+          label,
+          style: const TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            color: AppColors.textMuted,
+          ),
+        ),
+      ),
+    );
+  }
+
   String _formatPR() {
     if (isTimeBased) {
       if (set.targetTimeSeconds > 0) {
@@ -167,16 +195,44 @@ class SetRow extends HookWidget {
               ),
             )
           else ...[
-            // Weight input
+            // Weight input with +/- stepper buttons
             SizedBox(
-              width: 52,
-              child: FTextField(
-                control: .managed(
-                    controller: weightController,
-                    onChange: (_) => weightEdited.value = true),
-                style: mutedStyle(weightEdited.value),
-                hint: '-',
-                keyboardType: TextInputType.number,
+              width: 90,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  _stepperButton(
+                    label: '-',
+                    onTap: () {
+                      final current = double.tryParse(weightController.text) ?? 0;
+                      final next = (current - 2.5).clamp(0.0, double.infinity);
+                      weightController.text = _formatWeight(next);
+                      weightEdited.value = true;
+                    },
+                  ),
+                  const SizedBox(width: 2),
+                  SizedBox(
+                    width: 44,
+                    child: FTextField(
+                      control: .managed(
+                          controller: weightController,
+                          onChange: (_) => weightEdited.value = true),
+                      style: mutedStyle(weightEdited.value),
+                      hint: '-',
+                      keyboardType: TextInputType.number,
+                    ),
+                  ),
+                  const SizedBox(width: 2),
+                  _stepperButton(
+                    label: '+',
+                    onTap: () {
+                      final current = double.tryParse(weightController.text) ?? 0;
+                      final next = current + 2.5;
+                      weightController.text = _formatWeight(next);
+                      weightEdited.value = true;
+                    },
+                  ),
+                ],
               ),
             ),
             const SizedBox(width: 6),

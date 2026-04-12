@@ -250,7 +250,7 @@ class _TrackerSectionCardState extends State<TrackerSectionCard> with SingleTick
             )
           else ...[
             const SizedBox(
-              width: 52,
+              width: 90,
               child: Text(
                 'KG',
                 textAlign: TextAlign.center,
