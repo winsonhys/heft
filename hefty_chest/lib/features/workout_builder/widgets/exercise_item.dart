@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../shared/theme/app_colors.dart';
+import '../../../shared/utils/exercise_type_utils.dart';
 import '../../../core/client.dart';
 import '../providers/workout_builder_providers.dart';
 import 'set_row_editor.dart';
@@ -21,6 +22,7 @@ class ExerciseItem extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final isWeight = item.exerciseType == ExerciseType.EXERCISE_TYPE_WEIGHT_REPS;
     final isTime = item.exerciseType == ExerciseType.EXERCISE_TYPE_TIME;
+    final typeColor = exerciseTypeColor(item.exerciseType);
 
     return Padding(
       padding: const EdgeInsets.only(top: 12, right: 12, bottom: 12),
@@ -45,15 +47,15 @@ class ExerciseItem extends ConsumerWidget {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                 decoration: BoxDecoration(
-                  color: _getTypeColor().withValues(alpha: 0.15),
+                  color: typeColor.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
-                  _getTypeName(),
+                  exerciseTypeName(item.exerciseType),
                   style: TextStyle(
                     fontSize: 10,
                     fontWeight: FontWeight.w500,
-                    color: _getTypeColor(),
+                    color: typeColor,
                   ),
                 ),
               ),
@@ -158,31 +160,5 @@ class ExerciseItem extends ConsumerWidget {
         ],
       ),
     );
-  }
-
-  Color _getTypeColor() {
-    switch (item.exerciseType) {
-      case ExerciseType.EXERCISE_TYPE_WEIGHT_REPS:
-        return AppColors.accentBlue;
-      case ExerciseType.EXERCISE_TYPE_TIME:
-        return AppColors.accentOrange;
-      case ExerciseType.EXERCISE_TYPE_BODYWEIGHT_REPS:
-        return AppColors.accentGreen;
-      default:
-        return AppColors.textMuted;
-    }
-  }
-
-  String _getTypeName() {
-    switch (item.exerciseType) {
-      case ExerciseType.EXERCISE_TYPE_WEIGHT_REPS:
-        return 'Weight';
-      case ExerciseType.EXERCISE_TYPE_TIME:
-        return 'Time';
-      case ExerciseType.EXERCISE_TYPE_BODYWEIGHT_REPS:
-        return 'Bodyweight';
-      default:
-        return 'Other';
-    }
   }
 }
