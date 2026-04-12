@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:forui/forui.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
+import '../../../core/client.dart';
 import '../../../shared/theme/app_colors.dart';
 import '../../../shared/widgets/confirm_dialog.dart';
-import '../../workout_builder/widgets/exercise_search_modal.dart';
+import '../../../shared/widgets/exercise_picker_modal.dart';
 import '../models/session_models.dart';
 import '../providers/session_providers.dart';
 
@@ -39,7 +41,7 @@ Future<String?> showSectionNameDialog(BuildContext context, {String confirmLabel
   );
 }
 
-/// Shows the add-section flow: section name dialog → exercise picker.
+/// Shows the add-section flow: section name dialog -> exercise picker.
 Future<void> showAddSectionFlow(BuildContext context, WidgetRef ref) async {
   final sectionName = await showSectionNameDialog(context, confirmLabel: 'Next');
   if (sectionName == null || sectionName.isEmpty || !context.mounted) return;
@@ -67,7 +69,7 @@ void showAddExerciseModal(BuildContext context, WidgetRef ref, String sectionNam
     shape: const RoundedRectangleBorder(
       borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
     ),
-    builder: (context) => ExerciseSearchModal(
+    builder: (context) => _TrackerExerciseSearchModal(
       onSelect: (exercise) {
         ref.read(activeSessionProvider.notifier).addExercise(
           exerciseId: exercise.id,
@@ -79,6 +81,30 @@ void showAddExerciseModal(BuildContext context, WidgetRef ref, String sectionNam
       },
     ),
   );
+}
+
+/// Fetches exercises and delegates to the shared [ExercisePickerModal].
+class _TrackerExerciseSearchModal extends HookWidget {
+  final Function(Exercise) onSelect;
+
+  const _TrackerExerciseSearchModal({required this.onSelect});
+
+  @override
+  Widget build(BuildContext context) {
+    final exercisesFuture = useMemoized(
+      () async {
+        final response = await exerciseClient.listExercises(ListExercisesRequest());
+        return response.exercises;
+      },
+    );
+    final snapshot = useFuture(exercisesFuture);
+
+    return ExercisePickerModal(
+      title: 'Add Exercise',
+      exercises: snapshot.data ?? const [],
+      onSelect: onSelect,
+    );
+  }
 }
 
 /// Confirms exercise deletion with a dialog.

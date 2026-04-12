@@ -5,11 +5,9 @@ import 'package:forui/forui.dart';
 import 'package:hefty_chest/features/tracker/tracker_screen.dart';
 import 'package:hefty_chest/features/tracker/models/session_models.dart';
 import 'package:hefty_chest/features/tracker/providers/session_providers.dart';
-import 'package:hefty_chest/features/workout_builder/providers/workout_builder_providers.dart';
-import 'package:hefty_chest/features/workout_builder/widgets/exercise_search_modal.dart';
+import 'package:hefty_chest/shared/widgets/exercise_picker_modal.dart';
 import 'package:hefty_chest/shared/widgets/floating_session_widget.dart';
 import 'package:hefty_chest/gen/common.pbenum.dart';
-import 'package:hefty_chest/gen/exercise.pb.dart' as pb;
 
 import 'tracker_test_helpers.dart';
 
@@ -46,16 +44,6 @@ void main() {
       return ProviderScope(
         overrides: [
           activeSessionProvider.overrideWith(() => trackingNotifier),
-          exerciseListProvider.overrideWith((ref) async => [
-            pb.Exercise()
-              ..id = 'ex-1'
-              ..name = 'Squat'
-              ..exerciseType = ExerciseType.EXERCISE_TYPE_WEIGHT_REPS,
-            pb.Exercise()
-              ..id = 'ex-2'
-              ..name = 'Deadlift'
-              ..exerciseType = ExerciseType.EXERCISE_TYPE_WEIGHT_REPS,
-          ]),
           floatingWidgetVisibleProvider.overrideWith(SafeFloatingWidgetVisible.new),
         ],
         child: MaterialApp(
@@ -104,7 +92,7 @@ void main() {
       // Dialog should be closed
       expect(find.text('New Section'), findsNothing);
       // Modal should not open
-      expect(find.byType(ExerciseSearchModal), findsNothing);
+      expect(find.byType(ExercisePickerModal), findsNothing);
     });
 
     testWidgets('entering name and Next opens exercise modal', (tester) async {
@@ -129,7 +117,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // Exercise modal should open
-      expect(find.byType(ExerciseSearchModal), findsOneWidget);
+      expect(find.byType(ExercisePickerModal), findsOneWidget);
     });
   });
 
@@ -164,16 +152,6 @@ void main() {
       return ProviderScope(
         overrides: [
           activeSessionProvider.overrideWith(() => trackingNotifier),
-          exerciseListProvider.overrideWith((ref) async => [
-            pb.Exercise()
-              ..id = 'ex-1'
-              ..name = 'Squat'
-              ..exerciseType = ExerciseType.EXERCISE_TYPE_WEIGHT_REPS,
-            pb.Exercise()
-              ..id = 'ex-2'
-              ..name = 'Deadlift'
-              ..exerciseType = ExerciseType.EXERCISE_TYPE_WEIGHT_REPS,
-          ]),
           floatingWidgetVisibleProvider.overrideWith(SafeFloatingWidgetVisible.new),
         ],
         child: MaterialApp(
@@ -202,7 +180,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // Exercise modal should open
-      expect(find.byType(ExerciseSearchModal), findsOneWidget);
+      expect(find.byType(ExercisePickerModal), findsOneWidget);
     });
   });
 
