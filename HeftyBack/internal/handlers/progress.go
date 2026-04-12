@@ -8,6 +8,7 @@ import (
 
 	heftv1 "github.com/heftyback/gen/heft/v1"
 	"github.com/heftyback/internal/auth"
+	"github.com/heftyback/internal/convert"
 	"github.com/heftyback/internal/repository"
 )
 
@@ -165,7 +166,7 @@ func (h *ProgressHandler) GetExerciseProgress(ctx context.Context, req *connect.
 
 	if exercise != nil {
 		summary.ExerciseName = exercise.Name
-		summary.ExerciseType = stringToExerciseType(exercise.ExerciseType)
+		summary.ExerciseType = convert.StringToExerciseType(exercise.ExerciseType)
 	}
 
 	protoPoints := make([]*heftv1.ExerciseProgressPoint, len(points))
