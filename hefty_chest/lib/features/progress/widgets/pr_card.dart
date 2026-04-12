@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../shared/theme/app_colors.dart';
+import '../../../shared/utils/formatters.dart';
 import '../../../core/client.dart';
 
 /// Card displaying a single personal record
@@ -94,12 +95,7 @@ class PrCard extends StatelessWidget {
     if (record.weightKg > 0) {
       return '${record.weightKg.toStringAsFixed(1)} kg';
     } else if (record.timeSeconds > 0) {
-      final mins = record.timeSeconds ~/ 60;
-      final secs = record.timeSeconds % 60;
-      if (mins > 0) {
-        return '${mins}m ${secs}s';
-      }
-      return '${secs}s';
+      return formatDurationCompact(record.timeSeconds);
     }
     return '${record.reps} reps';
   }

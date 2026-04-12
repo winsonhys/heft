@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../core/client.dart';
 import '../../../shared/theme/app_colors.dart';
+import '../../../shared/utils/formatters.dart';
 import '../../tracker/models/session_models.dart';
 
 /// Row displaying a completed set with values and target comparison
@@ -53,7 +54,7 @@ class HistorySetRow extends StatelessWidget {
             flex: 2,
             child: Text(
               isTimeExercise
-                  ? _formatTime(set.timeSeconds)
+                  ? formatTimeMinSec(set.timeSeconds)
                   : _formatWeight(set.weightKg),
               style: const TextStyle(
                 fontSize: 14,
@@ -109,16 +110,6 @@ class HistorySetRow extends StatelessWidget {
     return '${weight.toStringAsFixed(1)} kg';
   }
 
-  String _formatTime(int seconds) {
-    if (seconds <= 0) return '-';
-    final mins = seconds ~/ 60;
-    final secs = seconds % 60;
-    if (mins > 0) {
-      return '$mins:${secs.toString().padLeft(2, '0')}';
-    }
-    return '${secs}s';
-  }
-
   Widget _buildTargetComparison(bool isTimeExercise) {
     final hasTarget = isTimeExercise
         ? set.targetTimeSeconds > 0
@@ -135,7 +126,7 @@ class HistorySetRow extends StatelessWidget {
     }
 
     if (isTimeExercise) {
-      final targetStr = _formatTime(set.targetTimeSeconds);
+      final targetStr = formatTimeMinSec(set.targetTimeSeconds);
       final metTarget = set.timeSeconds >= set.targetTimeSeconds;
       return Row(
         children: [
