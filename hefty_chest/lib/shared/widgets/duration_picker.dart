@@ -3,6 +3,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:forui/forui.dart';
 
 import '../theme/app_colors.dart';
+import '../utils/formatters.dart';
 
 /// A trigger button that displays current duration and opens picker sheet
 class DurationPickerTrigger extends StatelessWidget {
@@ -16,12 +17,6 @@ class DurationPickerTrigger extends StatelessWidget {
     required this.onChanged,
     this.isEdited = true,
   });
-
-  String _formatDuration() {
-    final minutes = duration.inMinutes;
-    final seconds = duration.inSeconds % 60;
-    return '${minutes}m ${seconds}s';
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -43,7 +38,7 @@ class DurationPickerTrigger extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
-              _formatDuration(),
+              formatDurationFull(duration),
               style: TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.w500,
