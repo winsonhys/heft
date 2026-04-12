@@ -9,6 +9,7 @@ import '../models/session_models.dart';
 /// Individual set row with editable inputs
 class SetRow extends HookWidget {
   final SessionSetModel set;
+  final SessionSetModel? previousSet;
   final bool isTimeBased;
   final Function(String setId, double? weight, int? reps, int? timeSeconds) onComplete;
   final VoidCallback? onDelete;
@@ -16,6 +17,7 @@ class SetRow extends HookWidget {
   const SetRow({
     super.key,
     required this.set,
+    this.previousSet,
     this.isTimeBased = false,
     required this.onComplete,
     this.onDelete,
@@ -69,6 +71,8 @@ class SetRow extends HookWidget {
       return null;
     }, [set.id]);
 
+    final hasCopiedPrevious = useState(false);
+
     // Optimistic local state - updates INSTANTLY on tap
     final isCompleted = useState(set.isCompleted);
 
@@ -94,153 +98,208 @@ class SetRow extends HookWidget {
       );
     }
 
+    final bool currentFieldsEmpty = isTimeBased
+        ? timeController.text.isEmpty
+        : weightController.text.isEmpty && repsController.text.isEmpty;
+    final bool previousHasValues = previousSet != null &&
+        (isTimeBased
+            ? previousSet!.timeSeconds > 0
+            : previousSet!.weightKg > 0 || previousSet!.reps > 0);
+    final showPreviousHint = currentFieldsEmpty &&
+        previousHasValues &&
+        !isCompleted.value &&
+        !hasCopiedPrevious.value;
+
+    String previousHintText() {
+      if (isTimeBased) {
+        return formatDuration(previousSet!.timeSeconds);
+      }
+      final w = previousSet!.weightKg.toStringAsFixed(0);
+      final r = previousSet!.reps.toString();
+      return '$w \u00d7 $r';
+    }
+
+    void copyFromPrevious() {
+      if (isTimeBased) {
+        timeController.text = formatDuration(previousSet!.timeSeconds);
+      } else {
+        if (previousSet!.weightKg > 0) {
+          weightController.text = previousSet!.weightKg.toStringAsFixed(0);
+        }
+        if (previousSet!.reps > 0) {
+          repsController.text = previousSet!.reps.toString();
+        }
+      }
+      hasCopiedPrevious.value = true;
+    }
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 10),
       decoration: BoxDecoration(
         color: isCompleted.value ? const Color(0x0D22D3EE) : Colors.transparent,
         borderRadius: BorderRadius.circular(6),
       ),
-      child: Row(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          // Set number
-          SizedBox(
-            width: 36,
-            child: Text(
-              set.setNumber.toString(),
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w500,
-                color: isCompleted.value ? const Color(0xFF22D3EE) : AppColors.textPrimary,
-              ),
-            ),
-          ),
-          // PR value
-          SizedBox(
-            width: 52,
-            child: Text(
-              _formatPR(),
-              textAlign: TextAlign.center,
-              style: const TextStyle(
-                fontSize: 11,
-                fontWeight: FontWeight.w500,
-                color: AppColors.textMuted,
-              ),
-            ),
-          ),
-          const SizedBox(width: 6),
-          // Weight or Time input
-          if (isTimeBased)
-            // Time-based: single wide input
-            Expanded(
-              flex: 2,
-              child: FTextField(
-                control: .managed(controller: timeController),
-                hint: '0:00',
-                keyboardType: TextInputType.number,
-              ),
-            )
-          else ...[
-            // Weight input
-            SizedBox(
-              width: 52,
-              child: FTextField(
-                control: .managed(controller: weightController),
-                hint: '-',
-                keyboardType: TextInputType.number,
-              ),
-            ),
-            const SizedBox(width: 6),
-            // Reps input
-            SizedBox(
-              width: 52,
-              child: FTextField(
-                control: .managed(controller: repsController),
-                hint: '-',
-                keyboardType: TextInputType.number,
-              ),
-            ),
-          ],
-          const SizedBox(width: 6),
-          // Rest duration indicator
-          if (set.restDurationSeconds > 0)
-            Padding(
-              padding: const EdgeInsets.only(right: 4),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Icon(
-                    Icons.timer_outlined,
-                    size: 12,
-                    color: AppColors.textMuted,
-                  ),
-                  const SizedBox(width: 2),
-                  Text(
-                    formatDuration(set.restDurationSeconds),
-                    style: const TextStyle(
-                      fontSize: 11,
-                      color: AppColors.textMuted,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          // Complete button (toggle)
-          SizedBox(
-            width: 32,
-            child: GestureDetector(
-              onTap: handleComplete,
-              child: Container(
-                width: 24,
-                height: 24,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: isCompleted.value ? AppColors.accentGreen : Colors.transparent,
-                  border: Border.all(
-                    color: isCompleted.value ? AppColors.accentGreen : AppColors.textMuted,
-                    width: 2,
+          Row(
+            children: [
+              // Set number
+              SizedBox(
+                width: 36,
+                child: Text(
+                  set.setNumber.toString(),
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                    color: isCompleted.value ? const Color(0xFF22D3EE) : AppColors.textPrimary,
                   ),
                 ),
-                child: isCompleted.value
-                    ? const Icon(
-                        Icons.check,
-                        size: 14,
-                        color: AppColors.textPrimary,
-                      )
-                    : null,
               ),
-            ),
-          ),
-          // More button
-          SizedBox(
-            width: 28,
-            child: PopupMenuButton<String>(
-              padding: EdgeInsets.zero,
-              iconSize: 18,
-              icon: const Icon(
-                Icons.more_vert,
-                size: 18,
-                color: AppColors.textMuted,
+              // PR value
+              SizedBox(
+                width: 52,
+                child: Text(
+                  _formatPR(),
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w500,
+                    color: AppColors.textMuted,
+                  ),
+                ),
               ),
-              color: AppColors.bgCard,
-              onSelected: (value) {
-                if (value == 'delete' && onDelete != null) {
-                  onDelete!();
-                }
-              },
-              itemBuilder: (context) => [
-                const PopupMenuItem(
-                  value: 'delete',
-                  child: Row(
-                    children: [
-                      Icon(Icons.delete_outline, size: 18, color: AppColors.accentRed),
-                      SizedBox(width: 8),
-                      Text('Delete', style: TextStyle(color: AppColors.accentRed)),
-                    ],
+              const SizedBox(width: 6),
+              // Weight or Time input
+              if (isTimeBased)
+                // Time-based: single wide input
+                Expanded(
+                  flex: 2,
+                  child: FTextField(
+                    control: .managed(controller: timeController),
+                    hint: '0:00',
+                    keyboardType: TextInputType.number,
+                  ),
+                )
+              else ...[
+                // Weight input
+                SizedBox(
+                  width: 52,
+                  child: FTextField(
+                    control: .managed(controller: weightController),
+                    hint: '-',
+                    keyboardType: TextInputType.number,
+                  ),
+                ),
+                const SizedBox(width: 6),
+                // Reps input
+                SizedBox(
+                  width: 52,
+                  child: FTextField(
+                    control: .managed(controller: repsController),
+                    hint: '-',
+                    keyboardType: TextInputType.number,
                   ),
                 ),
               ],
-            ),
+              const SizedBox(width: 6),
+              // Rest duration indicator
+              if (set.restDurationSeconds > 0)
+                Padding(
+                  padding: const EdgeInsets.only(right: 4),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(
+                        Icons.timer_outlined,
+                        size: 12,
+                        color: AppColors.textMuted,
+                      ),
+                      const SizedBox(width: 2),
+                      Text(
+                        formatDuration(set.restDurationSeconds),
+                        style: const TextStyle(
+                          fontSize: 11,
+                          color: AppColors.textMuted,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              // Complete button (toggle)
+              SizedBox(
+                width: 32,
+                child: GestureDetector(
+                  onTap: handleComplete,
+                  child: Container(
+                    width: 24,
+                    height: 24,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: isCompleted.value ? AppColors.accentGreen : Colors.transparent,
+                      border: Border.all(
+                        color: isCompleted.value ? AppColors.accentGreen : AppColors.textMuted,
+                        width: 2,
+                      ),
+                    ),
+                    child: isCompleted.value
+                        ? const Icon(
+                            Icons.check,
+                            size: 14,
+                            color: AppColors.textPrimary,
+                          )
+                        : null,
+                  ),
+                ),
+              ),
+              // More button
+              SizedBox(
+                width: 28,
+                child: PopupMenuButton<String>(
+                  padding: EdgeInsets.zero,
+                  iconSize: 18,
+                  icon: const Icon(
+                    Icons.more_vert,
+                    size: 18,
+                    color: AppColors.textMuted,
+                  ),
+                  color: AppColors.bgCard,
+                  onSelected: (value) {
+                    if (value == 'delete' && onDelete != null) {
+                      onDelete!();
+                    }
+                  },
+                  itemBuilder: (context) => [
+                    const PopupMenuItem(
+                      value: 'delete',
+                      child: Row(
+                        children: [
+                          Icon(Icons.delete_outline, size: 18, color: AppColors.accentRed),
+                          SizedBox(width: 8),
+                          Text('Delete', style: TextStyle(color: AppColors.accentRed)),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
+          if (showPreviousHint)
+            GestureDetector(
+              onTap: copyFromPrevious,
+              child: Padding(
+                padding: const EdgeInsets.only(left: 94, top: 2),
+                child: Text(
+                  previousHintText(),
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: AppColors.textMuted,
+                    fontStyle: FontStyle.italic,
+                  ),
+                ),
+              ),
+            ),
         ],
       ),
     );

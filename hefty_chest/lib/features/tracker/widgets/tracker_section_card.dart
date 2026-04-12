@@ -166,15 +166,20 @@ class _TrackerSectionCardState extends State<TrackerSectionCard> with SingleTick
                       _buildTableHeader(),
 
                       // Set rows
-                      ...widget.exercise.sets.map((set) => SetRow(
-                        key: ValueKey(set.id.isNotEmpty ? set.id : 'new-set-${set.setNumber}'),
-                        set: set,
-                        isTimeBased: _isTimeBased,
-                        onComplete: widget.onSetCompleted,
-                        onDelete: widget.onSetDeleted != null
-                            ? () => widget.onSetDeleted!(set.id)
-                            : null,
-                      )),
+                      ...widget.exercise.sets.asMap().entries.map((entry) {
+                        final i = entry.key;
+                        final set = entry.value;
+                        return SetRow(
+                          key: ValueKey(set.id.isNotEmpty ? set.id : 'new-set-${set.setNumber}'),
+                          set: set,
+                          previousSet: i > 0 ? widget.exercise.sets[i - 1] : null,
+                          isTimeBased: _isTimeBased,
+                          onComplete: widget.onSetCompleted,
+                          onDelete: widget.onSetDeleted != null
+                              ? () => widget.onSetDeleted!(set.id)
+                              : null,
+                        );
+                      }),
                     ],
                   ),
                 ),
