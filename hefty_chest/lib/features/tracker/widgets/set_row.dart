@@ -8,6 +8,9 @@ import '../models/session_models.dart';
 
 /// Individual set row with editable inputs
 class SetRow extends HookWidget {
+  static final _mutedTextStyle = FWidgetStateMap(
+      {WidgetState.any: const TextStyle(color: AppColors.textMuted)});
+
   final SessionSetModel set;
   final bool isTimeBased;
   final Function(String setId, double? weight, int? reps, int? timeSeconds) onComplete;
@@ -49,25 +52,46 @@ class SetRow extends HookWidget {
     return '$weight x $reps';
   }
 
+  String _weightText() => set.weightKg > 0
+      ? set.weightKg.toStringAsFixed(0)
+      : (set.targetWeightKg > 0 ? set.targetWeightKg.toStringAsFixed(0) : '');
+
+  String _repsText() => set.reps > 0
+      ? set.reps.toString()
+      : (set.targetReps > 0 ? set.targetReps.toString() : '');
+
+  String _timeText() => set.timeSeconds > 0
+      ? formatDuration(set.timeSeconds)
+      : (set.targetTimeSeconds > 0
+          ? formatDuration(set.targetTimeSeconds)
+          : '');
+
   @override
   Widget build(BuildContext context) {
-    final weightController = useTextEditingController(
-      text: set.weightKg > 0 ? set.weightKg.toStringAsFixed(0) : '',
-    );
-    final repsController = useTextEditingController(
-      text: set.reps > 0 ? set.reps.toString() : '',
-    );
-    final timeController = useTextEditingController(
-      text: set.timeSeconds > 0 ? formatDuration(set.timeSeconds) : '',
-    );
+    final weightController = useTextEditingController(text: _weightText());
+    final repsController = useTextEditingController(text: _repsText());
+    final timeController = useTextEditingController(text: _timeText());
+
+    // Track whether the user has manually edited each field
+    final weightEdited = useState(set.weightKg > 0);
+    final repsEdited = useState(set.reps > 0);
+    final timeEdited = useState(set.timeSeconds > 0);
 
     // Sync controllers when set.id changes (replaces didUpdateWidget)
     useEffect(() {
-      weightController.text = set.weightKg > 0 ? set.weightKg.toStringAsFixed(0) : '';
-      repsController.text = set.reps > 0 ? set.reps.toString() : '';
-      timeController.text = set.timeSeconds > 0 ? formatDuration(set.timeSeconds) : '';
+      weightController.text = _weightText();
+      repsController.text = _repsText();
+      timeController.text = _timeText();
+      weightEdited.value = set.weightKg > 0;
+      repsEdited.value = set.reps > 0;
+      timeEdited.value = set.timeSeconds > 0;
       return null;
     }, [set.id]);
+
+    FTextFieldStyle Function(FTextFieldStyle)? mutedStyle(bool edited) {
+      if (edited) return null;
+      return (style) => style.copyWith(contentTextStyle: _mutedTextStyle);
+    }
 
     // Optimistic local state - updates INSTANTLY on tap
     final isCompleted = useState(set.isCompleted);
@@ -97,7 +121,7 @@ class SetRow extends HookWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 10),
       decoration: BoxDecoration(
-        color: isCompleted.value ? const Color(0x0D22D3EE) : Colors.transparent,
+        color: isCompleted.value ? AppColors.accentCyan.withValues(alpha: 0.05) : Colors.transparent,
         borderRadius: BorderRadius.circular(6),
       ),
       child: Row(
@@ -110,7 +134,7 @@ class SetRow extends HookWidget {
               style: TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.w500,
-                color: isCompleted.value ? const Color(0xFF22D3EE) : AppColors.textPrimary,
+                color: isCompleted.value ? AppColors.accentCyan : AppColors.textPrimary,
               ),
             ),
           ),
@@ -134,7 +158,10 @@ class SetRow extends HookWidget {
             Expanded(
               flex: 2,
               child: FTextField(
-                control: .managed(controller: timeController),
+                control: .managed(
+                    controller: timeController,
+                    onChange: (_) => timeEdited.value = true),
+                style: mutedStyle(timeEdited.value),
                 hint: '0:00',
                 keyboardType: TextInputType.number,
               ),
@@ -144,7 +171,10 @@ class SetRow extends HookWidget {
             SizedBox(
               width: 52,
               child: FTextField(
-                control: .managed(controller: weightController),
+                control: .managed(
+                    controller: weightController,
+                    onChange: (_) => weightEdited.value = true),
+                style: mutedStyle(weightEdited.value),
                 hint: '-',
                 keyboardType: TextInputType.number,
               ),
@@ -154,7 +184,10 @@ class SetRow extends HookWidget {
             SizedBox(
               width: 52,
               child: FTextField(
-                control: .managed(controller: repsController),
+                control: .managed(
+                    controller: repsController,
+                    onChange: (_) => repsEdited.value = true),
+                style: mutedStyle(repsEdited.value),
                 hint: '-',
                 keyboardType: TextInputType.number,
               ),
