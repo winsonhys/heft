@@ -8,7 +8,6 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 
 	heftv1 "github.com/heftyback/gen/heft/v1"
-	"github.com/heftyback/internal/auth"
 	"github.com/heftyback/internal/repository"
 )
 
@@ -24,9 +23,9 @@ func NewWorkoutHandler(repo repository.WorkoutRepositoryInterface) *WorkoutHandl
 
 // ListWorkouts lists workout templates
 func (h *WorkoutHandler) ListWorkouts(ctx context.Context, req *connect.Request[heftv1.ListWorkoutsRequest]) (*connect.Response[heftv1.ListWorkoutsResponse], error) {
-	userID, ok := auth.UserIDFromContext(ctx)
-	if !ok {
-		return nil, connect.NewError(connect.CodeUnauthenticated, errors.New("not authenticated"))
+	userID, err := getAuthenticatedUserID(ctx)
+	if err != nil {
+		return nil, err
 	}
 
 	includeArchived := false
@@ -34,49 +33,30 @@ func (h *WorkoutHandler) ListWorkouts(ctx context.Context, req *connect.Request[
 		includeArchived = *req.Msg.IncludeArchived
 	}
 
-	page := int32(1)
-	pageSize := int32(20)
-	if req.Msg.Pagination != nil {
-		if req.Msg.Pagination.Page > 0 {
-			page = req.Msg.Pagination.Page
-		}
-		if req.Msg.Pagination.PageSize > 0 {
-			pageSize = req.Msg.Pagination.PageSize
-		}
-	}
-
-	offset := (page - 1) * pageSize
+	page, pageSize, offset := extractPagination(req.Msg.Pagination, 20)
 	workouts, totalCount, err := h.repo.List(ctx, userID, includeArchived, int(pageSize), int(offset))
 	if err != nil {
 		return nil, handleDBError(err)
 	}
 
-	protoWorkouts := make([]*heftv1.WorkoutSummary, len(workouts))
-	for i, w := range workouts {
-		protoWorkouts[i] = workoutSummaryToProto(w)
-	}
-
-	totalPages := (int32(totalCount) + pageSize - 1) / pageSize
+	protoWorkouts := mapSlice(workouts, func(w *repository.WorkoutTemplate) *heftv1.WorkoutSummary {
+		return workoutSummaryToProto(w)
+	})
 
 	return connect.NewResponse(&heftv1.ListWorkoutsResponse{
-		Workouts: protoWorkouts,
-		Pagination: &heftv1.PaginationResponse{
-			Page:       page,
-			PageSize:   pageSize,
-			TotalCount: int32(totalCount),
-			TotalPages: totalPages,
-		},
+		Workouts:   protoWorkouts,
+		Pagination: buildPaginationResponse(page, pageSize, totalCount),
 	}), nil
 }
 
 // GetWorkout retrieves a workout with full details
 func (h *WorkoutHandler) GetWorkout(ctx context.Context, req *connect.Request[heftv1.GetWorkoutRequest]) (*connect.Response[heftv1.GetWorkoutResponse], error) {
-	userID, ok := auth.UserIDFromContext(ctx)
-	if !ok {
-		return nil, connect.NewError(connect.CodeUnauthenticated, errors.New("not authenticated"))
+	userID, err := getAuthenticatedUserID(ctx)
+	if err != nil {
+		return nil, err
 	}
-	if req.Msg.Id == "" {
-		return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("id is required"))
+	if err := requireString(req.Msg.Id, "id"); err != nil {
+		return nil, err
 	}
 
 	workout, err := h.repo.GetByID(ctx, req.Msg.Id, userID)
@@ -94,12 +74,12 @@ func (h *WorkoutHandler) GetWorkout(ctx context.Context, req *connect.Request[he
 
 // CreateWorkout creates a new workout template
 func (h *WorkoutHandler) CreateWorkout(ctx context.Context, req *connect.Request[heftv1.CreateWorkoutRequest]) (*connect.Response[heftv1.CreateWorkoutResponse], error) {
-	userID, ok := auth.UserIDFromContext(ctx)
-	if !ok {
-		return nil, connect.NewError(connect.CodeUnauthenticated, errors.New("not authenticated"))
+	userID, err := getAuthenticatedUserID(ctx)
+	if err != nil {
+		return nil, err
 	}
-	if req.Msg.Name == "" {
-		return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("name is required"))
+	if err := requireString(req.Msg.Name, "name"); err != nil {
+		return nil, err
 	}
 
 	var description *string
@@ -187,12 +167,12 @@ func (h *WorkoutHandler) CreateWorkout(ctx context.Context, req *connect.Request
 
 // UpdateWorkout updates a workout template
 func (h *WorkoutHandler) UpdateWorkout(ctx context.Context, req *connect.Request[heftv1.UpdateWorkoutRequest]) (*connect.Response[heftv1.UpdateWorkoutResponse], error) {
-	userID, ok := auth.UserIDFromContext(ctx)
-	if !ok {
-		return nil, connect.NewError(connect.CodeUnauthenticated, errors.New("not authenticated"))
+	userID, err := getAuthenticatedUserID(ctx)
+	if err != nil {
+		return nil, err
 	}
-	if req.Msg.Id == "" {
-		return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("id is required"))
+	if err := requireString(req.Msg.Id, "id"); err != nil {
+		return nil, err
 	}
 
 	// Verify ownership and existence
@@ -308,15 +288,15 @@ func (h *WorkoutHandler) UpdateWorkout(ctx context.Context, req *connect.Request
 
 // DeleteWorkout deletes a workout template
 func (h *WorkoutHandler) DeleteWorkout(ctx context.Context, req *connect.Request[heftv1.DeleteWorkoutRequest]) (*connect.Response[heftv1.DeleteWorkoutResponse], error) {
-	userID, ok := auth.UserIDFromContext(ctx)
-	if !ok {
-		return nil, connect.NewError(connect.CodeUnauthenticated, errors.New("not authenticated"))
+	userID, err := getAuthenticatedUserID(ctx)
+	if err != nil {
+		return nil, err
 	}
-	if req.Msg.Id == "" {
-		return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("id is required"))
+	if err := requireString(req.Msg.Id, "id"); err != nil {
+		return nil, err
 	}
 
-	err := h.repo.Delete(ctx, req.Msg.Id, userID)
+	err = h.repo.Delete(ctx, req.Msg.Id, userID)
 	if err != nil {
 		return nil, handleDBError(err)
 	}
@@ -328,12 +308,12 @@ func (h *WorkoutHandler) DeleteWorkout(ctx context.Context, req *connect.Request
 
 // DuplicateWorkout duplicates a workout template
 func (h *WorkoutHandler) DuplicateWorkout(ctx context.Context, req *connect.Request[heftv1.DuplicateWorkoutRequest]) (*connect.Response[heftv1.DuplicateWorkoutResponse], error) {
-	userID, ok := auth.UserIDFromContext(ctx)
-	if !ok {
-		return nil, connect.NewError(connect.CodeUnauthenticated, errors.New("not authenticated"))
+	userID, err := getAuthenticatedUserID(ctx)
+	if err != nil {
+		return nil, err
 	}
-	if req.Msg.Id == "" {
-		return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("id is required"))
+	if err := requireString(req.Msg.Id, "id"); err != nil {
+		return nil, err
 	}
 
 	// Get original workout

@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 
 	"connectrpc.com/connect"
 
@@ -56,4 +57,26 @@ func buildPaginationResponse(page, pageSize int32, totalCount int) *heftv1.Pagin
 		TotalCount: int32(totalCount),
 		TotalPages: totalPages,
 	}
+}
+
+// parseOptionalDate parses an optional date string in "2006-01-02" format.
+// Returns nil if the pointer is nil, empty, or unparseable.
+func parseOptionalDate(value *string) *time.Time {
+	if value == nil || *value == "" {
+		return nil
+	}
+	t, err := time.Parse("2006-01-02", *value)
+	if err != nil {
+		return nil
+	}
+	return &t
+}
+
+// mapSlice transforms a slice of T into a slice of U using the given function.
+func mapSlice[T any, U any](items []T, fn func(T) U) []U {
+	result := make([]U, len(items))
+	for i, item := range items {
+		result[i] = fn(item)
+	}
+	return result
 }

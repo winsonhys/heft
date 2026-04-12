@@ -9,7 +9,6 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 
 	heftv1 "github.com/heftyback/gen/heft/v1"
-	"github.com/heftyback/internal/auth"
 	"github.com/heftyback/internal/repository"
 )
 
@@ -29,9 +28,9 @@ func NewProgramHandler(programRepo repository.ProgramRepositoryInterface, workou
 
 // ListPrograms lists programs for a user
 func (h *ProgramHandler) ListPrograms(ctx context.Context, req *connect.Request[heftv1.ListProgramsRequest]) (*connect.Response[heftv1.ListProgramsResponse], error) {
-	userID, ok := auth.UserIDFromContext(ctx)
-	if !ok {
-		return nil, connect.NewError(connect.CodeUnauthenticated, errors.New("not authenticated"))
+	userID, err := getAuthenticatedUserID(ctx)
+	if err != nil {
+		return nil, err
 	}
 
 	includeArchived := false
@@ -39,49 +38,30 @@ func (h *ProgramHandler) ListPrograms(ctx context.Context, req *connect.Request[
 		includeArchived = *req.Msg.IncludeArchived
 	}
 
-	page := int32(1)
-	pageSize := int32(20)
-	if req.Msg.Pagination != nil {
-		if req.Msg.Pagination.Page > 0 {
-			page = req.Msg.Pagination.Page
-		}
-		if req.Msg.Pagination.PageSize > 0 {
-			pageSize = req.Msg.Pagination.PageSize
-		}
-	}
-
-	offset := (page - 1) * pageSize
+	page, pageSize, offset := extractPagination(req.Msg.Pagination, 20)
 	programs, totalCount, err := h.programRepo.List(ctx, userID, includeArchived, int(pageSize), int(offset))
 	if err != nil {
 		return nil, handleDBError(err)
 	}
 
-	protoPrograms := make([]*heftv1.ProgramSummary, len(programs))
-	for i, p := range programs {
-		protoPrograms[i] = programSummaryToProto(p)
-	}
-
-	totalPages := (int32(totalCount) + pageSize - 1) / pageSize
+	protoPrograms := mapSlice(programs, func(p *repository.Program) *heftv1.ProgramSummary {
+		return programSummaryToProto(p)
+	})
 
 	return connect.NewResponse(&heftv1.ListProgramsResponse{
-		Programs: protoPrograms,
-		Pagination: &heftv1.PaginationResponse{
-			Page:       page,
-			PageSize:   pageSize,
-			TotalCount: int32(totalCount),
-			TotalPages: totalPages,
-		},
+		Programs:   protoPrograms,
+		Pagination: buildPaginationResponse(page, pageSize, totalCount),
 	}), nil
 }
 
 // GetProgram retrieves a program with full details
 func (h *ProgramHandler) GetProgram(ctx context.Context, req *connect.Request[heftv1.GetProgramRequest]) (*connect.Response[heftv1.GetProgramResponse], error) {
-	userID, ok := auth.UserIDFromContext(ctx)
-	if !ok {
-		return nil, connect.NewError(connect.CodeUnauthenticated, errors.New("not authenticated"))
+	userID, err := getAuthenticatedUserID(ctx)
+	if err != nil {
+		return nil, err
 	}
-	if req.Msg.Id == "" {
-		return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("id is required"))
+	if err := requireString(req.Msg.Id, "id"); err != nil {
+		return nil, err
 	}
 
 	program, err := h.programRepo.GetByID(ctx, req.Msg.Id, userID)
@@ -99,12 +79,12 @@ func (h *ProgramHandler) GetProgram(ctx context.Context, req *connect.Request[he
 
 // CreateProgram creates a new program
 func (h *ProgramHandler) CreateProgram(ctx context.Context, req *connect.Request[heftv1.CreateProgramRequest]) (*connect.Response[heftv1.CreateProgramResponse], error) {
-	userID, ok := auth.UserIDFromContext(ctx)
-	if !ok {
-		return nil, connect.NewError(connect.CodeUnauthenticated, errors.New("not authenticated"))
+	userID, err := getAuthenticatedUserID(ctx)
+	if err != nil {
+		return nil, err
 	}
-	if req.Msg.Name == "" {
-		return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("name is required"))
+	if err := requireString(req.Msg.Name, "name"); err != nil {
+		return nil, err
 	}
 
 	var description *string
@@ -147,12 +127,12 @@ func (h *ProgramHandler) CreateProgram(ctx context.Context, req *connect.Request
 
 // UpdateProgram updates a program
 func (h *ProgramHandler) UpdateProgram(ctx context.Context, req *connect.Request[heftv1.UpdateProgramRequest]) (*connect.Response[heftv1.UpdateProgramResponse], error) {
-	userID, ok := auth.UserIDFromContext(ctx)
-	if !ok {
-		return nil, connect.NewError(connect.CodeUnauthenticated, errors.New("not authenticated"))
+	userID, err := getAuthenticatedUserID(ctx)
+	if err != nil {
+		return nil, err
 	}
-	if req.Msg.Id == "" {
-		return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("id is required"))
+	if err := requireString(req.Msg.Id, "id"); err != nil {
+		return nil, err
 	}
 
 	// Extract optional fields from request
@@ -240,15 +220,15 @@ func (h *ProgramHandler) UpdateProgram(ctx context.Context, req *connect.Request
 
 // DeleteProgram deletes a program
 func (h *ProgramHandler) DeleteProgram(ctx context.Context, req *connect.Request[heftv1.DeleteProgramRequest]) (*connect.Response[heftv1.DeleteProgramResponse], error) {
-	userID, ok := auth.UserIDFromContext(ctx)
-	if !ok {
-		return nil, connect.NewError(connect.CodeUnauthenticated, errors.New("not authenticated"))
+	userID, err := getAuthenticatedUserID(ctx)
+	if err != nil {
+		return nil, err
 	}
-	if req.Msg.Id == "" {
-		return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("id is required"))
+	if err := requireString(req.Msg.Id, "id"); err != nil {
+		return nil, err
 	}
 
-	err := h.programRepo.Delete(ctx, req.Msg.Id, userID)
+	err = h.programRepo.Delete(ctx, req.Msg.Id, userID)
 	if err != nil {
 		return nil, handleDBError(err)
 	}
@@ -260,12 +240,12 @@ func (h *ProgramHandler) DeleteProgram(ctx context.Context, req *connect.Request
 
 // SetActiveProgram sets a program as active
 func (h *ProgramHandler) SetActiveProgram(ctx context.Context, req *connect.Request[heftv1.SetActiveProgramRequest]) (*connect.Response[heftv1.SetActiveProgramResponse], error) {
-	userID, ok := auth.UserIDFromContext(ctx)
-	if !ok {
-		return nil, connect.NewError(connect.CodeUnauthenticated, errors.New("not authenticated"))
+	userID, err := getAuthenticatedUserID(ctx)
+	if err != nil {
+		return nil, err
 	}
-	if req.Msg.Id == "" {
-		return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("id is required"))
+	if err := requireString(req.Msg.Id, "id"); err != nil {
+		return nil, err
 	}
 
 	program, err := h.programRepo.SetActive(ctx, req.Msg.Id, userID)
@@ -286,9 +266,9 @@ func (h *ProgramHandler) SetActiveProgram(ctx context.Context, req *connect.Requ
 
 // GetTodayWorkout gets today's workout based on active program
 func (h *ProgramHandler) GetTodayWorkout(ctx context.Context, req *connect.Request[heftv1.GetTodayWorkoutRequest]) (*connect.Response[heftv1.GetTodayWorkoutResponse], error) {
-	userID, ok := auth.UserIDFromContext(ctx)
-	if !ok {
-		return nil, connect.NewError(connect.CodeUnauthenticated, errors.New("not authenticated"))
+	userID, err := getAuthenticatedUserID(ctx)
+	if err != nil {
+		return nil, err
 	}
 
 	program, err := h.programRepo.GetActiveProgram(ctx, userID)

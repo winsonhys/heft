@@ -8,7 +8,6 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 
 	heftv1 "github.com/heftyback/gen/heft/v1"
-	"github.com/heftyback/internal/auth"
 	"github.com/heftyback/internal/repository"
 )
 
@@ -41,45 +40,26 @@ func (h *ExerciseHandler) ListExercises(ctx context.Context, req *connect.Reques
 		userID = req.Msg.UserId
 	}
 
-	page := int32(1)
-	pageSize := int32(50)
-	if req.Msg.Pagination != nil {
-		if req.Msg.Pagination.Page > 0 {
-			page = req.Msg.Pagination.Page
-		}
-		if req.Msg.Pagination.PageSize > 0 {
-			pageSize = req.Msg.Pagination.PageSize
-		}
-	}
-
-	offset := (page - 1) * pageSize
+	page, pageSize, offset := extractPagination(req.Msg.Pagination, 50)
 	exercises, totalCount, err := h.repo.ListExercises(ctx, categoryID, exerciseType, systemOnly, userID, int(pageSize), int(offset))
 	if err != nil {
 		return nil, handleDBError(err)
 	}
 
-	protoExercises := make([]*heftv1.Exercise, len(exercises))
-	for i, ex := range exercises {
-		protoExercises[i] = exerciseToProto(ex)
-	}
-
-	totalPages := (int32(totalCount) + pageSize - 1) / pageSize
+	protoExercises := mapSlice(exercises, func(ex *repository.Exercise) *heftv1.Exercise {
+		return exerciseToProto(ex)
+	})
 
 	return connect.NewResponse(&heftv1.ListExercisesResponse{
-		Exercises: protoExercises,
-		Pagination: &heftv1.PaginationResponse{
-			Page:       page,
-			PageSize:   pageSize,
-			TotalCount: int32(totalCount),
-			TotalPages: totalPages,
-		},
+		Exercises:  protoExercises,
+		Pagination: buildPaginationResponse(page, pageSize, totalCount),
 	}), nil
 }
 
 // GetExercise retrieves a single exercise
 func (h *ExerciseHandler) GetExercise(ctx context.Context, req *connect.Request[heftv1.GetExerciseRequest]) (*connect.Response[heftv1.GetExerciseResponse], error) {
-	if req.Msg.Id == "" {
-		return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("id is required"))
+	if err := requireString(req.Msg.Id, "id"); err != nil {
+		return nil, err
 	}
 
 	exercise, err := h.repo.GetByID(ctx, req.Msg.Id)
@@ -97,15 +77,15 @@ func (h *ExerciseHandler) GetExercise(ctx context.Context, req *connect.Request[
 
 // CreateExercise creates a custom exercise
 func (h *ExerciseHandler) CreateExercise(ctx context.Context, req *connect.Request[heftv1.CreateExerciseRequest]) (*connect.Response[heftv1.CreateExerciseResponse], error) {
-	userID, ok := auth.UserIDFromContext(ctx)
-	if !ok {
-		return nil, connect.NewError(connect.CodeUnauthenticated, errors.New("not authenticated"))
+	userID, err := getAuthenticatedUserID(ctx)
+	if err != nil {
+		return nil, err
 	}
-	if req.Msg.Name == "" {
-		return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("name is required"))
+	if err := requireString(req.Msg.Name, "name"); err != nil {
+		return nil, err
 	}
-	if req.Msg.CategoryId == "" {
-		return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("category_id is required"))
+	if err := requireString(req.Msg.CategoryId, "category_id"); err != nil {
+		return nil, err
 	}
 
 	exerciseType := exerciseTypeToString(req.Msg.ExerciseType)
@@ -135,14 +115,13 @@ func (h *ExerciseHandler) ListCategories(ctx context.Context, req *connect.Reque
 		return nil, handleDBError(err)
 	}
 
-	protoCategories := make([]*heftv1.ExerciseCategory, len(categories))
-	for i, cat := range categories {
-		protoCategories[i] = &heftv1.ExerciseCategory{
+	protoCategories := mapSlice(categories, func(cat *repository.ExerciseCategory) *heftv1.ExerciseCategory {
+		return &heftv1.ExerciseCategory{
 			Id:           cat.ID,
 			Name:         cat.Name,
 			DisplayOrder: int32(cat.DisplayOrder),
 		}
-	}
+	})
 
 	return connect.NewResponse(&heftv1.ListCategoriesResponse{
 		Categories: protoCategories,
@@ -151,8 +130,8 @@ func (h *ExerciseHandler) ListCategories(ctx context.Context, req *connect.Reque
 
 // SearchExercises searches exercises by name
 func (h *ExerciseHandler) SearchExercises(ctx context.Context, req *connect.Request[heftv1.SearchExercisesRequest]) (*connect.Response[heftv1.SearchExercisesResponse], error) {
-	if req.Msg.Query == "" {
-		return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("query is required"))
+	if err := requireString(req.Msg.Query, "query"); err != nil {
+		return nil, err
 	}
 
 	var userID *string
@@ -170,10 +149,9 @@ func (h *ExerciseHandler) SearchExercises(ctx context.Context, req *connect.Requ
 		return nil, handleDBError(err)
 	}
 
-	protoExercises := make([]*heftv1.Exercise, len(exercises))
-	for i, ex := range exercises {
-		protoExercises[i] = exerciseToProto(ex)
-	}
+	protoExercises := mapSlice(exercises, func(ex *repository.Exercise) *heftv1.Exercise {
+		return exerciseToProto(ex)
+	})
 
 	return connect.NewResponse(&heftv1.SearchExercisesResponse{
 		Exercises: protoExercises,

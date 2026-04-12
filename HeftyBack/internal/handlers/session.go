@@ -3,14 +3,12 @@ package handlers
 import (
 	"context"
 	"errors"
-	"time"
 
 	"connectrpc.com/connect"
 	"github.com/google/uuid"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
 	heftv1 "github.com/heftyback/gen/heft/v1"
-	"github.com/heftyback/internal/auth"
 	"github.com/heftyback/internal/repository"
 )
 
@@ -32,9 +30,9 @@ func NewSessionHandler(sessionRepo repository.SessionRepositoryInterface, workou
 
 // StartSession starts a new workout session
 func (h *SessionHandler) StartSession(ctx context.Context, req *connect.Request[heftv1.StartSessionRequest]) (*connect.Response[heftv1.StartSessionResponse], error) {
-	userID, ok := auth.UserIDFromContext(ctx)
-	if !ok {
-		return nil, connect.NewError(connect.CodeUnauthenticated, errors.New("not authenticated"))
+	userID, err := getAuthenticatedUserID(ctx)
+	if err != nil {
+		return nil, err
 	}
 
 	// Check if user already has an in-progress session
@@ -66,7 +64,6 @@ func (h *SessionHandler) StartSession(ctx context.Context, req *connect.Request[
 	// If based on template, get workout to use its name and exercises
 	var workout *repository.WorkoutTemplate
 	if workoutTemplateID != nil {
-		var err error
 		workout, err = h.workoutRepo.GetByID(ctx, *workoutTemplateID, userID)
 		if err != nil {
 			return nil, handleDBError(err)
@@ -141,12 +138,12 @@ func (h *SessionHandler) StartSession(ctx context.Context, req *connect.Request[
 
 // GetSession retrieves a session with full details
 func (h *SessionHandler) GetSession(ctx context.Context, req *connect.Request[heftv1.GetSessionRequest]) (*connect.Response[heftv1.GetSessionResponse], error) {
-	userID, ok := auth.UserIDFromContext(ctx)
-	if !ok {
-		return nil, connect.NewError(connect.CodeUnauthenticated, errors.New("not authenticated"))
+	userID, err := getAuthenticatedUserID(ctx)
+	if err != nil {
+		return nil, err
 	}
-	if req.Msg.Id == "" {
-		return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("id is required"))
+	if err := requireString(req.Msg.Id, "id"); err != nil {
+		return nil, err
 	}
 
 	session, err := h.sessionRepo.GetByID(ctx, req.Msg.Id, userID)
@@ -164,12 +161,12 @@ func (h *SessionHandler) GetSession(ctx context.Context, req *connect.Request[he
 
 // SyncSession syncs the full session state from the client
 func (h *SessionHandler) SyncSession(ctx context.Context, req *connect.Request[heftv1.SyncSessionRequest]) (*connect.Response[heftv1.SyncSessionResponse], error) {
-	userID, ok := auth.UserIDFromContext(ctx)
-	if !ok {
-		return nil, connect.NewError(connect.CodeUnauthenticated, errors.New("not authenticated"))
+	userID, err := getAuthenticatedUserID(ctx)
+	if err != nil {
+		return nil, err
 	}
-	if req.Msg.SessionId == "" {
-		return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("session_id is required"))
+	if err := requireString(req.Msg.SessionId, "session_id"); err != nil {
+		return nil, err
 	}
 
 	// Verify session belongs to user
@@ -331,12 +328,12 @@ func (h *SessionHandler) SyncSession(ctx context.Context, req *connect.Request[h
 
 // FinishSession completes the workout session
 func (h *SessionHandler) FinishSession(ctx context.Context, req *connect.Request[heftv1.FinishSessionRequest]) (*connect.Response[heftv1.FinishSessionResponse], error) {
-	userID, ok := auth.UserIDFromContext(ctx)
-	if !ok {
-		return nil, connect.NewError(connect.CodeUnauthenticated, errors.New("not authenticated"))
+	userID, err := getAuthenticatedUserID(ctx)
+	if err != nil {
+		return nil, err
 	}
-	if req.Msg.Id == "" {
-		return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("id is required"))
+	if err := requireString(req.Msg.Id, "id"); err != nil {
+		return nil, err
 	}
 
 	var notes *string
@@ -373,15 +370,15 @@ func (h *SessionHandler) FinishSession(ctx context.Context, req *connect.Request
 
 // AbandonSession marks the session as abandoned
 func (h *SessionHandler) AbandonSession(ctx context.Context, req *connect.Request[heftv1.AbandonSessionRequest]) (*connect.Response[heftv1.AbandonSessionResponse], error) {
-	userID, ok := auth.UserIDFromContext(ctx)
-	if !ok {
-		return nil, connect.NewError(connect.CodeUnauthenticated, errors.New("not authenticated"))
+	userID, err := getAuthenticatedUserID(ctx)
+	if err != nil {
+		return nil, err
 	}
-	if req.Msg.Id == "" {
-		return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("id is required"))
+	if err := requireString(req.Msg.Id, "id"); err != nil {
+		return nil, err
 	}
 
-	err := h.sessionRepo.AbandonSession(ctx, req.Msg.Id, userID)
+	err = h.sessionRepo.AbandonSession(ctx, req.Msg.Id, userID)
 	if err != nil {
 		return nil, handleDBError(err)
 	}
@@ -393,63 +390,32 @@ func (h *SessionHandler) AbandonSession(ctx context.Context, req *connect.Reques
 
 // ListSessions lists sessions for a user
 func (h *SessionHandler) ListSessions(ctx context.Context, req *connect.Request[heftv1.ListSessionsRequest]) (*connect.Response[heftv1.ListSessionsResponse], error) {
-	userID, ok := auth.UserIDFromContext(ctx)
-	if !ok {
-		return nil, connect.NewError(connect.CodeUnauthenticated, errors.New("not authenticated"))
+	userID, err := getAuthenticatedUserID(ctx)
+	if err != nil {
+		return nil, err
 	}
 
 	var status *string
-	var startDate, endDate *time.Time
-
 	if req.Msg.Status != nil && *req.Msg.Status != heftv1.WorkoutStatus_WORKOUT_STATUS_UNSPECIFIED {
 		s := workoutStatusToString(*req.Msg.Status)
 		status = &s
 	}
-	if req.Msg.StartDate != nil && *req.Msg.StartDate != "" {
-		t, err := time.Parse("2006-01-02", *req.Msg.StartDate)
-		if err == nil {
-			startDate = &t
-		}
-	}
-	if req.Msg.EndDate != nil && *req.Msg.EndDate != "" {
-		t, err := time.Parse("2006-01-02", *req.Msg.EndDate)
-		if err == nil {
-			endDate = &t
-		}
-	}
+	startDate := parseOptionalDate(req.Msg.StartDate)
+	endDate := parseOptionalDate(req.Msg.EndDate)
 
-	page := int32(1)
-	pageSize := int32(20)
-	if req.Msg.Pagination != nil {
-		if req.Msg.Pagination.Page > 0 {
-			page = req.Msg.Pagination.Page
-		}
-		if req.Msg.Pagination.PageSize > 0 {
-			pageSize = req.Msg.Pagination.PageSize
-		}
-	}
-
-	offset := (page - 1) * pageSize
+	page, pageSize, offset := extractPagination(req.Msg.Pagination, 20)
 	sessions, totalCount, err := h.sessionRepo.List(ctx, userID, status, startDate, endDate, int(pageSize), int(offset))
 	if err != nil {
 		return nil, handleDBError(err)
 	}
 
-	protoSessions := make([]*heftv1.SessionSummary, len(sessions))
-	for i, s := range sessions {
-		protoSessions[i] = sessionSummaryToProto(s)
-	}
-
-	totalPages := (int32(totalCount) + pageSize - 1) / pageSize
+	protoSessions := mapSlice(sessions, func(s *repository.WorkoutSession) *heftv1.SessionSummary {
+		return sessionSummaryToProto(s)
+	})
 
 	return connect.NewResponse(&heftv1.ListSessionsResponse{
-		Sessions: protoSessions,
-		Pagination: &heftv1.PaginationResponse{
-			Page:       page,
-			PageSize:   pageSize,
-			TotalCount: int32(totalCount),
-			TotalPages: totalPages,
-		},
+		Sessions:   protoSessions,
+		Pagination: buildPaginationResponse(page, pageSize, totalCount),
 	}), nil
 }
 

@@ -2,12 +2,10 @@ package handlers
 
 import (
 	"context"
-	"errors"
 
 	"connectrpc.com/connect"
 
 	heftv1 "github.com/heftyback/gen/heft/v1"
-	"github.com/heftyback/internal/auth"
 	"github.com/heftyback/internal/repository"
 )
 
@@ -27,9 +25,9 @@ func NewProgressHandler(repo repository.ProgressRepositoryInterface, exerciseRep
 
 // GetDashboardStats retrieves dashboard statistics
 func (h *ProgressHandler) GetDashboardStats(ctx context.Context, req *connect.Request[heftv1.GetDashboardStatsRequest]) (*connect.Response[heftv1.GetDashboardStatsResponse], error) {
-	userID, ok := auth.UserIDFromContext(ctx)
-	if !ok {
-		return nil, connect.NewError(connect.CodeUnauthenticated, errors.New("not authenticated"))
+	userID, err := getAuthenticatedUserID(ctx)
+	if err != nil {
+		return nil, err
 	}
 
 	stats, err := h.repo.GetDashboardStats(ctx, userID)
@@ -50,9 +48,9 @@ func (h *ProgressHandler) GetDashboardStats(ctx context.Context, req *connect.Re
 
 // GetWeeklyActivity retrieves weekly activity data
 func (h *ProgressHandler) GetWeeklyActivity(ctx context.Context, req *connect.Request[heftv1.GetWeeklyActivityRequest]) (*connect.Response[heftv1.GetWeeklyActivityResponse], error) {
-	userID, ok := auth.UserIDFromContext(ctx)
-	if !ok {
-		return nil, connect.NewError(connect.CodeUnauthenticated, errors.New("not authenticated"))
+	userID, err := getAuthenticatedUserID(ctx)
+	if err != nil {
+		return nil, err
 	}
 
 	days, err := h.repo.GetWeeklyActivity(ctx, userID, nil)
@@ -80,9 +78,9 @@ func (h *ProgressHandler) GetWeeklyActivity(ctx context.Context, req *connect.Re
 
 // GetPersonalRecords retrieves personal records
 func (h *ProgressHandler) GetPersonalRecords(ctx context.Context, req *connect.Request[heftv1.GetPersonalRecordsRequest]) (*connect.Response[heftv1.GetPersonalRecordsResponse], error) {
-	userID, ok := auth.UserIDFromContext(ctx)
-	if !ok {
-		return nil, connect.NewError(connect.CodeUnauthenticated, errors.New("not authenticated"))
+	userID, err := getAuthenticatedUserID(ctx)
+	if err != nil {
+		return nil, err
 	}
 
 	limit := 10
@@ -100,8 +98,7 @@ func (h *ProgressHandler) GetPersonalRecords(ctx context.Context, req *connect.R
 		return nil, handleDBError(err)
 	}
 
-	protoRecords := make([]*heftv1.PersonalRecord, len(records))
-	for i, r := range records {
+	protoRecords := mapSlice(records, func(r *repository.PersonalRecord) *heftv1.PersonalRecord {
 		pr := &heftv1.PersonalRecord{
 			Id:           r.ID,
 			UserId:       r.UserID,
@@ -124,8 +121,8 @@ func (h *ProgressHandler) GetPersonalRecords(ctx context.Context, req *connect.R
 		if r.Volume != nil {
 			pr.Volume = *r.Volume
 		}
-		protoRecords[i] = pr
-	}
+		return pr
+	})
 
 	return connect.NewResponse(&heftv1.GetPersonalRecordsResponse{
 		Records: protoRecords,
@@ -134,12 +131,12 @@ func (h *ProgressHandler) GetPersonalRecords(ctx context.Context, req *connect.R
 
 // GetExerciseProgress retrieves exercise progress over time
 func (h *ProgressHandler) GetExerciseProgress(ctx context.Context, req *connect.Request[heftv1.GetExerciseProgressRequest]) (*connect.Response[heftv1.GetExerciseProgressResponse], error) {
-	userID, ok := auth.UserIDFromContext(ctx)
-	if !ok {
-		return nil, connect.NewError(connect.CodeUnauthenticated, errors.New("not authenticated"))
+	userID, err := getAuthenticatedUserID(ctx)
+	if err != nil {
+		return nil, err
 	}
-	if req.Msg.ExerciseId == "" {
-		return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("exercise_id is required"))
+	if err := requireString(req.Msg.ExerciseId, "exercise_id"); err != nil {
+		return nil, err
 	}
 
 	limit := 8
@@ -213,9 +210,9 @@ func (h *ProgressHandler) GetExerciseProgress(ctx context.Context, req *connect.
 
 // GetCalendarMonth retrieves calendar data for a month
 func (h *ProgressHandler) GetCalendarMonth(ctx context.Context, req *connect.Request[heftv1.GetCalendarMonthRequest]) (*connect.Response[heftv1.GetCalendarMonthResponse], error) {
-	_, ok := auth.UserIDFromContext(ctx)
-	if !ok {
-		return nil, connect.NewError(connect.CodeUnauthenticated, errors.New("not authenticated"))
+	_, err := getAuthenticatedUserID(ctx)
+	if err != nil {
+		return nil, err
 	}
 
 	// For now, return empty calendar data
@@ -229,9 +226,9 @@ func (h *ProgressHandler) GetCalendarMonth(ctx context.Context, req *connect.Req
 
 // GetStreak retrieves streak information
 func (h *ProgressHandler) GetStreak(ctx context.Context, req *connect.Request[heftv1.GetStreakRequest]) (*connect.Response[heftv1.GetStreakResponse], error) {
-	userID, ok := auth.UserIDFromContext(ctx)
-	if !ok {
-		return nil, connect.NewError(connect.CodeUnauthenticated, errors.New("not authenticated"))
+	userID, err := getAuthenticatedUserID(ctx)
+	if err != nil {
+		return nil, err
 	}
 
 	currentStreak, longestStreak, lastWorkout, err := h.repo.GetStreak(ctx, userID)
