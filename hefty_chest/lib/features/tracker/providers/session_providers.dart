@@ -157,6 +157,7 @@ class ActiveSession extends _$ActiveSession {
     int? reps,
     int? timeSeconds,
     bool? isCompleted,
+    double? rpe,
   }) {
     final currentSession = state.value;
     if (currentSession == null) return;
@@ -182,6 +183,7 @@ class ActiveSession extends _$ActiveSession {
               reps: reps ?? set.reps,
               timeSeconds: timeSeconds ?? set.timeSeconds,
               isCompleted: isCompleted ?? set.isCompleted,
+              rpe: rpe ?? set.rpe,
             );
           }).toList(),
         );
@@ -199,6 +201,11 @@ class ActiveSession extends _$ActiveSession {
       state = AsyncValue.data(finalSession);
       SessionStorage.saveSession(finalSession.toProto());
     }
+  }
+
+  /// Update RPE for a set
+  void updateSetRpe({required String sessionSetId, required double rpe}) {
+    updateSetLocally(sessionSetId: sessionSetId, rpe: rpe);
   }
 
   /// Complete/toggle a set (local-first)
