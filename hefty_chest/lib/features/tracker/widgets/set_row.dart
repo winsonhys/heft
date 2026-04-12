@@ -12,6 +12,7 @@ class SetRow extends HookWidget {
       {WidgetState.any: const TextStyle(color: AppColors.textMuted)});
 
   final SessionSetModel set;
+  final SessionSetModel? previousSet;
   final bool isTimeBased;
   final Function(String setId, double? weight, int? reps, int? timeSeconds) onComplete;
   final VoidCallback? onDelete;
@@ -20,6 +21,7 @@ class SetRow extends HookWidget {
   const SetRow({
     super.key,
     required this.set,
+    this.previousSet,
     this.isTimeBased = false,
     required this.onComplete,
     this.onDelete,
@@ -187,6 +189,8 @@ class SetRow extends HookWidget {
       return (style) => style.copyWith(contentTextStyle: _mutedTextStyle);
     }
 
+    final hasCopiedPrevious = useState(false);
+
     // Optimistic local state - updates INSTANTLY on tap
     final isCompleted = useState(set.isCompleted);
 
@@ -212,14 +216,55 @@ class SetRow extends HookWidget {
       );
     }
 
+    final bool currentFieldsEmpty = isTimeBased
+        ? timeController.text.isEmpty
+        : weightController.text.isEmpty && repsController.text.isEmpty;
+    final bool previousHasValues = previousSet != null &&
+        (isTimeBased
+            ? previousSet!.timeSeconds > 0
+            : previousSet!.weightKg > 0 || previousSet!.reps > 0);
+    final showPreviousHint = currentFieldsEmpty &&
+        previousHasValues &&
+        !isCompleted.value &&
+        !hasCopiedPrevious.value;
+
+    String previousHintText() {
+      if (isTimeBased) {
+        return formatDuration(previousSet!.timeSeconds);
+      }
+      final w = previousSet!.weightKg.toStringAsFixed(0);
+      final r = previousSet!.reps.toString();
+      return '$w \u00d7 $r';
+    }
+
+    void copyFromPrevious() {
+      if (isTimeBased) {
+        timeController.text = formatDuration(previousSet!.timeSeconds);
+        timeEdited.value = true;
+      } else {
+        if (previousSet!.weightKg > 0) {
+          weightController.text = previousSet!.weightKg.toStringAsFixed(0);
+          weightEdited.value = true;
+        }
+        if (previousSet!.reps > 0) {
+          repsController.text = previousSet!.reps.toString();
+          repsEdited.value = true;
+        }
+      }
+      hasCopiedPrevious.value = true;
+    }
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 10),
       decoration: BoxDecoration(
         color: isCompleted.value ? AppColors.accentCyan.withValues(alpha: 0.05) : Colors.transparent,
         borderRadius: BorderRadius.circular(6),
       ),
-      child: Row(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
+          Row(
+            children: [
           // Set number
           SizedBox(
             width: 36,
@@ -420,6 +465,23 @@ class SetRow extends HookWidget {
               ],
             ),
           ),
+        ],
+      ),
+          if (showPreviousHint)
+            GestureDetector(
+              onTap: copyFromPrevious,
+              child: Padding(
+                padding: const EdgeInsets.only(left: 94, top: 4),
+                child: Text(
+                  previousHintText(),
+                  style: const TextStyle(
+                    fontSize: 12,
+                    fontStyle: FontStyle.italic,
+                    color: AppColors.textMuted,
+                  ),
+                ),
+              ),
+            ),
         ],
       ),
     );
