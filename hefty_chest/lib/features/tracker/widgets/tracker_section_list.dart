@@ -306,6 +306,9 @@ class TrackerSectionList extends StatelessWidget {
           onSetDeleted: (setId) {
             ref.read(activeSessionProvider.notifier).deleteSet(sessionSetId: setId);
           },
+          onRpeChanged: (setId, rpe) {
+            ref.read(activeSessionProvider.notifier).updateSetRpe(sessionSetId: setId, rpe: rpe);
+          },
           onDeleteExercise: () => confirmDeleteExercise(context, ref, exercise),
         );
 

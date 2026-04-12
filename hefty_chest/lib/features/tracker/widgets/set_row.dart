@@ -15,6 +15,7 @@ class SetRow extends HookWidget {
   final bool isTimeBased;
   final Function(String setId, double? weight, int? reps, int? timeSeconds) onComplete;
   final VoidCallback? onDelete;
+  final Function(String setId, double rpe)? onRpeChanged;
 
   const SetRow({
     super.key,
@@ -22,6 +23,7 @@ class SetRow extends HookWidget {
     this.isTimeBased = false,
     required this.onComplete,
     this.onDelete,
+    this.onRpeChanged,
   });
 
   int? _parseTime(String value) {
@@ -93,6 +95,70 @@ class SetRow extends HookWidget {
       : (set.targetTimeSeconds > 0
           ? formatDuration(set.targetTimeSeconds)
           : '');
+
+  static String _formatRpe(double value) {
+    return value == value.truncate() ? value.toStringAsFixed(0) : value.toString();
+  }
+
+  void _showRpeBottomSheet(BuildContext context) {
+    const rpeValues = [6.0, 6.5, 7.0, 7.5, 8.0, 8.5, 9.0, 9.5, 10.0];
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: AppColors.bgCard,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (sheetContext) {
+        return Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Rate of Perceived Exertion',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.textPrimary,
+                ),
+              ),
+              const SizedBox(height: 16),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: rpeValues.map((value) {
+                  final isSelected = set.rpe == value;
+                  return GestureDetector(
+                    onTap: () {
+                      onRpeChanged?.call(set.id, value);
+                      Navigator.of(sheetContext).pop();
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                      decoration: BoxDecoration(
+                        color: isSelected ? AppColors.accentBlue : AppColors.bgCardInner,
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Text(
+                        _formatRpe(value),
+                        style: const TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                          color: AppColors.textPrimary,
+                        ),
+                      ),
+                    ),
+                  );
+                }).toList(),
+              ),
+              const SizedBox(height: 12),
+            ],
+          ),
+        );
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -273,6 +339,18 @@ class SetRow extends HookWidget {
                 ],
               ),
             ),
+          // RPE badge
+          if (set.rpe > 0)
+            Padding(
+              padding: const EdgeInsets.only(right: 4),
+              child: Text(
+                _formatRpe(set.rpe),
+                style: const TextStyle(
+                  fontSize: 11,
+                  color: AppColors.textMuted,
+                ),
+              ),
+            ),
           // Complete button (toggle)
           SizedBox(
             width: 32,
@@ -312,11 +390,23 @@ class SetRow extends HookWidget {
               ),
               color: AppColors.bgCard,
               onSelected: (value) {
-                if (value == 'delete' && onDelete != null) {
+                if (value == 'rpe') {
+                  _showRpeBottomSheet(context);
+                } else if (value == 'delete' && onDelete != null) {
                   onDelete!();
                 }
               },
               itemBuilder: (context) => [
+                const PopupMenuItem(
+                  value: 'rpe',
+                  child: Row(
+                    children: [
+                      Icon(Icons.speed, size: 18, color: AppColors.textSecondary),
+                      SizedBox(width: 8),
+                      Text('Set RPE'),
+                    ],
+                  ),
+                ),
                 const PopupMenuItem(
                   value: 'delete',
                   child: Row(
