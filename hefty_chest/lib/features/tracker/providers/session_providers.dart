@@ -150,6 +150,11 @@ class ActiveSession extends _$ActiveSession {
     }
   }
 
+  /// Update set notes (local-first, synced via timer)
+  void updateSetNotes({required String sessionSetId, required String notes}) {
+    updateSetLocally(sessionSetId: sessionSetId, notes: notes);
+  }
+
   /// Update a set locally (sync happens automatically via timer)
   void updateSetLocally({
     required String sessionSetId,
@@ -157,6 +162,7 @@ class ActiveSession extends _$ActiveSession {
     int? reps,
     int? timeSeconds,
     bool? isCompleted,
+    String? notes,
   }) {
     final currentSession = state.value;
     if (currentSession == null) return;
@@ -182,6 +188,7 @@ class ActiveSession extends _$ActiveSession {
               reps: reps ?? set.reps,
               timeSeconds: timeSeconds ?? set.timeSeconds,
               isCompleted: isCompleted ?? set.isCompleted,
+              notes: notes ?? set.notes,
             );
           }).toList(),
         );
