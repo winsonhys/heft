@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../shared/theme/app_colors.dart';
+import '../../../shared/widgets/modal_sheet.dart';
 import '../../../core/client.dart';
 import '../providers/program_builder_providers.dart';
 
@@ -34,15 +35,9 @@ class WorkoutAssignmentModal extends ConsumerWidget {
       ),
       child: Column(
         children: [
-          // Handle
-          Container(
-            margin: const EdgeInsets.only(top: 12),
-            width: 40,
-            height: 4,
-            decoration: BoxDecoration(
-              color: AppColors.borderColor,
-              borderRadius: BorderRadius.circular(2),
-            ),
+          const Padding(
+            padding: EdgeInsets.only(top: 12),
+            child: DragHandle(),
           ),
           // Header
           Padding(
