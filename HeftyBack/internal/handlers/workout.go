@@ -95,64 +95,8 @@ func (h *WorkoutHandler) CreateWorkout(ctx context.Context, req *connect.Request
 	}
 
 	// Create sections if provided
-	for _, s := range req.Msg.Sections {
-		section, err := h.repo.CreateSection(ctx, workout.ID, s.Name, int(s.DisplayOrder), s.IsSuperset)
-		if err != nil {
-			return nil, handleDBError(err)
-		}
-
-		// Create items in section
-		for _, item := range s.Items {
-			itemType := convert.SectionItemTypeToString(item.ItemType)
-			var exerciseID *string
-			var restDuration *int
-			if item.ExerciseId != nil {
-				exerciseID = item.ExerciseId
-			}
-			if item.RestDurationSeconds != nil {
-				v := int(*item.RestDurationSeconds)
-				restDuration = &v
-			}
-
-			sectionItem, err := h.repo.CreateSectionItem(ctx, section.ID, itemType, int(item.DisplayOrder), exerciseID, restDuration)
-			if err != nil {
-				return nil, handleDBError(err)
-			}
-
-			// Create target sets
-			for _, ts := range item.TargetSets {
-				var targetWeight *float64
-				var targetReps, targetTime, targetRest *int
-				var targetDistance *float64
-				if ts.TargetWeightKg != nil {
-					targetWeight = ts.TargetWeightKg
-				}
-				if ts.TargetReps != nil {
-					v := int(*ts.TargetReps)
-					targetReps = &v
-				}
-				if ts.TargetTimeSeconds != nil {
-					v := int(*ts.TargetTimeSeconds)
-					targetTime = &v
-				}
-				if ts.TargetDistanceM != nil {
-					targetDistance = ts.TargetDistanceM
-				}
-				var notes *string
-				if ts.Notes != nil {
-					notes = ts.Notes
-				}
-				if ts.RestDurationSeconds != nil {
-					v := int(*ts.RestDurationSeconds)
-					targetRest = &v
-				}
-
-				_, err := h.repo.CreateTargetSet(ctx, sectionItem.ID, int(ts.SetNumber), targetWeight, targetReps, targetTime, targetDistance, ts.IsBodyweight, notes, targetRest)
-				if err != nil {
-					return nil, handleDBError(err)
-				}
-			}
-		}
+	if err := h.createSectionsFromProto(ctx, workout.ID, req.Msg.Sections); err != nil {
+		return nil, err
 	}
 
 	// Reload workout with all details (counts are computed dynamically)
@@ -214,66 +158,9 @@ func (h *WorkoutHandler) UpdateWorkout(ctx context.Context, req *connect.Request
 		}
 
 		// Recreate sections
-		for _, s := range req.Msg.Sections {
-			section, err := h.repo.CreateSection(ctx, workout.ID, s.Name, int(s.DisplayOrder), s.IsSuperset)
-			if err != nil {
-				return nil, handleDBError(err)
-			}
-
-			// Create items in section
-			for _, item := range s.Items {
-				itemType := convert.SectionItemTypeToString(item.ItemType)
-				var exerciseID *string
-				var restDuration *int
-				if item.ExerciseId != nil {
-					exerciseID = item.ExerciseId
-				}
-				if item.RestDurationSeconds != nil {
-					v := int(*item.RestDurationSeconds)
-					restDuration = &v
-				}
-
-				sectionItem, err := h.repo.CreateSectionItem(ctx, section.ID, itemType, int(item.DisplayOrder), exerciseID, restDuration)
-				if err != nil {
-					return nil, handleDBError(err)
-				}
-
-				// Create target sets
-				for _, ts := range item.TargetSets {
-					var targetWeight *float64
-					var targetReps, targetTime, targetRest *int
-					var targetDistance *float64
-					if ts.TargetWeightKg != nil {
-						targetWeight = ts.TargetWeightKg
-					}
-					if ts.TargetReps != nil {
-						v := int(*ts.TargetReps)
-						targetReps = &v
-					}
-					if ts.TargetTimeSeconds != nil {
-						v := int(*ts.TargetTimeSeconds)
-						targetTime = &v
-					}
-					if ts.TargetDistanceM != nil {
-						targetDistance = ts.TargetDistanceM
-					}
-					var notes *string
-					if ts.Notes != nil {
-						notes = ts.Notes
-					}
-					if ts.RestDurationSeconds != nil {
-						v := int(*ts.RestDurationSeconds)
-						targetRest = &v
-					}
-
-					_, err := h.repo.CreateTargetSet(ctx, sectionItem.ID, int(ts.SetNumber), targetWeight, targetReps, targetTime, targetDistance, ts.IsBodyweight, notes, targetRest)
-					if err != nil {
-						return nil, handleDBError(err)
-					}
-				}
-			}
+		if err := h.createSectionsFromProto(ctx, workout.ID, req.Msg.Sections); err != nil {
+			return nil, err
 		}
-
 	}
 
 	// Reload workout with all details (counts are computed dynamically)
@@ -379,6 +266,68 @@ func (h *WorkoutHandler) DuplicateWorkout(ctx context.Context, req *connect.Requ
 	return connect.NewResponse(&heftv1.DuplicateWorkoutResponse{
 		Workout: workoutToProto(duplicate),
 	}), nil
+}
+
+// createSectionsFromProto creates workout sections, items, and target sets from proto input.
+func (h *WorkoutHandler) createSectionsFromProto(ctx context.Context, workoutID string, sections []*heftv1.CreateWorkoutSection) error {
+	for _, s := range sections {
+		section, err := h.repo.CreateSection(ctx, workoutID, s.Name, int(s.DisplayOrder), s.IsSuperset)
+		if err != nil {
+			return handleDBError(err)
+		}
+
+		for _, item := range s.Items {
+			itemType := convert.SectionItemTypeToString(item.ItemType)
+			var exerciseID *string
+			var restDuration *int
+			if item.ExerciseId != nil {
+				exerciseID = item.ExerciseId
+			}
+			if item.RestDurationSeconds != nil {
+				v := int(*item.RestDurationSeconds)
+				restDuration = &v
+			}
+
+			sectionItem, err := h.repo.CreateSectionItem(ctx, section.ID, itemType, int(item.DisplayOrder), exerciseID, restDuration)
+			if err != nil {
+				return handleDBError(err)
+			}
+
+			for _, ts := range item.TargetSets {
+				var targetWeight *float64
+				var targetReps, targetTime, targetRest *int
+				var targetDistance *float64
+				if ts.TargetWeightKg != nil {
+					targetWeight = ts.TargetWeightKg
+				}
+				if ts.TargetReps != nil {
+					v := int(*ts.TargetReps)
+					targetReps = &v
+				}
+				if ts.TargetTimeSeconds != nil {
+					v := int(*ts.TargetTimeSeconds)
+					targetTime = &v
+				}
+				if ts.TargetDistanceM != nil {
+					targetDistance = ts.TargetDistanceM
+				}
+				var notes *string
+				if ts.Notes != nil {
+					notes = ts.Notes
+				}
+				if ts.RestDurationSeconds != nil {
+					v := int(*ts.RestDurationSeconds)
+					targetRest = &v
+				}
+
+				_, err := h.repo.CreateTargetSet(ctx, sectionItem.ID, int(ts.SetNumber), targetWeight, targetReps, targetTime, targetDistance, ts.IsBodyweight, notes, targetRest)
+				if err != nil {
+					return handleDBError(err)
+				}
+			}
+		}
+	}
+	return nil
 }
 
 // Helper functions
