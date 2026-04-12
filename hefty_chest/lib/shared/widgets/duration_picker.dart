@@ -3,6 +3,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:forui/forui.dart';
 
 import '../theme/app_colors.dart';
+import 'modal_sheet.dart';
 
 /// A trigger button that displays current duration and opens picker sheet
 class DurationPickerTrigger extends StatelessWidget {
@@ -69,13 +70,8 @@ Future<void> showDurationPickerSheet({
   required Duration initialDuration,
   required ValueChanged<Duration> onChanged,
 }) {
-  return showModalBottomSheet(
+  return showHeftModalSheet(
     context: context,
-    isScrollControlled: true,
-    backgroundColor: AppColors.bgPrimary,
-    shape: const RoundedRectangleBorder(
-      borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-    ),
     builder: (context) => _DurationPickerSheet(
       initialDuration: initialDuration,
       onConfirm: (duration) {
@@ -121,15 +117,7 @@ class _DurationPickerSheet extends HookWidget {
       padding: const EdgeInsets.all(20),
       child: Column(
         children: [
-          // Drag handle
-          Container(
-            width: 40,
-            height: 4,
-            decoration: BoxDecoration(
-              color: AppColors.borderColor,
-              borderRadius: BorderRadius.circular(2),
-            ),
-          ),
+          const DragHandle(),
           const SizedBox(height: 16),
           // Header
           const Text(

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../shared/theme/app_colors.dart';
+import '../../../shared/widgets/modal_sheet.dart';
 import '../../../gen/workout.pb.dart';
 
 /// Workout card displaying workout summary with actions
@@ -118,25 +119,16 @@ class WorkoutCard extends StatelessWidget {
   }
 
   void _showContextMenu(BuildContext context) {
-    showModalBottomSheet(
+    showHeftModalSheet(
       context: context,
+      isScrollControlled: false,
       backgroundColor: AppColors.bgCard,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-      ),
       builder: (context) => SafeArea(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             const SizedBox(height: 8),
-            Container(
-              width: 40,
-              height: 4,
-              decoration: BoxDecoration(
-                color: AppColors.borderColor,
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
+            const DragHandle(),
             const SizedBox(height: 16),
             _ContextMenuItem(
               icon: Icons.edit_outlined,
