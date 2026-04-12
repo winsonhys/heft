@@ -130,7 +130,9 @@ class RestTimerSheet extends HookWidget {
                   ),
                   const SizedBox(height: 2),
                   Text(
-                    'Next: $nextExerciseName - Set $nextSetNumber',
+                    nextSetNumber > 0
+                        ? 'Next: $nextExerciseName - Set $nextSetNumber'
+                        : nextExerciseName,
                     style: const TextStyle(
                       fontSize: 12,
                       color: AppColors.textMuted,

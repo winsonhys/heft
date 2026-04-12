@@ -245,6 +245,35 @@ class TrackerScreen extends HookConsumerWidget {
                 ),
         ),
 
+        // Manual rest timer floating button
+        if (!showRestTimer.value && !isLoading.value && sessionAsync.value != null)
+          Positioned(
+            bottom: 24,
+            right: 16,
+            child: GestureDetector(
+              key: const Key('manual_rest_timer'),
+              onTap: () {
+                restTimeRemaining.value = 90;
+                nextExerciseName.value = 'Take a breather';
+                nextSetNumber.value = 0;
+                showRestTimer.value = true;
+              },
+              child: Container(
+                width: 48,
+                height: 48,
+                decoration: const BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: AppColors.accentBlue,
+                ),
+                child: const Icon(
+                  Icons.timer,
+                  color: AppColors.textPrimary,
+                  size: 24,
+                ),
+              ),
+            ),
+          ),
+
         // Rest Timer Bottom Sheet
         if (showRestTimer.value)
           RestTimerSheet(
