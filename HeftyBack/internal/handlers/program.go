@@ -9,6 +9,7 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 
 	heftv1 "github.com/heftyback/gen/heft/v1"
+	"github.com/heftyback/internal/convert"
 	"github.com/heftyback/internal/repository"
 )
 
@@ -99,7 +100,7 @@ func (h *ProgramHandler) CreateProgram(ctx context.Context, req *connect.Request
 
 	// Create days if provided
 	for _, d := range req.Msg.Days {
-		dayType := programDayTypeToString(d.DayType)
+		dayType := convert.ProgramDayTypeToString(d.DayType)
 		var workoutTemplateID, customName *string
 		if d.WorkoutTemplateId != nil {
 			workoutTemplateID = d.WorkoutTemplateId
@@ -192,7 +193,7 @@ func (h *ProgramHandler) UpdateProgram(ctx context.Context, req *connect.Request
 			return nil, handleDBError(err)
 		}
 		for _, d := range req.Msg.Days {
-			dayType := programDayTypeToString(d.DayType)
+			dayType := convert.ProgramDayTypeToString(d.DayType)
 			var workoutTemplateID, customName *string
 			if d.WorkoutTemplateId != nil {
 				workoutTemplateID = d.WorkoutTemplateId
@@ -312,7 +313,7 @@ func (h *ProgramHandler) GetTodayWorkout(ctx context.Context, req *connect.Reque
 
 	response := &heftv1.GetTodayWorkoutResponse{
 		DayNumber: int32(dayNumber),
-		DayType:   stringToProgramDayType(todayDay.DayType),
+		DayType:   convert.StringToProgramDayType(todayDay.DayType),
 		Program:   programToProto(program),
 	}
 
@@ -386,7 +387,7 @@ func programDayToProto(d *repository.ProgramDay) *heftv1.ProgramDay {
 		Id:        d.ID,
 		ProgramId: d.ProgramID,
 		DayNumber: int32(d.DayNumber),
-		DayType:   stringToProgramDayType(d.DayType),
+		DayType:   convert.StringToProgramDayType(d.DayType),
 	}
 	if d.WorkoutTemplateID != nil {
 		day.WorkoutTemplateId = *d.WorkoutTemplateID
@@ -400,28 +401,3 @@ func programDayToProto(d *repository.ProgramDay) *heftv1.ProgramDay {
 	return day
 }
 
-func programDayTypeToString(t heftv1.ProgramDayType) string {
-	switch t {
-	case heftv1.ProgramDayType_PROGRAM_DAY_TYPE_WORKOUT:
-		return "workout"
-	case heftv1.ProgramDayType_PROGRAM_DAY_TYPE_REST:
-		return "rest"
-	case heftv1.ProgramDayType_PROGRAM_DAY_TYPE_UNASSIGNED:
-		return "unassigned"
-	default:
-		return "unassigned"
-	}
-}
-
-func stringToProgramDayType(s string) heftv1.ProgramDayType {
-	switch s {
-	case "workout":
-		return heftv1.ProgramDayType_PROGRAM_DAY_TYPE_WORKOUT
-	case "rest":
-		return heftv1.ProgramDayType_PROGRAM_DAY_TYPE_REST
-	case "unassigned":
-		return heftv1.ProgramDayType_PROGRAM_DAY_TYPE_UNASSIGNED
-	default:
-		return heftv1.ProgramDayType_PROGRAM_DAY_TYPE_UNSPECIFIED
-	}
-}

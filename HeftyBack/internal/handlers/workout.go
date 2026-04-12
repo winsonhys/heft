@@ -8,6 +8,7 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 
 	heftv1 "github.com/heftyback/gen/heft/v1"
+	"github.com/heftyback/internal/convert"
 	"github.com/heftyback/internal/repository"
 )
 
@@ -102,7 +103,7 @@ func (h *WorkoutHandler) CreateWorkout(ctx context.Context, req *connect.Request
 
 		// Create items in section
 		for _, item := range s.Items {
-			itemType := sectionItemTypeToString(item.ItemType)
+			itemType := convert.SectionItemTypeToString(item.ItemType)
 			var exerciseID *string
 			var restDuration *int
 			if item.ExerciseId != nil {
@@ -221,7 +222,7 @@ func (h *WorkoutHandler) UpdateWorkout(ctx context.Context, req *connect.Request
 
 			// Create items in section
 			for _, item := range s.Items {
-				itemType := sectionItemTypeToString(item.ItemType)
+				itemType := convert.SectionItemTypeToString(item.ItemType)
 				var exerciseID *string
 				var restDuration *int
 				if item.ExerciseId != nil {
@@ -451,7 +452,7 @@ func sectionItemToProto(item *repository.SectionItem) *heftv1.SectionItem {
 	si := &heftv1.SectionItem{
 		Id:           item.ID,
 		SectionId:    item.SectionID,
-		ItemType:     stringToSectionItemType(item.ItemType),
+		ItemType:     convert.StringToSectionItemType(item.ItemType),
 		DisplayOrder: int32(item.DisplayOrder),
 	}
 	if item.ExerciseID != nil {
@@ -461,7 +462,7 @@ func sectionItemToProto(item *repository.SectionItem) *heftv1.SectionItem {
 		si.ExerciseName = *item.ExerciseName
 	}
 	if item.ExerciseType != nil {
-		si.ExerciseType = stringToExerciseType(*item.ExerciseType)
+		si.ExerciseType = convert.StringToExerciseType(*item.ExerciseType)
 	}
 	if item.RestDurationSeconds != nil {
 		si.RestDurationSeconds = int32(*item.RestDurationSeconds)
@@ -507,24 +508,3 @@ func targetSetToProto(ts *repository.ExerciseTargetSet) *heftv1.TargetSet {
 	return set
 }
 
-func sectionItemTypeToString(t heftv1.SectionItemType) string {
-	switch t {
-	case heftv1.SectionItemType_SECTION_ITEM_TYPE_EXERCISE:
-		return "exercise"
-	case heftv1.SectionItemType_SECTION_ITEM_TYPE_REST:
-		return "rest"
-	default:
-		return "exercise"
-	}
-}
-
-func stringToSectionItemType(s string) heftv1.SectionItemType {
-	switch s {
-	case "exercise":
-		return heftv1.SectionItemType_SECTION_ITEM_TYPE_EXERCISE
-	case "rest":
-		return heftv1.SectionItemType_SECTION_ITEM_TYPE_REST
-	default:
-		return heftv1.SectionItemType_SECTION_ITEM_TYPE_UNSPECIFIED
-	}
-}

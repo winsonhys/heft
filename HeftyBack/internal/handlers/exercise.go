@@ -8,6 +8,7 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 
 	heftv1 "github.com/heftyback/gen/heft/v1"
+	"github.com/heftyback/internal/convert"
 	"github.com/heftyback/internal/repository"
 )
 
@@ -30,7 +31,7 @@ func (h *ExerciseHandler) ListExercises(ctx context.Context, req *connect.Reques
 		categoryID = req.Msg.CategoryId
 	}
 	if req.Msg.ExerciseType != nil && *req.Msg.ExerciseType != heftv1.ExerciseType_EXERCISE_TYPE_UNSPECIFIED {
-		t := exerciseTypeToString(*req.Msg.ExerciseType)
+		t := convert.ExerciseTypeToString(*req.Msg.ExerciseType)
 		exerciseType = &t
 	}
 	if req.Msg.SystemOnly != nil {
@@ -88,7 +89,7 @@ func (h *ExerciseHandler) CreateExercise(ctx context.Context, req *connect.Reque
 		return nil, err
 	}
 
-	exerciseType := exerciseTypeToString(req.Msg.ExerciseType)
+	exerciseType := convert.ExerciseTypeToString(req.Msg.ExerciseType)
 	if exerciseType == "" {
 		exerciseType = "weight_reps"
 	}
@@ -163,7 +164,7 @@ func exerciseToProto(ex *repository.Exercise) *heftv1.Exercise {
 	e := &heftv1.Exercise{
 		Id:           ex.ID,
 		Name:         ex.Name,
-		ExerciseType: stringToExerciseType(ex.ExerciseType),
+		ExerciseType: convert.StringToExerciseType(ex.ExerciseType),
 		IsSystem:     ex.IsSystem,
 		CreatedAt:    timestamppb.New(ex.CreatedAt),
 		UpdatedAt:    timestamppb.New(ex.UpdatedAt),
@@ -183,36 +184,3 @@ func exerciseToProto(ex *repository.Exercise) *heftv1.Exercise {
 	return e
 }
 
-func exerciseTypeToString(et heftv1.ExerciseType) string {
-	switch et {
-	case heftv1.ExerciseType_EXERCISE_TYPE_WEIGHT_REPS:
-		return "weight_reps"
-	case heftv1.ExerciseType_EXERCISE_TYPE_BODYWEIGHT_REPS:
-		return "bodyweight_reps"
-	case heftv1.ExerciseType_EXERCISE_TYPE_TIME:
-		return "time"
-	case heftv1.ExerciseType_EXERCISE_TYPE_DISTANCE:
-		return "distance"
-	case heftv1.ExerciseType_EXERCISE_TYPE_CARDIO:
-		return "cardio"
-	default:
-		return ""
-	}
-}
-
-func stringToExerciseType(s string) heftv1.ExerciseType {
-	switch s {
-	case "weight_reps":
-		return heftv1.ExerciseType_EXERCISE_TYPE_WEIGHT_REPS
-	case "bodyweight_reps":
-		return heftv1.ExerciseType_EXERCISE_TYPE_BODYWEIGHT_REPS
-	case "time":
-		return heftv1.ExerciseType_EXERCISE_TYPE_TIME
-	case "distance":
-		return heftv1.ExerciseType_EXERCISE_TYPE_DISTANCE
-	case "cardio":
-		return heftv1.ExerciseType_EXERCISE_TYPE_CARDIO
-	default:
-		return heftv1.ExerciseType_EXERCISE_TYPE_UNSPECIFIED
-	}
-}

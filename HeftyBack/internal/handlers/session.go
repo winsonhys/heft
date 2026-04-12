@@ -9,6 +9,7 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 
 	heftv1 "github.com/heftyback/gen/heft/v1"
+	"github.com/heftyback/internal/convert"
 	"github.com/heftyback/internal/repository"
 )
 
@@ -397,7 +398,7 @@ func (h *SessionHandler) ListSessions(ctx context.Context, req *connect.Request[
 
 	var status *string
 	if req.Msg.Status != nil && *req.Msg.Status != heftv1.WorkoutStatus_WORKOUT_STATUS_UNSPECIFIED {
-		s := workoutStatusToString(*req.Msg.Status)
+		s := convert.WorkoutStatusToString(*req.Msg.Status)
 		status = &s
 	}
 	startDate := parseOptionalDate(req.Msg.StartDate)
@@ -430,7 +431,7 @@ func sessionToProto(s *repository.WorkoutSession) *heftv1.Session {
 	session := &heftv1.Session{
 		Id:            s.ID,
 		UserId:        s.UserID,
-		Status:        stringToWorkoutStatus(s.Status),
+		Status:        convert.StringToWorkoutStatus(s.Status),
 		StartedAt:     timestamppb.New(s.StartedAt),
 		TotalSets:     totalSets,
 		CompletedSets: int32(s.CompletedSets),
@@ -478,7 +479,7 @@ func sessionSummaryToProto(s *repository.WorkoutSession) *heftv1.SessionSummary 
 	ss := &heftv1.SessionSummary{
 		Id:            s.ID,
 		UserId:        s.UserID,
-		Status:        stringToWorkoutStatus(s.Status),
+		Status:        convert.StringToWorkoutStatus(s.Status),
 		StartedAt:     timestamppb.New(s.StartedAt),
 		TotalSets:     int32(s.TotalSets),
 		CompletedSets: int32(s.CompletedSets),
@@ -501,7 +502,7 @@ func sessionExerciseToProto(e *repository.SessionExercise) *heftv1.SessionExerci
 		SessionId:    e.SessionID,
 		ExerciseId:   e.ExerciseID,
 		ExerciseName: e.ExerciseName,
-		ExerciseType: stringToExerciseType(e.ExerciseType),
+		ExerciseType: convert.StringToExerciseType(e.ExerciseType),
 		DisplayOrder: int32(e.DisplayOrder),
 	}
 	if e.SectionName != nil {
@@ -589,28 +590,3 @@ func sessionRestItemToProto(ri *repository.SessionRestItem) *heftv1.SessionRestI
 	return item
 }
 
-func workoutStatusToString(s heftv1.WorkoutStatus) string {
-	switch s {
-	case heftv1.WorkoutStatus_WORKOUT_STATUS_IN_PROGRESS:
-		return "in_progress"
-	case heftv1.WorkoutStatus_WORKOUT_STATUS_COMPLETED:
-		return "completed"
-	case heftv1.WorkoutStatus_WORKOUT_STATUS_ABANDONED:
-		return "abandoned"
-	default:
-		return ""
-	}
-}
-
-func stringToWorkoutStatus(s string) heftv1.WorkoutStatus {
-	switch s {
-	case "in_progress":
-		return heftv1.WorkoutStatus_WORKOUT_STATUS_IN_PROGRESS
-	case "completed":
-		return heftv1.WorkoutStatus_WORKOUT_STATUS_COMPLETED
-	case "abandoned":
-		return heftv1.WorkoutStatus_WORKOUT_STATUS_ABANDONED
-	default:
-		return heftv1.WorkoutStatus_WORKOUT_STATUS_UNSPECIFIED
-	}
-}
