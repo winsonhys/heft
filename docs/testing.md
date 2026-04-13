@@ -283,6 +283,13 @@ action.onPress?.call();
 | `calendar_add_program` | Calendar add icon | `calendar_screen.dart` |
 | `workout_builder_save` | Save icon | `workout_builder_screen.dart` |
 | `program_builder_save` | Save icon | `program_builder_screen.dart` |
+| `program_builder_start_date` | Start-date picker tile | `program_builder_screen.dart` |
+| `program_builder_duration` | Duration picker tile | `program_builder_screen.dart` |
+| `program_builder_add_workout` | Add-workout button | `program_builder_screen.dart` |
+| `workout_row_<i>` | Scheduled workout row | `program_builder/widgets/workout_row.dart` |
+| `workout_schedule_save` | Save in workout-schedule modal | `program_builder/widgets/workout_schedule_modal.dart` |
+| `workout_schedule_weekday_{mon..sun}` | Weekday toggle chip | `program_builder/widgets/weekday_chip_row.dart` |
+| `calendar_day_<YYYY-MM-DD>` | Calendar grid cell | `calendar/widgets/calendar_grid.dart` |
 | `tracker_discard` | Discard button | `tracker_screen.dart` |
 | `tracker_finish` | Finish button | `tracker_screen.dart` |
 | `workout_card_start` | Start button | `workout_card.dart` |
@@ -301,7 +308,7 @@ flutter test test/e2e/ --tags session
 |---|---|
 | `session` | `session_flow_test.dart` |
 | `workout` | `workout_builder_ui_test.dart`, `workout_flow_test.dart` |
-| `program` | `program_builder_ui_test.dart` |
+| `program` | `program_schedule_test.dart` |
 | `progress` | `progress_screen_test.dart` |
 | `profile` | `profile_screen_test.dart` |
 | `calendar` | `calendar_screen_test.dart` |

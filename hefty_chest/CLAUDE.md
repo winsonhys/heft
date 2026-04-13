@@ -135,7 +135,7 @@ class MyScreen extends HookConsumerWidget {
 
 ## E2E Testing — Quick Reference
 
-Keys: `workout_builder_save`, `program_builder_save`, `tracker_discard`, `tracker_finish`, `tracker_back`, `workout_card_start`, `workout_card_edit`, `home_fab`, `calendar_add_program`
+Keys: `workout_builder_save`, `program_builder_save`, `program_builder_start_date`, `program_builder_duration`, `program_builder_add_workout`, `workout_schedule_save`, `workout_schedule_weekday_{mon..sun}`, `workout_row_<i>`, `calendar_day_<YYYY-MM-DD>`, `tracker_discard`, `tracker_finish`, `tracker_back`, `workout_card_start`, `workout_card_edit`, `home_fab`, `calendar_add_program`
 
 Test helpers: `test/test_utils/test_helpers.dart` — `safeTap()`, `tapByKey()`, `tapOffScreen()`, `waitForWidget()`
 

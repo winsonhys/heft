@@ -41,7 +41,7 @@ func TestSessionHandler_StartSession(t *testing.T) {
 				sr.ListFunc = func(ctx context.Context, userID string, status *string, startDate, endDate *time.Time, limit, offset int) ([]*repository.WorkoutSession, int, error) {
 					return []*repository.WorkoutSession{}, 0, nil
 				}
-				sr.CreateFunc = func(ctx context.Context, userID string, workoutTemplateID, programID *string, programDayNumber *int, name *string) (*repository.WorkoutSession, error) {
+				sr.CreateFunc = func(ctx context.Context, userID string, workoutTemplateID, programID *string, name *string) (*repository.WorkoutSession, error) {
 					return &repository.WorkoutSession{
 						ID:        "session-123",
 						UserID:    userID,
@@ -117,7 +117,7 @@ func TestSessionHandler_StartSession(t *testing.T) {
 				sr.ListFunc = func(ctx context.Context, userID string, status *string, startDate, endDate *time.Time, limit, offset int) ([]*repository.WorkoutSession, int, error) {
 					return []*repository.WorkoutSession{}, 0, nil
 				}
-				sr.CreateFunc = func(ctx context.Context, userID string, workoutTemplateID, programID *string, programDayNumber *int, name *string) (*repository.WorkoutSession, error) {
+				sr.CreateFunc = func(ctx context.Context, userID string, workoutTemplateID, programID *string, name *string) (*repository.WorkoutSession, error) {
 					return nil, errors.New("database error")
 				}
 			},
@@ -795,137 +795,6 @@ func TestSessionHandler_SyncSession(t *testing.T) {
 	}
 }
 
-func TestSessionHandler_FinishSession_ArchivesProgram(t *testing.T) {
-	if testing.Short() {
-		t.Skip("skipping unit test in short mode")
-	}
-
-	t.Run("archives program on last day", func(t *testing.T) {
-		mockSessionRepo := &testutil.MockSessionRepository{}
-		mockWorkoutRepo := &testutil.MockWorkoutRepository{}
-		mockProgramRepo := &testutil.MockProgramRepository{}
-
-		now := time.Now()
-		programID := "program-1"
-		dayNumber := 7
-
-		mockSessionRepo.FinishSessionFunc = func(ctx context.Context, id, userID string, notes *string) (*repository.WorkoutSession, error) {
-			return &repository.WorkoutSession{
-				ID:        id,
-				UserID:    userID,
-				Status:    "completed",
-				StartedAt: now.Add(-time.Hour),
-				CreatedAt: now.Add(-time.Hour),
-				UpdatedAt: now,
-			}, nil
-		}
-		mockSessionRepo.GetByIDFunc = func(ctx context.Context, id, userID string) (*repository.WorkoutSession, error) {
-			return &repository.WorkoutSession{
-				ID:               id,
-				UserID:           userID,
-				Status:           "completed",
-				StartedAt:        now.Add(-time.Hour),
-				CompletedAt:      &now,
-				CreatedAt:        now.Add(-time.Hour),
-				UpdatedAt:        now,
-				ProgramID:        &programID,
-				ProgramDayNumber: &dayNumber,
-				Exercises:        []*repository.SessionExercise{},
-			}, nil
-		}
-		mockProgramRepo.GetByIDFunc = func(ctx context.Context, id, userID string) (*repository.Program, error) {
-			return &repository.Program{
-				ID:            id,
-				UserID:        userID,
-				DurationWeeks: 1,
-				DurationDays:  0,
-				IsActive:      true,
-			}, nil
-		}
-
-		archiveCalled := false
-		mockProgramRepo.ArchiveFunc = func(ctx context.Context, id, userID string) error {
-			archiveCalled = true
-			if id != programID {
-				t.Errorf("expected program ID %s, got %s", programID, id)
-			}
-			return nil
-		}
-
-		handler := handlers.NewSessionHandler(mockSessionRepo, mockWorkoutRepo, mockProgramRepo)
-		ctx := auth.ContextWithUserID(context.Background(), "user-123")
-
-		_, err := handler.FinishSession(ctx, connect.NewRequest(&heftv1.FinishSessionRequest{Id: "session-123"}))
-		if err != nil {
-			t.Fatalf("unexpected error: %v", err)
-		}
-		if !archiveCalled {
-			t.Error("expected Archive to be called for last program day")
-		}
-	})
-
-	t.Run("does not archive program when not last day", func(t *testing.T) {
-		mockSessionRepo := &testutil.MockSessionRepository{}
-		mockWorkoutRepo := &testutil.MockWorkoutRepository{}
-		mockProgramRepo := &testutil.MockProgramRepository{}
-
-		now := time.Now()
-		programID := "program-1"
-		dayNumber := 3
-
-		mockSessionRepo.FinishSessionFunc = func(ctx context.Context, id, userID string, notes *string) (*repository.WorkoutSession, error) {
-			return &repository.WorkoutSession{
-				ID:        id,
-				UserID:    userID,
-				Status:    "completed",
-				StartedAt: now.Add(-time.Hour),
-				CreatedAt: now.Add(-time.Hour),
-				UpdatedAt: now,
-			}, nil
-		}
-		mockSessionRepo.GetByIDFunc = func(ctx context.Context, id, userID string) (*repository.WorkoutSession, error) {
-			return &repository.WorkoutSession{
-				ID:               id,
-				UserID:           userID,
-				Status:           "completed",
-				StartedAt:        now.Add(-time.Hour),
-				CompletedAt:      &now,
-				CreatedAt:        now.Add(-time.Hour),
-				UpdatedAt:        now,
-				ProgramID:        &programID,
-				ProgramDayNumber: &dayNumber,
-				Exercises:        []*repository.SessionExercise{},
-			}, nil
-		}
-		mockProgramRepo.GetByIDFunc = func(ctx context.Context, id, userID string) (*repository.Program, error) {
-			return &repository.Program{
-				ID:            id,
-				UserID:        userID,
-				DurationWeeks: 1,
-				DurationDays:  0,
-				IsActive:      true,
-			}, nil
-		}
-
-		archiveCalled := false
-		mockProgramRepo.ArchiveFunc = func(ctx context.Context, id, userID string) error {
-			archiveCalled = true
-			return nil
-		}
-
-		handler := handlers.NewSessionHandler(mockSessionRepo, mockWorkoutRepo, mockProgramRepo)
-		ctx := auth.ContextWithUserID(context.Background(), "user-123")
-
-		_, err := handler.FinishSession(ctx, connect.NewRequest(&heftv1.FinishSessionRequest{Id: "session-123"}))
-		if err != nil {
-			t.Fatalf("unexpected error: %v", err)
-		}
-		if archiveCalled {
-			t.Error("expected Archive NOT to be called when not on last program day")
-		}
-	})
-}
-
 // Helper functions for creating pointers
 func ptrString(v string) *string {
 	return &v
@@ -975,7 +844,7 @@ func TestSessionHandler_StartSession_WithRestItems(t *testing.T) {
 				sr.ListFunc = func(ctx context.Context, userID string, status *string, startDate, endDate *time.Time, limit, offset int) ([]*repository.WorkoutSession, int, error) {
 					return []*repository.WorkoutSession{}, 0, nil
 				}
-				sr.CreateFunc = func(ctx context.Context, userID string, workoutTemplateID, programID *string, programDayNumber *int, name *string) (*repository.WorkoutSession, error) {
+				sr.CreateFunc = func(ctx context.Context, userID string, workoutTemplateID, programID *string, name *string) (*repository.WorkoutSession, error) {
 					return &repository.WorkoutSession{
 						ID:        "session-123",
 						UserID:    userID,
@@ -1101,7 +970,7 @@ func TestSessionHandler_StartSession_WithRestItems(t *testing.T) {
 				sr.ListFunc = func(ctx context.Context, userID string, status *string, startDate, endDate *time.Time, limit, offset int) ([]*repository.WorkoutSession, int, error) {
 					return []*repository.WorkoutSession{}, 0, nil
 				}
-				sr.CreateFunc = func(ctx context.Context, userID string, workoutTemplateID, programID *string, programDayNumber *int, name *string) (*repository.WorkoutSession, error) {
+				sr.CreateFunc = func(ctx context.Context, userID string, workoutTemplateID, programID *string, name *string) (*repository.WorkoutSession, error) {
 					return &repository.WorkoutSession{
 						ID:        "session-nil-rest",
 						UserID:    userID,
@@ -1176,7 +1045,7 @@ func TestSessionHandler_StartSession_WithRestItems(t *testing.T) {
 				sr.ListFunc = func(ctx context.Context, userID string, status *string, startDate, endDate *time.Time, limit, offset int) ([]*repository.WorkoutSession, int, error) {
 					return []*repository.WorkoutSession{}, 0, nil
 				}
-				sr.CreateFunc = func(ctx context.Context, userID string, workoutTemplateID, programID *string, programDayNumber *int, name *string) (*repository.WorkoutSession, error) {
+				sr.CreateFunc = func(ctx context.Context, userID string, workoutTemplateID, programID *string, name *string) (*repository.WorkoutSession, error) {
 					return &repository.WorkoutSession{
 						ID:        "session-zero-rest",
 						UserID:    userID,
@@ -1698,7 +1567,7 @@ func TestSessionHandler_StartSession_DisplayOrder(t *testing.T) {
 	}
 
 	// Mock: create session
-	mockSessionRepo.CreateFunc = func(ctx context.Context, userID string, workoutTemplateID, programID *string, programDayNumber *int, name *string) (*repository.WorkoutSession, error) {
+	mockSessionRepo.CreateFunc = func(ctx context.Context, userID string, workoutTemplateID, programID *string, name *string) (*repository.WorkoutSession, error) {
 		return &repository.WorkoutSession{
 			ID:        "session-new",
 			UserID:    userID,

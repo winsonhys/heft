@@ -255,6 +255,48 @@ final class CalendarMonthFamily extends $Family
   String toString() => r'calendarMonthProvider';
 }
 
+/// Provider for the user's currently active program (or null), with workouts
+/// loaded. The calendar uses this to render the weekly schedule on each cell.
+
+@ProviderFor(activeProgram)
+const activeProgramProvider = ActiveProgramProvider._();
+
+/// Provider for the user's currently active program (or null), with workouts
+/// loaded. The calendar uses this to render the weekly schedule on each cell.
+
+final class ActiveProgramProvider
+    extends
+        $FunctionalProvider<AsyncValue<Program?>, Program?, FutureOr<Program?>>
+    with $FutureModifier<Program?>, $FutureProvider<Program?> {
+  /// Provider for the user's currently active program (or null), with workouts
+  /// loaded. The calendar uses this to render the weekly schedule on each cell.
+  const ActiveProgramProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'activeProgramProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$activeProgramHash();
+
+  @$internal
+  @override
+  $FutureProviderElement<Program?> $createElement($ProviderPointer pointer) =>
+      $FutureProviderElement(pointer);
+
+  @override
+  FutureOr<Program?> create(Ref ref) {
+    return activeProgram(ref);
+  }
+}
+
+String _$activeProgramHash() => r'89bef347f7f78fb80652359197b74adbd947163f';
+
 /// Provider for workouts available for scheduling
 
 @ProviderFor(workoutsForScheduling)

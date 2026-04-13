@@ -22,24 +22,22 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-// Program summary
+// Program summary (list view)
 type ProgramSummary struct {
-	state            protoimpl.MessageState `protogen:"open.v1"`
-	Id               string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	UserId           string                 `protobuf:"bytes,2,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
-	Name             string                 `protobuf:"bytes,3,opt,name=name,proto3" json:"name,omitempty"`
-	Description      string                 `protobuf:"bytes,4,opt,name=description,proto3" json:"description,omitempty"`
-	DurationWeeks    int32                  `protobuf:"varint,5,opt,name=duration_weeks,json=durationWeeks,proto3" json:"duration_weeks,omitempty"`
-	DurationDays     int32                  `protobuf:"varint,6,opt,name=duration_days,json=durationDays,proto3" json:"duration_days,omitempty"`
-	TotalWorkoutDays int32                  `protobuf:"varint,7,opt,name=total_workout_days,json=totalWorkoutDays,proto3" json:"total_workout_days,omitempty"`
-	TotalRestDays    int32                  `protobuf:"varint,8,opt,name=total_rest_days,json=totalRestDays,proto3" json:"total_rest_days,omitempty"`
-	IsActive         bool                   `protobuf:"varint,9,opt,name=is_active,json=isActive,proto3" json:"is_active,omitempty"`
-	IsArchived       bool                   `protobuf:"varint,10,opt,name=is_archived,json=isArchived,proto3" json:"is_archived,omitempty"`
-	CreatedAt        *timestamppb.Timestamp `protobuf:"bytes,11,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
-	UpdatedAt        *timestamppb.Timestamp `protobuf:"bytes,12,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
-	StartedAt        *timestamppb.Timestamp `protobuf:"bytes,13,opt,name=started_at,json=startedAt,proto3,oneof" json:"started_at,omitempty"`
-	unknownFields    protoimpl.UnknownFields
-	sizeCache        protoimpl.SizeCache
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	UserId        string                 `protobuf:"bytes,2,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	Name          string                 `protobuf:"bytes,3,opt,name=name,proto3" json:"name,omitempty"`
+	Description   string                 `protobuf:"bytes,4,opt,name=description,proto3" json:"description,omitempty"`
+	StartDate     string                 `protobuf:"bytes,5,opt,name=start_date,json=startDate,proto3" json:"start_date,omitempty"` // YYYY-MM-DD
+	DurationWeeks int32                  `protobuf:"varint,6,opt,name=duration_weeks,json=durationWeeks,proto3" json:"duration_weeks,omitempty"`
+	TotalWorkouts int32                  `protobuf:"varint,7,opt,name=total_workouts,json=totalWorkouts,proto3" json:"total_workouts,omitempty"`
+	IsActive      bool                   `protobuf:"varint,8,opt,name=is_active,json=isActive,proto3" json:"is_active,omitempty"`
+	IsArchived    bool                   `protobuf:"varint,9,opt,name=is_archived,json=isArchived,proto3" json:"is_archived,omitempty"`
+	CreatedAt     *timestamppb.Timestamp `protobuf:"bytes,10,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	UpdatedAt     *timestamppb.Timestamp `protobuf:"bytes,11,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *ProgramSummary) Reset() {
@@ -100,6 +98,13 @@ func (x *ProgramSummary) GetDescription() string {
 	return ""
 }
 
+func (x *ProgramSummary) GetStartDate() string {
+	if x != nil {
+		return x.StartDate
+	}
+	return ""
+}
+
 func (x *ProgramSummary) GetDurationWeeks() int32 {
 	if x != nil {
 		return x.DurationWeeks
@@ -107,23 +112,9 @@ func (x *ProgramSummary) GetDurationWeeks() int32 {
 	return 0
 }
 
-func (x *ProgramSummary) GetDurationDays() int32 {
+func (x *ProgramSummary) GetTotalWorkouts() int32 {
 	if x != nil {
-		return x.DurationDays
-	}
-	return 0
-}
-
-func (x *ProgramSummary) GetTotalWorkoutDays() int32 {
-	if x != nil {
-		return x.TotalWorkoutDays
-	}
-	return 0
-}
-
-func (x *ProgramSummary) GetTotalRestDays() int32 {
-	if x != nil {
-		return x.TotalRestDays
+		return x.TotalWorkouts
 	}
 	return 0
 }
@@ -156,32 +147,22 @@ func (x *ProgramSummary) GetUpdatedAt() *timestamppb.Timestamp {
 	return nil
 }
 
-func (x *ProgramSummary) GetStartedAt() *timestamppb.Timestamp {
-	if x != nil {
-		return x.StartedAt
-	}
-	return nil
-}
-
 // Program with full details
 type Program struct {
-	state            protoimpl.MessageState `protogen:"open.v1"`
-	Id               string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	UserId           string                 `protobuf:"bytes,2,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
-	Name             string                 `protobuf:"bytes,3,opt,name=name,proto3" json:"name,omitempty"`
-	Description      string                 `protobuf:"bytes,4,opt,name=description,proto3" json:"description,omitempty"`
-	DurationWeeks    int32                  `protobuf:"varint,5,opt,name=duration_weeks,json=durationWeeks,proto3" json:"duration_weeks,omitempty"`
-	DurationDays     int32                  `protobuf:"varint,6,opt,name=duration_days,json=durationDays,proto3" json:"duration_days,omitempty"`
-	TotalWorkoutDays int32                  `protobuf:"varint,7,opt,name=total_workout_days,json=totalWorkoutDays,proto3" json:"total_workout_days,omitempty"`
-	TotalRestDays    int32                  `protobuf:"varint,8,opt,name=total_rest_days,json=totalRestDays,proto3" json:"total_rest_days,omitempty"`
-	IsActive         bool                   `protobuf:"varint,9,opt,name=is_active,json=isActive,proto3" json:"is_active,omitempty"`
-	IsArchived       bool                   `protobuf:"varint,10,opt,name=is_archived,json=isArchived,proto3" json:"is_archived,omitempty"`
-	Days             []*ProgramDay          `protobuf:"bytes,11,rep,name=days,proto3" json:"days,omitempty"`
-	CreatedAt        *timestamppb.Timestamp `protobuf:"bytes,12,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
-	UpdatedAt        *timestamppb.Timestamp `protobuf:"bytes,13,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
-	StartedAt        *timestamppb.Timestamp `protobuf:"bytes,14,opt,name=started_at,json=startedAt,proto3,oneof" json:"started_at,omitempty"`
-	unknownFields    protoimpl.UnknownFields
-	sizeCache        protoimpl.SizeCache
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	UserId        string                 `protobuf:"bytes,2,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	Name          string                 `protobuf:"bytes,3,opt,name=name,proto3" json:"name,omitempty"`
+	Description   string                 `protobuf:"bytes,4,opt,name=description,proto3" json:"description,omitempty"`
+	StartDate     string                 `protobuf:"bytes,5,opt,name=start_date,json=startDate,proto3" json:"start_date,omitempty"` // YYYY-MM-DD
+	DurationWeeks int32                  `protobuf:"varint,6,opt,name=duration_weeks,json=durationWeeks,proto3" json:"duration_weeks,omitempty"`
+	IsActive      bool                   `protobuf:"varint,7,opt,name=is_active,json=isActive,proto3" json:"is_active,omitempty"`
+	IsArchived    bool                   `protobuf:"varint,8,opt,name=is_archived,json=isArchived,proto3" json:"is_archived,omitempty"`
+	Workouts      []*ProgramWorkout      `protobuf:"bytes,9,rep,name=workouts,proto3" json:"workouts,omitempty"`
+	CreatedAt     *timestamppb.Timestamp `protobuf:"bytes,10,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	UpdatedAt     *timestamppb.Timestamp `protobuf:"bytes,11,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *Program) Reset() {
@@ -242,30 +223,16 @@ func (x *Program) GetDescription() string {
 	return ""
 }
 
+func (x *Program) GetStartDate() string {
+	if x != nil {
+		return x.StartDate
+	}
+	return ""
+}
+
 func (x *Program) GetDurationWeeks() int32 {
 	if x != nil {
 		return x.DurationWeeks
-	}
-	return 0
-}
-
-func (x *Program) GetDurationDays() int32 {
-	if x != nil {
-		return x.DurationDays
-	}
-	return 0
-}
-
-func (x *Program) GetTotalWorkoutDays() int32 {
-	if x != nil {
-		return x.TotalWorkoutDays
-	}
-	return 0
-}
-
-func (x *Program) GetTotalRestDays() int32 {
-	if x != nil {
-		return x.TotalRestDays
 	}
 	return 0
 }
@@ -284,9 +251,9 @@ func (x *Program) GetIsArchived() bool {
 	return false
 }
 
-func (x *Program) GetDays() []*ProgramDay {
+func (x *Program) GetWorkouts() []*ProgramWorkout {
 	if x != nil {
-		return x.Days
+		return x.Workouts
 	}
 	return nil
 }
@@ -305,41 +272,33 @@ func (x *Program) GetUpdatedAt() *timestamppb.Timestamp {
 	return nil
 }
 
-func (x *Program) GetStartedAt() *timestamppb.Timestamp {
-	if x != nil {
-		return x.StartedAt
-	}
-	return nil
-}
-
-// Program day
-type ProgramDay struct {
+// A workout scheduled within a program on one or more weekdays
+type ProgramWorkout struct {
 	state             protoimpl.MessageState `protogen:"open.v1"`
 	Id                string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
 	ProgramId         string                 `protobuf:"bytes,2,opt,name=program_id,json=programId,proto3" json:"program_id,omitempty"`
-	DayNumber         int32                  `protobuf:"varint,3,opt,name=day_number,json=dayNumber,proto3" json:"day_number,omitempty"`
-	DayType           ProgramDayType         `protobuf:"varint,4,opt,name=day_type,json=dayType,proto3,enum=heft.v1.ProgramDayType" json:"day_type,omitempty"`
-	WorkoutTemplateId string                 `protobuf:"bytes,5,opt,name=workout_template_id,json=workoutTemplateId,proto3" json:"workout_template_id,omitempty"`
-	WorkoutName       string                 `protobuf:"bytes,6,opt,name=workout_name,json=workoutName,proto3" json:"workout_name,omitempty"`
-	CustomName        string                 `protobuf:"bytes,7,opt,name=custom_name,json=customName,proto3" json:"custom_name,omitempty"`
+	WorkoutTemplateId string                 `protobuf:"bytes,3,opt,name=workout_template_id,json=workoutTemplateId,proto3" json:"workout_template_id,omitempty"`
+	WorkoutName       string                 `protobuf:"bytes,4,opt,name=workout_name,json=workoutName,proto3" json:"workout_name,omitempty"` // denormalized for list rendering
+	DaysOfWeek        []DayOfWeek            `protobuf:"varint,5,rep,packed,name=days_of_week,json=daysOfWeek,proto3,enum=heft.v1.DayOfWeek" json:"days_of_week,omitempty"`
+	DisplayOrder      int32                  `protobuf:"varint,6,opt,name=display_order,json=displayOrder,proto3" json:"display_order,omitempty"`
 	unknownFields     protoimpl.UnknownFields
 	sizeCache         protoimpl.SizeCache
 }
 
-func (x *ProgramDay) Reset() {
-	*x = ProgramDay{}
+func (x *ProgramWorkout) Reset() {
+	*x = ProgramWorkout{}
 	mi := &file_heft_v1_program_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *ProgramDay) String() string {
+func (x *ProgramWorkout) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*ProgramDay) ProtoMessage() {}
+func (*ProgramWorkout) ProtoMessage() {}
 
-func (x *ProgramDay) ProtoReflect() protoreflect.Message {
+func (x *ProgramWorkout) ProtoReflect() protoreflect.Message {
 	mi := &file_heft_v1_program_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -351,58 +310,112 @@ func (x *ProgramDay) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use ProgramDay.ProtoReflect.Descriptor instead.
-func (*ProgramDay) Descriptor() ([]byte, []int) {
+// Deprecated: Use ProgramWorkout.ProtoReflect.Descriptor instead.
+func (*ProgramWorkout) Descriptor() ([]byte, []int) {
 	return file_heft_v1_program_proto_rawDescGZIP(), []int{2}
 }
 
-func (x *ProgramDay) GetId() string {
+func (x *ProgramWorkout) GetId() string {
 	if x != nil {
 		return x.Id
 	}
 	return ""
 }
 
-func (x *ProgramDay) GetProgramId() string {
+func (x *ProgramWorkout) GetProgramId() string {
 	if x != nil {
 		return x.ProgramId
 	}
 	return ""
 }
 
-func (x *ProgramDay) GetDayNumber() int32 {
-	if x != nil {
-		return x.DayNumber
-	}
-	return 0
-}
-
-func (x *ProgramDay) GetDayType() ProgramDayType {
-	if x != nil {
-		return x.DayType
-	}
-	return ProgramDayType_PROGRAM_DAY_TYPE_UNSPECIFIED
-}
-
-func (x *ProgramDay) GetWorkoutTemplateId() string {
+func (x *ProgramWorkout) GetWorkoutTemplateId() string {
 	if x != nil {
 		return x.WorkoutTemplateId
 	}
 	return ""
 }
 
-func (x *ProgramDay) GetWorkoutName() string {
+func (x *ProgramWorkout) GetWorkoutName() string {
 	if x != nil {
 		return x.WorkoutName
 	}
 	return ""
 }
 
-func (x *ProgramDay) GetCustomName() string {
+func (x *ProgramWorkout) GetDaysOfWeek() []DayOfWeek {
 	if x != nil {
-		return x.CustomName
+		return x.DaysOfWeek
+	}
+	return nil
+}
+
+func (x *ProgramWorkout) GetDisplayOrder() int32 {
+	if x != nil {
+		return x.DisplayOrder
+	}
+	return 0
+}
+
+// Input for creating/updating a program workout
+type ProgramWorkoutInput struct {
+	state             protoimpl.MessageState `protogen:"open.v1"`
+	WorkoutTemplateId string                 `protobuf:"bytes,1,opt,name=workout_template_id,json=workoutTemplateId,proto3" json:"workout_template_id,omitempty"`
+	DaysOfWeek        []DayOfWeek            `protobuf:"varint,2,rep,packed,name=days_of_week,json=daysOfWeek,proto3,enum=heft.v1.DayOfWeek" json:"days_of_week,omitempty"`
+	DisplayOrder      int32                  `protobuf:"varint,3,opt,name=display_order,json=displayOrder,proto3" json:"display_order,omitempty"`
+	unknownFields     protoimpl.UnknownFields
+	sizeCache         protoimpl.SizeCache
+}
+
+func (x *ProgramWorkoutInput) Reset() {
+	*x = ProgramWorkoutInput{}
+	mi := &file_heft_v1_program_proto_msgTypes[3]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ProgramWorkoutInput) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ProgramWorkoutInput) ProtoMessage() {}
+
+func (x *ProgramWorkoutInput) ProtoReflect() protoreflect.Message {
+	mi := &file_heft_v1_program_proto_msgTypes[3]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ProgramWorkoutInput.ProtoReflect.Descriptor instead.
+func (*ProgramWorkoutInput) Descriptor() ([]byte, []int) {
+	return file_heft_v1_program_proto_rawDescGZIP(), []int{3}
+}
+
+func (x *ProgramWorkoutInput) GetWorkoutTemplateId() string {
+	if x != nil {
+		return x.WorkoutTemplateId
 	}
 	return ""
+}
+
+func (x *ProgramWorkoutInput) GetDaysOfWeek() []DayOfWeek {
+	if x != nil {
+		return x.DaysOfWeek
+	}
+	return nil
+}
+
+func (x *ProgramWorkoutInput) GetDisplayOrder() int32 {
+	if x != nil {
+		return x.DisplayOrder
+	}
+	return 0
 }
 
 // ListPrograms
@@ -416,7 +429,7 @@ type ListProgramsRequest struct {
 
 func (x *ListProgramsRequest) Reset() {
 	*x = ListProgramsRequest{}
-	mi := &file_heft_v1_program_proto_msgTypes[3]
+	mi := &file_heft_v1_program_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -428,7 +441,7 @@ func (x *ListProgramsRequest) String() string {
 func (*ListProgramsRequest) ProtoMessage() {}
 
 func (x *ListProgramsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_heft_v1_program_proto_msgTypes[3]
+	mi := &file_heft_v1_program_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -441,7 +454,7 @@ func (x *ListProgramsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListProgramsRequest.ProtoReflect.Descriptor instead.
 func (*ListProgramsRequest) Descriptor() ([]byte, []int) {
-	return file_heft_v1_program_proto_rawDescGZIP(), []int{3}
+	return file_heft_v1_program_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *ListProgramsRequest) GetIncludeArchived() bool {
@@ -468,7 +481,7 @@ type ListProgramsResponse struct {
 
 func (x *ListProgramsResponse) Reset() {
 	*x = ListProgramsResponse{}
-	mi := &file_heft_v1_program_proto_msgTypes[4]
+	mi := &file_heft_v1_program_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -480,7 +493,7 @@ func (x *ListProgramsResponse) String() string {
 func (*ListProgramsResponse) ProtoMessage() {}
 
 func (x *ListProgramsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_heft_v1_program_proto_msgTypes[4]
+	mi := &file_heft_v1_program_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -493,7 +506,7 @@ func (x *ListProgramsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListProgramsResponse.ProtoReflect.Descriptor instead.
 func (*ListProgramsResponse) Descriptor() ([]byte, []int) {
-	return file_heft_v1_program_proto_rawDescGZIP(), []int{4}
+	return file_heft_v1_program_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *ListProgramsResponse) GetPrograms() []*ProgramSummary {
@@ -520,7 +533,7 @@ type GetProgramRequest struct {
 
 func (x *GetProgramRequest) Reset() {
 	*x = GetProgramRequest{}
-	mi := &file_heft_v1_program_proto_msgTypes[5]
+	mi := &file_heft_v1_program_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -532,7 +545,7 @@ func (x *GetProgramRequest) String() string {
 func (*GetProgramRequest) ProtoMessage() {}
 
 func (x *GetProgramRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_heft_v1_program_proto_msgTypes[5]
+	mi := &file_heft_v1_program_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -545,7 +558,7 @@ func (x *GetProgramRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetProgramRequest.ProtoReflect.Descriptor instead.
 func (*GetProgramRequest) Descriptor() ([]byte, []int) {
-	return file_heft_v1_program_proto_rawDescGZIP(), []int{5}
+	return file_heft_v1_program_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *GetProgramRequest) GetId() string {
@@ -564,7 +577,7 @@ type GetProgramResponse struct {
 
 func (x *GetProgramResponse) Reset() {
 	*x = GetProgramResponse{}
-	mi := &file_heft_v1_program_proto_msgTypes[6]
+	mi := &file_heft_v1_program_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -576,7 +589,7 @@ func (x *GetProgramResponse) String() string {
 func (*GetProgramResponse) ProtoMessage() {}
 
 func (x *GetProgramResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_heft_v1_program_proto_msgTypes[6]
+	mi := &file_heft_v1_program_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -589,7 +602,7 @@ func (x *GetProgramResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetProgramResponse.ProtoReflect.Descriptor instead.
 func (*GetProgramResponse) Descriptor() ([]byte, []int) {
-	return file_heft_v1_program_proto_rawDescGZIP(), []int{6}
+	return file_heft_v1_program_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *GetProgramResponse) GetProgram() *Program {
@@ -604,16 +617,16 @@ type CreateProgramRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Name          string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
 	Description   *string                `protobuf:"bytes,2,opt,name=description,proto3,oneof" json:"description,omitempty"`
-	DurationWeeks int32                  `protobuf:"varint,3,opt,name=duration_weeks,json=durationWeeks,proto3" json:"duration_weeks,omitempty"`
-	DurationDays  int32                  `protobuf:"varint,4,opt,name=duration_days,json=durationDays,proto3" json:"duration_days,omitempty"`
-	Days          []*CreateProgramDay    `protobuf:"bytes,5,rep,name=days,proto3" json:"days,omitempty"`
+	StartDate     string                 `protobuf:"bytes,3,opt,name=start_date,json=startDate,proto3" json:"start_date,omitempty"` // YYYY-MM-DD
+	DurationWeeks int32                  `protobuf:"varint,4,opt,name=duration_weeks,json=durationWeeks,proto3" json:"duration_weeks,omitempty"`
+	Workouts      []*ProgramWorkoutInput `protobuf:"bytes,5,rep,name=workouts,proto3" json:"workouts,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *CreateProgramRequest) Reset() {
 	*x = CreateProgramRequest{}
-	mi := &file_heft_v1_program_proto_msgTypes[7]
+	mi := &file_heft_v1_program_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -625,7 +638,7 @@ func (x *CreateProgramRequest) String() string {
 func (*CreateProgramRequest) ProtoMessage() {}
 
 func (x *CreateProgramRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_heft_v1_program_proto_msgTypes[7]
+	mi := &file_heft_v1_program_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -638,7 +651,7 @@ func (x *CreateProgramRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateProgramRequest.ProtoReflect.Descriptor instead.
 func (*CreateProgramRequest) Descriptor() ([]byte, []int) {
-	return file_heft_v1_program_proto_rawDescGZIP(), []int{7}
+	return file_heft_v1_program_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *CreateProgramRequest) GetName() string {
@@ -655,6 +668,13 @@ func (x *CreateProgramRequest) GetDescription() string {
 	return ""
 }
 
+func (x *CreateProgramRequest) GetStartDate() string {
+	if x != nil {
+		return x.StartDate
+	}
+	return ""
+}
+
 func (x *CreateProgramRequest) GetDurationWeeks() int32 {
 	if x != nil {
 		return x.DurationWeeks
@@ -662,86 +682,11 @@ func (x *CreateProgramRequest) GetDurationWeeks() int32 {
 	return 0
 }
 
-func (x *CreateProgramRequest) GetDurationDays() int32 {
+func (x *CreateProgramRequest) GetWorkouts() []*ProgramWorkoutInput {
 	if x != nil {
-		return x.DurationDays
-	}
-	return 0
-}
-
-func (x *CreateProgramRequest) GetDays() []*CreateProgramDay {
-	if x != nil {
-		return x.Days
+		return x.Workouts
 	}
 	return nil
-}
-
-type CreateProgramDay struct {
-	state             protoimpl.MessageState `protogen:"open.v1"`
-	DayNumber         int32                  `protobuf:"varint,1,opt,name=day_number,json=dayNumber,proto3" json:"day_number,omitempty"`
-	DayType           ProgramDayType         `protobuf:"varint,2,opt,name=day_type,json=dayType,proto3,enum=heft.v1.ProgramDayType" json:"day_type,omitempty"`
-	WorkoutTemplateId *string                `protobuf:"bytes,3,opt,name=workout_template_id,json=workoutTemplateId,proto3,oneof" json:"workout_template_id,omitempty"`
-	CustomName        *string                `protobuf:"bytes,4,opt,name=custom_name,json=customName,proto3,oneof" json:"custom_name,omitempty"`
-	unknownFields     protoimpl.UnknownFields
-	sizeCache         protoimpl.SizeCache
-}
-
-func (x *CreateProgramDay) Reset() {
-	*x = CreateProgramDay{}
-	mi := &file_heft_v1_program_proto_msgTypes[8]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *CreateProgramDay) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*CreateProgramDay) ProtoMessage() {}
-
-func (x *CreateProgramDay) ProtoReflect() protoreflect.Message {
-	mi := &file_heft_v1_program_proto_msgTypes[8]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use CreateProgramDay.ProtoReflect.Descriptor instead.
-func (*CreateProgramDay) Descriptor() ([]byte, []int) {
-	return file_heft_v1_program_proto_rawDescGZIP(), []int{8}
-}
-
-func (x *CreateProgramDay) GetDayNumber() int32 {
-	if x != nil {
-		return x.DayNumber
-	}
-	return 0
-}
-
-func (x *CreateProgramDay) GetDayType() ProgramDayType {
-	if x != nil {
-		return x.DayType
-	}
-	return ProgramDayType_PROGRAM_DAY_TYPE_UNSPECIFIED
-}
-
-func (x *CreateProgramDay) GetWorkoutTemplateId() string {
-	if x != nil && x.WorkoutTemplateId != nil {
-		return *x.WorkoutTemplateId
-	}
-	return ""
-}
-
-func (x *CreateProgramDay) GetCustomName() string {
-	if x != nil && x.CustomName != nil {
-		return *x.CustomName
-	}
-	return ""
 }
 
 type CreateProgramResponse struct {
@@ -794,12 +739,15 @@ type UpdateProgramRequest struct {
 	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
 	Name          *string                `protobuf:"bytes,2,opt,name=name,proto3,oneof" json:"name,omitempty"`
 	Description   *string                `protobuf:"bytes,3,opt,name=description,proto3,oneof" json:"description,omitempty"`
-	DurationWeeks *int32                 `protobuf:"varint,4,opt,name=duration_weeks,json=durationWeeks,proto3,oneof" json:"duration_weeks,omitempty"`
-	DurationDays  *int32                 `protobuf:"varint,5,opt,name=duration_days,json=durationDays,proto3,oneof" json:"duration_days,omitempty"`
+	StartDate     *string                `protobuf:"bytes,4,opt,name=start_date,json=startDate,proto3,oneof" json:"start_date,omitempty"` // YYYY-MM-DD
+	DurationWeeks *int32                 `protobuf:"varint,5,opt,name=duration_weeks,json=durationWeeks,proto3,oneof" json:"duration_weeks,omitempty"`
 	IsArchived    *bool                  `protobuf:"varint,6,opt,name=is_archived,json=isArchived,proto3,oneof" json:"is_archived,omitempty"`
-	Days          []*CreateProgramDay    `protobuf:"bytes,7,rep,name=days,proto3" json:"days,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	// If provided, replaces the program's workouts list atomically.
+	// Empty list with replace_workouts=true clears all assignments.
+	ReplaceWorkouts bool                   `protobuf:"varint,7,opt,name=replace_workouts,json=replaceWorkouts,proto3" json:"replace_workouts,omitempty"`
+	Workouts        []*ProgramWorkoutInput `protobuf:"bytes,8,rep,name=workouts,proto3" json:"workouts,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
 }
 
 func (x *UpdateProgramRequest) Reset() {
@@ -853,16 +801,16 @@ func (x *UpdateProgramRequest) GetDescription() string {
 	return ""
 }
 
+func (x *UpdateProgramRequest) GetStartDate() string {
+	if x != nil && x.StartDate != nil {
+		return *x.StartDate
+	}
+	return ""
+}
+
 func (x *UpdateProgramRequest) GetDurationWeeks() int32 {
 	if x != nil && x.DurationWeeks != nil {
 		return *x.DurationWeeks
-	}
-	return 0
-}
-
-func (x *UpdateProgramRequest) GetDurationDays() int32 {
-	if x != nil && x.DurationDays != nil {
-		return *x.DurationDays
 	}
 	return 0
 }
@@ -874,9 +822,16 @@ func (x *UpdateProgramRequest) GetIsArchived() bool {
 	return false
 }
 
-func (x *UpdateProgramRequest) GetDays() []*CreateProgramDay {
+func (x *UpdateProgramRequest) GetReplaceWorkouts() bool {
 	if x != nil {
-		return x.Days
+		return x.ReplaceWorkouts
+	}
+	return false
+}
+
+func (x *UpdateProgramRequest) GetWorkouts() []*ProgramWorkoutInput {
+	if x != nil {
+		return x.Workouts
 	}
 	return nil
 }
@@ -1141,12 +1096,17 @@ func (*GetTodayWorkoutRequest) Descriptor() ([]byte, []int) {
 }
 
 type GetTodayWorkoutResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	HasWorkout    bool                   `protobuf:"varint,1,opt,name=has_workout,json=hasWorkout,proto3" json:"has_workout,omitempty"`
-	DayNumber     int32                  `protobuf:"varint,2,opt,name=day_number,json=dayNumber,proto3" json:"day_number,omitempty"`
-	DayType       ProgramDayType         `protobuf:"varint,3,opt,name=day_type,json=dayType,proto3,enum=heft.v1.ProgramDayType" json:"day_type,omitempty"`
-	Workout       *Workout               `protobuf:"bytes,4,opt,name=workout,proto3" json:"workout,omitempty"`
-	Program       *Program               `protobuf:"bytes,5,opt,name=program,proto3" json:"program,omitempty"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Today's local date (YYYY-MM-DD) on the server
+	Date string `protobuf:"bytes,1,opt,name=date,proto3" json:"date,omitempty"`
+	// Weekday of `date`
+	DayOfWeek DayOfWeek `protobuf:"varint,2,opt,name=day_of_week,json=dayOfWeek,proto3,enum=heft.v1.DayOfWeek" json:"day_of_week,omitempty"`
+	// True if today is within [start_date, start_date + duration_weeks*7) of the active program
+	InProgramWindow bool `protobuf:"varint,3,opt,name=in_program_window,json=inProgramWindow,proto3" json:"in_program_window,omitempty"`
+	// All workouts scheduled for today (0..N). Empty = rest day.
+	Workouts []*Workout `protobuf:"bytes,4,rep,name=workouts,proto3" json:"workouts,omitempty"`
+	// The active program (nil if none)
+	Program       *Program `protobuf:"bytes,5,opt,name=program,proto3" json:"program,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1181,30 +1141,30 @@ func (*GetTodayWorkoutResponse) Descriptor() ([]byte, []int) {
 	return file_heft_v1_program_proto_rawDescGZIP(), []int{17}
 }
 
-func (x *GetTodayWorkoutResponse) GetHasWorkout() bool {
+func (x *GetTodayWorkoutResponse) GetDate() string {
 	if x != nil {
-		return x.HasWorkout
+		return x.Date
+	}
+	return ""
+}
+
+func (x *GetTodayWorkoutResponse) GetDayOfWeek() DayOfWeek {
+	if x != nil {
+		return x.DayOfWeek
+	}
+	return DayOfWeek_DAY_OF_WEEK_UNSPECIFIED
+}
+
+func (x *GetTodayWorkoutResponse) GetInProgramWindow() bool {
+	if x != nil {
+		return x.InProgramWindow
 	}
 	return false
 }
 
-func (x *GetTodayWorkoutResponse) GetDayNumber() int32 {
+func (x *GetTodayWorkoutResponse) GetWorkouts() []*Workout {
 	if x != nil {
-		return x.DayNumber
-	}
-	return 0
-}
-
-func (x *GetTodayWorkoutResponse) GetDayType() ProgramDayType {
-	if x != nil {
-		return x.DayType
-	}
-	return ProgramDayType_PROGRAM_DAY_TYPE_UNSPECIFIED
-}
-
-func (x *GetTodayWorkoutResponse) GetWorkout() *Workout {
-	if x != nil {
-		return x.Workout
+		return x.Workouts
 	}
 	return nil
 }
@@ -1220,60 +1180,55 @@ var File_heft_v1_program_proto protoreflect.FileDescriptor
 
 const file_heft_v1_program_proto_rawDesc = "" +
 	"\n" +
-	"\x15heft/v1/program.proto\x12\aheft.v1\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x14heft/v1/common.proto\x1a\x15heft/v1/workout.proto\"\x94\x04\n" +
+	"\x15heft/v1/program.proto\x12\aheft.v1\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x14heft/v1/common.proto\x1a\x15heft/v1/workout.proto\"\x90\x03\n" +
 	"\x0eProgramSummary\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x17\n" +
 	"\auser_id\x18\x02 \x01(\tR\x06userId\x12\x12\n" +
 	"\x04name\x18\x03 \x01(\tR\x04name\x12 \n" +
-	"\vdescription\x18\x04 \x01(\tR\vdescription\x12%\n" +
-	"\x0eduration_weeks\x18\x05 \x01(\x05R\rdurationWeeks\x12#\n" +
-	"\rduration_days\x18\x06 \x01(\x05R\fdurationDays\x12,\n" +
-	"\x12total_workout_days\x18\a \x01(\x05R\x10totalWorkoutDays\x12&\n" +
-	"\x0ftotal_rest_days\x18\b \x01(\x05R\rtotalRestDays\x12\x1b\n" +
-	"\tis_active\x18\t \x01(\bR\bisActive\x12\x1f\n" +
-	"\vis_archived\x18\n" +
-	" \x01(\bR\n" +
+	"\vdescription\x18\x04 \x01(\tR\vdescription\x12\x1d\n" +
+	"\n" +
+	"start_date\x18\x05 \x01(\tR\tstartDate\x12%\n" +
+	"\x0eduration_weeks\x18\x06 \x01(\x05R\rdurationWeeks\x12%\n" +
+	"\x0etotal_workouts\x18\a \x01(\x05R\rtotalWorkouts\x12\x1b\n" +
+	"\tis_active\x18\b \x01(\bR\bisActive\x12\x1f\n" +
+	"\vis_archived\x18\t \x01(\bR\n" +
 	"isArchived\x129\n" +
 	"\n" +
-	"created_at\x18\v \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\x129\n" +
+	"created_at\x18\n" +
+	" \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\x129\n" +
 	"\n" +
-	"updated_at\x18\f \x01(\v2\x1a.google.protobuf.TimestampR\tupdatedAt\x12>\n" +
-	"\n" +
-	"started_at\x18\r \x01(\v2\x1a.google.protobuf.TimestampH\x00R\tstartedAt\x88\x01\x01B\r\n" +
-	"\v_started_at\"\xb6\x04\n" +
+	"updated_at\x18\v \x01(\v2\x1a.google.protobuf.TimestampR\tupdatedAt\"\x97\x03\n" +
 	"\aProgram\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x17\n" +
 	"\auser_id\x18\x02 \x01(\tR\x06userId\x12\x12\n" +
 	"\x04name\x18\x03 \x01(\tR\x04name\x12 \n" +
-	"\vdescription\x18\x04 \x01(\tR\vdescription\x12%\n" +
-	"\x0eduration_weeks\x18\x05 \x01(\x05R\rdurationWeeks\x12#\n" +
-	"\rduration_days\x18\x06 \x01(\x05R\fdurationDays\x12,\n" +
-	"\x12total_workout_days\x18\a \x01(\x05R\x10totalWorkoutDays\x12&\n" +
-	"\x0ftotal_rest_days\x18\b \x01(\x05R\rtotalRestDays\x12\x1b\n" +
-	"\tis_active\x18\t \x01(\bR\bisActive\x12\x1f\n" +
-	"\vis_archived\x18\n" +
-	" \x01(\bR\n" +
-	"isArchived\x12'\n" +
-	"\x04days\x18\v \x03(\v2\x13.heft.v1.ProgramDayR\x04days\x129\n" +
+	"\vdescription\x18\x04 \x01(\tR\vdescription\x12\x1d\n" +
 	"\n" +
-	"created_at\x18\f \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\x129\n" +
+	"start_date\x18\x05 \x01(\tR\tstartDate\x12%\n" +
+	"\x0eduration_weeks\x18\x06 \x01(\x05R\rdurationWeeks\x12\x1b\n" +
+	"\tis_active\x18\a \x01(\bR\bisActive\x12\x1f\n" +
+	"\vis_archived\x18\b \x01(\bR\n" +
+	"isArchived\x123\n" +
+	"\bworkouts\x18\t \x03(\v2\x17.heft.v1.ProgramWorkoutR\bworkouts\x129\n" +
 	"\n" +
-	"updated_at\x18\r \x01(\v2\x1a.google.protobuf.TimestampR\tupdatedAt\x12>\n" +
+	"created_at\x18\n" +
+	" \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\x129\n" +
 	"\n" +
-	"started_at\x18\x0e \x01(\v2\x1a.google.protobuf.TimestampH\x00R\tstartedAt\x88\x01\x01B\r\n" +
-	"\v_started_at\"\x82\x02\n" +
-	"\n" +
-	"ProgramDay\x12\x0e\n" +
+	"updated_at\x18\v \x01(\v2\x1a.google.protobuf.TimestampR\tupdatedAt\"\xed\x01\n" +
+	"\x0eProgramWorkout\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1d\n" +
 	"\n" +
-	"program_id\x18\x02 \x01(\tR\tprogramId\x12\x1d\n" +
-	"\n" +
-	"day_number\x18\x03 \x01(\x05R\tdayNumber\x122\n" +
-	"\bday_type\x18\x04 \x01(\x0e2\x17.heft.v1.ProgramDayTypeR\adayType\x12.\n" +
-	"\x13workout_template_id\x18\x05 \x01(\tR\x11workoutTemplateId\x12!\n" +
-	"\fworkout_name\x18\x06 \x01(\tR\vworkoutName\x12\x1f\n" +
-	"\vcustom_name\x18\a \x01(\tR\n" +
-	"customName\"\x96\x01\n" +
+	"program_id\x18\x02 \x01(\tR\tprogramId\x12.\n" +
+	"\x13workout_template_id\x18\x03 \x01(\tR\x11workoutTemplateId\x12!\n" +
+	"\fworkout_name\x18\x04 \x01(\tR\vworkoutName\x124\n" +
+	"\fdays_of_week\x18\x05 \x03(\x0e2\x12.heft.v1.DayOfWeekR\n" +
+	"daysOfWeek\x12#\n" +
+	"\rdisplay_order\x18\x06 \x01(\x05R\fdisplayOrder\"\xa0\x01\n" +
+	"\x13ProgramWorkoutInput\x12.\n" +
+	"\x13workout_template_id\x18\x01 \x01(\tR\x11workoutTemplateId\x124\n" +
+	"\fdays_of_week\x18\x02 \x03(\x0e2\x12.heft.v1.DayOfWeekR\n" +
+	"daysOfWeek\x12#\n" +
+	"\rdisplay_order\x18\x03 \x01(\x05R\fdisplayOrder\"\x96\x01\n" +
 	"\x13ListProgramsRequest\x12.\n" +
 	"\x10include_archived\x18\x01 \x01(\bH\x00R\x0fincludeArchived\x88\x01\x01\x12:\n" +
 	"\n" +
@@ -1288,38 +1243,32 @@ const file_heft_v1_program_proto_rawDesc = "" +
 	"\x11GetProgramRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\"@\n" +
 	"\x12GetProgramResponse\x12*\n" +
-	"\aprogram\x18\x01 \x01(\v2\x10.heft.v1.ProgramR\aprogram\"\xdc\x01\n" +
+	"\aprogram\x18\x01 \x01(\v2\x10.heft.v1.ProgramR\aprogram\"\xe1\x01\n" +
 	"\x14CreateProgramRequest\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12%\n" +
-	"\vdescription\x18\x02 \x01(\tH\x00R\vdescription\x88\x01\x01\x12%\n" +
-	"\x0eduration_weeks\x18\x03 \x01(\x05R\rdurationWeeks\x12#\n" +
-	"\rduration_days\x18\x04 \x01(\x05R\fdurationDays\x12-\n" +
-	"\x04days\x18\x05 \x03(\v2\x19.heft.v1.CreateProgramDayR\x04daysB\x0e\n" +
-	"\f_description\"\xe8\x01\n" +
-	"\x10CreateProgramDay\x12\x1d\n" +
+	"\vdescription\x18\x02 \x01(\tH\x00R\vdescription\x88\x01\x01\x12\x1d\n" +
 	"\n" +
-	"day_number\x18\x01 \x01(\x05R\tdayNumber\x122\n" +
-	"\bday_type\x18\x02 \x01(\x0e2\x17.heft.v1.ProgramDayTypeR\adayType\x123\n" +
-	"\x13workout_template_id\x18\x03 \x01(\tH\x00R\x11workoutTemplateId\x88\x01\x01\x12$\n" +
-	"\vcustom_name\x18\x04 \x01(\tH\x01R\n" +
-	"customName\x88\x01\x01B\x16\n" +
-	"\x14_workout_template_idB\x0e\n" +
-	"\f_custom_name\"C\n" +
+	"start_date\x18\x03 \x01(\tR\tstartDate\x12%\n" +
+	"\x0eduration_weeks\x18\x04 \x01(\x05R\rdurationWeeks\x128\n" +
+	"\bworkouts\x18\x05 \x03(\v2\x1c.heft.v1.ProgramWorkoutInputR\bworkoutsB\x0e\n" +
+	"\f_description\"C\n" +
 	"\x15CreateProgramResponse\x12*\n" +
-	"\aprogram\x18\x01 \x01(\v2\x10.heft.v1.ProgramR\aprogram\"\xdf\x02\n" +
+	"\aprogram\x18\x01 \x01(\v2\x10.heft.v1.ProgramR\aprogram\"\x8c\x03\n" +
 	"\x14UpdateProgramRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x17\n" +
 	"\x04name\x18\x02 \x01(\tH\x00R\x04name\x88\x01\x01\x12%\n" +
-	"\vdescription\x18\x03 \x01(\tH\x01R\vdescription\x88\x01\x01\x12*\n" +
-	"\x0eduration_weeks\x18\x04 \x01(\x05H\x02R\rdurationWeeks\x88\x01\x01\x12(\n" +
-	"\rduration_days\x18\x05 \x01(\x05H\x03R\fdurationDays\x88\x01\x01\x12$\n" +
+	"\vdescription\x18\x03 \x01(\tH\x01R\vdescription\x88\x01\x01\x12\"\n" +
+	"\n" +
+	"start_date\x18\x04 \x01(\tH\x02R\tstartDate\x88\x01\x01\x12*\n" +
+	"\x0eduration_weeks\x18\x05 \x01(\x05H\x03R\rdurationWeeks\x88\x01\x01\x12$\n" +
 	"\vis_archived\x18\x06 \x01(\bH\x04R\n" +
-	"isArchived\x88\x01\x01\x12-\n" +
-	"\x04days\x18\a \x03(\v2\x19.heft.v1.CreateProgramDayR\x04daysB\a\n" +
+	"isArchived\x88\x01\x01\x12)\n" +
+	"\x10replace_workouts\x18\a \x01(\bR\x0freplaceWorkouts\x128\n" +
+	"\bworkouts\x18\b \x03(\v2\x1c.heft.v1.ProgramWorkoutInputR\bworkoutsB\a\n" +
 	"\x05_nameB\x0e\n" +
-	"\f_descriptionB\x11\n" +
-	"\x0f_duration_weeksB\x10\n" +
-	"\x0e_duration_daysB\x0e\n" +
+	"\f_descriptionB\r\n" +
+	"\v_start_dateB\x11\n" +
+	"\x0f_duration_weeksB\x0e\n" +
 	"\f_is_archived\"C\n" +
 	"\x15UpdateProgramResponse\x12*\n" +
 	"\aprogram\x18\x01 \x01(\v2\x10.heft.v1.ProgramR\aprogram\"&\n" +
@@ -1331,14 +1280,12 @@ const file_heft_v1_program_proto_rawDesc = "" +
 	"\x02id\x18\x01 \x01(\tR\x02id\"F\n" +
 	"\x18SetActiveProgramResponse\x12*\n" +
 	"\aprogram\x18\x01 \x01(\v2\x10.heft.v1.ProgramR\aprogram\"\x18\n" +
-	"\x16GetTodayWorkoutRequest\"\xe5\x01\n" +
-	"\x17GetTodayWorkoutResponse\x12\x1f\n" +
-	"\vhas_workout\x18\x01 \x01(\bR\n" +
-	"hasWorkout\x12\x1d\n" +
-	"\n" +
-	"day_number\x18\x02 \x01(\x05R\tdayNumber\x122\n" +
-	"\bday_type\x18\x03 \x01(\x0e2\x17.heft.v1.ProgramDayTypeR\adayType\x12*\n" +
-	"\aworkout\x18\x04 \x01(\v2\x10.heft.v1.WorkoutR\aworkout\x12*\n" +
+	"\x16GetTodayWorkoutRequest\"\xe7\x01\n" +
+	"\x17GetTodayWorkoutResponse\x12\x12\n" +
+	"\x04date\x18\x01 \x01(\tR\x04date\x122\n" +
+	"\vday_of_week\x18\x02 \x01(\x0e2\x12.heft.v1.DayOfWeekR\tdayOfWeek\x12*\n" +
+	"\x11in_program_window\x18\x03 \x01(\bR\x0finProgramWindow\x12,\n" +
+	"\bworkouts\x18\x04 \x03(\v2\x10.heft.v1.WorkoutR\bworkouts\x12*\n" +
 	"\aprogram\x18\x05 \x01(\v2\x10.heft.v1.ProgramR\aprogram2\xc3\x04\n" +
 	"\x0eProgramService\x12K\n" +
 	"\fListPrograms\x12\x1c.heft.v1.ListProgramsRequest\x1a\x1d.heft.v1.ListProgramsResponse\x12E\n" +
@@ -1367,13 +1314,13 @@ var file_heft_v1_program_proto_msgTypes = make([]protoimpl.MessageInfo, 18)
 var file_heft_v1_program_proto_goTypes = []any{
 	(*ProgramSummary)(nil),           // 0: heft.v1.ProgramSummary
 	(*Program)(nil),                  // 1: heft.v1.Program
-	(*ProgramDay)(nil),               // 2: heft.v1.ProgramDay
-	(*ListProgramsRequest)(nil),      // 3: heft.v1.ListProgramsRequest
-	(*ListProgramsResponse)(nil),     // 4: heft.v1.ListProgramsResponse
-	(*GetProgramRequest)(nil),        // 5: heft.v1.GetProgramRequest
-	(*GetProgramResponse)(nil),       // 6: heft.v1.GetProgramResponse
-	(*CreateProgramRequest)(nil),     // 7: heft.v1.CreateProgramRequest
-	(*CreateProgramDay)(nil),         // 8: heft.v1.CreateProgramDay
+	(*ProgramWorkout)(nil),           // 2: heft.v1.ProgramWorkout
+	(*ProgramWorkoutInput)(nil),      // 3: heft.v1.ProgramWorkoutInput
+	(*ListProgramsRequest)(nil),      // 4: heft.v1.ListProgramsRequest
+	(*ListProgramsResponse)(nil),     // 5: heft.v1.ListProgramsResponse
+	(*GetProgramRequest)(nil),        // 6: heft.v1.GetProgramRequest
+	(*GetProgramResponse)(nil),       // 7: heft.v1.GetProgramResponse
+	(*CreateProgramRequest)(nil),     // 8: heft.v1.CreateProgramRequest
 	(*CreateProgramResponse)(nil),    // 9: heft.v1.CreateProgramResponse
 	(*UpdateProgramRequest)(nil),     // 10: heft.v1.UpdateProgramRequest
 	(*UpdateProgramResponse)(nil),    // 11: heft.v1.UpdateProgramResponse
@@ -1384,7 +1331,7 @@ var file_heft_v1_program_proto_goTypes = []any{
 	(*GetTodayWorkoutRequest)(nil),   // 16: heft.v1.GetTodayWorkoutRequest
 	(*GetTodayWorkoutResponse)(nil),  // 17: heft.v1.GetTodayWorkoutResponse
 	(*timestamppb.Timestamp)(nil),    // 18: google.protobuf.Timestamp
-	(ProgramDayType)(0),              // 19: heft.v1.ProgramDayType
+	(DayOfWeek)(0),                   // 19: heft.v1.DayOfWeek
 	(*PaginationRequest)(nil),        // 20: heft.v1.PaginationRequest
 	(*PaginationResponse)(nil),       // 21: heft.v1.PaginationResponse
 	(*Workout)(nil),                  // 22: heft.v1.Workout
@@ -1392,44 +1339,42 @@ var file_heft_v1_program_proto_goTypes = []any{
 var file_heft_v1_program_proto_depIdxs = []int32{
 	18, // 0: heft.v1.ProgramSummary.created_at:type_name -> google.protobuf.Timestamp
 	18, // 1: heft.v1.ProgramSummary.updated_at:type_name -> google.protobuf.Timestamp
-	18, // 2: heft.v1.ProgramSummary.started_at:type_name -> google.protobuf.Timestamp
-	2,  // 3: heft.v1.Program.days:type_name -> heft.v1.ProgramDay
-	18, // 4: heft.v1.Program.created_at:type_name -> google.protobuf.Timestamp
-	18, // 5: heft.v1.Program.updated_at:type_name -> google.protobuf.Timestamp
-	18, // 6: heft.v1.Program.started_at:type_name -> google.protobuf.Timestamp
-	19, // 7: heft.v1.ProgramDay.day_type:type_name -> heft.v1.ProgramDayType
-	20, // 8: heft.v1.ListProgramsRequest.pagination:type_name -> heft.v1.PaginationRequest
-	0,  // 9: heft.v1.ListProgramsResponse.programs:type_name -> heft.v1.ProgramSummary
-	21, // 10: heft.v1.ListProgramsResponse.pagination:type_name -> heft.v1.PaginationResponse
-	1,  // 11: heft.v1.GetProgramResponse.program:type_name -> heft.v1.Program
-	8,  // 12: heft.v1.CreateProgramRequest.days:type_name -> heft.v1.CreateProgramDay
-	19, // 13: heft.v1.CreateProgramDay.day_type:type_name -> heft.v1.ProgramDayType
-	1,  // 14: heft.v1.CreateProgramResponse.program:type_name -> heft.v1.Program
-	8,  // 15: heft.v1.UpdateProgramRequest.days:type_name -> heft.v1.CreateProgramDay
-	1,  // 16: heft.v1.UpdateProgramResponse.program:type_name -> heft.v1.Program
-	1,  // 17: heft.v1.SetActiveProgramResponse.program:type_name -> heft.v1.Program
-	19, // 18: heft.v1.GetTodayWorkoutResponse.day_type:type_name -> heft.v1.ProgramDayType
-	22, // 19: heft.v1.GetTodayWorkoutResponse.workout:type_name -> heft.v1.Workout
-	1,  // 20: heft.v1.GetTodayWorkoutResponse.program:type_name -> heft.v1.Program
-	3,  // 21: heft.v1.ProgramService.ListPrograms:input_type -> heft.v1.ListProgramsRequest
-	5,  // 22: heft.v1.ProgramService.GetProgram:input_type -> heft.v1.GetProgramRequest
-	7,  // 23: heft.v1.ProgramService.CreateProgram:input_type -> heft.v1.CreateProgramRequest
-	10, // 24: heft.v1.ProgramService.UpdateProgram:input_type -> heft.v1.UpdateProgramRequest
-	12, // 25: heft.v1.ProgramService.DeleteProgram:input_type -> heft.v1.DeleteProgramRequest
-	14, // 26: heft.v1.ProgramService.SetActiveProgram:input_type -> heft.v1.SetActiveProgramRequest
-	16, // 27: heft.v1.ProgramService.GetTodayWorkout:input_type -> heft.v1.GetTodayWorkoutRequest
-	4,  // 28: heft.v1.ProgramService.ListPrograms:output_type -> heft.v1.ListProgramsResponse
-	6,  // 29: heft.v1.ProgramService.GetProgram:output_type -> heft.v1.GetProgramResponse
-	9,  // 30: heft.v1.ProgramService.CreateProgram:output_type -> heft.v1.CreateProgramResponse
-	11, // 31: heft.v1.ProgramService.UpdateProgram:output_type -> heft.v1.UpdateProgramResponse
-	13, // 32: heft.v1.ProgramService.DeleteProgram:output_type -> heft.v1.DeleteProgramResponse
-	15, // 33: heft.v1.ProgramService.SetActiveProgram:output_type -> heft.v1.SetActiveProgramResponse
-	17, // 34: heft.v1.ProgramService.GetTodayWorkout:output_type -> heft.v1.GetTodayWorkoutResponse
-	28, // [28:35] is the sub-list for method output_type
-	21, // [21:28] is the sub-list for method input_type
-	21, // [21:21] is the sub-list for extension type_name
-	21, // [21:21] is the sub-list for extension extendee
-	0,  // [0:21] is the sub-list for field type_name
+	2,  // 2: heft.v1.Program.workouts:type_name -> heft.v1.ProgramWorkout
+	18, // 3: heft.v1.Program.created_at:type_name -> google.protobuf.Timestamp
+	18, // 4: heft.v1.Program.updated_at:type_name -> google.protobuf.Timestamp
+	19, // 5: heft.v1.ProgramWorkout.days_of_week:type_name -> heft.v1.DayOfWeek
+	19, // 6: heft.v1.ProgramWorkoutInput.days_of_week:type_name -> heft.v1.DayOfWeek
+	20, // 7: heft.v1.ListProgramsRequest.pagination:type_name -> heft.v1.PaginationRequest
+	0,  // 8: heft.v1.ListProgramsResponse.programs:type_name -> heft.v1.ProgramSummary
+	21, // 9: heft.v1.ListProgramsResponse.pagination:type_name -> heft.v1.PaginationResponse
+	1,  // 10: heft.v1.GetProgramResponse.program:type_name -> heft.v1.Program
+	3,  // 11: heft.v1.CreateProgramRequest.workouts:type_name -> heft.v1.ProgramWorkoutInput
+	1,  // 12: heft.v1.CreateProgramResponse.program:type_name -> heft.v1.Program
+	3,  // 13: heft.v1.UpdateProgramRequest.workouts:type_name -> heft.v1.ProgramWorkoutInput
+	1,  // 14: heft.v1.UpdateProgramResponse.program:type_name -> heft.v1.Program
+	1,  // 15: heft.v1.SetActiveProgramResponse.program:type_name -> heft.v1.Program
+	19, // 16: heft.v1.GetTodayWorkoutResponse.day_of_week:type_name -> heft.v1.DayOfWeek
+	22, // 17: heft.v1.GetTodayWorkoutResponse.workouts:type_name -> heft.v1.Workout
+	1,  // 18: heft.v1.GetTodayWorkoutResponse.program:type_name -> heft.v1.Program
+	4,  // 19: heft.v1.ProgramService.ListPrograms:input_type -> heft.v1.ListProgramsRequest
+	6,  // 20: heft.v1.ProgramService.GetProgram:input_type -> heft.v1.GetProgramRequest
+	8,  // 21: heft.v1.ProgramService.CreateProgram:input_type -> heft.v1.CreateProgramRequest
+	10, // 22: heft.v1.ProgramService.UpdateProgram:input_type -> heft.v1.UpdateProgramRequest
+	12, // 23: heft.v1.ProgramService.DeleteProgram:input_type -> heft.v1.DeleteProgramRequest
+	14, // 24: heft.v1.ProgramService.SetActiveProgram:input_type -> heft.v1.SetActiveProgramRequest
+	16, // 25: heft.v1.ProgramService.GetTodayWorkout:input_type -> heft.v1.GetTodayWorkoutRequest
+	5,  // 26: heft.v1.ProgramService.ListPrograms:output_type -> heft.v1.ListProgramsResponse
+	7,  // 27: heft.v1.ProgramService.GetProgram:output_type -> heft.v1.GetProgramResponse
+	9,  // 28: heft.v1.ProgramService.CreateProgram:output_type -> heft.v1.CreateProgramResponse
+	11, // 29: heft.v1.ProgramService.UpdateProgram:output_type -> heft.v1.UpdateProgramResponse
+	13, // 30: heft.v1.ProgramService.DeleteProgram:output_type -> heft.v1.DeleteProgramResponse
+	15, // 31: heft.v1.ProgramService.SetActiveProgram:output_type -> heft.v1.SetActiveProgramResponse
+	17, // 32: heft.v1.ProgramService.GetTodayWorkout:output_type -> heft.v1.GetTodayWorkoutResponse
+	26, // [26:33] is the sub-list for method output_type
+	19, // [19:26] is the sub-list for method input_type
+	19, // [19:19] is the sub-list for extension type_name
+	19, // [19:19] is the sub-list for extension extendee
+	0,  // [0:19] is the sub-list for field type_name
 }
 
 func init() { file_heft_v1_program_proto_init() }
@@ -1439,10 +1384,7 @@ func file_heft_v1_program_proto_init() {
 	}
 	file_heft_v1_common_proto_init()
 	file_heft_v1_workout_proto_init()
-	file_heft_v1_program_proto_msgTypes[0].OneofWrappers = []any{}
-	file_heft_v1_program_proto_msgTypes[1].OneofWrappers = []any{}
-	file_heft_v1_program_proto_msgTypes[3].OneofWrappers = []any{}
-	file_heft_v1_program_proto_msgTypes[7].OneofWrappers = []any{}
+	file_heft_v1_program_proto_msgTypes[4].OneofWrappers = []any{}
 	file_heft_v1_program_proto_msgTypes[8].OneofWrappers = []any{}
 	file_heft_v1_program_proto_msgTypes[10].OneofWrappers = []any{}
 	type x struct{}

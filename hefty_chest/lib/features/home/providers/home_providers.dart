@@ -33,13 +33,13 @@ Future<Workout> workoutDetail(Ref ref, String workoutId) async {
   return response.workout;
 }
 
-/// Provider for today's workout from active program
+/// Provider for today's scheduled workouts from the active program.
 @riverpod
 Future<GetTodayWorkoutResponse> todayWorkout(Ref ref) async {
   logHome.fine('Fetching today\'s workout');
-  final request = GetTodayWorkoutRequest();
-  final response = await programClient.getTodayWorkout(request);
-  logHome.fine('Today\'s workout fetched, hasWorkout: ${response.hasWorkout}');
+  final response = await programClient.getTodayWorkout(GetTodayWorkoutRequest());
+  logHome.fine(
+      'Today fetched: ${response.workouts.length} workouts, in_window=${response.inProgramWindow}');
   return response;
 }
 

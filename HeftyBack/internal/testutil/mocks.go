@@ -105,7 +105,7 @@ func (m *MockExerciseRepository) Search(ctx context.Context, query string, userI
 
 // MockSessionRepository is a mock implementation of SessionRepositoryInterface
 type MockSessionRepository struct {
-	CreateFunc           func(ctx context.Context, userID string, workoutTemplateID, programID *string, programDayNumber *int, name *string) (*repository.WorkoutSession, error)
+	CreateFunc           func(ctx context.Context, userID string, workoutTemplateID, programID *string, name *string) (*repository.WorkoutSession, error)
 	GetByIDFunc          func(ctx context.Context, id, userID string) (*repository.WorkoutSession, error)
 	AddExerciseFunc      func(ctx context.Context, sessionID, exerciseID string, displayOrder int, sectionName, supersetID *string) (*repository.SessionExercise, error)
 	AddSetFunc           func(ctx context.Context, sessionExerciseID string, setNumber int, targetWeightKg *float64, targetReps, targetTimeSeconds, restDurationSeconds *int, isBodyweight bool) (*repository.SessionSet, error)
@@ -120,9 +120,9 @@ type MockSessionRepository struct {
 	ListFunc             func(ctx context.Context, userID string, status *string, startDate, endDate *time.Time, limit, offset int) ([]*repository.WorkoutSession, int, error)
 }
 
-func (m *MockSessionRepository) Create(ctx context.Context, userID string, workoutTemplateID, programID *string, programDayNumber *int, name *string) (*repository.WorkoutSession, error) {
+func (m *MockSessionRepository) Create(ctx context.Context, userID string, workoutTemplateID, programID *string, name *string) (*repository.WorkoutSession, error) {
 	if m.CreateFunc != nil {
-		return m.CreateFunc(ctx, userID, workoutTemplateID, programID, programDayNumber, name)
+		return m.CreateFunc(ctx, userID, workoutTemplateID, programID, name)
 	}
 	return nil, nil
 }
@@ -289,16 +289,17 @@ func (m *MockWorkoutRepository) CreateTargetSet(ctx context.Context, sectionItem
 
 // MockProgramRepository is a mock implementation of ProgramRepositoryInterface
 type MockProgramRepository struct {
-	ListFunc             func(ctx context.Context, userID string, includeArchived bool, limit, offset int) ([]*repository.Program, int, error)
-	GetByIDFunc          func(ctx context.Context, id, userID string) (*repository.Program, error)
-	CreateFunc           func(ctx context.Context, userID, name string, description *string, durationWeeks, durationDays int) (*repository.Program, error)
-	CreateDayFunc        func(ctx context.Context, programID string, dayNumber int, dayType string, workoutTemplateID, customName *string) (*repository.ProgramDay, error)
-	SetActiveFunc        func(ctx context.Context, id, userID string) (*repository.Program, error)
-	DeleteFunc           func(ctx context.Context, id, userID string) error
-	UpdateFunc           func(ctx context.Context, id, userID string, name *string, description *string, durationWeeks *int, durationDays *int, isArchived *bool, totalWorkoutDays *int, totalRestDays *int) (*repository.Program, error)
-	DeleteDaysFunc       func(ctx context.Context, programID, userID string) error
-	GetActiveProgramFunc func(ctx context.Context, userID string) (*repository.Program, error)
-	ArchiveFunc          func(ctx context.Context, id, userID string) error
+	ListFunc              func(ctx context.Context, userID string, includeArchived bool, limit, offset int) ([]*repository.Program, int, error)
+	ListWorkoutCountsFunc func(ctx context.Context, programIDs []string) (map[string]int, error)
+	GetByIDFunc           func(ctx context.Context, id, userID string) (*repository.Program, error)
+	CreateFunc            func(ctx context.Context, userID, name string, description *string, startDate time.Time, durationWeeks int) (*repository.Program, error)
+	CreateWorkoutFunc     func(ctx context.Context, programID, workoutTemplateID string, daysOfWeek []int16, displayOrder int) (*repository.ProgramWorkout, error)
+	DeleteWorkoutsFunc    func(ctx context.Context, programID, userID string) error
+	SetActiveFunc         func(ctx context.Context, id, userID string) (*repository.Program, error)
+	DeleteFunc            func(ctx context.Context, id, userID string) error
+	UpdateFunc            func(ctx context.Context, id, userID string, name, description *string, startDate *time.Time, durationWeeks *int, isArchived *bool) (*repository.Program, error)
+	GetActiveProgramFunc  func(ctx context.Context, userID string) (*repository.Program, error)
+	ArchiveFunc           func(ctx context.Context, id, userID string) error
 }
 
 func (m *MockProgramRepository) List(ctx context.Context, userID string, includeArchived bool, limit, offset int) ([]*repository.Program, int, error) {
@@ -308,6 +309,13 @@ func (m *MockProgramRepository) List(ctx context.Context, userID string, include
 	return nil, 0, nil
 }
 
+func (m *MockProgramRepository) ListWorkoutCounts(ctx context.Context, programIDs []string) (map[string]int, error) {
+	if m.ListWorkoutCountsFunc != nil {
+		return m.ListWorkoutCountsFunc(ctx, programIDs)
+	}
+	return map[string]int{}, nil
+}
+
 func (m *MockProgramRepository) GetByID(ctx context.Context, id, userID string) (*repository.Program, error) {
 	if m.GetByIDFunc != nil {
 		return m.GetByIDFunc(ctx, id, userID)
@@ -315,18 +323,25 @@ func (m *MockProgramRepository) GetByID(ctx context.Context, id, userID string) 
 	return nil, nil
 }
 
-func (m *MockProgramRepository) Create(ctx context.Context, userID, name string, description *string, durationWeeks, durationDays int) (*repository.Program, error) {
+func (m *MockProgramRepository) Create(ctx context.Context, userID, name string, description *string, startDate time.Time, durationWeeks int) (*repository.Program, error) {
 	if m.CreateFunc != nil {
-		return m.CreateFunc(ctx, userID, name, description, durationWeeks, durationDays)
+		return m.CreateFunc(ctx, userID, name, description, startDate, durationWeeks)
 	}
 	return nil, nil
 }
 
-func (m *MockProgramRepository) CreateDay(ctx context.Context, programID string, dayNumber int, dayType string, workoutTemplateID, customName *string) (*repository.ProgramDay, error) {
-	if m.CreateDayFunc != nil {
-		return m.CreateDayFunc(ctx, programID, dayNumber, dayType, workoutTemplateID, customName)
+func (m *MockProgramRepository) CreateWorkout(ctx context.Context, programID, workoutTemplateID string, daysOfWeek []int16, displayOrder int) (*repository.ProgramWorkout, error) {
+	if m.CreateWorkoutFunc != nil {
+		return m.CreateWorkoutFunc(ctx, programID, workoutTemplateID, daysOfWeek, displayOrder)
 	}
 	return nil, nil
+}
+
+func (m *MockProgramRepository) DeleteWorkouts(ctx context.Context, programID, userID string) error {
+	if m.DeleteWorkoutsFunc != nil {
+		return m.DeleteWorkoutsFunc(ctx, programID, userID)
+	}
+	return nil
 }
 
 func (m *MockProgramRepository) SetActive(ctx context.Context, id, userID string) (*repository.Program, error) {
@@ -350,18 +365,11 @@ func (m *MockProgramRepository) GetActiveProgram(ctx context.Context, userID str
 	return nil, nil
 }
 
-func (m *MockProgramRepository) Update(ctx context.Context, id, userID string, name *string, description *string, durationWeeks *int, durationDays *int, isArchived *bool, totalWorkoutDays *int, totalRestDays *int) (*repository.Program, error) {
+func (m *MockProgramRepository) Update(ctx context.Context, id, userID string, name, description *string, startDate *time.Time, durationWeeks *int, isArchived *bool) (*repository.Program, error) {
 	if m.UpdateFunc != nil {
-		return m.UpdateFunc(ctx, id, userID, name, description, durationWeeks, durationDays, isArchived, totalWorkoutDays, totalRestDays)
+		return m.UpdateFunc(ctx, id, userID, name, description, startDate, durationWeeks, isArchived)
 	}
 	return nil, nil
-}
-
-func (m *MockProgramRepository) DeleteDays(ctx context.Context, programID, userID string) error {
-	if m.DeleteDaysFunc != nil {
-		return m.DeleteDaysFunc(ctx, programID, userID)
-	}
-	return nil
 }
 
 func (m *MockProgramRepository) Archive(ctx context.Context, id, userID string) error {

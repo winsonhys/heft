@@ -57,24 +57,32 @@ class WorkoutStatus extends $pb.ProtobufEnum {
   const WorkoutStatus._($core.int v, $core.String n) : super(v, n);
 }
 
-/// Program day type
-class ProgramDayType extends $pb.ProtobufEnum {
-  static const ProgramDayType PROGRAM_DAY_TYPE_UNSPECIFIED = ProgramDayType._(0, _omitEnumNames ? '' : 'PROGRAM_DAY_TYPE_UNSPECIFIED');
-  static const ProgramDayType PROGRAM_DAY_TYPE_WORKOUT = ProgramDayType._(1, _omitEnumNames ? '' : 'PROGRAM_DAY_TYPE_WORKOUT');
-  static const ProgramDayType PROGRAM_DAY_TYPE_REST = ProgramDayType._(2, _omitEnumNames ? '' : 'PROGRAM_DAY_TYPE_REST');
-  static const ProgramDayType PROGRAM_DAY_TYPE_UNASSIGNED = ProgramDayType._(3, _omitEnumNames ? '' : 'PROGRAM_DAY_TYPE_UNASSIGNED');
+/// Day of week. ISO ordering: Monday=1..Sunday=7.
+class DayOfWeek extends $pb.ProtobufEnum {
+  static const DayOfWeek DAY_OF_WEEK_UNSPECIFIED = DayOfWeek._(0, _omitEnumNames ? '' : 'DAY_OF_WEEK_UNSPECIFIED');
+  static const DayOfWeek DAY_OF_WEEK_MONDAY = DayOfWeek._(1, _omitEnumNames ? '' : 'DAY_OF_WEEK_MONDAY');
+  static const DayOfWeek DAY_OF_WEEK_TUESDAY = DayOfWeek._(2, _omitEnumNames ? '' : 'DAY_OF_WEEK_TUESDAY');
+  static const DayOfWeek DAY_OF_WEEK_WEDNESDAY = DayOfWeek._(3, _omitEnumNames ? '' : 'DAY_OF_WEEK_WEDNESDAY');
+  static const DayOfWeek DAY_OF_WEEK_THURSDAY = DayOfWeek._(4, _omitEnumNames ? '' : 'DAY_OF_WEEK_THURSDAY');
+  static const DayOfWeek DAY_OF_WEEK_FRIDAY = DayOfWeek._(5, _omitEnumNames ? '' : 'DAY_OF_WEEK_FRIDAY');
+  static const DayOfWeek DAY_OF_WEEK_SATURDAY = DayOfWeek._(6, _omitEnumNames ? '' : 'DAY_OF_WEEK_SATURDAY');
+  static const DayOfWeek DAY_OF_WEEK_SUNDAY = DayOfWeek._(7, _omitEnumNames ? '' : 'DAY_OF_WEEK_SUNDAY');
 
-  static const $core.List<ProgramDayType> values = <ProgramDayType> [
-    PROGRAM_DAY_TYPE_UNSPECIFIED,
-    PROGRAM_DAY_TYPE_WORKOUT,
-    PROGRAM_DAY_TYPE_REST,
-    PROGRAM_DAY_TYPE_UNASSIGNED,
+  static const $core.List<DayOfWeek> values = <DayOfWeek> [
+    DAY_OF_WEEK_UNSPECIFIED,
+    DAY_OF_WEEK_MONDAY,
+    DAY_OF_WEEK_TUESDAY,
+    DAY_OF_WEEK_WEDNESDAY,
+    DAY_OF_WEEK_THURSDAY,
+    DAY_OF_WEEK_FRIDAY,
+    DAY_OF_WEEK_SATURDAY,
+    DAY_OF_WEEK_SUNDAY,
   ];
 
-  static final $core.Map<$core.int, ProgramDayType> _byValue = $pb.ProtobufEnum.initByValue(values);
-  static ProgramDayType? valueOf($core.int value) => _byValue[value];
+  static final $core.Map<$core.int, DayOfWeek> _byValue = $pb.ProtobufEnum.initByValue(values);
+  static DayOfWeek? valueOf($core.int value) => _byValue[value];
 
-  const ProgramDayType._($core.int v, $core.String n) : super(v, n);
+  const DayOfWeek._($core.int v, $core.String n) : super(v, n);
 }
 
 /// Section item type

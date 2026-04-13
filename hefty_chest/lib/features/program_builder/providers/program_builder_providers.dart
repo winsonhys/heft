@@ -6,121 +6,157 @@ import '../../home/providers/home_providers.dart';
 
 part 'program_builder_providers.g.dart';
 
-/// State for the program builder
+/// State for the program builder.
+///
+/// A program is a [startDate] + [durationWeeks] block containing a list of
+/// [ProgramWorkoutDraft]s. Each draft holds a workout template plus a set of
+/// weekdays (1=Mon..7=Sun) on which it runs.
 class ProgramBuilderState {
   final String? id;
   final String name;
+  final DateTime startDate;
   final int durationWeeks;
-  final int durationDays;
-  final Map<int, DayAssignment> dayAssignments;
+  final List<ProgramWorkoutDraft> workouts;
   final bool isLoading;
   final String? error;
 
-  const ProgramBuilderState({
+  ProgramBuilderState({
     this.id,
     this.name = '',
+    DateTime? startDate,
     this.durationWeeks = 4,
-    this.durationDays = 0,
-    this.dayAssignments = const {},
+    this.workouts = const [],
     this.isLoading = false,
     this.error,
-  });
+  }) : startDate = startDate ?? _today();
 
-  int get totalDays => durationWeeks * 7 + durationDays;
-  int get totalWeeks => (totalDays / 7).ceil();
-  int get workoutDays => dayAssignments.values
-      .where((a) => a.type == DayAssignmentType.workout)
-      .length;
-  int get restDays =>
-      dayAssignments.values.where((a) => a.type == DayAssignmentType.rest).length;
+  static DateTime _today() {
+    final now = DateTime.now();
+    return DateTime(now.year, now.month, now.day);
+  }
+
+  DateTime get endDate => startDate.add(Duration(days: durationWeeks * 7));
 
   ProgramBuilderState copyWith({
     String? id,
     String? name,
+    DateTime? startDate,
     int? durationWeeks,
-    int? durationDays,
-    Map<int, DayAssignment>? dayAssignments,
+    List<ProgramWorkoutDraft>? workouts,
     bool? isLoading,
     String? error,
   }) {
     return ProgramBuilderState(
       id: id ?? this.id,
       name: name ?? this.name,
+      startDate: startDate ?? this.startDate,
       durationWeeks: durationWeeks ?? this.durationWeeks,
-      durationDays: durationDays ?? this.durationDays,
-      dayAssignments: dayAssignments ?? this.dayAssignments,
+      workouts: workouts ?? this.workouts,
       isLoading: isLoading ?? this.isLoading,
       error: error,
     );
   }
 }
 
-enum DayAssignmentType { workout, rest }
+/// A single workout-on-weekdays assignment within the builder's draft state.
+class ProgramWorkoutDraft {
+  /// Server-assigned id once saved; null for new entries.
+  final String? id;
+  final String workoutTemplateId;
+  final String workoutName;
 
-/// Day assignment (workout or rest)
-class DayAssignment {
-  final DayAssignmentType type;
-  final String? workoutId;
-  final String? workoutName;
+  /// ISO weekdays (Mon=1..Sun=7). Always non-empty for a valid draft.
+  final Set<int> days;
 
-  const DayAssignment({
-    required this.type,
-    this.workoutId,
-    this.workoutName,
+  const ProgramWorkoutDraft({
+    this.id,
+    required this.workoutTemplateId,
+    required this.workoutName,
+    required this.days,
   });
 
-  factory DayAssignment.workout(String workoutId, String workoutName) {
-    return DayAssignment(
-      type: DayAssignmentType.workout,
-      workoutId: workoutId,
-      workoutName: workoutName,
+  ProgramWorkoutDraft copyWith({
+    String? id,
+    String? workoutTemplateId,
+    String? workoutName,
+    Set<int>? days,
+  }) {
+    return ProgramWorkoutDraft(
+      id: id ?? this.id,
+      workoutTemplateId: workoutTemplateId ?? this.workoutTemplateId,
+      workoutName: workoutName ?? this.workoutName,
+      days: days ?? this.days,
     );
   }
+}
 
-  factory DayAssignment.rest() {
-    return const DayAssignment(type: DayAssignmentType.rest);
-  }
+/// Maps proto DayOfWeek -> ISO int (Mon=1..Sun=7) and back.
+const _isoFromProto = <DayOfWeek, int>{
+  DayOfWeek.DAY_OF_WEEK_MONDAY: 1,
+  DayOfWeek.DAY_OF_WEEK_TUESDAY: 2,
+  DayOfWeek.DAY_OF_WEEK_WEDNESDAY: 3,
+  DayOfWeek.DAY_OF_WEEK_THURSDAY: 4,
+  DayOfWeek.DAY_OF_WEEK_FRIDAY: 5,
+  DayOfWeek.DAY_OF_WEEK_SATURDAY: 6,
+  DayOfWeek.DAY_OF_WEEK_SUNDAY: 7,
+};
+const _protoFromIso = <int, DayOfWeek>{
+  1: DayOfWeek.DAY_OF_WEEK_MONDAY,
+  2: DayOfWeek.DAY_OF_WEEK_TUESDAY,
+  3: DayOfWeek.DAY_OF_WEEK_WEDNESDAY,
+  4: DayOfWeek.DAY_OF_WEEK_THURSDAY,
+  5: DayOfWeek.DAY_OF_WEEK_FRIDAY,
+  6: DayOfWeek.DAY_OF_WEEK_SATURDAY,
+  7: DayOfWeek.DAY_OF_WEEK_SUNDAY,
+};
+
+int isoFromProtoDay(DayOfWeek d) => _isoFromProto[d] ?? 0;
+DayOfWeek protoFromIsoDay(int iso) => _protoFromIso[iso] ?? DayOfWeek.DAY_OF_WEEK_UNSPECIFIED;
+
+String _formatDate(DateTime d) =>
+    '${d.year.toString().padLeft(4, '0')}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
+
+DateTime parseProgramDate(String s) {
+  final parts = s.split('-');
+  return DateTime(int.parse(parts[0]), int.parse(parts[1]), int.parse(parts[2]));
 }
 
 /// Program builder state notifier
 @riverpod
 class ProgramBuilder extends _$ProgramBuilder {
   @override
-  ProgramBuilderState build() => const ProgramBuilderState();
+  ProgramBuilderState build() => ProgramBuilderState();
 
   void reset() {
-    state = const ProgramBuilderState();
+    state = ProgramBuilderState();
   }
 
   Future<void> loadProgram(String programId) async {
     logProgram.info('Loading program: $programId');
     state = state.copyWith(isLoading: true);
     try {
-      final request = GetProgramRequest()..id = programId;
-
-      final response = await programClient.getProgram(request);
+      final response =
+          await programClient.getProgram(GetProgramRequest()..id = programId);
       final program = response.program;
 
-      // Convert program days to assignments map
-      final assignments = <int, DayAssignment>{};
-      for (final day in program.days) {
-        if (day.dayType == ProgramDayType.PROGRAM_DAY_TYPE_REST) {
-          assignments[day.dayNumber] = DayAssignment.rest();
-        } else if (day.dayType == ProgramDayType.PROGRAM_DAY_TYPE_WORKOUT &&
-            day.workoutTemplateId.isNotEmpty) {
-          assignments[day.dayNumber] = DayAssignment.workout(
-            day.workoutTemplateId,
-            day.workoutName,
-          );
-        }
-      }
+      final drafts = program.workouts
+          .map((w) => ProgramWorkoutDraft(
+                id: w.id,
+                workoutTemplateId: w.workoutTemplateId,
+                workoutName: w.workoutName,
+                days: w.daysOfWeek
+                    .map(isoFromProtoDay)
+                    .where((iso) => iso > 0)
+                    .toSet(),
+              ))
+          .toList();
 
       state = state.copyWith(
         id: program.id,
         name: program.name,
+        startDate: parseProgramDate(program.startDate),
         durationWeeks: program.durationWeeks,
-        durationDays: program.durationDays,
-        dayAssignments: assignments,
+        workouts: drafts,
         isLoading: false,
       );
       logProgram.info('Program loaded: ${program.name}');
@@ -130,73 +166,36 @@ class ProgramBuilder extends _$ProgramBuilder {
     }
   }
 
-  void updateName(String name) {
-    state = state.copyWith(name: name);
+  void updateName(String name) => state = state.copyWith(name: name);
+
+  void setStartDate(DateTime date) => state = state.copyWith(startDate: date);
+
+  void setDurationWeeks(int weeks) =>
+      state = state.copyWith(durationWeeks: weeks.clamp(1, 52));
+
+  void addWorkout(ProgramWorkoutDraft draft) {
+    state = state.copyWith(workouts: [...state.workouts, draft]);
   }
 
-  void setDuration(int weeks, int days) {
-    // Clamp values
-    weeks = weeks.clamp(1, 52);
-    days = days.clamp(0, 6);
-
-    // Remove assignments beyond new duration
-    final newTotalDays = weeks * 7 + days;
-    final newAssignments = Map<int, DayAssignment>.from(state.dayAssignments);
-    newAssignments.removeWhere((dayNum, _) => dayNum > newTotalDays);
-
-    state = state.copyWith(
-      durationWeeks: weeks,
-      durationDays: days,
-      dayAssignments: newAssignments,
-    );
+  void updateWorkoutAt(int index, ProgramWorkoutDraft draft) {
+    final next = [...state.workouts];
+    next[index] = draft;
+    state = state.copyWith(workouts: next);
   }
 
-  void assignWorkout(int dayNumber, String workoutId, String workoutName) {
-    final newAssignments = Map<int, DayAssignment>.from(state.dayAssignments);
-    newAssignments[dayNumber] = DayAssignment.workout(workoutId, workoutName);
-    state = state.copyWith(dayAssignments: newAssignments);
-  }
-
-  void assignRest(int dayNumber) {
-    final newAssignments = Map<int, DayAssignment>.from(state.dayAssignments);
-    newAssignments[dayNumber] = DayAssignment.rest();
-    state = state.copyWith(dayAssignments: newAssignments);
-  }
-
-  void clearDay(int dayNumber) {
-    final newAssignments = Map<int, DayAssignment>.from(state.dayAssignments);
-    newAssignments.remove(dayNumber);
-    state = state.copyWith(dayAssignments: newAssignments);
-  }
-
-  void fillWeekWithRest(int weekNumber) {
-    final startDay = (weekNumber - 1) * 7 + 1;
-    final endDay = (startDay + 6).clamp(1, state.totalDays);
-
-    final newAssignments = Map<int, DayAssignment>.from(state.dayAssignments);
-    for (int day = startDay; day <= endDay; day++) {
-      if (!newAssignments.containsKey(day)) {
-        newAssignments[day] = DayAssignment.rest();
-      }
-    }
-    state = state.copyWith(dayAssignments: newAssignments);
-  }
-
-  void clearWeek(int weekNumber) {
-    final startDay = (weekNumber - 1) * 7 + 1;
-    final endDay = (startDay + 6).clamp(1, state.totalDays);
-
-    final newAssignments = Map<int, DayAssignment>.from(state.dayAssignments);
-    for (int day = startDay; day <= endDay; day++) {
-      newAssignments.remove(day);
-    }
-    state = state.copyWith(dayAssignments: newAssignments);
+  void removeWorkoutAt(int index) {
+    final next = [...state.workouts]..removeAt(index);
+    state = state.copyWith(workouts: next);
   }
 
   Future<bool> saveProgram() async {
-    if (state.name.isEmpty) {
+    if (state.name.trim().isEmpty) {
       logProgram.warning('Save rejected: empty program name');
       state = state.copyWith(error: 'Please enter a program name');
+      return false;
+    }
+    if (state.workouts.any((w) => w.days.isEmpty)) {
+      state = state.copyWith(error: 'Each workout needs at least one day');
       return false;
     }
 
@@ -204,44 +203,38 @@ class ProgramBuilder extends _$ProgramBuilder {
     state = state.copyWith(isLoading: true);
 
     try {
-      // Both Create and Update use CreateProgramDay
-      final createDays = <CreateProgramDay>[];
-      for (final entry in state.dayAssignments.entries) {
-        final day = CreateProgramDay()..dayNumber = entry.key;
-
-        if (entry.value.type == DayAssignmentType.rest) {
-          day.dayType = ProgramDayType.PROGRAM_DAY_TYPE_REST;
-        } else {
-          day
-            ..dayType = ProgramDayType.PROGRAM_DAY_TYPE_WORKOUT
-            ..workoutTemplateId = entry.value.workoutId ?? '';
+      final inputs = <ProgramWorkoutInput>[];
+      for (var i = 0; i < state.workouts.length; i++) {
+        final w = state.workouts[i];
+        final input = ProgramWorkoutInput()
+          ..workoutTemplateId = w.workoutTemplateId
+          ..displayOrder = i;
+        for (final iso in (w.days.toList()..sort())) {
+          input.daysOfWeek.add(protoFromIsoDay(iso));
         }
-
-        createDays.add(day);
+        inputs.add(input);
       }
 
+      final startDateStr = _formatDate(state.startDate);
+
       if (state.id != null) {
-        // Update existing program
         final request = UpdateProgramRequest()
           ..id = state.id!
           ..name = state.name
+          ..startDate = startDateStr
           ..durationWeeks = state.durationWeeks
-          ..durationDays = state.durationDays
-          ..days.addAll(createDays);
-
+          ..replaceWorkouts = true
+          ..workouts.addAll(inputs);
         await programClient.updateProgram(request);
       } else {
-        // Create new program
         final request = CreateProgramRequest()
           ..name = state.name
+          ..startDate = startDateStr
           ..durationWeeks = state.durationWeeks
-          ..durationDays = state.durationDays
-          ..days.addAll(createDays);
-
+          ..workouts.addAll(inputs);
         await programClient.createProgram(request);
       }
 
-      // Invalidate related providers
       ref.invalidate(workoutsForProgramProvider);
       ref.invalidate(dashboardStatsProvider);
 
@@ -256,28 +249,9 @@ class ProgramBuilder extends _$ProgramBuilder {
   }
 }
 
-/// Notifier for current week being viewed
-@riverpod
-class CurrentWeek extends _$CurrentWeek {
-  @override
-  int build() => 1;
-
-  void setWeek(int week) => state = week;
-
-  void nextWeek() => state = state + 1;
-
-  void previousWeek() {
-    if (state > 1) state = state - 1;
-  }
-
-  void reset() => state = 1;
-}
-
-/// Provider for workouts available in the program
+/// Provider for workout templates available in the program builder.
 @riverpod
 Future<List<WorkoutSummary>> workoutsForProgram(Ref ref) async {
-  final request = ListWorkoutsRequest();
-
-  final response = await workoutClient.listWorkouts(request);
+  final response = await workoutClient.listWorkouts(ListWorkoutsRequest());
   return response.workouts;
 }

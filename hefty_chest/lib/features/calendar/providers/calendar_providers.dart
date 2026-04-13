@@ -82,6 +82,61 @@ Future<CalendarData> calendarMonth(Ref ref, DateTime month) async {
   );
 }
 
+/// Provider for the user's currently active program (or null), with workouts
+/// loaded. The calendar uses this to render the weekly schedule on each cell.
+@riverpod
+Future<Program?> activeProgram(Ref ref) async {
+  final list = await programClient.listPrograms(ListProgramsRequest());
+  for (final p in list.programs) {
+    if (p.isActive) {
+      final full = await programClient.getProgram(GetProgramRequest()..id = p.id);
+      return full.program;
+    }
+  }
+  return null;
+}
+
+/// Returns scheduled program-workouts for [date] given an active program.
+/// Empty if no active program, or if [date] is outside the program window.
+List<ProgramWorkout> scheduledWorkoutsFor(Program? program, DateTime date) {
+  if (program == null) return const [];
+  final start = _parseDate(program.startDate);
+  final end = start.add(Duration(days: program.durationWeeks * 7));
+  final day = DateTime(date.year, date.month, date.day);
+  if (day.isBefore(start) || !day.isBefore(end)) return const [];
+  final iso = day.weekday; // Mon=1..Sun=7 in Dart, matches our ISO model
+  final dayProto = _isoToProto(iso);
+  return program.workouts
+      .where((w) => w.daysOfWeek.contains(dayProto))
+      .toList();
+}
+
+DateTime _parseDate(String s) {
+  final parts = s.split('-');
+  return DateTime(int.parse(parts[0]), int.parse(parts[1]), int.parse(parts[2]));
+}
+
+DayOfWeek _isoToProto(int iso) {
+  switch (iso) {
+    case 1:
+      return DayOfWeek.DAY_OF_WEEK_MONDAY;
+    case 2:
+      return DayOfWeek.DAY_OF_WEEK_TUESDAY;
+    case 3:
+      return DayOfWeek.DAY_OF_WEEK_WEDNESDAY;
+    case 4:
+      return DayOfWeek.DAY_OF_WEEK_THURSDAY;
+    case 5:
+      return DayOfWeek.DAY_OF_WEEK_FRIDAY;
+    case 6:
+      return DayOfWeek.DAY_OF_WEEK_SATURDAY;
+    case 7:
+      return DayOfWeek.DAY_OF_WEEK_SUNDAY;
+    default:
+      return DayOfWeek.DAY_OF_WEEK_UNSPECIFIED;
+  }
+}
+
 /// Provider for workouts available for scheduling
 @riverpod
 Future<List<WorkoutSummary>> workoutsForScheduling(Ref ref) async {

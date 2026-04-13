@@ -6,7 +6,10 @@
 import "package:connectrpc/connect.dart" as connect;
 import "program.pb.dart" as program;
 
-/// ProgramService handles training programs
+/// ProgramService handles training programs.
+/// A Program is a time-bounded block (start_date + duration_weeks) made up of
+/// one or more workouts. Each workout is assigned a set of weekdays on which
+/// it runs. Weekdays without an assigned workout are rest days.
 abstract final class ProgramService {
   /// Fully-qualified name of the ProgramService service.
   static const name = 'heft.v1.ProgramService';
@@ -59,7 +62,7 @@ abstract final class ProgramService {
     program.SetActiveProgramResponse.new,
   );
 
-  /// Get today's workout based on active program
+  /// Get today's workouts based on active program
   static const getTodayWorkout = connect.Spec(
     '/$name/GetTodayWorkout',
     connect.StreamType.unary,

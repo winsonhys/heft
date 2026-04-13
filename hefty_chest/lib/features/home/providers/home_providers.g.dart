@@ -176,12 +176,12 @@ final class WorkoutDetailFamily extends $Family
   String toString() => r'workoutDetailProvider';
 }
 
-/// Provider for today's workout from active program
+/// Provider for today's scheduled workouts from the active program.
 
 @ProviderFor(todayWorkout)
 const todayWorkoutProvider = TodayWorkoutProvider._();
 
-/// Provider for today's workout from active program
+/// Provider for today's scheduled workouts from the active program.
 
 final class TodayWorkoutProvider
     extends
@@ -193,7 +193,7 @@ final class TodayWorkoutProvider
     with
         $FutureModifier<GetTodayWorkoutResponse>,
         $FutureProvider<GetTodayWorkoutResponse> {
-  /// Provider for today's workout from active program
+  /// Provider for today's scheduled workouts from the active program.
   const TodayWorkoutProvider._()
     : super(
         from: null,
@@ -220,4 +220,4 @@ final class TodayWorkoutProvider
   }
 }
 
-String _$todayWorkoutHash() => r'b7bc45ee328aa063753ed2807761edc0f500ec46';
+String _$todayWorkoutHash() => r'e2c74d751eb9019d970dfa63685ce4d92655bcec';

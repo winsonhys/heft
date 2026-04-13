@@ -134,56 +134,68 @@ func (WorkoutStatus) EnumDescriptor() ([]byte, []int) {
 	return file_heft_v1_common_proto_rawDescGZIP(), []int{1}
 }
 
-// Program day type
-type ProgramDayType int32
+// Day of week. ISO ordering: Monday=1..Sunday=7.
+type DayOfWeek int32
 
 const (
-	ProgramDayType_PROGRAM_DAY_TYPE_UNSPECIFIED ProgramDayType = 0
-	ProgramDayType_PROGRAM_DAY_TYPE_WORKOUT     ProgramDayType = 1
-	ProgramDayType_PROGRAM_DAY_TYPE_REST        ProgramDayType = 2
-	ProgramDayType_PROGRAM_DAY_TYPE_UNASSIGNED  ProgramDayType = 3
+	DayOfWeek_DAY_OF_WEEK_UNSPECIFIED DayOfWeek = 0
+	DayOfWeek_DAY_OF_WEEK_MONDAY      DayOfWeek = 1
+	DayOfWeek_DAY_OF_WEEK_TUESDAY     DayOfWeek = 2
+	DayOfWeek_DAY_OF_WEEK_WEDNESDAY   DayOfWeek = 3
+	DayOfWeek_DAY_OF_WEEK_THURSDAY    DayOfWeek = 4
+	DayOfWeek_DAY_OF_WEEK_FRIDAY      DayOfWeek = 5
+	DayOfWeek_DAY_OF_WEEK_SATURDAY    DayOfWeek = 6
+	DayOfWeek_DAY_OF_WEEK_SUNDAY      DayOfWeek = 7
 )
 
-// Enum value maps for ProgramDayType.
+// Enum value maps for DayOfWeek.
 var (
-	ProgramDayType_name = map[int32]string{
-		0: "PROGRAM_DAY_TYPE_UNSPECIFIED",
-		1: "PROGRAM_DAY_TYPE_WORKOUT",
-		2: "PROGRAM_DAY_TYPE_REST",
-		3: "PROGRAM_DAY_TYPE_UNASSIGNED",
+	DayOfWeek_name = map[int32]string{
+		0: "DAY_OF_WEEK_UNSPECIFIED",
+		1: "DAY_OF_WEEK_MONDAY",
+		2: "DAY_OF_WEEK_TUESDAY",
+		3: "DAY_OF_WEEK_WEDNESDAY",
+		4: "DAY_OF_WEEK_THURSDAY",
+		5: "DAY_OF_WEEK_FRIDAY",
+		6: "DAY_OF_WEEK_SATURDAY",
+		7: "DAY_OF_WEEK_SUNDAY",
 	}
-	ProgramDayType_value = map[string]int32{
-		"PROGRAM_DAY_TYPE_UNSPECIFIED": 0,
-		"PROGRAM_DAY_TYPE_WORKOUT":     1,
-		"PROGRAM_DAY_TYPE_REST":        2,
-		"PROGRAM_DAY_TYPE_UNASSIGNED":  3,
+	DayOfWeek_value = map[string]int32{
+		"DAY_OF_WEEK_UNSPECIFIED": 0,
+		"DAY_OF_WEEK_MONDAY":      1,
+		"DAY_OF_WEEK_TUESDAY":     2,
+		"DAY_OF_WEEK_WEDNESDAY":   3,
+		"DAY_OF_WEEK_THURSDAY":    4,
+		"DAY_OF_WEEK_FRIDAY":      5,
+		"DAY_OF_WEEK_SATURDAY":    6,
+		"DAY_OF_WEEK_SUNDAY":      7,
 	}
 )
 
-func (x ProgramDayType) Enum() *ProgramDayType {
-	p := new(ProgramDayType)
+func (x DayOfWeek) Enum() *DayOfWeek {
+	p := new(DayOfWeek)
 	*p = x
 	return p
 }
 
-func (x ProgramDayType) String() string {
+func (x DayOfWeek) String() string {
 	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
 }
 
-func (ProgramDayType) Descriptor() protoreflect.EnumDescriptor {
+func (DayOfWeek) Descriptor() protoreflect.EnumDescriptor {
 	return file_heft_v1_common_proto_enumTypes[2].Descriptor()
 }
 
-func (ProgramDayType) Type() protoreflect.EnumType {
+func (DayOfWeek) Type() protoreflect.EnumType {
 	return &file_heft_v1_common_proto_enumTypes[2]
 }
 
-func (x ProgramDayType) Number() protoreflect.EnumNumber {
+func (x DayOfWeek) Number() protoreflect.EnumNumber {
 	return protoreflect.EnumNumber(x)
 }
 
-// Deprecated: Use ProgramDayType.Descriptor instead.
-func (ProgramDayType) EnumDescriptor() ([]byte, []int) {
+// Deprecated: Use DayOfWeek.Descriptor instead.
+func (DayOfWeek) EnumDescriptor() ([]byte, []int) {
 	return file_heft_v1_common_proto_rawDescGZIP(), []int{2}
 }
 
@@ -385,12 +397,16 @@ const file_heft_v1_common_proto_rawDesc = "" +
 	"\x1aWORKOUT_STATUS_UNSPECIFIED\x10\x00\x12\x1e\n" +
 	"\x1aWORKOUT_STATUS_IN_PROGRESS\x10\x01\x12\x1c\n" +
 	"\x18WORKOUT_STATUS_COMPLETED\x10\x02\x12\x1c\n" +
-	"\x18WORKOUT_STATUS_ABANDONED\x10\x03*\x8c\x01\n" +
-	"\x0eProgramDayType\x12 \n" +
-	"\x1cPROGRAM_DAY_TYPE_UNSPECIFIED\x10\x00\x12\x1c\n" +
-	"\x18PROGRAM_DAY_TYPE_WORKOUT\x10\x01\x12\x19\n" +
-	"\x15PROGRAM_DAY_TYPE_REST\x10\x02\x12\x1f\n" +
-	"\x1bPROGRAM_DAY_TYPE_UNASSIGNED\x10\x03*p\n" +
+	"\x18WORKOUT_STATUS_ABANDONED\x10\x03*\xd8\x01\n" +
+	"\tDayOfWeek\x12\x1b\n" +
+	"\x17DAY_OF_WEEK_UNSPECIFIED\x10\x00\x12\x16\n" +
+	"\x12DAY_OF_WEEK_MONDAY\x10\x01\x12\x17\n" +
+	"\x13DAY_OF_WEEK_TUESDAY\x10\x02\x12\x19\n" +
+	"\x15DAY_OF_WEEK_WEDNESDAY\x10\x03\x12\x18\n" +
+	"\x14DAY_OF_WEEK_THURSDAY\x10\x04\x12\x16\n" +
+	"\x12DAY_OF_WEEK_FRIDAY\x10\x05\x12\x18\n" +
+	"\x14DAY_OF_WEEK_SATURDAY\x10\x06\x12\x16\n" +
+	"\x12DAY_OF_WEEK_SUNDAY\x10\a*p\n" +
 	"\x0fSectionItemType\x12!\n" +
 	"\x1dSECTION_ITEM_TYPE_UNSPECIFIED\x10\x00\x12\x1e\n" +
 	"\x1aSECTION_ITEM_TYPE_EXERCISE\x10\x01\x12\x1a\n" +
@@ -414,7 +430,7 @@ var file_heft_v1_common_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
 var file_heft_v1_common_proto_goTypes = []any{
 	(ExerciseType)(0),          // 0: heft.v1.ExerciseType
 	(WorkoutStatus)(0),         // 1: heft.v1.WorkoutStatus
-	(ProgramDayType)(0),        // 2: heft.v1.ProgramDayType
+	(DayOfWeek)(0),             // 2: heft.v1.DayOfWeek
 	(SectionItemType)(0),       // 3: heft.v1.SectionItemType
 	(*PaginationRequest)(nil),  // 4: heft.v1.PaginationRequest
 	(*PaginationResponse)(nil), // 5: heft.v1.PaginationResponse

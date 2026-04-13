@@ -47,16 +47,11 @@ func (h *SessionHandler) StartSession(ctx context.Context, req *connect.Request[
 	}
 
 	var workoutTemplateID, programID, name *string
-	var programDayNumber *int
 	if req.Msg.WorkoutTemplateId != nil {
 		workoutTemplateID = req.Msg.WorkoutTemplateId
 	}
 	if req.Msg.ProgramId != nil {
 		programID = req.Msg.ProgramId
-	}
-	if req.Msg.ProgramDayNumber != nil {
-		v := int(*req.Msg.ProgramDayNumber)
-		programDayNumber = &v
 	}
 	if req.Msg.Name != nil {
 		name = req.Msg.Name
@@ -79,7 +74,7 @@ func (h *SessionHandler) StartSession(ctx context.Context, req *connect.Request[
 	}
 
 	// Create session
-	session, err := h.sessionRepo.Create(ctx, userID, workoutTemplateID, programID, programDayNumber, name)
+	session, err := h.sessionRepo.Create(ctx, userID, workoutTemplateID, programID, name)
 	if err != nil {
 		return nil, handleDBError(err)
 	}
@@ -353,17 +348,6 @@ func (h *SessionHandler) FinishSession(ctx context.Context, req *connect.Request
 		return nil, handleDBError(err)
 	}
 
-	// Archive program if this was the last day
-	if session.ProgramID != nil && session.ProgramDayNumber != nil {
-		program, err := h.programRepo.GetByID(ctx, *session.ProgramID, userID)
-		if err == nil && program != nil {
-			totalDays := program.DurationWeeks*7 + program.DurationDays
-			if totalDays > 0 && *session.ProgramDayNumber >= totalDays {
-				_ = h.programRepo.Archive(ctx, program.ID, userID)
-			}
-		}
-	}
-
 	return connect.NewResponse(&heftv1.FinishSessionResponse{
 		Session: sessionToProto(session),
 	}), nil
@@ -443,9 +427,6 @@ func sessionToProto(s *repository.WorkoutSession) *heftv1.Session {
 	}
 	if s.ProgramID != nil {
 		session.ProgramId = *s.ProgramID
-	}
-	if s.ProgramDayNumber != nil {
-		session.ProgramDayNumber = int32(*s.ProgramDayNumber)
 	}
 	if s.Name != nil {
 		session.Name = *s.Name

@@ -50,22 +50,27 @@ final $typed_data.Uint8List workoutStatusDescriptor = $convert.base64Decode(
     '9VVF9TVEFUVVNfSU5fUFJPR1JFU1MQARIcChhXT1JLT1VUX1NUQVRVU19DT01QTEVURUQQAhIc'
     'ChhXT1JLT1VUX1NUQVRVU19BQkFORE9ORUQQAw==');
 
-@$core.Deprecated('Use programDayTypeDescriptor instead')
-const ProgramDayType$json = {
-  '1': 'ProgramDayType',
+@$core.Deprecated('Use dayOfWeekDescriptor instead')
+const DayOfWeek$json = {
+  '1': 'DayOfWeek',
   '2': [
-    {'1': 'PROGRAM_DAY_TYPE_UNSPECIFIED', '2': 0},
-    {'1': 'PROGRAM_DAY_TYPE_WORKOUT', '2': 1},
-    {'1': 'PROGRAM_DAY_TYPE_REST', '2': 2},
-    {'1': 'PROGRAM_DAY_TYPE_UNASSIGNED', '2': 3},
+    {'1': 'DAY_OF_WEEK_UNSPECIFIED', '2': 0},
+    {'1': 'DAY_OF_WEEK_MONDAY', '2': 1},
+    {'1': 'DAY_OF_WEEK_TUESDAY', '2': 2},
+    {'1': 'DAY_OF_WEEK_WEDNESDAY', '2': 3},
+    {'1': 'DAY_OF_WEEK_THURSDAY', '2': 4},
+    {'1': 'DAY_OF_WEEK_FRIDAY', '2': 5},
+    {'1': 'DAY_OF_WEEK_SATURDAY', '2': 6},
+    {'1': 'DAY_OF_WEEK_SUNDAY', '2': 7},
   ],
 };
 
-/// Descriptor for `ProgramDayType`. Decode as a `google.protobuf.EnumDescriptorProto`.
-final $typed_data.Uint8List programDayTypeDescriptor = $convert.base64Decode(
-    'Cg5Qcm9ncmFtRGF5VHlwZRIgChxQUk9HUkFNX0RBWV9UWVBFX1VOU1BFQ0lGSUVEEAASHAoYUF'
-    'JPR1JBTV9EQVlfVFlQRV9XT1JLT1VUEAESGQoVUFJPR1JBTV9EQVlfVFlQRV9SRVNUEAISHwob'
-    'UFJPR1JBTV9EQVlfVFlQRV9VTkFTU0lHTkVEEAM=');
+/// Descriptor for `DayOfWeek`. Decode as a `google.protobuf.EnumDescriptorProto`.
+final $typed_data.Uint8List dayOfWeekDescriptor = $convert.base64Decode(
+    'CglEYXlPZldlZWsSGwoXREFZX09GX1dFRUtfVU5TUEVDSUZJRUQQABIWChJEQVlfT0ZfV0VFS1'
+    '9NT05EQVkQARIXChNEQVlfT0ZfV0VFS19UVUVTREFZEAISGQoVREFZX09GX1dFRUtfV0VETkVT'
+    'REFZEAMSGAoUREFZX09GX1dFRUtfVEhVUlNEQVkQBBIWChJEQVlfT0ZfV0VFS19GUklEQVkQBR'
+    'IYChREQVlfT0ZfV0VFS19TQVRVUkRBWRAGEhYKEkRBWV9PRl9XRUVLX1NVTkRBWRAH');
 
 @$core.Deprecated('Use sectionItemTypeDescriptor instead')
 const SectionItemType$json = {

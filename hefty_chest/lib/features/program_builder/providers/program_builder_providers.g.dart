@@ -44,7 +44,7 @@ final class ProgramBuilderProvider
   }
 }
 
-String _$programBuilderHash() => r'7bdc6613665e1592c1366eb849698453ac36d883';
+String _$programBuilderHash() => r'825cccccc4aad16905ccf4649c65af36a2b18eb9';
 
 /// Program builder state notifier
 
@@ -67,70 +67,12 @@ abstract class _$ProgramBuilder extends $Notifier<ProgramBuilderState> {
   }
 }
 
-/// Notifier for current week being viewed
-
-@ProviderFor(CurrentWeek)
-const currentWeekProvider = CurrentWeekProvider._();
-
-/// Notifier for current week being viewed
-final class CurrentWeekProvider extends $NotifierProvider<CurrentWeek, int> {
-  /// Notifier for current week being viewed
-  const CurrentWeekProvider._()
-    : super(
-        from: null,
-        argument: null,
-        retry: null,
-        name: r'currentWeekProvider',
-        isAutoDispose: true,
-        dependencies: null,
-        $allTransitiveDependencies: null,
-      );
-
-  @override
-  String debugGetCreateSourceHash() => _$currentWeekHash();
-
-  @$internal
-  @override
-  CurrentWeek create() => CurrentWeek();
-
-  /// {@macro riverpod.override_with_value}
-  Override overrideWithValue(int value) {
-    return $ProviderOverride(
-      origin: this,
-      providerOverride: $SyncValueProvider<int>(value),
-    );
-  }
-}
-
-String _$currentWeekHash() => r'b31eb5eeec2ee458e70cc327512033d71e44c38d';
-
-/// Notifier for current week being viewed
-
-abstract class _$CurrentWeek extends $Notifier<int> {
-  int build();
-  @$mustCallSuper
-  @override
-  void runBuild() {
-    final created = build();
-    final ref = this.ref as $Ref<int, int>;
-    final element =
-        ref.element
-            as $ClassProviderElement<
-              AnyNotifier<int, int>,
-              int,
-              Object?,
-              Object?
-            >;
-    element.handleValue(ref, created);
-  }
-}
-
-/// Provider for workouts available in the program
+/// Provider for workout templates available in the program builder.
 
 @ProviderFor(workoutsForProgram)
 const workoutsForProgramProvider = WorkoutsForProgramProvider._();
 
-/// Provider for workouts available in the program
+/// Provider for workout templates available in the program builder.
 
 final class WorkoutsForProgramProvider
     extends
@@ -142,7 +84,7 @@ final class WorkoutsForProgramProvider
     with
         $FutureModifier<List<WorkoutSummary>>,
         $FutureProvider<List<WorkoutSummary>> {
-  /// Provider for workouts available in the program
+  /// Provider for workout templates available in the program builder.
   const WorkoutsForProgramProvider._()
     : super(
         from: null,
@@ -170,4 +112,4 @@ final class WorkoutsForProgramProvider
 }
 
 String _$workoutsForProgramHash() =>
-    r'f1efff6c9f9e160c2545c0d6960ce7f8b0362fb8';
+    r'f4cf2df4c20a0cf2fd63581a01865c8605b13df3';

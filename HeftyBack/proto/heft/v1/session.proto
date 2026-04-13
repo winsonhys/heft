@@ -32,7 +32,8 @@ message Session {
   string user_id = 2;
   string workout_template_id = 3;
   string program_id = 4;
-  int32 program_day_number = 5;
+  reserved 5;
+  reserved "program_day_number";
   string name = 6;
   WorkoutStatus status = 7;
   google.protobuf.Timestamp started_at = 8;
@@ -116,7 +117,8 @@ message SessionSummary {
 message StartSessionRequest {
   optional string workout_template_id = 1;
   optional string program_id = 2;
-  optional int32 program_day_number = 3;
+  reserved 3;
+  reserved "program_day_number";
   optional string name = 4;
 }
 

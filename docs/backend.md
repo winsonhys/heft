@@ -77,13 +77,16 @@ HeftyBack/
 - `AddTargetSet(item_id, weight, reps, time, distance)` → New target set
 
 ### ProgramService
-- `ListPrograms(user_id, pagination)` → Training programs
-- `GetProgram(program_id)` → Full program with days
-- `CreateProgram(user_id, name, duration_weeks)` → New program
-- `AssignWorkout(program_id, day_number, workout_id)` → Updated day
-- `SetActiveProgram(user_id, program_id)` → Success
-- `GetActiveProgram(user_id)` → Current active program
-- `DeleteProgram(program_id)` → Success
+
+A program is a `start_date + duration_weeks` block that contains 1..N workouts. Each workout is assigned to one or more weekdays (`DayOfWeek`, ISO Mon=1..Sun=7). Weekdays without an assigned workout are rest days.
+
+- `ListPrograms(pagination, include_archived?)` → `ProgramSummary[]` (no workouts loaded; `total_workouts` is batch-counted)
+- `GetProgram(id)` → Full `Program` with `repeated ProgramWorkout workouts`
+- `CreateProgram(name, start_date, duration_weeks, workouts[])` → New program. `start_date` is `YYYY-MM-DD`. Each `ProgramWorkoutInput` carries `workout_template_id`, `days_of_week[]`, `display_order`.
+- `UpdateProgram(id, name?, description?, start_date?, duration_weeks?, is_archived?, replace_workouts?, workouts[])` → Updated program. When `replace_workouts=true`, the existing workouts are atomically replaced with the given list (empty list clears).
+- `SetActiveProgram(id)` → Activates the program and deactivates all others for the user
+- `DeleteProgram(id)` → Success
+- `GetTodayWorkout()` → `{ date, day_of_week, in_program_window, workouts[] (0..N), program }`. Returns the workouts scheduled for today's weekday, or empty when there's no active program / today is outside the program window / today is a rest day.
 
 ### SessionService
 - `StartSession(workout_template_id, program_id?)` → New session (409 if active session exists)
@@ -121,8 +124,8 @@ HeftyBack/
 - `exercise_target_sets` — section_item_id, set_number, target_weight, target_reps, target_time, target_distance, rest_duration_seconds
 
 ### Training Programs
-- `programs` — id, user_id, name, duration_weeks, is_active, is_archived
-- `program_days` — program_id, day_number, day_type (workout|rest|unassigned), workout_template_id
+- `programs` — id, user_id, name, description, **start_date DATE**, duration_weeks, is_active, is_archived
+- `program_workouts` — id, program_id, workout_template_id (FK NOT NULL), **days_of_week SMALLINT[]** (ISO 1..7, ≥1 entry, all in 1..7), display_order, `UNIQUE(program_id, display_order)`
 
 ### Workout Sessions
 - `workout_sessions` — id, user_id, workout_template_id, status (in_progress|completed|abandoned), started_at, completed_at

@@ -210,15 +210,17 @@ class FakeBackend {
     final program = Program()
       ..id = id
       ..name = req.name
-      ..durationWeeks = req.durationWeeks
-      ..durationDays = req.durationDays;
+      ..startDate = req.startDate
+      ..durationWeeks = req.durationWeeks;
 
-    for (final day in req.days) {
-      program.days.add(ProgramDay()
-        ..id = _nextId('pd')
-        ..dayNumber = day.dayNumber
-        ..dayType = day.dayType
-        ..workoutTemplateId = day.workoutTemplateId);
+    for (var i = 0; i < req.workouts.length; i++) {
+      final w = req.workouts[i];
+      program.workouts.add(ProgramWorkout()
+        ..id = _nextId('pw')
+        ..programId = id
+        ..workoutTemplateId = w.workoutTemplateId
+        ..displayOrder = i
+        ..daysOfWeek.addAll(w.daysOfWeek));
     }
 
     _programs[id] = program;
@@ -247,17 +249,24 @@ class FakeBackend {
 
   UpdateProgramResponse _updateProgram(
       UpdateProgramRequest req, FakeHandlerContext ctx) {
+    final existing = _programs[req.id];
     final updated = Program()
       ..id = req.id
-      ..name = req.name
-      ..durationWeeks = req.durationWeeks
-      ..durationDays = req.durationDays;
-    for (final day in req.days) {
-      updated.days.add(ProgramDay()
-        ..id = _nextId('pd')
-        ..dayNumber = day.dayNumber
-        ..dayType = day.dayType
-        ..workoutTemplateId = day.workoutTemplateId);
+      ..name = req.hasName() ? req.name : (existing?.name ?? '')
+      ..startDate = req.hasStartDate() ? req.startDate : (existing?.startDate ?? '')
+      ..durationWeeks = req.hasDurationWeeks() ? req.durationWeeks : (existing?.durationWeeks ?? 4);
+    if (req.replaceWorkouts) {
+      for (var i = 0; i < req.workouts.length; i++) {
+        final w = req.workouts[i];
+        updated.workouts.add(ProgramWorkout()
+          ..id = _nextId('pw')
+          ..programId = req.id
+          ..workoutTemplateId = w.workoutTemplateId
+          ..displayOrder = i
+          ..daysOfWeek.addAll(w.daysOfWeek));
+      }
+    } else if (existing != null) {
+      updated.workouts.addAll(existing.workouts);
     }
     _programs[req.id] = updated;
     return UpdateProgramResponse()..program = updated;

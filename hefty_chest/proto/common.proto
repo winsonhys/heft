@@ -36,12 +36,16 @@ enum WorkoutStatus {
   WORKOUT_STATUS_ABANDONED = 3;
 }
 
-// Program day type
-enum ProgramDayType {
-  PROGRAM_DAY_TYPE_UNSPECIFIED = 0;
-  PROGRAM_DAY_TYPE_WORKOUT = 1;
-  PROGRAM_DAY_TYPE_REST = 2;
-  PROGRAM_DAY_TYPE_UNASSIGNED = 3;
+// Day of week. ISO ordering: Monday=1..Sunday=7.
+enum DayOfWeek {
+  DAY_OF_WEEK_UNSPECIFIED = 0;
+  DAY_OF_WEEK_MONDAY = 1;
+  DAY_OF_WEEK_TUESDAY = 2;
+  DAY_OF_WEEK_WEDNESDAY = 3;
+  DAY_OF_WEEK_THURSDAY = 4;
+  DAY_OF_WEEK_FRIDAY = 5;
+  DAY_OF_WEEK_SATURDAY = 6;
+  DAY_OF_WEEK_SUNDAY = 7;
 }
 
 // Section item type

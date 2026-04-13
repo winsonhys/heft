@@ -151,19 +151,24 @@ class HomeScreen extends ConsumerWidget {
                 ),
               ),
 
-              // Today's Workout (from active program)
+              // Today's workouts (from active program). 0..N entries; 0 = rest day.
               todayWorkoutAsync.when(
-                data: (todayWorkout) {
-                  if (!todayWorkout.hasWorkout) return const SizedBox.shrink();
+                data: (today) {
+                  if (today.workouts.isEmpty) return const SizedBox.shrink();
                   return Padding(
                     padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
-                    child: TodayWorkoutCard(
-                      programName: todayWorkout.program.name,
-                      dayNumber: todayWorkout.dayNumber,
-                      workoutName: todayWorkout.workout_4.name,
-                      onStart: () => _startWorkout(
-                        context, ref, todayWorkout.workout_4.id,
-                      ),
+                    child: Column(
+                      children: [
+                        for (final w in today.workouts)
+                          Padding(
+                            padding: const EdgeInsets.only(bottom: 8),
+                            child: TodayWorkoutCard(
+                              programName: today.program.name,
+                              workoutName: w.name,
+                              onStart: () => _startWorkout(context, ref, w.id),
+                            ),
+                          ),
+                      ],
                     ),
                   );
                 },

@@ -62,32 +62,57 @@ func StringToSectionItemType(s string) heftv1.SectionItemType {
 	}
 }
 
-// ProgramDayTypeToString converts a proto ProgramDayType to its database string representation.
-func ProgramDayTypeToString(t heftv1.ProgramDayType) string {
-	switch t {
-	case heftv1.ProgramDayType_PROGRAM_DAY_TYPE_WORKOUT:
-		return "workout"
-	case heftv1.ProgramDayType_PROGRAM_DAY_TYPE_REST:
-		return "rest"
-	case heftv1.ProgramDayType_PROGRAM_DAY_TYPE_UNASSIGNED:
-		return "unassigned"
+// DayOfWeekToInt converts a proto DayOfWeek to its ISO integer (Monday=1..Sunday=7).
+// Returns 0 for unspecified/invalid values.
+func DayOfWeekToInt(d heftv1.DayOfWeek) int16 {
+	switch d {
+	case heftv1.DayOfWeek_DAY_OF_WEEK_MONDAY:
+		return 1
+	case heftv1.DayOfWeek_DAY_OF_WEEK_TUESDAY:
+		return 2
+	case heftv1.DayOfWeek_DAY_OF_WEEK_WEDNESDAY:
+		return 3
+	case heftv1.DayOfWeek_DAY_OF_WEEK_THURSDAY:
+		return 4
+	case heftv1.DayOfWeek_DAY_OF_WEEK_FRIDAY:
+		return 5
+	case heftv1.DayOfWeek_DAY_OF_WEEK_SATURDAY:
+		return 6
+	case heftv1.DayOfWeek_DAY_OF_WEEK_SUNDAY:
+		return 7
 	default:
-		return "unassigned"
+		return 0
 	}
 }
 
-// StringToProgramDayType converts a database string to its proto ProgramDayType.
-func StringToProgramDayType(s string) heftv1.ProgramDayType {
-	switch s {
-	case "workout":
-		return heftv1.ProgramDayType_PROGRAM_DAY_TYPE_WORKOUT
-	case "rest":
-		return heftv1.ProgramDayType_PROGRAM_DAY_TYPE_REST
-	case "unassigned":
-		return heftv1.ProgramDayType_PROGRAM_DAY_TYPE_UNASSIGNED
+// IntToDayOfWeek converts an ISO integer (Monday=1..Sunday=7) to its proto DayOfWeek.
+func IntToDayOfWeek(i int16) heftv1.DayOfWeek {
+	switch i {
+	case 1:
+		return heftv1.DayOfWeek_DAY_OF_WEEK_MONDAY
+	case 2:
+		return heftv1.DayOfWeek_DAY_OF_WEEK_TUESDAY
+	case 3:
+		return heftv1.DayOfWeek_DAY_OF_WEEK_WEDNESDAY
+	case 4:
+		return heftv1.DayOfWeek_DAY_OF_WEEK_THURSDAY
+	case 5:
+		return heftv1.DayOfWeek_DAY_OF_WEEK_FRIDAY
+	case 6:
+		return heftv1.DayOfWeek_DAY_OF_WEEK_SATURDAY
+	case 7:
+		return heftv1.DayOfWeek_DAY_OF_WEEK_SUNDAY
 	default:
-		return heftv1.ProgramDayType_PROGRAM_DAY_TYPE_UNSPECIFIED
+		return heftv1.DayOfWeek_DAY_OF_WEEK_UNSPECIFIED
 	}
+}
+
+// TimeWeekdayToISO converts Go's time.Weekday (Sunday=0..Saturday=6) to ISO (Monday=1..Sunday=7).
+func TimeWeekdayToISO(w int) int16 {
+	if w == 0 {
+		return 7
+	}
+	return int16(w)
 }
 
 // WorkoutStatusToString converts a proto WorkoutStatus to its database string representation.

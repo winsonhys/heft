@@ -2,12 +2,14 @@ import 'package:flutter/material.dart';
 
 import '../../../shared/theme/app_colors.dart';
 import '../../../core/client.dart';
+import '../providers/calendar_providers.dart';
 import 'calendar_day_cell.dart';
 
 /// Calendar grid showing days of the month
 class CalendarGrid extends StatelessWidget {
   final DateTime month;
   final List<CalendarDay> days;
+  final Program? activeProgram;
   final bool isLoading;
   final Function(DateTime) onDayTap;
 
@@ -15,6 +17,7 @@ class CalendarGrid extends StatelessWidget {
     super.key,
     required this.month,
     required this.days,
+    this.activeProgram,
     this.isLoading = false,
     required this.onDayTap,
   });
@@ -92,9 +95,13 @@ class CalendarGrid extends StatelessWidget {
                     date.month == today.month &&
                     date.day == today.day;
 
+                final scheduled = scheduledWorkoutsFor(activeProgram, date);
+
                 return CalendarDayCell(
+                  key: Key('calendar_day_$dateStr'),
                   dayNumber: date.day,
                   dayData: dayData,
+                  scheduledCount: scheduled.length,
                   isToday: isToday,
                   isCurrentMonth: isCurrentMonth,
                   onTap: isCurrentMonth ? () => onDayTap(date) : null,

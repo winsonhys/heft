@@ -104,7 +104,7 @@ func main() {
 				`DELETE FROM section_items`,
 				`DELETE FROM workout_sections`,
 				// Clear program data
-				`DELETE FROM program_days`,
+				`DELETE FROM program_workouts`,
 				`DELETE FROM programs`,
 				// Clear workout templates
 				`DELETE FROM workout_templates`,

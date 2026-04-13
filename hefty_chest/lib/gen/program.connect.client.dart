@@ -7,7 +7,10 @@ import "package:connectrpc/connect.dart" as connect;
 import "program.pb.dart" as program;
 import "program.connect.spec.dart" as specs;
 
-/// ProgramService handles training programs
+/// ProgramService handles training programs.
+/// A Program is a time-bounded block (start_date + duration_weeks) made up of
+/// one or more workouts. Each workout is assigned a set of weekdays on which
+/// it runs. Weekdays without an assigned workout are rest days.
 extension type ProgramServiceClient (connect.Transport _transport) {
   /// List all programs for a user
   Future<program.ListProgramsResponse> listPrograms(
@@ -117,7 +120,7 @@ extension type ProgramServiceClient (connect.Transport _transport) {
     );
   }
 
-  /// Get today's workout based on active program
+  /// Get today's workouts based on active program
   Future<program.GetTodayWorkoutResponse> getTodayWorkout(
     program.GetTodayWorkoutRequest input, {
     connect.Headers? headers,

@@ -10,23 +10,22 @@ import (
 
 // WorkoutSession represents a workout session
 type WorkoutSession struct {
-	ID                 string
-	UserID             string
-	WorkoutTemplateID  *string
-	ProgramID          *string
-	ProgramDayNumber   *int
-	Name               *string
-	Status             string
-	StartedAt          time.Time
-	CompletedAt        *time.Time
-	DurationSeconds    *int
-	TotalSets          int // Computed from session_sets, not stored in DB
-	CompletedSets      int
-	Notes              *string
-	CreatedAt          time.Time
-	UpdatedAt          time.Time
-	Exercises          []*SessionExercise
-	RestItems          []*SessionRestItem
+	ID                string
+	UserID            string
+	WorkoutTemplateID *string
+	ProgramID         *string
+	Name              *string
+	Status            string
+	StartedAt         time.Time
+	CompletedAt       *time.Time
+	DurationSeconds   *int
+	TotalSets         int // Computed from session_sets, not stored in DB
+	CompletedSets     int
+	Notes             *string
+	CreatedAt         time.Time
+	UpdatedAt         time.Time
+	Exercises         []*SessionExercise
+	RestItems         []*SessionRestItem
 }
 
 // SessionExercise represents an exercise in a session
@@ -91,18 +90,18 @@ func NewSessionRepository(pool *pgxpool.Pool) *SessionRepository {
 }
 
 // Create creates a new workout session
-func (r *SessionRepository) Create(ctx context.Context, userID string, workoutTemplateID, programID *string, programDayNumber *int, name *string) (*WorkoutSession, error) {
+func (r *SessionRepository) Create(ctx context.Context, userID string, workoutTemplateID, programID *string, name *string) (*WorkoutSession, error) {
 	query := `
-		INSERT INTO workout_sessions (user_id, workout_template_id, program_id, program_day_number, name)
-		VALUES ($1, $2, $3, $4, $5)
-		RETURNING id, user_id, workout_template_id, program_id, program_day_number, name,
+		INSERT INTO workout_sessions (user_id, workout_template_id, program_id, name)
+		VALUES ($1, $2, $3, $4)
+		RETURNING id, user_id, workout_template_id, program_id, name,
 		          status::text, started_at, completed_at, duration_seconds, completed_sets,
 		          notes, created_at, updated_at
 	`
 
 	var s WorkoutSession
-	err := r.pool.QueryRow(ctx, query, userID, workoutTemplateID, programID, programDayNumber, name).Scan(
-		&s.ID, &s.UserID, &s.WorkoutTemplateID, &s.ProgramID, &s.ProgramDayNumber, &s.Name,
+	err := r.pool.QueryRow(ctx, query, userID, workoutTemplateID, programID, name).Scan(
+		&s.ID, &s.UserID, &s.WorkoutTemplateID, &s.ProgramID, &s.Name,
 		&s.Status, &s.StartedAt, &s.CompletedAt, &s.DurationSeconds, &s.CompletedSets,
 		&s.Notes, &s.CreatedAt, &s.UpdatedAt,
 	)
@@ -116,7 +115,7 @@ func (r *SessionRepository) Create(ctx context.Context, userID string, workoutTe
 // GetByID retrieves a session with full details
 func (r *SessionRepository) GetByID(ctx context.Context, id, userID string) (*WorkoutSession, error) {
 	query := `
-		SELECT id, user_id, workout_template_id, program_id, program_day_number, name,
+		SELECT id, user_id, workout_template_id, program_id, name,
 		       status::text, started_at, completed_at, duration_seconds, completed_sets,
 		       notes, created_at, updated_at
 		FROM workout_sessions
@@ -125,7 +124,7 @@ func (r *SessionRepository) GetByID(ctx context.Context, id, userID string) (*Wo
 
 	var s WorkoutSession
 	err := r.pool.QueryRow(ctx, query, id, userID).Scan(
-		&s.ID, &s.UserID, &s.WorkoutTemplateID, &s.ProgramID, &s.ProgramDayNumber, &s.Name,
+		&s.ID, &s.UserID, &s.WorkoutTemplateID, &s.ProgramID, &s.Name,
 		&s.Status, &s.StartedAt, &s.CompletedAt, &s.DurationSeconds, &s.CompletedSets,
 		&s.Notes, &s.CreatedAt, &s.UpdatedAt,
 	)
@@ -470,14 +469,14 @@ func (r *SessionRepository) FinishSession(ctx context.Context, id, userID string
 		    notes = COALESCE($3, notes),
 		    updated_at = CURRENT_TIMESTAMP
 		WHERE id = $1 AND user_id = $2
-		RETURNING id, user_id, workout_template_id, program_id, program_day_number, name,
+		RETURNING id, user_id, workout_template_id, program_id, name,
 		          status::text, started_at, completed_at, duration_seconds, completed_sets,
 		          notes, created_at, updated_at
 	`
 
 	var s WorkoutSession
 	err = tx.QueryRow(ctx, query, id, userID, notes).Scan(
-		&s.ID, &s.UserID, &s.WorkoutTemplateID, &s.ProgramID, &s.ProgramDayNumber, &s.Name,
+		&s.ID, &s.UserID, &s.WorkoutTemplateID, &s.ProgramID, &s.Name,
 		&s.Status, &s.StartedAt, &s.CompletedAt, &s.DurationSeconds, &s.CompletedSets,
 		&s.Notes, &s.CreatedAt, &s.UpdatedAt,
 	)
@@ -707,7 +706,7 @@ func (r *SessionRepository) List(ctx context.Context, userID string, status *str
 	}
 
 	query := `
-		SELECT ws.id, ws.user_id, ws.workout_template_id, ws.program_id, ws.program_day_number, ws.name,
+		SELECT ws.id, ws.user_id, ws.workout_template_id, ws.program_id, ws.name,
 		       ws.status::text, ws.started_at, ws.completed_at, ws.duration_seconds,
 		       COALESCE((
 		           SELECT COUNT(ss.id)
@@ -735,7 +734,7 @@ func (r *SessionRepository) List(ctx context.Context, userID string, status *str
 	for rows.Next() {
 		var s WorkoutSession
 		err := rows.Scan(
-			&s.ID, &s.UserID, &s.WorkoutTemplateID, &s.ProgramID, &s.ProgramDayNumber, &s.Name,
+			&s.ID, &s.UserID, &s.WorkoutTemplateID, &s.ProgramID, &s.Name,
 			&s.Status, &s.StartedAt, &s.CompletedAt, &s.DurationSeconds, &s.TotalSets, &s.CompletedSets,
 			&s.Notes, &s.CreatedAt, &s.UpdatedAt,
 		)

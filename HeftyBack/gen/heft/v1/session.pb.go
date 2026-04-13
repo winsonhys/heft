@@ -29,7 +29,6 @@ type Session struct {
 	UserId            string                 `protobuf:"bytes,2,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
 	WorkoutTemplateId string                 `protobuf:"bytes,3,opt,name=workout_template_id,json=workoutTemplateId,proto3" json:"workout_template_id,omitempty"`
 	ProgramId         string                 `protobuf:"bytes,4,opt,name=program_id,json=programId,proto3" json:"program_id,omitempty"`
-	ProgramDayNumber  int32                  `protobuf:"varint,5,opt,name=program_day_number,json=programDayNumber,proto3" json:"program_day_number,omitempty"`
 	Name              string                 `protobuf:"bytes,6,opt,name=name,proto3" json:"name,omitempty"`
 	Status            WorkoutStatus          `protobuf:"varint,7,opt,name=status,proto3,enum=heft.v1.WorkoutStatus" json:"status,omitempty"`
 	StartedAt         *timestamppb.Timestamp `protobuf:"bytes,8,opt,name=started_at,json=startedAt,proto3" json:"started_at,omitempty"`
@@ -102,13 +101,6 @@ func (x *Session) GetProgramId() string {
 		return x.ProgramId
 	}
 	return ""
-}
-
-func (x *Session) GetProgramDayNumber() int32 {
-	if x != nil {
-		return x.ProgramDayNumber
-	}
-	return 0
 }
 
 func (x *Session) GetName() string {
@@ -694,7 +686,6 @@ type StartSessionRequest struct {
 	state             protoimpl.MessageState `protogen:"open.v1"`
 	WorkoutTemplateId *string                `protobuf:"bytes,1,opt,name=workout_template_id,json=workoutTemplateId,proto3,oneof" json:"workout_template_id,omitempty"`
 	ProgramId         *string                `protobuf:"bytes,2,opt,name=program_id,json=programId,proto3,oneof" json:"program_id,omitempty"`
-	ProgramDayNumber  *int32                 `protobuf:"varint,3,opt,name=program_day_number,json=programDayNumber,proto3,oneof" json:"program_day_number,omitempty"`
 	Name              *string                `protobuf:"bytes,4,opt,name=name,proto3,oneof" json:"name,omitempty"`
 	unknownFields     protoimpl.UnknownFields
 	sizeCache         protoimpl.SizeCache
@@ -742,13 +733,6 @@ func (x *StartSessionRequest) GetProgramId() string {
 		return *x.ProgramId
 	}
 	return ""
-}
-
-func (x *StartSessionRequest) GetProgramDayNumber() int32 {
-	if x != nil && x.ProgramDayNumber != nil {
-		return *x.ProgramDayNumber
-	}
-	return 0
 }
 
 func (x *StartSessionRequest) GetName() string {
@@ -1776,14 +1760,13 @@ var File_heft_v1_session_proto protoreflect.FileDescriptor
 
 const file_heft_v1_session_proto_rawDesc = "" +
 	"\n" +
-	"\x15heft/v1/session.proto\x12\aheft.v1\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x14heft/v1/common.proto\"\xdb\x05\n" +
+	"\x15heft/v1/session.proto\x12\aheft.v1\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x14heft/v1/common.proto\"\xc7\x05\n" +
 	"\aSession\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x17\n" +
 	"\auser_id\x18\x02 \x01(\tR\x06userId\x12.\n" +
 	"\x13workout_template_id\x18\x03 \x01(\tR\x11workoutTemplateId\x12\x1d\n" +
 	"\n" +
-	"program_id\x18\x04 \x01(\tR\tprogramId\x12,\n" +
-	"\x12program_day_number\x18\x05 \x01(\x05R\x10programDayNumber\x12\x12\n" +
+	"program_id\x18\x04 \x01(\tR\tprogramId\x12\x12\n" +
 	"\x04name\x18\x06 \x01(\tR\x04name\x12.\n" +
 	"\x06status\x18\a \x01(\x0e2\x16.heft.v1.WorkoutStatusR\x06status\x129\n" +
 	"\n" +
@@ -1801,7 +1784,7 @@ const file_heft_v1_session_proto_rawDesc = "" +
 	"\n" +
 	"updated_at\x18\x10 \x01(\v2\x1a.google.protobuf.TimestampR\tupdatedAt\x127\n" +
 	"\n" +
-	"rest_items\x18\x11 \x03(\v2\x18.heft.v1.SessionRestItemR\trestItems\"\xff\x02\n" +
+	"rest_items\x18\x11 \x03(\v2\x18.heft.v1.SessionRestItemR\trestItemsJ\x04\b\x05\x10\x06R\x12program_day_number\"\xff\x02\n" +
 	"\x0fSessionExercise\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1d\n" +
 	"\n" +
@@ -1872,17 +1855,15 @@ const file_heft_v1_session_proto_rawDesc = "" +
 	"total_sets\x18\b \x01(\x05R\ttotalSets\x12%\n" +
 	"\x0ecompleted_sets\x18\t \x01(\x05R\rcompletedSets\x12#\n" +
 	"\rtemplate_name\x18\n" +
-	" \x01(\tR\ftemplateName\"\x81\x02\n" +
+	" \x01(\tR\ftemplateName\"\xd1\x01\n" +
 	"\x13StartSessionRequest\x123\n" +
 	"\x13workout_template_id\x18\x01 \x01(\tH\x00R\x11workoutTemplateId\x88\x01\x01\x12\"\n" +
 	"\n" +
-	"program_id\x18\x02 \x01(\tH\x01R\tprogramId\x88\x01\x01\x121\n" +
-	"\x12program_day_number\x18\x03 \x01(\x05H\x02R\x10programDayNumber\x88\x01\x01\x12\x17\n" +
-	"\x04name\x18\x04 \x01(\tH\x03R\x04name\x88\x01\x01B\x16\n" +
+	"program_id\x18\x02 \x01(\tH\x01R\tprogramId\x88\x01\x01\x12\x17\n" +
+	"\x04name\x18\x04 \x01(\tH\x02R\x04name\x88\x01\x01B\x16\n" +
 	"\x14_workout_template_idB\r\n" +
-	"\v_program_idB\x15\n" +
-	"\x13_program_day_numberB\a\n" +
-	"\x05_name\"B\n" +
+	"\v_program_idB\a\n" +
+	"\x05_nameJ\x04\b\x03\x10\x04R\x12program_day_number\"B\n" +
 	"\x14StartSessionResponse\x12*\n" +
 	"\asession\x18\x01 \x01(\v2\x10.heft.v1.SessionR\asession\"#\n" +
 	"\x11GetSessionRequest\x12\x0e\n" +

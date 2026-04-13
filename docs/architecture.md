@@ -182,7 +182,7 @@ mux.Handle(heftv1connect.NewExerciseServiceHandler(exerciseHandler))
 | UserService | User management | GetProfile, UpdateSettings, LogWeight |
 | ExerciseService | Exercise library | ListExercises, SearchExercises, CreateExercise |
 | WorkoutService | Workout templates | CreateWorkout, UpdateWorkout, DuplicateWorkout |
-| ProgramService | Training programs | CreateProgram, AssignWorkout, SetActiveProgram |
+| ProgramService | Training programs (weekday-scheduled workouts) | CreateProgram, UpdateProgram, SetActiveProgram, GetTodayWorkout |
 | SessionService | Live tracking | StartSession, SyncSession, FinishSession |
 | ProgressService | Analytics | GetDashboardStats, GetPersonalRecords, GetStreak |
 

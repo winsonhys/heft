@@ -70,7 +70,7 @@ type ProgramServiceClient interface {
 	DeleteProgram(context.Context, *connect.Request[v1.DeleteProgramRequest]) (*connect.Response[v1.DeleteProgramResponse], error)
 	// Set a program as active (deactivates others)
 	SetActiveProgram(context.Context, *connect.Request[v1.SetActiveProgramRequest]) (*connect.Response[v1.SetActiveProgramResponse], error)
-	// Get today's workout based on active program
+	// Get today's workouts based on active program
 	GetTodayWorkout(context.Context, *connect.Request[v1.GetTodayWorkoutRequest]) (*connect.Response[v1.GetTodayWorkoutResponse], error)
 }
 
@@ -190,7 +190,7 @@ type ProgramServiceHandler interface {
 	DeleteProgram(context.Context, *connect.Request[v1.DeleteProgramRequest]) (*connect.Response[v1.DeleteProgramResponse], error)
 	// Set a program as active (deactivates others)
 	SetActiveProgram(context.Context, *connect.Request[v1.SetActiveProgramRequest]) (*connect.Response[v1.SetActiveProgramResponse], error)
-	// Get today's workout based on active program
+	// Get today's workouts based on active program
 	GetTodayWorkout(context.Context, *connect.Request[v1.GetTodayWorkoutRequest]) (*connect.Response[v1.GetTodayWorkoutResponse], error)
 }
 

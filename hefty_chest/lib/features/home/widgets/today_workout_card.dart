@@ -1,24 +1,23 @@
 import 'package:flutter/material.dart';
 import '../../../shared/theme/app_colors.dart';
 
+/// Card on the home screen showing one workout scheduled for today by the
+/// user's active program.
 class TodayWorkoutCard extends StatelessWidget {
   final String programName;
-  final int dayNumber;
-  final String? workoutName;
+  final String workoutName;
   final VoidCallback onStart;
 
   const TodayWorkoutCard({
     super.key,
     required this.programName,
-    required this.dayNumber,
-    this.workoutName,
+    required this.workoutName,
     required this.onStart,
   });
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: AppColors.accentBlue.withValues(alpha: 0.1),
@@ -33,11 +32,8 @@ class TodayWorkoutCard extends StatelessWidget {
               color: AppColors.accentBlue.withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(10),
             ),
-            child: Icon(
-              Icons.calendar_today,
-              color: AppColors.accentBlue,
-              size: 24,
-            ),
+            child: const Icon(Icons.calendar_today,
+                color: AppColors.accentBlue, size: 24),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -45,8 +41,8 @@ class TodayWorkoutCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Day $dayNumber - ${workoutName ?? 'Workout'}',
-                  style: TextStyle(
+                  workoutName,
+                  style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
                     color: AppColors.textPrimary,
@@ -54,10 +50,8 @@ class TodayWorkoutCard extends StatelessWidget {
                 ),
                 Text(
                   programName,
-                  style: TextStyle(
-                    fontSize: 13,
-                    color: AppColors.textMuted,
-                  ),
+                  style: const TextStyle(
+                      fontSize: 13, color: AppColors.textMuted),
                 ),
               ],
             ),

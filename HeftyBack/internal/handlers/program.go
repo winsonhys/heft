@@ -13,6 +13,9 @@ import (
 	"github.com/heftyback/internal/repository"
 )
 
+// dateLayout is the YYYY-MM-DD format used across the ProgramService wire API.
+const dateLayout = "2006-01-02"
+
 // ProgramHandler implements the ProgramService
 type ProgramHandler struct {
 	programRepo repository.ProgramRepositoryInterface
@@ -21,10 +24,7 @@ type ProgramHandler struct {
 
 // NewProgramHandler creates a new ProgramHandler
 func NewProgramHandler(programRepo repository.ProgramRepositoryInterface, workoutRepo repository.WorkoutRepositoryInterface) *ProgramHandler {
-	return &ProgramHandler{
-		programRepo: programRepo,
-		workoutRepo: workoutRepo,
-	}
+	return &ProgramHandler{programRepo: programRepo, workoutRepo: workoutRepo}
 }
 
 // ListPrograms lists programs for a user
@@ -45,8 +45,18 @@ func (h *ProgramHandler) ListPrograms(ctx context.Context, req *connect.Request[
 		return nil, handleDBError(err)
 	}
 
+	// Batch-load workout counts for summary display.
+	ids := make([]string, len(programs))
+	for i, p := range programs {
+		ids[i] = p.ID
+	}
+	counts, err := h.programRepo.ListWorkoutCounts(ctx, ids)
+	if err != nil {
+		return nil, handleDBError(err)
+	}
+
 	protoPrograms := mapSlice(programs, func(p *repository.Program) *heftv1.ProgramSummary {
-		return programSummaryToProto(p)
+		return programSummaryToProto(p, counts[p.ID])
 	})
 
 	return connect.NewResponse(&heftv1.ListProgramsResponse{
@@ -78,7 +88,7 @@ func (h *ProgramHandler) GetProgram(ctx context.Context, req *connect.Request[he
 	}), nil
 }
 
-// CreateProgram creates a new program
+// CreateProgram creates a new program and its initial workout assignments.
 func (h *ProgramHandler) CreateProgram(ctx context.Context, req *connect.Request[heftv1.CreateProgramRequest]) (*connect.Response[heftv1.CreateProgramResponse], error) {
 	userID, err := getAuthenticatedUserID(ctx)
 	if err != nil {
@@ -88,45 +98,46 @@ func (h *ProgramHandler) CreateProgram(ctx context.Context, req *connect.Request
 		return nil, err
 	}
 
+	startDate, err := parseDate(req.Msg.StartDate)
+	if err != nil {
+		return nil, err
+	}
+	if req.Msg.DurationWeeks <= 0 {
+		return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("duration_weeks must be >= 1"))
+	}
+	if err := validateWorkoutInputs(req.Msg.Workouts); err != nil {
+		return nil, err
+	}
+
 	var description *string
 	if req.Msg.Description != nil {
 		description = req.Msg.Description
 	}
 
-	program, err := h.programRepo.Create(ctx, userID, req.Msg.Name, description, int(req.Msg.DurationWeeks), int(req.Msg.DurationDays))
+	program, err := h.programRepo.Create(ctx, userID, req.Msg.Name, description, startDate, int(req.Msg.DurationWeeks))
 	if err != nil {
 		return nil, handleDBError(err)
 	}
 
-	// Create days if provided
-	for _, d := range req.Msg.Days {
-		dayType := convert.ProgramDayTypeToString(d.DayType)
-		var workoutTemplateID, customName *string
-		if d.WorkoutTemplateId != nil {
-			workoutTemplateID = d.WorkoutTemplateId
-		}
-		if d.CustomName != nil {
-			customName = d.CustomName
-		}
-
-		_, err := h.programRepo.CreateDay(ctx, program.ID, int(d.DayNumber), dayType, workoutTemplateID, customName)
-		if err != nil {
+	for i, w := range req.Msg.Workouts {
+		if _, err := h.programRepo.CreateWorkout(ctx, program.ID, w.WorkoutTemplateId,
+			daysOfWeekFromProto(w.DaysOfWeek), int(resolveDisplayOrder(w.DisplayOrder, i))); err != nil {
 			return nil, handleDBError(err)
 		}
 	}
 
-	// Reload with all details
-	program, err = h.programRepo.GetByID(ctx, program.ID, userID)
+	reloaded, err := h.programRepo.GetByID(ctx, program.ID, userID)
 	if err != nil {
 		return nil, handleDBError(err)
 	}
 
 	return connect.NewResponse(&heftv1.CreateProgramResponse{
-		Program: programToProto(program),
+		Program: programToProto(reloaded),
 	}), nil
 }
 
-// UpdateProgram updates a program
+// UpdateProgram updates a program. If replace_workouts is true, the program's
+// workouts are atomically replaced with the given list (empty list clears all).
 func (h *ProgramHandler) UpdateProgram(ctx context.Context, req *connect.Request[heftv1.UpdateProgramRequest]) (*connect.Response[heftv1.UpdateProgramResponse], error) {
 	userID, err := getAuthenticatedUserID(ctx)
 	if err != nil {
@@ -136,86 +147,70 @@ func (h *ProgramHandler) UpdateProgram(ctx context.Context, req *connect.Request
 		return nil, err
 	}
 
-	// Extract optional fields from request
-	var name *string
+	var name, description *string
 	if req.Msg.Name != nil {
 		name = req.Msg.Name
 	}
-	var description *string
 	if req.Msg.Description != nil {
 		description = req.Msg.Description
 	}
+
+	var startDate *time.Time
+	if req.Msg.StartDate != nil {
+		d, err := parseDate(*req.Msg.StartDate)
+		if err != nil {
+			return nil, err
+		}
+		startDate = &d
+	}
+
 	var durationWeeks *int
 	if req.Msg.DurationWeeks != nil {
+		if *req.Msg.DurationWeeks <= 0 {
+			return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("duration_weeks must be >= 1"))
+		}
 		dw := int(*req.Msg.DurationWeeks)
 		durationWeeks = &dw
 	}
-	var durationDays *int
-	if req.Msg.DurationDays != nil {
-		dd := int(*req.Msg.DurationDays)
-		durationDays = &dd
-	}
+
 	var isArchived *bool
 	if req.Msg.IsArchived != nil {
 		isArchived = req.Msg.IsArchived
 	}
 
-	// If days provided, compute totals for the UPDATE
-	var totalWorkoutDays, totalRestDays *int
-	if len(req.Msg.Days) > 0 {
-		wd, rd := 0, 0
-		for _, d := range req.Msg.Days {
-			switch d.DayType {
-			case heftv1.ProgramDayType_PROGRAM_DAY_TYPE_WORKOUT:
-				wd++
-			case heftv1.ProgramDayType_PROGRAM_DAY_TYPE_REST:
-				rd++
-			}
+	if req.Msg.ReplaceWorkouts {
+		if err := validateWorkoutInputs(req.Msg.Workouts); err != nil {
+			return nil, err
 		}
-		totalWorkoutDays = &wd
-		totalRestDays = &rd
 	}
 
-	// Call Update
-	updatedProgram, err := h.programRepo.Update(ctx, req.Msg.Id, userID,
-		name, description, durationWeeks, durationDays, isArchived,
-		totalWorkoutDays, totalRestDays)
+	updated, err := h.programRepo.Update(ctx, req.Msg.Id, userID, name, description, startDate, durationWeeks, isArchived)
 	if err != nil {
 		return nil, handleDBError(err)
 	}
-	if updatedProgram == nil {
+	if updated == nil {
 		return nil, connect.NewError(connect.CodeNotFound, errors.New("program not found"))
 	}
 
-	// Replace days if provided
-	if len(req.Msg.Days) > 0 {
-		if err := h.programRepo.DeleteDays(ctx, req.Msg.Id, userID); err != nil {
+	if req.Msg.ReplaceWorkouts {
+		if err := h.programRepo.DeleteWorkouts(ctx, req.Msg.Id, userID); err != nil {
 			return nil, handleDBError(err)
 		}
-		for _, d := range req.Msg.Days {
-			dayType := convert.ProgramDayTypeToString(d.DayType)
-			var workoutTemplateID, customName *string
-			if d.WorkoutTemplateId != nil {
-				workoutTemplateID = d.WorkoutTemplateId
-			}
-			if d.CustomName != nil {
-				customName = d.CustomName
-			}
-			_, err := h.programRepo.CreateDay(ctx, req.Msg.Id, int(d.DayNumber), dayType, workoutTemplateID, customName)
-			if err != nil {
+		for i, w := range req.Msg.Workouts {
+			if _, err := h.programRepo.CreateWorkout(ctx, req.Msg.Id, w.WorkoutTemplateId,
+				daysOfWeekFromProto(w.DaysOfWeek), int(resolveDisplayOrder(w.DisplayOrder, i))); err != nil {
 				return nil, handleDBError(err)
 			}
 		}
 	}
 
-	// Reload with days
-	program, err := h.programRepo.GetByID(ctx, updatedProgram.ID, userID)
+	reloaded, err := h.programRepo.GetByID(ctx, req.Msg.Id, userID)
 	if err != nil {
 		return nil, handleDBError(err)
 	}
 
 	return connect.NewResponse(&heftv1.UpdateProgramResponse{
-		Program: programToProto(program),
+		Program: programToProto(reloaded),
 	}), nil
 }
 
@@ -229,17 +224,14 @@ func (h *ProgramHandler) DeleteProgram(ctx context.Context, req *connect.Request
 		return nil, err
 	}
 
-	err = h.programRepo.Delete(ctx, req.Msg.Id, userID)
-	if err != nil {
+	if err := h.programRepo.Delete(ctx, req.Msg.Id, userID); err != nil {
 		return nil, handleDBError(err)
 	}
 
-	return connect.NewResponse(&heftv1.DeleteProgramResponse{
-		Success: true,
-	}), nil
+	return connect.NewResponse(&heftv1.DeleteProgramResponse{Success: true}), nil
 }
 
-// SetActiveProgram sets a program as active
+// SetActiveProgram activates a program and deactivates all others for the user.
 func (h *ProgramHandler) SetActiveProgram(ctx context.Context, req *connect.Request[heftv1.SetActiveProgramRequest]) (*connect.Response[heftv1.SetActiveProgramResponse], error) {
 	userID, err := getAuthenticatedUserID(ctx)
 	if err != nil {
@@ -249,155 +241,197 @@ func (h *ProgramHandler) SetActiveProgram(ctx context.Context, req *connect.Requ
 		return nil, err
 	}
 
-	program, err := h.programRepo.SetActive(ctx, req.Msg.Id, userID)
+	p, err := h.programRepo.SetActive(ctx, req.Msg.Id, userID)
 	if err != nil {
 		return nil, handleDBError(err)
 	}
+	if p == nil {
+		return nil, connect.NewError(connect.CodeNotFound, errors.New("program not found"))
+	}
 
-	// Reload with days
-	program, err = h.programRepo.GetByID(ctx, program.ID, userID)
+	reloaded, err := h.programRepo.GetByID(ctx, p.ID, userID)
 	if err != nil {
 		return nil, handleDBError(err)
 	}
-
 	return connect.NewResponse(&heftv1.SetActiveProgramResponse{
-		Program: programToProto(program),
+		Program: programToProto(reloaded),
 	}), nil
 }
 
-// GetTodayWorkout gets today's workout based on active program
+// GetTodayWorkout returns the workouts scheduled for the user's local "today"
+// based on their active program. Empty workouts list = rest day or no program.
 func (h *ProgramHandler) GetTodayWorkout(ctx context.Context, req *connect.Request[heftv1.GetTodayWorkoutRequest]) (*connect.Response[heftv1.GetTodayWorkoutResponse], error) {
 	userID, err := getAuthenticatedUserID(ctx)
 	if err != nil {
 		return nil, err
 	}
 
+	now := time.Now()
+	today := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, time.UTC)
+	todayISO := convert.TimeWeekdayToISO(int(today.Weekday()))
+
+	resp := &heftv1.GetTodayWorkoutResponse{
+		Date:      today.Format(dateLayout),
+		DayOfWeek: convert.IntToDayOfWeek(todayISO),
+	}
+
 	program, err := h.programRepo.GetActiveProgram(ctx, userID)
 	if err != nil {
 		return nil, handleDBError(err)
 	}
-
 	if program == nil {
-		return connect.NewResponse(&heftv1.GetTodayWorkoutResponse{
-			HasWorkout: false,
-		}), nil
+		return connect.NewResponse(resp), nil
 	}
+	resp.Program = programToProto(program)
 
-	// Calculate today's day number based on program start date
-	dayNumber := 1
-	if program.StartedAt != nil {
-		dayNumber = int(time.Since(*program.StartedAt).Hours()/24) + 1
+	// Normalize to UTC midnight so DB DATE values (always UTC midnight in pgx)
+	// compare cleanly with the synthesized "today".
+	start := time.Date(program.StartDate.Year(), program.StartDate.Month(),
+		program.StartDate.Day(), 0, 0, 0, 0, time.UTC)
+	end := start.AddDate(0, 0, program.DurationWeeks*7)
+	if today.Before(start) || !today.Before(end) {
+		return connect.NewResponse(resp), nil
 	}
-	totalDays := program.DurationWeeks*7 + program.DurationDays
-	if totalDays > 0 && dayNumber > totalDays {
-		dayNumber = totalDays
-	}
+	resp.InProgramWindow = true
 
-	// Find today's day
-	var todayDay *repository.ProgramDay
-	for _, d := range program.Days {
-		if d.DayNumber == dayNumber {
-			todayDay = d
-			break
+	for _, pw := range program.Workouts {
+		if !containsISO(pw.DaysOfWeek, todayISO) {
+			continue
+		}
+		workout, err := h.workoutRepo.GetByID(ctx, pw.WorkoutTemplateID, userID)
+		if err != nil {
+			return nil, handleDBError(err)
+		}
+		if workout != nil {
+			resp.Workouts = append(resp.Workouts, workoutToProto(workout))
 		}
 	}
 
-	if todayDay == nil {
-		return connect.NewResponse(&heftv1.GetTodayWorkoutResponse{
-			HasWorkout: false,
-			DayNumber:  int32(dayNumber),
-			DayType:    heftv1.ProgramDayType_PROGRAM_DAY_TYPE_UNASSIGNED,
-			Program:    programToProto(program),
-		}), nil
-	}
-
-	response := &heftv1.GetTodayWorkoutResponse{
-		DayNumber: int32(dayNumber),
-		DayType:   convert.StringToProgramDayType(todayDay.DayType),
-		Program:   programToProto(program),
-	}
-
-	if todayDay.DayType == "workout" && todayDay.WorkoutTemplateID != nil {
-		workout, err := h.workoutRepo.GetByID(ctx, *todayDay.WorkoutTemplateID, userID)
-		if err == nil && workout != nil {
-			response.HasWorkout = true
-			response.Workout = workoutToProto(workout)
-		}
-	}
-
-	return connect.NewResponse(response), nil
+	return connect.NewResponse(resp), nil
 }
 
 // Helper functions
-func programSummaryToProto(p *repository.Program) *heftv1.ProgramSummary {
+
+func parseDate(s string) (time.Time, error) {
+	if s == "" {
+		return time.Time{}, connect.NewError(connect.CodeInvalidArgument, errors.New("start_date is required"))
+	}
+	t, err := time.Parse(dateLayout, s)
+	if err != nil {
+		return time.Time{}, connect.NewError(connect.CodeInvalidArgument, errors.New("start_date must be YYYY-MM-DD"))
+	}
+	return t, nil
+}
+
+func validateWorkoutInputs(inputs []*heftv1.ProgramWorkoutInput) error {
+	for i, w := range inputs {
+		if w.WorkoutTemplateId == "" {
+			return connect.NewError(connect.CodeInvalidArgument, errors.New("workouts[].workout_template_id is required"))
+		}
+		if len(w.DaysOfWeek) == 0 {
+			return connect.NewError(connect.CodeInvalidArgument, errors.New("workouts[].days_of_week must have at least one day"))
+		}
+		for _, d := range w.DaysOfWeek {
+			if convert.DayOfWeekToInt(d) == 0 {
+				return connect.NewError(connect.CodeInvalidArgument, errors.New("workouts[].days_of_week contains unspecified day"))
+			}
+		}
+		_ = i
+	}
+	return nil
+}
+
+func daysOfWeekFromProto(days []heftv1.DayOfWeek) []int16 {
+	out := make([]int16, 0, len(days))
+	seen := make(map[int16]struct{}, len(days))
+	for _, d := range days {
+		v := convert.DayOfWeekToInt(d)
+		if v == 0 {
+			continue
+		}
+		if _, ok := seen[v]; ok {
+			continue
+		}
+		seen[v] = struct{}{}
+		out = append(out, v)
+	}
+	return out
+}
+
+func daysOfWeekToProto(days []int16) []heftv1.DayOfWeek {
+	out := make([]heftv1.DayOfWeek, len(days))
+	for i, d := range days {
+		out[i] = convert.IntToDayOfWeek(d)
+	}
+	return out
+}
+
+func resolveDisplayOrder(requested int32, fallback int) int32 {
+	if requested > 0 {
+		return requested
+	}
+	return int32(fallback)
+}
+
+func containsISO(days []int16, target int16) bool {
+	for _, d := range days {
+		if d == target {
+			return true
+		}
+	}
+	return false
+}
+
+func programSummaryToProto(p *repository.Program, totalWorkouts int) *heftv1.ProgramSummary {
 	ps := &heftv1.ProgramSummary{
-		Id:               p.ID,
-		UserId:           p.UserID,
-		Name:             p.Name,
-		DurationWeeks:    int32(p.DurationWeeks),
-		DurationDays:     int32(p.DurationDays),
-		TotalWorkoutDays: int32(p.TotalWorkoutDays),
-		TotalRestDays:    int32(p.TotalRestDays),
-		IsActive:         p.IsActive,
-		IsArchived:       p.IsArchived,
-		CreatedAt:        timestamppb.New(p.CreatedAt),
-		UpdatedAt:        timestamppb.New(p.UpdatedAt),
+		Id:             p.ID,
+		UserId:         p.UserID,
+		Name:           p.Name,
+		StartDate:      p.StartDate.Format(dateLayout),
+		DurationWeeks:  int32(p.DurationWeeks),
+		TotalWorkouts:  int32(totalWorkouts),
+		IsActive:       p.IsActive,
+		IsArchived:     p.IsArchived,
+		CreatedAt:      timestamppb.New(p.CreatedAt),
+		UpdatedAt:      timestamppb.New(p.UpdatedAt),
 	}
 	if p.Description != nil {
 		ps.Description = *p.Description
-	}
-	if p.StartedAt != nil {
-		ps.StartedAt = timestamppb.New(*p.StartedAt)
 	}
 	return ps
 }
 
 func programToProto(p *repository.Program) *heftv1.Program {
 	program := &heftv1.Program{
-		Id:               p.ID,
-		UserId:           p.UserID,
-		Name:             p.Name,
-		DurationWeeks:    int32(p.DurationWeeks),
-		DurationDays:     int32(p.DurationDays),
-		TotalWorkoutDays: int32(p.TotalWorkoutDays),
-		TotalRestDays:    int32(p.TotalRestDays),
-		IsActive:         p.IsActive,
-		IsArchived:       p.IsArchived,
-		CreatedAt:        timestamppb.New(p.CreatedAt),
-		UpdatedAt:        timestamppb.New(p.UpdatedAt),
+		Id:            p.ID,
+		UserId:        p.UserID,
+		Name:          p.Name,
+		StartDate:     p.StartDate.Format(dateLayout),
+		DurationWeeks: int32(p.DurationWeeks),
+		IsActive:      p.IsActive,
+		IsArchived:    p.IsArchived,
+		CreatedAt:     timestamppb.New(p.CreatedAt),
+		UpdatedAt:     timestamppb.New(p.UpdatedAt),
 	}
 	if p.Description != nil {
 		program.Description = *p.Description
 	}
-	if p.StartedAt != nil {
-		program.StartedAt = timestamppb.New(*p.StartedAt)
-	}
 
-	days := make([]*heftv1.ProgramDay, len(p.Days))
-	for i, d := range p.Days {
-		days[i] = programDayToProto(d)
+	workouts := make([]*heftv1.ProgramWorkout, len(p.Workouts))
+	for i, w := range p.Workouts {
+		workouts[i] = programWorkoutToProto(w)
 	}
-	program.Days = days
-
+	program.Workouts = workouts
 	return program
 }
 
-func programDayToProto(d *repository.ProgramDay) *heftv1.ProgramDay {
-	day := &heftv1.ProgramDay{
-		Id:        d.ID,
-		ProgramId: d.ProgramID,
-		DayNumber: int32(d.DayNumber),
-		DayType:   convert.StringToProgramDayType(d.DayType),
+func programWorkoutToProto(w *repository.ProgramWorkout) *heftv1.ProgramWorkout {
+	return &heftv1.ProgramWorkout{
+		Id:                w.ID,
+		ProgramId:         w.ProgramID,
+		WorkoutTemplateId: w.WorkoutTemplateID,
+		WorkoutName:       w.WorkoutName,
+		DaysOfWeek:        daysOfWeekToProto(w.DaysOfWeek),
+		DisplayOrder:      int32(w.DisplayOrder),
 	}
-	if d.WorkoutTemplateID != nil {
-		day.WorkoutTemplateId = *d.WorkoutTemplateID
-	}
-	if d.WorkoutName != nil {
-		day.WorkoutName = *d.WorkoutName
-	}
-	if d.CustomName != nil {
-		day.CustomName = *d.CustomName
-	}
-	return day
 }
-

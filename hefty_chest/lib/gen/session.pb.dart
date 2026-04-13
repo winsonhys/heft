@@ -25,7 +25,6 @@ class Session extends $pb.GeneratedMessage {
     $core.String? userId,
     $core.String? workoutTemplateId,
     $core.String? programId,
-    $core.int? programDayNumber,
     $core.String? name,
     $2.WorkoutStatus? status,
     $1.Timestamp? startedAt,
@@ -51,9 +50,6 @@ class Session extends $pb.GeneratedMessage {
     }
     if (programId != null) {
       $result.programId = programId;
-    }
-    if (programDayNumber != null) {
-      $result.programDayNumber = programDayNumber;
     }
     if (name != null) {
       $result.name = name;
@@ -102,7 +98,6 @@ class Session extends $pb.GeneratedMessage {
     ..aOS(2, _omitFieldNames ? '' : 'userId')
     ..aOS(3, _omitFieldNames ? '' : 'workoutTemplateId')
     ..aOS(4, _omitFieldNames ? '' : 'programId')
-    ..a<$core.int>(5, _omitFieldNames ? '' : 'programDayNumber', $pb.PbFieldType.O3)
     ..aOS(6, _omitFieldNames ? '' : 'name')
     ..e<$2.WorkoutStatus>(7, _omitFieldNames ? '' : 'status', $pb.PbFieldType.OE, defaultOrMaker: $2.WorkoutStatus.WORKOUT_STATUS_UNSPECIFIED, valueOf: $2.WorkoutStatus.valueOf, enumValues: $2.WorkoutStatus.values)
     ..aOM<$1.Timestamp>(8, _omitFieldNames ? '' : 'startedAt', subBuilder: $1.Timestamp.create)
@@ -175,118 +170,109 @@ class Session extends $pb.GeneratedMessage {
   @$pb.TagNumber(4)
   void clearProgramId() => clearField(4);
 
-  @$pb.TagNumber(5)
-  $core.int get programDayNumber => $_getIZ(4);
-  @$pb.TagNumber(5)
-  set programDayNumber($core.int v) { $_setSignedInt32(4, v); }
-  @$pb.TagNumber(5)
-  $core.bool hasProgramDayNumber() => $_has(4);
-  @$pb.TagNumber(5)
-  void clearProgramDayNumber() => clearField(5);
-
   @$pb.TagNumber(6)
-  $core.String get name => $_getSZ(5);
+  $core.String get name => $_getSZ(4);
   @$pb.TagNumber(6)
-  set name($core.String v) { $_setString(5, v); }
+  set name($core.String v) { $_setString(4, v); }
   @$pb.TagNumber(6)
-  $core.bool hasName() => $_has(5);
+  $core.bool hasName() => $_has(4);
   @$pb.TagNumber(6)
   void clearName() => clearField(6);
 
   @$pb.TagNumber(7)
-  $2.WorkoutStatus get status => $_getN(6);
+  $2.WorkoutStatus get status => $_getN(5);
   @$pb.TagNumber(7)
   set status($2.WorkoutStatus v) { setField(7, v); }
   @$pb.TagNumber(7)
-  $core.bool hasStatus() => $_has(6);
+  $core.bool hasStatus() => $_has(5);
   @$pb.TagNumber(7)
   void clearStatus() => clearField(7);
 
   @$pb.TagNumber(8)
-  $1.Timestamp get startedAt => $_getN(7);
+  $1.Timestamp get startedAt => $_getN(6);
   @$pb.TagNumber(8)
   set startedAt($1.Timestamp v) { setField(8, v); }
   @$pb.TagNumber(8)
-  $core.bool hasStartedAt() => $_has(7);
+  $core.bool hasStartedAt() => $_has(6);
   @$pb.TagNumber(8)
   void clearStartedAt() => clearField(8);
   @$pb.TagNumber(8)
-  $1.Timestamp ensureStartedAt() => $_ensure(7);
+  $1.Timestamp ensureStartedAt() => $_ensure(6);
 
   @$pb.TagNumber(9)
-  $1.Timestamp get completedAt => $_getN(8);
+  $1.Timestamp get completedAt => $_getN(7);
   @$pb.TagNumber(9)
   set completedAt($1.Timestamp v) { setField(9, v); }
   @$pb.TagNumber(9)
-  $core.bool hasCompletedAt() => $_has(8);
+  $core.bool hasCompletedAt() => $_has(7);
   @$pb.TagNumber(9)
   void clearCompletedAt() => clearField(9);
   @$pb.TagNumber(9)
-  $1.Timestamp ensureCompletedAt() => $_ensure(8);
+  $1.Timestamp ensureCompletedAt() => $_ensure(7);
 
   @$pb.TagNumber(10)
-  $core.int get durationSeconds => $_getIZ(9);
+  $core.int get durationSeconds => $_getIZ(8);
   @$pb.TagNumber(10)
-  set durationSeconds($core.int v) { $_setSignedInt32(9, v); }
+  set durationSeconds($core.int v) { $_setSignedInt32(8, v); }
   @$pb.TagNumber(10)
-  $core.bool hasDurationSeconds() => $_has(9);
+  $core.bool hasDurationSeconds() => $_has(8);
   @$pb.TagNumber(10)
   void clearDurationSeconds() => clearField(10);
 
   @$pb.TagNumber(11)
-  $core.int get totalSets => $_getIZ(10);
+  $core.int get totalSets => $_getIZ(9);
   @$pb.TagNumber(11)
-  set totalSets($core.int v) { $_setSignedInt32(10, v); }
+  set totalSets($core.int v) { $_setSignedInt32(9, v); }
   @$pb.TagNumber(11)
-  $core.bool hasTotalSets() => $_has(10);
+  $core.bool hasTotalSets() => $_has(9);
   @$pb.TagNumber(11)
   void clearTotalSets() => clearField(11);
 
   @$pb.TagNumber(12)
-  $core.int get completedSets => $_getIZ(11);
+  $core.int get completedSets => $_getIZ(10);
   @$pb.TagNumber(12)
-  set completedSets($core.int v) { $_setSignedInt32(11, v); }
+  set completedSets($core.int v) { $_setSignedInt32(10, v); }
   @$pb.TagNumber(12)
-  $core.bool hasCompletedSets() => $_has(11);
+  $core.bool hasCompletedSets() => $_has(10);
   @$pb.TagNumber(12)
   void clearCompletedSets() => clearField(12);
 
   @$pb.TagNumber(13)
-  $core.String get notes => $_getSZ(12);
+  $core.String get notes => $_getSZ(11);
   @$pb.TagNumber(13)
-  set notes($core.String v) { $_setString(12, v); }
+  set notes($core.String v) { $_setString(11, v); }
   @$pb.TagNumber(13)
-  $core.bool hasNotes() => $_has(12);
+  $core.bool hasNotes() => $_has(11);
   @$pb.TagNumber(13)
   void clearNotes() => clearField(13);
 
   @$pb.TagNumber(14)
-  $core.List<SessionExercise> get exercises => $_getList(13);
+  $core.List<SessionExercise> get exercises => $_getList(12);
 
   @$pb.TagNumber(15)
-  $1.Timestamp get createdAt => $_getN(14);
+  $1.Timestamp get createdAt => $_getN(13);
   @$pb.TagNumber(15)
   set createdAt($1.Timestamp v) { setField(15, v); }
   @$pb.TagNumber(15)
-  $core.bool hasCreatedAt() => $_has(14);
+  $core.bool hasCreatedAt() => $_has(13);
   @$pb.TagNumber(15)
   void clearCreatedAt() => clearField(15);
   @$pb.TagNumber(15)
-  $1.Timestamp ensureCreatedAt() => $_ensure(14);
+  $1.Timestamp ensureCreatedAt() => $_ensure(13);
 
   @$pb.TagNumber(16)
-  $1.Timestamp get updatedAt => $_getN(15);
+  $1.Timestamp get updatedAt => $_getN(14);
   @$pb.TagNumber(16)
   set updatedAt($1.Timestamp v) { setField(16, v); }
   @$pb.TagNumber(16)
-  $core.bool hasUpdatedAt() => $_has(15);
+  $core.bool hasUpdatedAt() => $_has(14);
   @$pb.TagNumber(16)
   void clearUpdatedAt() => clearField(16);
   @$pb.TagNumber(16)
-  $1.Timestamp ensureUpdatedAt() => $_ensure(15);
+  $1.Timestamp ensureUpdatedAt() => $_ensure(14);
 
   @$pb.TagNumber(17)
-  $core.List<SessionRestItem> get restItems => $_getList(16);
+  $core.List<SessionRestItem> get restItems => $_getList(15);
 }
 
 /// Session exercise
@@ -1048,7 +1034,6 @@ class StartSessionRequest extends $pb.GeneratedMessage {
   factory StartSessionRequest({
     $core.String? workoutTemplateId,
     $core.String? programId,
-    $core.int? programDayNumber,
     $core.String? name,
   }) {
     final $result = create();
@@ -1057,9 +1042,6 @@ class StartSessionRequest extends $pb.GeneratedMessage {
     }
     if (programId != null) {
       $result.programId = programId;
-    }
-    if (programDayNumber != null) {
-      $result.programDayNumber = programDayNumber;
     }
     if (name != null) {
       $result.name = name;
@@ -1073,7 +1055,6 @@ class StartSessionRequest extends $pb.GeneratedMessage {
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'StartSessionRequest', package: const $pb.PackageName(_omitMessageNames ? '' : 'heft.v1'), createEmptyInstance: create)
     ..aOS(1, _omitFieldNames ? '' : 'workoutTemplateId')
     ..aOS(2, _omitFieldNames ? '' : 'programId')
-    ..a<$core.int>(3, _omitFieldNames ? '' : 'programDayNumber', $pb.PbFieldType.O3)
     ..aOS(4, _omitFieldNames ? '' : 'name')
     ..hasRequiredFields = false
   ;
@@ -1117,21 +1098,12 @@ class StartSessionRequest extends $pb.GeneratedMessage {
   @$pb.TagNumber(2)
   void clearProgramId() => clearField(2);
 
-  @$pb.TagNumber(3)
-  $core.int get programDayNumber => $_getIZ(2);
-  @$pb.TagNumber(3)
-  set programDayNumber($core.int v) { $_setSignedInt32(2, v); }
-  @$pb.TagNumber(3)
-  $core.bool hasProgramDayNumber() => $_has(2);
-  @$pb.TagNumber(3)
-  void clearProgramDayNumber() => clearField(3);
-
   @$pb.TagNumber(4)
-  $core.String get name => $_getSZ(3);
+  $core.String get name => $_getSZ(2);
   @$pb.TagNumber(4)
-  set name($core.String v) { $_setString(3, v); }
+  set name($core.String v) { $_setString(2, v); }
   @$pb.TagNumber(4)
-  $core.bool hasName() => $_has(3);
+  $core.bool hasName() => $_has(2);
   @$pb.TagNumber(4)
   void clearName() => clearField(4);
 }

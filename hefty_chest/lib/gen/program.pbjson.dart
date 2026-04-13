@@ -25,18 +25,13 @@ const ProgramSummary$json = {
     {'1': 'user_id', '3': 2, '4': 1, '5': 9, '10': 'userId'},
     {'1': 'name', '3': 3, '4': 1, '5': 9, '10': 'name'},
     {'1': 'description', '3': 4, '4': 1, '5': 9, '10': 'description'},
-    {'1': 'duration_weeks', '3': 5, '4': 1, '5': 5, '10': 'durationWeeks'},
-    {'1': 'duration_days', '3': 6, '4': 1, '5': 5, '10': 'durationDays'},
-    {'1': 'total_workout_days', '3': 7, '4': 1, '5': 5, '10': 'totalWorkoutDays'},
-    {'1': 'total_rest_days', '3': 8, '4': 1, '5': 5, '10': 'totalRestDays'},
-    {'1': 'is_active', '3': 9, '4': 1, '5': 8, '10': 'isActive'},
-    {'1': 'is_archived', '3': 10, '4': 1, '5': 8, '10': 'isArchived'},
-    {'1': 'created_at', '3': 11, '4': 1, '5': 11, '6': '.google.protobuf.Timestamp', '10': 'createdAt'},
-    {'1': 'updated_at', '3': 12, '4': 1, '5': 11, '6': '.google.protobuf.Timestamp', '10': 'updatedAt'},
-    {'1': 'started_at', '3': 13, '4': 1, '5': 11, '6': '.google.protobuf.Timestamp', '9': 0, '10': 'startedAt', '17': true},
-  ],
-  '8': [
-    {'1': '_started_at'},
+    {'1': 'start_date', '3': 5, '4': 1, '5': 9, '10': 'startDate'},
+    {'1': 'duration_weeks', '3': 6, '4': 1, '5': 5, '10': 'durationWeeks'},
+    {'1': 'total_workouts', '3': 7, '4': 1, '5': 5, '10': 'totalWorkouts'},
+    {'1': 'is_active', '3': 8, '4': 1, '5': 8, '10': 'isActive'},
+    {'1': 'is_archived', '3': 9, '4': 1, '5': 8, '10': 'isArchived'},
+    {'1': 'created_at', '3': 10, '4': 1, '5': 11, '6': '.google.protobuf.Timestamp', '10': 'createdAt'},
+    {'1': 'updated_at', '3': 11, '4': 1, '5': 11, '6': '.google.protobuf.Timestamp', '10': 'updatedAt'},
   ],
 };
 
@@ -44,14 +39,12 @@ const ProgramSummary$json = {
 final $typed_data.Uint8List programSummaryDescriptor = $convert.base64Decode(
     'Cg5Qcm9ncmFtU3VtbWFyeRIOCgJpZBgBIAEoCVICaWQSFwoHdXNlcl9pZBgCIAEoCVIGdXNlck'
     'lkEhIKBG5hbWUYAyABKAlSBG5hbWUSIAoLZGVzY3JpcHRpb24YBCABKAlSC2Rlc2NyaXB0aW9u'
-    'EiUKDmR1cmF0aW9uX3dlZWtzGAUgASgFUg1kdXJhdGlvbldlZWtzEiMKDWR1cmF0aW9uX2RheX'
-    'MYBiABKAVSDGR1cmF0aW9uRGF5cxIsChJ0b3RhbF93b3Jrb3V0X2RheXMYByABKAVSEHRvdGFs'
-    'V29ya291dERheXMSJgoPdG90YWxfcmVzdF9kYXlzGAggASgFUg10b3RhbFJlc3REYXlzEhsKCW'
-    'lzX2FjdGl2ZRgJIAEoCFIIaXNBY3RpdmUSHwoLaXNfYXJjaGl2ZWQYCiABKAhSCmlzQXJjaGl2'
-    'ZWQSOQoKY3JlYXRlZF9hdBgLIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXBSCWNyZW'
-    'F0ZWRBdBI5Cgp1cGRhdGVkX2F0GAwgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcFIJ'
-    'dXBkYXRlZEF0Ej4KCnN0YXJ0ZWRfYXQYDSABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW'
-    '1wSABSCXN0YXJ0ZWRBdIgBAUINCgtfc3RhcnRlZF9hdA==');
+    'Eh0KCnN0YXJ0X2RhdGUYBSABKAlSCXN0YXJ0RGF0ZRIlCg5kdXJhdGlvbl93ZWVrcxgGIAEoBV'
+    'INZHVyYXRpb25XZWVrcxIlCg50b3RhbF93b3Jrb3V0cxgHIAEoBVINdG90YWxXb3Jrb3V0cxIb'
+    'Cglpc19hY3RpdmUYCCABKAhSCGlzQWN0aXZlEh8KC2lzX2FyY2hpdmVkGAkgASgIUgppc0FyY2'
+    'hpdmVkEjkKCmNyZWF0ZWRfYXQYCiABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wUglj'
+    'cmVhdGVkQXQSOQoKdXBkYXRlZF9hdBgLIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbX'
+    'BSCXVwZGF0ZWRBdA==');
 
 @$core.Deprecated('Use programDescriptor instead')
 const Program$json = {
@@ -61,57 +54,63 @@ const Program$json = {
     {'1': 'user_id', '3': 2, '4': 1, '5': 9, '10': 'userId'},
     {'1': 'name', '3': 3, '4': 1, '5': 9, '10': 'name'},
     {'1': 'description', '3': 4, '4': 1, '5': 9, '10': 'description'},
-    {'1': 'duration_weeks', '3': 5, '4': 1, '5': 5, '10': 'durationWeeks'},
-    {'1': 'duration_days', '3': 6, '4': 1, '5': 5, '10': 'durationDays'},
-    {'1': 'total_workout_days', '3': 7, '4': 1, '5': 5, '10': 'totalWorkoutDays'},
-    {'1': 'total_rest_days', '3': 8, '4': 1, '5': 5, '10': 'totalRestDays'},
-    {'1': 'is_active', '3': 9, '4': 1, '5': 8, '10': 'isActive'},
-    {'1': 'is_archived', '3': 10, '4': 1, '5': 8, '10': 'isArchived'},
-    {'1': 'days', '3': 11, '4': 3, '5': 11, '6': '.heft.v1.ProgramDay', '10': 'days'},
-    {'1': 'created_at', '3': 12, '4': 1, '5': 11, '6': '.google.protobuf.Timestamp', '10': 'createdAt'},
-    {'1': 'updated_at', '3': 13, '4': 1, '5': 11, '6': '.google.protobuf.Timestamp', '10': 'updatedAt'},
-    {'1': 'started_at', '3': 14, '4': 1, '5': 11, '6': '.google.protobuf.Timestamp', '9': 0, '10': 'startedAt', '17': true},
-  ],
-  '8': [
-    {'1': '_started_at'},
+    {'1': 'start_date', '3': 5, '4': 1, '5': 9, '10': 'startDate'},
+    {'1': 'duration_weeks', '3': 6, '4': 1, '5': 5, '10': 'durationWeeks'},
+    {'1': 'is_active', '3': 7, '4': 1, '5': 8, '10': 'isActive'},
+    {'1': 'is_archived', '3': 8, '4': 1, '5': 8, '10': 'isArchived'},
+    {'1': 'workouts', '3': 9, '4': 3, '5': 11, '6': '.heft.v1.ProgramWorkout', '10': 'workouts'},
+    {'1': 'created_at', '3': 10, '4': 1, '5': 11, '6': '.google.protobuf.Timestamp', '10': 'createdAt'},
+    {'1': 'updated_at', '3': 11, '4': 1, '5': 11, '6': '.google.protobuf.Timestamp', '10': 'updatedAt'},
   ],
 };
 
 /// Descriptor for `Program`. Decode as a `google.protobuf.DescriptorProto`.
 final $typed_data.Uint8List programDescriptor = $convert.base64Decode(
     'CgdQcm9ncmFtEg4KAmlkGAEgASgJUgJpZBIXCgd1c2VyX2lkGAIgASgJUgZ1c2VySWQSEgoEbm'
-    'FtZRgDIAEoCVIEbmFtZRIgCgtkZXNjcmlwdGlvbhgEIAEoCVILZGVzY3JpcHRpb24SJQoOZHVy'
-    'YXRpb25fd2Vla3MYBSABKAVSDWR1cmF0aW9uV2Vla3MSIwoNZHVyYXRpb25fZGF5cxgGIAEoBV'
-    'IMZHVyYXRpb25EYXlzEiwKEnRvdGFsX3dvcmtvdXRfZGF5cxgHIAEoBVIQdG90YWxXb3Jrb3V0'
-    'RGF5cxImCg90b3RhbF9yZXN0X2RheXMYCCABKAVSDXRvdGFsUmVzdERheXMSGwoJaXNfYWN0aX'
-    'ZlGAkgASgIUghpc0FjdGl2ZRIfCgtpc19hcmNoaXZlZBgKIAEoCFIKaXNBcmNoaXZlZBInCgRk'
-    'YXlzGAsgAygLMhMuaGVmdC52MS5Qcm9ncmFtRGF5UgRkYXlzEjkKCmNyZWF0ZWRfYXQYDCABKA'
-    'syGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wUgljcmVhdGVkQXQSOQoKdXBkYXRlZF9hdBgN'
-    'IAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXBSCXVwZGF0ZWRBdBI+CgpzdGFydGVkX2'
-    'F0GA4gASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcEgAUglzdGFydGVkQXSIAQFCDQoL'
-    'X3N0YXJ0ZWRfYXQ=');
+    'FtZRgDIAEoCVIEbmFtZRIgCgtkZXNjcmlwdGlvbhgEIAEoCVILZGVzY3JpcHRpb24SHQoKc3Rh'
+    'cnRfZGF0ZRgFIAEoCVIJc3RhcnREYXRlEiUKDmR1cmF0aW9uX3dlZWtzGAYgASgFUg1kdXJhdG'
+    'lvbldlZWtzEhsKCWlzX2FjdGl2ZRgHIAEoCFIIaXNBY3RpdmUSHwoLaXNfYXJjaGl2ZWQYCCAB'
+    'KAhSCmlzQXJjaGl2ZWQSMwoId29ya291dHMYCSADKAsyFy5oZWZ0LnYxLlByb2dyYW1Xb3Jrb3'
+    'V0Ugh3b3Jrb3V0cxI5CgpjcmVhdGVkX2F0GAogASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVz'
+    'dGFtcFIJY3JlYXRlZEF0EjkKCnVwZGF0ZWRfYXQYCyABKAsyGi5nb29nbGUucHJvdG9idWYuVG'
+    'ltZXN0YW1wUgl1cGRhdGVkQXQ=');
 
-@$core.Deprecated('Use programDayDescriptor instead')
-const ProgramDay$json = {
-  '1': 'ProgramDay',
+@$core.Deprecated('Use programWorkoutDescriptor instead')
+const ProgramWorkout$json = {
+  '1': 'ProgramWorkout',
   '2': [
     {'1': 'id', '3': 1, '4': 1, '5': 9, '10': 'id'},
     {'1': 'program_id', '3': 2, '4': 1, '5': 9, '10': 'programId'},
-    {'1': 'day_number', '3': 3, '4': 1, '5': 5, '10': 'dayNumber'},
-    {'1': 'day_type', '3': 4, '4': 1, '5': 14, '6': '.heft.v1.ProgramDayType', '10': 'dayType'},
-    {'1': 'workout_template_id', '3': 5, '4': 1, '5': 9, '10': 'workoutTemplateId'},
-    {'1': 'workout_name', '3': 6, '4': 1, '5': 9, '10': 'workoutName'},
-    {'1': 'custom_name', '3': 7, '4': 1, '5': 9, '10': 'customName'},
+    {'1': 'workout_template_id', '3': 3, '4': 1, '5': 9, '10': 'workoutTemplateId'},
+    {'1': 'workout_name', '3': 4, '4': 1, '5': 9, '10': 'workoutName'},
+    {'1': 'days_of_week', '3': 5, '4': 3, '5': 14, '6': '.heft.v1.DayOfWeek', '10': 'daysOfWeek'},
+    {'1': 'display_order', '3': 6, '4': 1, '5': 5, '10': 'displayOrder'},
   ],
 };
 
-/// Descriptor for `ProgramDay`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List programDayDescriptor = $convert.base64Decode(
-    'CgpQcm9ncmFtRGF5Eg4KAmlkGAEgASgJUgJpZBIdCgpwcm9ncmFtX2lkGAIgASgJUglwcm9ncm'
-    'FtSWQSHQoKZGF5X251bWJlchgDIAEoBVIJZGF5TnVtYmVyEjIKCGRheV90eXBlGAQgASgOMhcu'
-    'aGVmdC52MS5Qcm9ncmFtRGF5VHlwZVIHZGF5VHlwZRIuChN3b3Jrb3V0X3RlbXBsYXRlX2lkGA'
-    'UgASgJUhF3b3Jrb3V0VGVtcGxhdGVJZBIhCgx3b3Jrb3V0X25hbWUYBiABKAlSC3dvcmtvdXRO'
-    'YW1lEh8KC2N1c3RvbV9uYW1lGAcgASgJUgpjdXN0b21OYW1l');
+/// Descriptor for `ProgramWorkout`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List programWorkoutDescriptor = $convert.base64Decode(
+    'Cg5Qcm9ncmFtV29ya291dBIOCgJpZBgBIAEoCVICaWQSHQoKcHJvZ3JhbV9pZBgCIAEoCVIJcH'
+    'JvZ3JhbUlkEi4KE3dvcmtvdXRfdGVtcGxhdGVfaWQYAyABKAlSEXdvcmtvdXRUZW1wbGF0ZUlk'
+    'EiEKDHdvcmtvdXRfbmFtZRgEIAEoCVILd29ya291dE5hbWUSNAoMZGF5c19vZl93ZWVrGAUgAy'
+    'gOMhIuaGVmdC52MS5EYXlPZldlZWtSCmRheXNPZldlZWsSIwoNZGlzcGxheV9vcmRlchgGIAEo'
+    'BVIMZGlzcGxheU9yZGVy');
+
+@$core.Deprecated('Use programWorkoutInputDescriptor instead')
+const ProgramWorkoutInput$json = {
+  '1': 'ProgramWorkoutInput',
+  '2': [
+    {'1': 'workout_template_id', '3': 1, '4': 1, '5': 9, '10': 'workoutTemplateId'},
+    {'1': 'days_of_week', '3': 2, '4': 3, '5': 14, '6': '.heft.v1.DayOfWeek', '10': 'daysOfWeek'},
+    {'1': 'display_order', '3': 3, '4': 1, '5': 5, '10': 'displayOrder'},
+  ],
+};
+
+/// Descriptor for `ProgramWorkoutInput`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List programWorkoutInputDescriptor = $convert.base64Decode(
+    'ChNQcm9ncmFtV29ya291dElucHV0Ei4KE3dvcmtvdXRfdGVtcGxhdGVfaWQYASABKAlSEXdvcm'
+    'tvdXRUZW1wbGF0ZUlkEjQKDGRheXNfb2Zfd2VlaxgCIAMoDjISLmhlZnQudjEuRGF5T2ZXZWVr'
+    'UgpkYXlzT2ZXZWVrEiMKDWRpc3BsYXlfb3JkZXIYAyABKAVSDGRpc3BsYXlPcmRlcg==');
 
 @$core.Deprecated('Use listProgramsRequestDescriptor instead')
 const ListProgramsRequest$json = {
@@ -177,9 +176,9 @@ const CreateProgramRequest$json = {
   '2': [
     {'1': 'name', '3': 1, '4': 1, '5': 9, '10': 'name'},
     {'1': 'description', '3': 2, '4': 1, '5': 9, '9': 0, '10': 'description', '17': true},
-    {'1': 'duration_weeks', '3': 3, '4': 1, '5': 5, '10': 'durationWeeks'},
-    {'1': 'duration_days', '3': 4, '4': 1, '5': 5, '10': 'durationDays'},
-    {'1': 'days', '3': 5, '4': 3, '5': 11, '6': '.heft.v1.CreateProgramDay', '10': 'days'},
+    {'1': 'start_date', '3': 3, '4': 1, '5': 9, '10': 'startDate'},
+    {'1': 'duration_weeks', '3': 4, '4': 1, '5': 5, '10': 'durationWeeks'},
+    {'1': 'workouts', '3': 5, '4': 3, '5': 11, '6': '.heft.v1.ProgramWorkoutInput', '10': 'workouts'},
   ],
   '8': [
     {'1': '_description'},
@@ -189,32 +188,10 @@ const CreateProgramRequest$json = {
 /// Descriptor for `CreateProgramRequest`. Decode as a `google.protobuf.DescriptorProto`.
 final $typed_data.Uint8List createProgramRequestDescriptor = $convert.base64Decode(
     'ChRDcmVhdGVQcm9ncmFtUmVxdWVzdBISCgRuYW1lGAEgASgJUgRuYW1lEiUKC2Rlc2NyaXB0aW'
-    '9uGAIgASgJSABSC2Rlc2NyaXB0aW9uiAEBEiUKDmR1cmF0aW9uX3dlZWtzGAMgASgFUg1kdXJh'
-    'dGlvbldlZWtzEiMKDWR1cmF0aW9uX2RheXMYBCABKAVSDGR1cmF0aW9uRGF5cxItCgRkYXlzGA'
-    'UgAygLMhkuaGVmdC52MS5DcmVhdGVQcm9ncmFtRGF5UgRkYXlzQg4KDF9kZXNjcmlwdGlvbg==');
-
-@$core.Deprecated('Use createProgramDayDescriptor instead')
-const CreateProgramDay$json = {
-  '1': 'CreateProgramDay',
-  '2': [
-    {'1': 'day_number', '3': 1, '4': 1, '5': 5, '10': 'dayNumber'},
-    {'1': 'day_type', '3': 2, '4': 1, '5': 14, '6': '.heft.v1.ProgramDayType', '10': 'dayType'},
-    {'1': 'workout_template_id', '3': 3, '4': 1, '5': 9, '9': 0, '10': 'workoutTemplateId', '17': true},
-    {'1': 'custom_name', '3': 4, '4': 1, '5': 9, '9': 1, '10': 'customName', '17': true},
-  ],
-  '8': [
-    {'1': '_workout_template_id'},
-    {'1': '_custom_name'},
-  ],
-};
-
-/// Descriptor for `CreateProgramDay`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List createProgramDayDescriptor = $convert.base64Decode(
-    'ChBDcmVhdGVQcm9ncmFtRGF5Eh0KCmRheV9udW1iZXIYASABKAVSCWRheU51bWJlchIyCghkYX'
-    'lfdHlwZRgCIAEoDjIXLmhlZnQudjEuUHJvZ3JhbURheVR5cGVSB2RheVR5cGUSMwoTd29ya291'
-    'dF90ZW1wbGF0ZV9pZBgDIAEoCUgAUhF3b3Jrb3V0VGVtcGxhdGVJZIgBARIkCgtjdXN0b21fbm'
-    'FtZRgEIAEoCUgBUgpjdXN0b21OYW1liAEBQhYKFF93b3Jrb3V0X3RlbXBsYXRlX2lkQg4KDF9j'
-    'dXN0b21fbmFtZQ==');
+    '9uGAIgASgJSABSC2Rlc2NyaXB0aW9uiAEBEh0KCnN0YXJ0X2RhdGUYAyABKAlSCXN0YXJ0RGF0'
+    'ZRIlCg5kdXJhdGlvbl93ZWVrcxgEIAEoBVINZHVyYXRpb25XZWVrcxI4Cgh3b3Jrb3V0cxgFIA'
+    'MoCzIcLmhlZnQudjEuUHJvZ3JhbVdvcmtvdXRJbnB1dFIId29ya291dHNCDgoMX2Rlc2NyaXB0'
+    'aW9u');
 
 @$core.Deprecated('Use createProgramResponseDescriptor instead')
 const CreateProgramResponse$json = {
@@ -236,16 +213,17 @@ const UpdateProgramRequest$json = {
     {'1': 'id', '3': 1, '4': 1, '5': 9, '10': 'id'},
     {'1': 'name', '3': 2, '4': 1, '5': 9, '9': 0, '10': 'name', '17': true},
     {'1': 'description', '3': 3, '4': 1, '5': 9, '9': 1, '10': 'description', '17': true},
-    {'1': 'duration_weeks', '3': 4, '4': 1, '5': 5, '9': 2, '10': 'durationWeeks', '17': true},
-    {'1': 'duration_days', '3': 5, '4': 1, '5': 5, '9': 3, '10': 'durationDays', '17': true},
+    {'1': 'start_date', '3': 4, '4': 1, '5': 9, '9': 2, '10': 'startDate', '17': true},
+    {'1': 'duration_weeks', '3': 5, '4': 1, '5': 5, '9': 3, '10': 'durationWeeks', '17': true},
     {'1': 'is_archived', '3': 6, '4': 1, '5': 8, '9': 4, '10': 'isArchived', '17': true},
-    {'1': 'days', '3': 7, '4': 3, '5': 11, '6': '.heft.v1.CreateProgramDay', '10': 'days'},
+    {'1': 'replace_workouts', '3': 7, '4': 1, '5': 8, '10': 'replaceWorkouts'},
+    {'1': 'workouts', '3': 8, '4': 3, '5': 11, '6': '.heft.v1.ProgramWorkoutInput', '10': 'workouts'},
   ],
   '8': [
     {'1': '_name'},
     {'1': '_description'},
+    {'1': '_start_date'},
     {'1': '_duration_weeks'},
-    {'1': '_duration_days'},
     {'1': '_is_archived'},
   ],
 };
@@ -253,12 +231,13 @@ const UpdateProgramRequest$json = {
 /// Descriptor for `UpdateProgramRequest`. Decode as a `google.protobuf.DescriptorProto`.
 final $typed_data.Uint8List updateProgramRequestDescriptor = $convert.base64Decode(
     'ChRVcGRhdGVQcm9ncmFtUmVxdWVzdBIOCgJpZBgBIAEoCVICaWQSFwoEbmFtZRgCIAEoCUgAUg'
-    'RuYW1liAEBEiUKC2Rlc2NyaXB0aW9uGAMgASgJSAFSC2Rlc2NyaXB0aW9uiAEBEioKDmR1cmF0'
-    'aW9uX3dlZWtzGAQgASgFSAJSDWR1cmF0aW9uV2Vla3OIAQESKAoNZHVyYXRpb25fZGF5cxgFIA'
-    'EoBUgDUgxkdXJhdGlvbkRheXOIAQESJAoLaXNfYXJjaGl2ZWQYBiABKAhIBFIKaXNBcmNoaXZl'
-    'ZIgBARItCgRkYXlzGAcgAygLMhkuaGVmdC52MS5DcmVhdGVQcm9ncmFtRGF5UgRkYXlzQgcKBV'
-    '9uYW1lQg4KDF9kZXNjcmlwdGlvbkIRCg9fZHVyYXRpb25fd2Vla3NCEAoOX2R1cmF0aW9uX2Rh'
-    'eXNCDgoMX2lzX2FyY2hpdmVk');
+    'RuYW1liAEBEiUKC2Rlc2NyaXB0aW9uGAMgASgJSAFSC2Rlc2NyaXB0aW9uiAEBEiIKCnN0YXJ0'
+    'X2RhdGUYBCABKAlIAlIJc3RhcnREYXRliAEBEioKDmR1cmF0aW9uX3dlZWtzGAUgASgFSANSDW'
+    'R1cmF0aW9uV2Vla3OIAQESJAoLaXNfYXJjaGl2ZWQYBiABKAhIBFIKaXNBcmNoaXZlZIgBARIp'
+    'ChByZXBsYWNlX3dvcmtvdXRzGAcgASgIUg9yZXBsYWNlV29ya291dHMSOAoId29ya291dHMYCC'
+    'ADKAsyHC5oZWZ0LnYxLlByb2dyYW1Xb3Jrb3V0SW5wdXRSCHdvcmtvdXRzQgcKBV9uYW1lQg4K'
+    'DF9kZXNjcmlwdGlvbkINCgtfc3RhcnRfZGF0ZUIRCg9fZHVyYXRpb25fd2Vla3NCDgoMX2lzX2'
+    'FyY2hpdmVk');
 
 @$core.Deprecated('Use updateProgramResponseDescriptor instead')
 const UpdateProgramResponse$json = {
@@ -335,21 +314,21 @@ final $typed_data.Uint8List getTodayWorkoutRequestDescriptor = $convert.base64De
 const GetTodayWorkoutResponse$json = {
   '1': 'GetTodayWorkoutResponse',
   '2': [
-    {'1': 'has_workout', '3': 1, '4': 1, '5': 8, '10': 'hasWorkout'},
-    {'1': 'day_number', '3': 2, '4': 1, '5': 5, '10': 'dayNumber'},
-    {'1': 'day_type', '3': 3, '4': 1, '5': 14, '6': '.heft.v1.ProgramDayType', '10': 'dayType'},
-    {'1': 'workout', '3': 4, '4': 1, '5': 11, '6': '.heft.v1.Workout', '10': 'workout'},
+    {'1': 'date', '3': 1, '4': 1, '5': 9, '10': 'date'},
+    {'1': 'day_of_week', '3': 2, '4': 1, '5': 14, '6': '.heft.v1.DayOfWeek', '10': 'dayOfWeek'},
+    {'1': 'in_program_window', '3': 3, '4': 1, '5': 8, '10': 'inProgramWindow'},
+    {'1': 'workouts', '3': 4, '4': 3, '5': 11, '6': '.heft.v1.Workout', '10': 'workouts'},
     {'1': 'program', '3': 5, '4': 1, '5': 11, '6': '.heft.v1.Program', '10': 'program'},
   ],
 };
 
 /// Descriptor for `GetTodayWorkoutResponse`. Decode as a `google.protobuf.DescriptorProto`.
 final $typed_data.Uint8List getTodayWorkoutResponseDescriptor = $convert.base64Decode(
-    'ChdHZXRUb2RheVdvcmtvdXRSZXNwb25zZRIfCgtoYXNfd29ya291dBgBIAEoCFIKaGFzV29ya2'
-    '91dBIdCgpkYXlfbnVtYmVyGAIgASgFUglkYXlOdW1iZXISMgoIZGF5X3R5cGUYAyABKA4yFy5o'
-    'ZWZ0LnYxLlByb2dyYW1EYXlUeXBlUgdkYXlUeXBlEioKB3dvcmtvdXQYBCABKAsyEC5oZWZ0Ln'
-    'YxLldvcmtvdXRSB3dvcmtvdXQSKgoHcHJvZ3JhbRgFIAEoCzIQLmhlZnQudjEuUHJvZ3JhbVIH'
-    'cHJvZ3JhbQ==');
+    'ChdHZXRUb2RheVdvcmtvdXRSZXNwb25zZRISCgRkYXRlGAEgASgJUgRkYXRlEjIKC2RheV9vZl'
+    '93ZWVrGAIgASgOMhIuaGVmdC52MS5EYXlPZldlZWtSCWRheU9mV2VlaxIqChFpbl9wcm9ncmFt'
+    'X3dpbmRvdxgDIAEoCFIPaW5Qcm9ncmFtV2luZG93EiwKCHdvcmtvdXRzGAQgAygLMhAuaGVmdC'
+    '52MS5Xb3Jrb3V0Ugh3b3Jrb3V0cxIqCgdwcm9ncmFtGAUgASgLMhAuaGVmdC52MS5Qcm9ncmFt'
+    'Ugdwcm9ncmFt');
 
 const $core.Map<$core.String, $core.dynamic> ProgramServiceBase$json = {
   '1': 'ProgramService',
@@ -375,9 +354,9 @@ const $core.Map<$core.String, $core.Map<$core.String, $core.dynamic>> ProgramSer
   '.heft.v1.GetProgramRequest': GetProgramRequest$json,
   '.heft.v1.GetProgramResponse': GetProgramResponse$json,
   '.heft.v1.Program': Program$json,
-  '.heft.v1.ProgramDay': ProgramDay$json,
+  '.heft.v1.ProgramWorkout': ProgramWorkout$json,
   '.heft.v1.CreateProgramRequest': CreateProgramRequest$json,
-  '.heft.v1.CreateProgramDay': CreateProgramDay$json,
+  '.heft.v1.ProgramWorkoutInput': ProgramWorkoutInput$json,
   '.heft.v1.CreateProgramResponse': CreateProgramResponse$json,
   '.heft.v1.UpdateProgramRequest': UpdateProgramRequest$json,
   '.heft.v1.UpdateProgramResponse': UpdateProgramResponse$json,

@@ -24,7 +24,6 @@ const Session$json = {
     {'1': 'user_id', '3': 2, '4': 1, '5': 9, '10': 'userId'},
     {'1': 'workout_template_id', '3': 3, '4': 1, '5': 9, '10': 'workoutTemplateId'},
     {'1': 'program_id', '3': 4, '4': 1, '5': 9, '10': 'programId'},
-    {'1': 'program_day_number', '3': 5, '4': 1, '5': 5, '10': 'programDayNumber'},
     {'1': 'name', '3': 6, '4': 1, '5': 9, '10': 'name'},
     {'1': 'status', '3': 7, '4': 1, '5': 14, '6': '.heft.v1.WorkoutStatus', '10': 'status'},
     {'1': 'started_at', '3': 8, '4': 1, '5': 11, '6': '.google.protobuf.Timestamp', '10': 'startedAt'},
@@ -38,24 +37,27 @@ const Session$json = {
     {'1': 'updated_at', '3': 16, '4': 1, '5': 11, '6': '.google.protobuf.Timestamp', '10': 'updatedAt'},
     {'1': 'rest_items', '3': 17, '4': 3, '5': 11, '6': '.heft.v1.SessionRestItem', '10': 'restItems'},
   ],
+  '9': [
+    {'1': 5, '2': 6},
+  ],
+  '10': ['program_day_number'],
 };
 
 /// Descriptor for `Session`. Decode as a `google.protobuf.DescriptorProto`.
 final $typed_data.Uint8List sessionDescriptor = $convert.base64Decode(
     'CgdTZXNzaW9uEg4KAmlkGAEgASgJUgJpZBIXCgd1c2VyX2lkGAIgASgJUgZ1c2VySWQSLgoTd2'
     '9ya291dF90ZW1wbGF0ZV9pZBgDIAEoCVIRd29ya291dFRlbXBsYXRlSWQSHQoKcHJvZ3JhbV9p'
-    'ZBgEIAEoCVIJcHJvZ3JhbUlkEiwKEnByb2dyYW1fZGF5X251bWJlchgFIAEoBVIQcHJvZ3JhbU'
-    'RheU51bWJlchISCgRuYW1lGAYgASgJUgRuYW1lEi4KBnN0YXR1cxgHIAEoDjIWLmhlZnQudjEu'
-    'V29ya291dFN0YXR1c1IGc3RhdHVzEjkKCnN0YXJ0ZWRfYXQYCCABKAsyGi5nb29nbGUucHJvdG'
-    '9idWYuVGltZXN0YW1wUglzdGFydGVkQXQSPQoMY29tcGxldGVkX2F0GAkgASgLMhouZ29vZ2xl'
-    'LnByb3RvYnVmLlRpbWVzdGFtcFILY29tcGxldGVkQXQSKQoQZHVyYXRpb25fc2Vjb25kcxgKIA'
-    'EoBVIPZHVyYXRpb25TZWNvbmRzEh0KCnRvdGFsX3NldHMYCyABKAVSCXRvdGFsU2V0cxIlCg5j'
-    'b21wbGV0ZWRfc2V0cxgMIAEoBVINY29tcGxldGVkU2V0cxIUCgVub3RlcxgNIAEoCVIFbm90ZX'
-    'MSNgoJZXhlcmNpc2VzGA4gAygLMhguaGVmdC52MS5TZXNzaW9uRXhlcmNpc2VSCWV4ZXJjaXNl'
-    'cxI5CgpjcmVhdGVkX2F0GA8gASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcFIJY3JlYX'
-    'RlZEF0EjkKCnVwZGF0ZWRfYXQYECABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wUgl1'
-    'cGRhdGVkQXQSNwoKcmVzdF9pdGVtcxgRIAMoCzIYLmhlZnQudjEuU2Vzc2lvblJlc3RJdGVtUg'
-    'lyZXN0SXRlbXM=');
+    'ZBgEIAEoCVIJcHJvZ3JhbUlkEhIKBG5hbWUYBiABKAlSBG5hbWUSLgoGc3RhdHVzGAcgASgOMh'
+    'YuaGVmdC52MS5Xb3Jrb3V0U3RhdHVzUgZzdGF0dXMSOQoKc3RhcnRlZF9hdBgIIAEoCzIaLmdv'
+    'b2dsZS5wcm90b2J1Zi5UaW1lc3RhbXBSCXN0YXJ0ZWRBdBI9Cgxjb21wbGV0ZWRfYXQYCSABKA'
+    'syGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wUgtjb21wbGV0ZWRBdBIpChBkdXJhdGlvbl9z'
+    'ZWNvbmRzGAogASgFUg9kdXJhdGlvblNlY29uZHMSHQoKdG90YWxfc2V0cxgLIAEoBVIJdG90YW'
+    'xTZXRzEiUKDmNvbXBsZXRlZF9zZXRzGAwgASgFUg1jb21wbGV0ZWRTZXRzEhQKBW5vdGVzGA0g'
+    'ASgJUgVub3RlcxI2CglleGVyY2lzZXMYDiADKAsyGC5oZWZ0LnYxLlNlc3Npb25FeGVyY2lzZV'
+    'IJZXhlcmNpc2VzEjkKCmNyZWF0ZWRfYXQYDyABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0'
+    'YW1wUgljcmVhdGVkQXQSOQoKdXBkYXRlZF9hdBgQIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW'
+    '1lc3RhbXBSCXVwZGF0ZWRBdBI3CgpyZXN0X2l0ZW1zGBEgAygLMhguaGVmdC52MS5TZXNzaW9u'
+    'UmVzdEl0ZW1SCXJlc3RJdGVtc0oECAUQBlIScHJvZ3JhbV9kYXlfbnVtYmVy');
 
 @$core.Deprecated('Use sessionExerciseDescriptor instead')
 const SessionExercise$json = {
@@ -195,24 +197,25 @@ const StartSessionRequest$json = {
   '2': [
     {'1': 'workout_template_id', '3': 1, '4': 1, '5': 9, '9': 0, '10': 'workoutTemplateId', '17': true},
     {'1': 'program_id', '3': 2, '4': 1, '5': 9, '9': 1, '10': 'programId', '17': true},
-    {'1': 'program_day_number', '3': 3, '4': 1, '5': 5, '9': 2, '10': 'programDayNumber', '17': true},
-    {'1': 'name', '3': 4, '4': 1, '5': 9, '9': 3, '10': 'name', '17': true},
+    {'1': 'name', '3': 4, '4': 1, '5': 9, '9': 2, '10': 'name', '17': true},
   ],
   '8': [
     {'1': '_workout_template_id'},
     {'1': '_program_id'},
-    {'1': '_program_day_number'},
     {'1': '_name'},
   ],
+  '9': [
+    {'1': 3, '2': 4},
+  ],
+  '10': ['program_day_number'],
 };
 
 /// Descriptor for `StartSessionRequest`. Decode as a `google.protobuf.DescriptorProto`.
 final $typed_data.Uint8List startSessionRequestDescriptor = $convert.base64Decode(
     'ChNTdGFydFNlc3Npb25SZXF1ZXN0EjMKE3dvcmtvdXRfdGVtcGxhdGVfaWQYASABKAlIAFIRd2'
     '9ya291dFRlbXBsYXRlSWSIAQESIgoKcHJvZ3JhbV9pZBgCIAEoCUgBUglwcm9ncmFtSWSIAQES'
-    'MQoScHJvZ3JhbV9kYXlfbnVtYmVyGAMgASgFSAJSEHByb2dyYW1EYXlOdW1iZXKIAQESFwoEbm'
-    'FtZRgEIAEoCUgDUgRuYW1liAEBQhYKFF93b3Jrb3V0X3RlbXBsYXRlX2lkQg0KC19wcm9ncmFt'
-    'X2lkQhUKE19wcm9ncmFtX2RheV9udW1iZXJCBwoFX25hbWU=');
+    'FwoEbmFtZRgEIAEoCUgCUgRuYW1liAEBQhYKFF93b3Jrb3V0X3RlbXBsYXRlX2lkQg0KC19wcm'
+    '9ncmFtX2lkQgcKBV9uYW1lSgQIAxAEUhJwcm9ncmFtX2RheV9udW1iZXI=');
 
 @$core.Deprecated('Use startSessionResponseDescriptor instead')
 const StartSessionResponse$json = {

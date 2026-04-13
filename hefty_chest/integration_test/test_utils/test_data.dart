@@ -90,10 +90,13 @@ class TestData {
     String name = 'Integration Test Program',
     int durationWeeks = 4,
   }) async {
+    final today = DateTime.now();
+    final iso =
+        '${today.year.toString().padLeft(4, '0')}-${today.month.toString().padLeft(2, '0')}-${today.day.toString().padLeft(2, '0')}';
     final request = CreateProgramRequest()
       ..name = name
-      ..durationWeeks = durationWeeks
-      ..durationDays = durationWeeks * 7;
+      ..startDate = iso
+      ..durationWeeks = durationWeeks;
 
     final response = await programClient.createProgram(request);
     return response.program.id;

@@ -39,7 +39,7 @@ type SyncSetInput struct {
 
 // SessionRepositoryInterface defines the contract for session data access
 type SessionRepositoryInterface interface {
-	Create(ctx context.Context, userID string, workoutTemplateID, programID *string, programDayNumber *int, name *string) (*WorkoutSession, error)
+	Create(ctx context.Context, userID string, workoutTemplateID, programID *string, name *string) (*WorkoutSession, error)
 	GetByID(ctx context.Context, id, userID string) (*WorkoutSession, error)
 	AddExercise(ctx context.Context, sessionID, exerciseID string, displayOrder int, sectionName, supersetID *string) (*SessionExercise, error)
 	AddSet(ctx context.Context, sessionExerciseID string, setNumber int, targetWeightKg *float64, targetReps, targetTimeSeconds, restDurationSeconds *int, isBodyweight bool) (*SessionSet, error)
@@ -70,13 +70,14 @@ type WorkoutRepositoryInterface interface {
 // ProgramRepositoryInterface defines the contract for program data access
 type ProgramRepositoryInterface interface {
 	List(ctx context.Context, userID string, includeArchived bool, limit, offset int) ([]*Program, int, error)
+	ListWorkoutCounts(ctx context.Context, programIDs []string) (map[string]int, error)
 	GetByID(ctx context.Context, id, userID string) (*Program, error)
-	Create(ctx context.Context, userID, name string, description *string, durationWeeks, durationDays int) (*Program, error)
-	CreateDay(ctx context.Context, programID string, dayNumber int, dayType string, workoutTemplateID, customName *string) (*ProgramDay, error)
+	Create(ctx context.Context, userID, name string, description *string, startDate time.Time, durationWeeks int) (*Program, error)
+	CreateWorkout(ctx context.Context, programID, workoutTemplateID string, daysOfWeek []int16, displayOrder int) (*ProgramWorkout, error)
+	DeleteWorkouts(ctx context.Context, programID, userID string) error
 	SetActive(ctx context.Context, id, userID string) (*Program, error)
 	Delete(ctx context.Context, id, userID string) error
-	Update(ctx context.Context, id, userID string, name *string, description *string, durationWeeks *int, durationDays *int, isArchived *bool, totalWorkoutDays *int, totalRestDays *int) (*Program, error)
-	DeleteDays(ctx context.Context, programID, userID string) error
+	Update(ctx context.Context, id, userID string, name, description *string, startDate *time.Time, durationWeeks *int, isArchived *bool) (*Program, error)
 	GetActiveProgram(ctx context.Context, userID string) (*Program, error)
 	Archive(ctx context.Context, id, userID string) error
 }
