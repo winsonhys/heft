@@ -8,7 +8,7 @@ import 'package:hefty_chest/app/app.dart';
 import 'package:hefty_chest/features/auth/providers/auth_providers.dart';
 import 'package:hefty_chest/features/home/widgets/workout_card.dart';
 import 'package:hefty_chest/features/tracker/widgets/set_row.dart';
-import 'package:hefty_chest/features/workout_builder/widgets/exercise_search_modal.dart';
+import 'package:hefty_chest/shared/widgets/exercise_picker_modal.dart';
 import 'package:hefty_chest/shared/widgets/floating_session_widget.dart';
 
 import '../test_utils/test_setup.dart';
@@ -231,8 +231,8 @@ void main() {
         await tapGestureDetectorWithText(tester, 'Exercise');
       });
 
-      // ExerciseSearchModal should open
-      expect(find.byType(ExerciseSearchModal), findsOneWidget);
+      // ExercisePickerModal should open
+      expect(find.byType(ExercisePickerModal), findsOneWidget);
 
       await tester.runAsync(() async {
         await tester.tapAt(const Offset(10, 10));
