@@ -620,7 +620,8 @@ Future<void> navigateToTracker(
 
 /// Enter weight/reps and tap the completion circle on a set.
 ///
-/// Uses global EditableText and Container finders indexed by [setIndex].
+/// Finds inputs by ordinal EditableText index and the completion control by
+/// the stable `set_row_complete_<setIndex>` Key on [SetRow].
 Future<void> completeSetViaUI(
   WidgetTester tester,
   int setIndex, {
@@ -637,13 +638,10 @@ Future<void> completeSetViaUI(
       find.byType(EditableText).at(repsFieldIndex), reps);
   await tester.pump();
 
-  final completionCircles = find.byWidgetPredicate((widget) {
-    if (widget is! Container) return false;
-    final decoration = widget.decoration;
-    return decoration is BoxDecoration &&
-        decoration.shape == BoxShape.circle;
-  });
-  await tester.tap(completionCircles.at(setIndex));
+  final completeButton = find.byKey(Key('set_row_complete_$setIndex'));
+  expect(completeButton, findsOneWidget,
+      reason: 'Set $setIndex completion button should be visible');
+  await tester.tap(completeButton);
   await Future.delayed(const Duration(milliseconds: 500));
   await tester.pump();
 }

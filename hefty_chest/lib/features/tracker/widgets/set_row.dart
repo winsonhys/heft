@@ -19,6 +19,7 @@ class SetRow extends HookWidget {
   final VoidCallback? onDelete;
   final Function(String setId, double rpe)? onRpeChanged;
   final Function(String setId, String notes)? onNotesChanged;
+  final int? index;
 
   const SetRow({
     super.key,
@@ -29,6 +30,7 @@ class SetRow extends HookWidget {
     this.onDelete,
     this.onRpeChanged,
     this.onNotesChanged,
+    this.index,
   });
 
   int? _parseTime(String value) {
@@ -461,6 +463,7 @@ class SetRow extends HookWidget {
           SizedBox(
             width: 32,
             child: GestureDetector(
+              key: index != null ? Key('set_row_complete_$index') : null,
               onTap: handleComplete,
               child: Container(
                 width: 24,

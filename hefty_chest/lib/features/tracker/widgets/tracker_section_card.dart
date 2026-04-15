@@ -178,6 +178,7 @@ class _TrackerSectionCardState extends State<TrackerSectionCard> with SingleTick
                           set: set,
                           previousSet: i > 0 ? widget.exercise.sets[i - 1] : null,
                           isTimeBased: _isTimeBased,
+                          index: i,
                           onComplete: widget.onSetCompleted,
                           onDelete: widget.onSetDeleted != null
                               ? () => widget.onSetDeleted!(set.id)
