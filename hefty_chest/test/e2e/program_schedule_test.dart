@@ -30,10 +30,12 @@ void main() {
   group('Program schedule E2E', () {
     test('create program with weekday workouts and read it back', () async {
       final wtId = await TestData.createTestWorkout(name: 'Push');
-      final today = DateTime.now();
-      final iso = '${today.year.toString().padLeft(4, '0')}-'
-          '${today.month.toString().padLeft(2, '0')}-'
-          '${today.day.toString().padLeft(2, '0')}';
+      // Backend derives "today" from time.Now().UTC(). Use a UTC-based ISO
+      // back-dated 1 day so timezone drift can't push us before start_date.
+      final startUtc = DateTime.now().toUtc().subtract(const Duration(days: 1));
+      final iso = '${startUtc.year.toString().padLeft(4, '0')}-'
+          '${startUtc.month.toString().padLeft(2, '0')}-'
+          '${startUtc.day.toString().padLeft(2, '0')}';
 
       final create = CreateProgramRequest()
         ..name = 'Schedule Test'
@@ -65,8 +67,9 @@ void main() {
           await programClient.getTodayWorkout(GetTodayWorkoutRequest());
       expect(todayResp.inProgramWindow, isTrue,
           reason: 'today must be inside the program window');
-      final iso1to7 = today.weekday; // Mon=1..Sun=7 in Dart matches our ISO model
-      final shouldHave = iso1to7 == 1 || iso1to7 == 3 || iso1to7 == 5;
+      // Backend computes today's weekday from time.Now().UTC(); match that.
+      final weekdayUtc = DateTime.now().toUtc().weekday; // Mon=1..Sun=7
+      final shouldHave = weekdayUtc == 1 || weekdayUtc == 3 || weekdayUtc == 5;
       expect(todayResp.workouts.length, shouldHave ? 1 : 0,
           reason: shouldHave
               ? 'today is M/W/F → workout should appear'
@@ -80,10 +83,13 @@ void main() {
         // Create a program scheduled every weekday so calendar always lights up
         final wtId = await TestData.createTestWorkout(
             name: 'Daily ${DateTime.now().microsecondsSinceEpoch}');
-        final today = DateTime.now();
-        final iso = '${today.year.toString().padLeft(4, '0')}-'
-            '${today.month.toString().padLeft(2, '0')}-'
-            '${today.day.toString().padLeft(2, '0')}';
+        // Backend derives the program window from time.Now().UTC(). Use a
+        // UTC-based ISO back-dated 1 day so timezone drift can't push us
+        // before start_date.
+        final startUtc = DateTime.now().toUtc().subtract(const Duration(days: 1));
+        final iso = '${startUtc.year.toString().padLeft(4, '0')}-'
+            '${startUtc.month.toString().padLeft(2, '0')}-'
+            '${startUtc.day.toString().padLeft(2, '0')}';
 
         final create = CreateProgramRequest()
           ..name = 'Daily Program'
